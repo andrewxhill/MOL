@@ -4,19 +4,21 @@
 4. change the directories and application names below to match your configurations
 5. Run:
     $ mysql -u root col2010ac -p < mysql_export.sql
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/common_names.yaml --filename=/tmp/common_names.csv --kind=common_names  molapps/
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/databases.yaml --filename=/tmp/databases.csv --kind=databases  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/distribution.yaml --filename=/tmp/distribution.csv --kind=distribution  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/families.yaml --filename=/tmp/families.csv --kind=families  molapps/
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/hard_coded_species_totals.yaml --filename=/tmp/hard_coded_species_totals.csv --kind=hard_coded_species_totals  molapps/
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/hard_coded_taxon_lists.yaml --filename=/tmp/hard_coded_taxon_lists.csv --kind=hard_coded_taxon_lists  molapps/
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/references.yaml --filename=/tmp/references.csv --kind=references  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/scientific_name_references.yaml --filename=/tmp/scientific_name_references.csv --kind=scientific_name_references  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/scientific_names.yaml --filename=/tmp/scientific_names.csv --kind=scientific_names  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/simple_search.yaml --filename=/tmp/simple_search.csv --kind=simple_search  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/sp2000_statuses.yaml --filename=/tmp/sp2000_statuses.csv --kind=sp2000_statuses  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/specialists.yaml --filename=/tmp/specialists.csv --kind=specialists  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  molapps/ 
-    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=col-ae/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  molapps/ 
+        #Functions like converting in-text commas to html encoded commas is a temporary
+        #workaround to get the loader working properly
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/common_names.yaml --filename=/tmp/common_names.csv --kind=common_names  molapps/
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/databases.yaml --filename=/tmp/databases.csv --kind=databases  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/distribution.yaml --filename=/tmp/distribution.csv --kind=distribution  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/families.yaml --filename=/tmp/families.csv --kind=families  molapps/
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/hard_coded_species_totals.yaml --filename=/tmp/hard_coded_species_totals.csv --kind=hard_coded_species_totals  molapps/
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/hard_coded_taxon_lists.yaml --filename=/tmp/hard_coded_taxon_lists.csv --kind=hard_coded_taxon_lists  molapps/
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/references.yaml --filename=/tmp/references.csv --kind=references  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/scientific_name_references.yaml --filename=/tmp/scientific_name_references.csv --kind=scientific_name_references  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/scientific_names.yaml --filename=/tmp/scientific_names.csv --kind=scientific_names  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/simple_search.yaml --filename=/tmp/simple_search.csv --kind=simple_search  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/sp2000_statuses.yaml --filename=/tmp/sp2000_statuses.csv --kind=sp2000_statuses  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/specialists.yaml --filename=/tmp/specialists.csv --kind=specialists  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  molapps/ 
+    $ ../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkuploaders/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  molapps/ 
 
 
