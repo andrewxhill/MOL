@@ -40,7 +40,8 @@ class specialists(db.Model):
     
 class taxa(db.Model):
     record_id = db.IntegerProperty()
-    lsid,name = db.StringProperty()
+    lsid = db.StringProperty()
+    name = db.StringProperty()
     name_with_italics = db.StringProperty()
     taxon = db.StringProperty()
     name_code = db.StringProperty()
