@@ -53,9 +53,9 @@ class taxa(db.Model):
     last_update = db.DateTimeProperty(auto_now_add=True)
 
     
-class sp200_statuses(db.Model):
+class sp2000_statuses(db.Model):
     record_id = db.IntegerProperty()
-    sp200_status = db.StringProperty()
+    sp2000_status = db.StringProperty()
     last_update = db.DateTimeProperty(auto_now_add=True)
     
 class simple_search(db.Model):

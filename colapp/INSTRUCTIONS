@@ -15,9 +15,10 @@
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/references.yaml --filename=/tmp/references.csv --kind=references  ../../molapps/ 
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/scientific_name_references.yaml --filename=/tmp/scientific_name_references.csv --kind=scientific_name_references  ../../molapps/ 
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/scientific_names.yaml --filename=/tmp/scientific_names.csv --kind=scientific_names  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/simple_search.yaml --filename=/tmp/simple_search.csv --kind=simple_search  ../../molapps/ 
+    $ ../../../google_appengine/appcfg.py upload_data --batch_size=50 --config_file=bulkloaders/simple_search.yaml --filename=/tmp/simple_search.csv --kind=simple_search  ../../molapps/ 
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/sp2000_statuses.yaml --filename=/tmp/sp2000_statuses.csv --kind=sp2000_statuses  ../../molapps/ 
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/specialists.yaml --filename=/tmp/specialists.csv --kind=specialists  ../../molapps/ 
     $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  ../../molapps/ 
-
+        #these leave a lot of \N cells in appengine. if you are comfortable, you can edit the transform.py file in 
+        #the app engine directory to remove them in the none_if_empty function
 
