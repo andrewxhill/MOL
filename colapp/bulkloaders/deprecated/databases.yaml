@@ -32,7 +32,7 @@ transformers:
   property_map:
     - property: record_id
       external_name: record_id
-      export_transform: transform.none_if_empty(int)
+      import_transform: transform.none_if_empty(int)
       
     - property: database_name_displayed
       external_name: database_name_displayed

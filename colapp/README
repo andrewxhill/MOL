@@ -1,4 +1,6 @@
-mol-apps/ GAE files
+Convert and upload the COL MySQL database to AppEngine datastore.
+
+app/ GAE files
 colexport/ SQL for exporting COL mysql database to CSVs
 bulkuploaders/ .yaml files for uploading COL data to GAE
 

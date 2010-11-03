@@ -1,24 +1,10 @@
-1. Download bulkloaders.tar.gz
-2. tar zxvf bulkloaders.tar.gz
+1. Download bulkloader.tar.gz
+2. tar zxvf bulkloader.tar.gz
 3. Follow INSTALL.txt Instructions to create a local mysql DB
 4. change the directories and application names below to match your configurations
 5. Run:
-    $ mysql -u root col2010ac -p < mysql_export.sql
-        #Functions like converting in-text commas to html encoded commas is a temporary
-        #workaround to get the loader working properly
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/common_names.yaml --filename=/tmp/common_names.csv --kind=common_names  ../../molapps/
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/databases.yaml --filename=/tmp/databases.csv --kind=databases  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/distribution.yaml --filename=/tmp/distribution.csv --kind=distribution  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/families.yaml --filename=/tmp/families.csv --kind=families  ../../molapps/
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/hard_coded_species_totals.yaml --filename=/tmp/hard_coded_species_totals.csv --kind=hard_coded_species_totals  ../../molapps/
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/hard_coded_taxon_lists.yaml --filename=/tmp/hard_coded_taxon_lists.csv --kind=hard_coded_taxon_lists  ../../molapps/
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/references.yaml --filename=/tmp/references.csv --kind=references  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/scientific_name_references.yaml --filename=/tmp/scientific_name_references.csv --kind=scientific_name_references  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/scientific_names.yaml --filename=/tmp/scientific_names.csv --kind=scientific_names  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=50 --config_file=bulkloaders/simple_search.yaml --filename=/tmp/simple_search.csv --kind=simple_search  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/sp2000_statuses.yaml --filename=/tmp/sp2000_statuses.csv --kind=sp2000_statuses  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/specialists.yaml --filename=/tmp/specialists.csv --kind=specialists  ../../molapps/ 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/taxa.yaml --filename=/tmp/taxa.csv --kind=taxa  ../../molapps/ 
-        #these leave a lot of \N cells in appengine. if you are comfortable, you can edit the transform.py file in 
-        #the app engine directory to remove them in the none_if_empty function
+    $ cd MOL/colapp
+    $ python colexport/mysql_export.py 
+    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=Species  ../../molapps/
+    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=SpeciesIndex  ../../molapps/ --url=http://localhost:8080/remote_api
 
