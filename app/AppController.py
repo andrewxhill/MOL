@@ -40,6 +40,7 @@ class ColSearch(webapp.RequestHandler):
     k = self.request.params.get('key', None)
     s = self.request.params.get('s', None)
     results = []
+    c = self.request.params.get('cursor', None)
     #items = "{'items':["
     start = time.time()
     if k:
@@ -54,11 +55,15 @@ class ColSearch(webapp.RequestHandler):
              "names": simplejson.loads(ent.names) #.replace('\\','')
             }
         results.append(r)
-        
     elif s is not None:
         q = SpeciesIndex.gql("WHERE names = :1",s.lower())
-        d = q.fetch(10)
+        if c is not None:
+            d = q.with_cursor(c).fetch(10)
+        else:
+            d = q.fetch(10)
+        ct = 0
         for k in d:
+            ct+=1
             key= k.key()
             ent = Species.get(key.parent())
             p= key.id_or_name().split('/')
@@ -70,11 +75,13 @@ class ColSearch(webapp.RequestHandler):
                  "names": simplejson.loads(ent.names) #.replace('\\','')
                 }
             results.append(r)
-        
+        if ct==10:
+            c = q.cursor()
+    
     t = int(1000*(time.time() - start))/1000.0
     #items += "'time': %s }" % t
     #self.response.out.write(json.loads(json.dumps(items)))
-    out = {"time":t,"items":results}
+    out = {"time":t,"items":results,"cursor":c}
     self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(simplejson.dumps(out, indent=4))
     if cb is not None:

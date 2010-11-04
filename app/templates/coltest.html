@@ -16,11 +16,13 @@
                 return vars;
             }
         $(document).ready(function(){
-            runQuery = function(){
+            runQuery = function(cursor){
                     $(".loading").show();
                     //$(".inner").hide()
                     var val = $('.search').val();
-                    $.post("/col/search",{'s':val},function(data){
+                    var vars = {'s':val}
+                    if (cursor) { vars['cursor'] = cursor };
+                    $.post("/col/search",vars,function(data){
                         $('.inner').html("").append($("<div class='time'></div>"));
                         $('.inner .time').html("Query time: "+data.time+" sec");
                         
@@ -33,7 +35,6 @@
                             tax.html("taxonomy: "+item.classification.kingdom +": "+item.classification.phylum +": "+item.classification.class +": "+item.classification.order +": "+item.classification.family);
                             var brk = $("<div class='break'></div>");
                             $.each(item.names, function(j,name){
-                                console.log('itm');
                                 if (name.type == "accepted name"){
                                     spec.html(name.name+" <i>"+name.author+"</i>");
                                 }else{
@@ -46,6 +47,12 @@
                             ndiv.append(nms);
                             $('.inner').append(ndiv);
                         });
+                        if (data.cursor) {
+                            $('.inner .time').append("<button id='next' name='next' value='"+data.cursor+"'>Next</button>");
+                            $(".inner button").click(function(){
+                                runQuery($(".inner #next").val());
+                            })
+                        }
                         $(".loading").hide(20);
                         $(".inner").show()
                     },"json");
@@ -60,7 +67,6 @@
             if(location.href.indexOf("#") != -1){
                 $('.search').val(window.location.hash.substr(1));
                 runQuery();
-                console.log(window.location.hash);
             }
             
         });
@@ -69,7 +75,7 @@
 <body>
 <div id="container">
 <div id="search">
-    COL Search: <input type="text" class="search" name="s" /><div class="loading"><img src="/static/loading-small.gif" /></div>
+    COL Search: <input type="text" class="search" name="s" id="colsearch"/><div class="loading"><img src="/static/loading-small.gif" /></div>
 </div>
 <div id="results">
     <div class="inner">
