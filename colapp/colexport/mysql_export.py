@@ -1,15 +1,28 @@
-import MySQLdb, re
-import simplejson as sj
+import MySQLdb, re, codecs
+import simplejson
 
 conn = MySQLdb.connect (host = "localhost",
                        port = 3306,
                        user = "username",
                        passwd = "password",
                        db = "col2010ac")
+                       
 specind = open("colexport/specind.csv","w+")
 
+def fix_latin(z):
+    r= []
+    c = 0
+    while c<len(z):
+        if type(z[c]) == type(str()):
+            r.append(z[c].decode('iso-8859-1').encode('utf-8'))
+            #r.append(z[c])
+        else:
+            r.append(z[c])
+        c+=1
+    return r
+    
 def cs(val,lower=1,quote=1): #clean the string from some weird junk in some of the fields
-    if val==None:
+    if val==None or val=='None':
         return "NULL"
     if lower==1:
         val = val.replace('"','').replace("\n","").replace("'","''").strip("'").strip().lower()
@@ -19,11 +32,11 @@ def cs(val,lower=1,quote=1): #clean the string from some weird junk in some of t
         return "'" + val + "'"
     return val
 def run():
-    specind.write("record_id\tkey\tname_code\tcol_lsid\tdatabase_full_name\trank\tname\tkingdom\tphylum\tclassx\torderx\tfamily\tsuperfamily\tgenus\tspecies\tinfraspecies\tauthor\tnameslist\tnamesjson\tclassification\tauthorityName\tauthority\n")
+    specind.write("record_id\tkey\tname_code\tcol_lsid\tdatabase_full_name\trank\tname\tkingdom\tphylum\tclassx\torderx\tfamily\tsuperfamily\tgenus\tspecies\tinfraspecies\tauthor\tnameslist\tnamesjson\tclassification\tauthorityDetails\tauthority\n")
     
     cursor = conn.cursor ()
     cursor.execute ("CREATE TEMPORARY TABLE spec (record_id INT, keyx TEXT, name_code TEXT, col_lsid TEXT, database_full_name TEXT, rank TEXT, name TEXT, kingdom TEXT, phylum TEXT, classx TEXT, orderx TEXT, family TEXT, superfamily TEXT, genus TEXT, species TEXT, infraspecies TEXT, author TEXT);")
-    cursor.execute ("SELECT s.record_id,lsid,taxon,kingdom,phylum,class,f.order,family,superfamily,genus,species, infraspecies, author,database_full_name,s.name_code FROM scientific_names s,taxa t, `databases` d,families f WHERE s.is_accepted_name = 1 AND f.is_accepted_name=1 AND s.database_id = d.record_id AND s.family_id = f.record_id AND t.record_id = s.record_id AND t.is_accepted_name = 1 AND upper(kingdom) = 'ANIMALIA' AND species = 'gracilis' ORDER BY genus;")
+    cursor.execute ("SELECT s.record_id,lsid,taxon,kingdom,phylum,class,f.order,family,superfamily,genus,species, infraspecies, author,database_full_name,s.name_code FROM scientific_names s,taxa t, `databases` d,families f WHERE s.is_accepted_name = 1 AND f.is_accepted_name=1 AND s.database_id = d.record_id AND s.family_id = f.record_id AND t.record_id = s.record_id AND t.is_accepted_name = 1 AND upper(kingdom) = 'ANIMALIA';")
     data = cursor.fetchall()
     for r in data:
         #pattern = u'[^\.a-z -]'
@@ -38,12 +51,16 @@ def run():
     print "table made"
     cursor.execute ("SELECT * FROM spec;")
     data = cursor.fetchall ()
-    for r in data:
+    for z in data:
+        
+        r = fix_latin(z)
+        
         names = []
         namesdicts = []
         cursor.execute ('SELECT c.common_name,c.language FROM common_names c WHERE name_code = "%s";' % r[2])
         cn = cursor.fetchall ()
-        for n in cn:
+        for p in cn:
+            n = fix_latin(p)
             names.append(cs(n[0],1,0))
             namesdicts.append({
                 "name":cs(n[0],0,0),
@@ -54,7 +71,10 @@ def run():
                 })
         cursor.execute ('SELECT s.genus,s.species,s.infraspecies,s.is_accepted_name,author FROM scientific_names s where accepted_name_code = "%s";' % r[2])
         sn = cursor.fetchall ()
-        for n in sn:
+        for p in sn:
+            
+            n = fix_latin(p)
+            
             if n[2] is None or len(n[2])==0:
                 nm = "%s %s" % (cs(n[0],1,0),cs(n[1],1,0))
                 nmu = "%s %s" % (cs(n[0],0,0),cs(n[1],0,0))
@@ -68,10 +88,7 @@ def run():
             else:
                 nd["type"]="scientific name"
             nd["source"] = "COL"
-            namesdicts.append(nd)
-        for i in r:
-            specind.write('%s' % i)
-            specind.write("\t")    
+            namesdicts.append(nd)  
         taxonomy = {
                 "kingdom": r[7],
                 "phylum": r[8],
@@ -89,19 +106,27 @@ def run():
                      "database": r[4],
                      "external identifier": r[3]
                      }
+                     
+                     
+        for i in r:
+            if i is None:
+                specind.write('')
+            else:
+                specind.write('%s' % i)
+            specind.write("\t")  
         cmma = ""
         for i in names:
-            specind.write(i)
             specind.write(cmma)
+            specind.write(i)
             cmma = ","
         specind.write("\t")
-        specind.write(u'%s' % namesdicts)
+        specind.write(simplejson.dumps(namesdicts).replace('\\/','/'))
         specind.write("\t")
-        specind.write(u'%s' % taxonomy)
+        specind.write(simplejson.dumps(taxonomy).replace('\\/','/'))
         specind.write("\t")
-        specind.write(u'%s' % authority)
+        specind.write(simplejson.dumps(authority).replace('\\/','/'))
         specind.write("\t")
-        specind.write(u'COL')
+        specind.write('COL')
         specind.write("\n")
     cursor.close ()
     

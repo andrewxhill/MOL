@@ -28,7 +28,7 @@ transformers:
 - kind: Species
   connector: csv
   connector_options:
-    encoding: latin_1
+    encoding: utf_8
     import_options:
       dialect: excel-tab
     
@@ -38,23 +38,23 @@ transformers:
       export_transform: datastore.Key.name
       
     - property: authority
-      external_name: authority
-      import_transform: transform.none_if_empty(db.Text())
+      external_name: authorityDetails
+      import_transform: db.Text
       
     - property: classification
       external_name: classification
-      import_transform: transform.none_if_empty(db.Text())
+      import_transform: db.Text
       
     - property: names
       external_name: namesjson
-      import_transform: transform.none_if_empty(db.Text())
+      import_transform: db.Text
       
     
       
 - kind: SpeciesIndex
   connector: csv
   connector_options:
-    encoding: latin_1
+    encoding: utf_8
     import_options:
       dialect: excel-tab
     
@@ -69,33 +69,42 @@ transformers:
       import_transform: util.toList(list)
       
     - property: authorityName
-      external_name: authorityName
+      external_name: authority
       import_transform: transform.none_if_empty(str)
       
     - property: kingdom
       external_name: kingdom
+      import_transform: transform.none_if_empty(str)
       
     - property: phylum
       external_name: phylum
+      import_transform: transform.none_if_empty(str)
       
     - property: class_
       external_name: classx
+      import_transform: transform.none_if_empty(str)
       
     - property: order_
       external_name: orderx
+      import_transform: transform.none_if_empty(str)
       
     - property: family
       external_name: family
+      import_transform: transform.none_if_empty(str)
       
     - property: superfamily
       external_name: superfamily
+      import_transform: transform.none_if_empty(str)
       
     - property: genus
       external_name: genus
+      import_transform: transform.none_if_empty(str)
       
     - property: species
       external_name: species
+      import_transform: transform.none_if_empty(str)
       
     - property: infraspecies
       external_name: infraspecies
+      import_transform: transform.none_if_empty(str)
       

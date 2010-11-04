@@ -5,6 +5,6 @@
 5. Run:
     $ cd MOL/colapp
     $ python colexport/mysql_export.py 
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=Species  ../../molapps/
-    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=SpeciesIndex  ../../molapps/ --url=http://localhost:8080/remote_api
+    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=Species  ../app/
+    $ ../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind.csv --kind=SpeciesIndex  ../app/
 
