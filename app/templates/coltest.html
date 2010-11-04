@@ -47,19 +47,27 @@
                             ndiv.append(nms);
                             $('.inner').append(ndiv);
                         });
+                        var next = $("<button id='next' name='next' value='"+data.next+"'>Next</button>");
+                        next.attr("disabled", true);
+                        var last = $("<button id='last' name='last' value='"+data.last+"'>Last</button>");
+                        last.attr("disabled", true);
                         if (data.next) {
-                            $('.inner .time').append("<button id='next' name='next' value='"+data.next+"'>Next</button>");
-                            $(".inner button#next").click(function(){
-                                runQuery($(".inner #next").val());
+                            //console.log(next);
+                            next.attr("disabled", false);
+                            next.click(function(){
+                                runQuery(next.val());
                             })
                         }
-                        if (data.last > -1){
-                        $('.inner .time').append("<button id='last' name='last' value='"+data.last+"'>Last</button>");
-                        $(".inner button#last").click(function(){
-                            console.log($(".inner #last").val());
-                            runQuery($(".inner #last").val());
-                        })
+                        if (data.last != null){
+                            console.log(data.last)
+                            last.attr("disabled", false);
+                            last.click(function(){
+                                console.log($(".inner #last").val());
+                                runQuery(last.val());
+                            })
                         }
+                        $('.inner .time').append(next);
+                        $('.inner .time').append(last);
                         
                         $(".loading").hide(20);
                         $(".inner").show()

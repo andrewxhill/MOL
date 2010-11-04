@@ -39,9 +39,10 @@ class ColSearch(webapp.RequestHandler):
         self.response.out.write("%s(" % cb)
     k = self.request.params.get('key', None)
     s = self.request.params.get('s', None)
-    n = self.request.params.get('n', 10)
+    n = int(self.request.params.get('n', 10))
     results = []
-    of = self.request.params.get('offset', 0)
+    of = int(self.request.params.get('offset', 0))
+        
     #items = "{'items':["
     start = time.time()
     if k:
@@ -58,7 +59,7 @@ class ColSearch(webapp.RequestHandler):
         results.append(r)
     elif s is not None:
         q = SpeciesIndex.gql("WHERE names = :1",s.lower())
-        d = q.fetch(n,offset=int(of))
+        d = q.fetch(n,offset=of)
         ct = 0
         for k in d:
             ct+=1
@@ -74,7 +75,7 @@ class ColSearch(webapp.RequestHandler):
                 }
             results.append(r)
             
-        la = int(of) - n
+        la = int(of) - n if int(of) - n > -1 else None
         if ct==n:
             of = int(of)+n
         else:
@@ -85,7 +86,8 @@ class ColSearch(webapp.RequestHandler):
     #self.response.out.write(json.loads(json.dumps(items)))
     out = {"time":t,"items":results,"next":of,"last":la}
     self.response.headers['Content-Type'] = 'application/json'
-    self.response.out.write(simplejson.dumps(out, indent=4))
+    #self.response.out.write(simplejson.dumps(out, indent=4))
+    self.response.out.write(simplejson.dumps(out))
     if cb is not None:
         self.response.out.write(")")
         
