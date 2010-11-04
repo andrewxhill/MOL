@@ -52,13 +52,15 @@
                             $(".inner button#next").click(function(){
                                 runQuery($(".inner #next").val());
                             })
-                            if (data.next > 10){
-                            $('.inner .time').append("<button id='last' name='last' value='"+(data.next - 20)+"'>Last</button>");
-                            $(".inner button#last").click(function(){
-                                runQuery($(".inner #last").val());
-                            })
-                            }
                         }
+                        if (data.last > -1){
+                        $('.inner .time').append("<button id='last' name='last' value='"+data.last+"'>Last</button>");
+                        $(".inner button#last").click(function(){
+                            console.log($(".inner #last").val());
+                            runQuery($(".inner #last").val());
+                        })
+                        }
+                        
                         $(".loading").hide(20);
                         $(".inner").show()
                     },"json");
