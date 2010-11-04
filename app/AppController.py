@@ -75,6 +75,7 @@ class ColSearch(webapp.RequestHandler):
     #items += "'time': %s }" % t
     #self.response.out.write(json.loads(json.dumps(items)))
     out = {"time":t,"items":results}
+    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(simplejson.dumps(out, indent=4))
     if cb is not None:
         self.response.out.write(")")
