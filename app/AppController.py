@@ -74,17 +74,11 @@ class ColSearch(webapp.RequestHandler):
                  "names": simplejson.loads(ent.names) #.replace('\\','')
                 }
             results.append(r)
-            
-        la = int(of) - n if int(of) - n > -1 else None
-        if ct==n:
-            of = int(of)+n
-        else:
-            of = None
     
     t = int(1000*(time.time() - start))/1000.0
     #items += "'time': %s }" % t
     #self.response.out.write(json.loads(json.dumps(items)))
-    out = {"time":t,"items":results,"next":of,"last":la}
+    out = {"time":t,"items":results,"offset":of,"limit":n}
     self.response.headers['Content-Type'] = 'application/json'
     #self.response.out.write(simplejson.dumps(out, indent=4))
     self.response.out.write(simplejson.dumps(out))
