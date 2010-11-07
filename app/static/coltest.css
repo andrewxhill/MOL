@@ -60,3 +60,11 @@ body {
 .time button{
     float: right;
 }
+.limit{
+    float: right;
+    font-size: 0.75em;
+    margin-right: 5px;
+    margin-left: 5px;
+    color: #fe432e;
+    cursor: pointer;
+}

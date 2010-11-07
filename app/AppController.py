@@ -30,63 +30,6 @@ class DeleteBulk(webapp.RequestHandler):
         taskqueue.add(url='/admin/bulkdelete', params={'tb': tb})
     return 200
     
-class ColSearch(webapp.RequestHandler):
-  def get(self):
-    self.post()
-  def post(self):
-    cb = self.request.params.get('callback', None)
-    if cb is not None:
-        self.response.out.write("%s(" % cb)
-    k = self.request.params.get('key', None)
-    s = self.request.params.get('s', None)
-    n = int(self.request.params.get('n', 10))
-    results = []
-    of = int(self.request.params.get('offset', 0))
-        
-    #items = "{'items':["
-    start = time.time()
-    if k:
-        key = db.Key.from_path('Species',k.lower())
-        ent = Species.get(key)
-        ele = k.split("/")
-        r = {
-             "rank": str(ele[-2]),
-             "name": str(ele[-1]).replace("_"," "),
-             "classification": simplejson.loads(ent.classification),
-             "authority": simplejson.loads(ent.authority),
-             "names": simplejson.loads(ent.names) #.replace('\\','')
-            }
-        results.append(r)
-    elif s is not None:
-        q = SpeciesIndex.gql("WHERE names = :1",s.lower())
-        d = q.fetch(n,offset=of)
-        ct = 0
-        for k in d:
-            ct+=1
-            key= k.key()
-            ent = Species.get(key.parent())
-            p= key.id_or_name().split('/')
-            r = {
-                 "rank": str(p[-2]),
-                 "name": str(p[-1]).replace("_"," "),
-                 "classification": simplejson.loads(ent.classification),
-                 "authority": simplejson.loads(ent.authority),
-                 "names": simplejson.loads(ent.names) #.replace('\\','')
-                }
-            results.append(r)
-    
-    t = int(1000*(time.time() - start))/1000.0
-    #items += "'time': %s }" % t
-    #self.response.out.write(json.loads(json.dumps(items)))
-    out = {"time":t,"items":results,"offset":of,"limit":n}
-    self.response.headers['Content-Type'] = 'application/json'
-    #self.response.out.write(simplejson.dumps(out, indent=4))
-    self.response.out.write(simplejson.dumps(out))
-    if cb is not None:
-        self.response.out.write(")")
-        
-    
-    
 class ColPage(webapp.RequestHandler):
   def get(self):
     path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
@@ -99,7 +42,6 @@ class MainPage(webapp.RequestHandler):
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/col', ColPage),
-          ('/col/search', ColSearch),
           ('/admin/bulkdelete', DeleteBulk)],      
          debug=True)
 

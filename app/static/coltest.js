@@ -12,13 +12,14 @@ function getUrlVars()
         return vars;
     }
 $(document).ready(function() {
+    var limit = 10;
     runQuery = function(offset) {
             $('.loading').show();
             //$(".inner").hide()
             var val = $('.search').val();
-            var vars = {'s': val};
+            var vars = {'search': val,'format':'json','limit':limit};
             if (offset) { vars['offset'] = offset }
-            $.post('/col/search', vars, function(data) {
+            $.post('/api/taxonomy', vars, function(data) {
                 $('.inner').html('').append($("<div class='time'></div>"));
                 $('.inner .time').html('Query time: ' + data.time + ' sec');
 
@@ -43,6 +44,15 @@ $(document).ready(function() {
                     ndiv.append(nms);
                     $('.inner').append(ndiv);
                 });
+                var limits = $("<div id='limits'></div>");
+                limits.append("<div class='limit' id='100'>100</div>");
+                limits.append("<div class='limit' id='50'>50</div>");
+                limits.append("<div class='limit' id='10'>10</div>");
+                limits.children().click(function(e){ 
+                    limit = this.id;
+                    runQuery(data.offset);
+                });
+                
                 var next = $("<button id='next' name='next' value='" + (data.offset + data.limit) + "'>Next</button>");
                 next.attr('disabled', true);
                 var last = $("<button id='last' name='last' value='" + (data.offset - data.limit) + "'>Last</button>");
@@ -66,6 +76,7 @@ $(document).ready(function() {
 
                 $('.loading').hide(20);
                 $('.inner').show();
+                $('.inner').append(limits);
             },'json');
     }
     $('.search').keypress(function(e) {
