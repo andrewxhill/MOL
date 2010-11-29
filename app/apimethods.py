@@ -24,6 +24,8 @@ class Taxonomy(webapp.RequestHandler):
         "rank": "indicate the name rank to search in, default genus species",
         "key": "provide the known key for a taxon 'animalia/rank/binomial'",
         "callback": "crossdomain callback name",
+        "limit": "number of records to return",
+        "offset": "number of records to skip, for paging",
         }
        }
     return out
@@ -52,23 +54,25 @@ class Taxonomy(webapp.RequestHandler):
     d = memcache.get(memk)
     if d is None:
         if r is None:
-            q = SpeciesIndex.gql("WHERE names = :1 ORDER BY %s" % orderOn, s.lower())
+            #q = SpeciesIndex.gql("WHERE names = :1 ORDER BY %s" % orderOn, s.lower())
+            q = SpeciesIndex.all(keys_only=True).filter("names =",s.lower()).order(orderOn)
         else:
-            q = SpeciesIndex.gql("WHERE %s = :1 ORDER BY %s" % (rank,orderOn), s.lower())
-        d = q.fetch(n,offset=of)
+            q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank,s.lower()).order(orderOn) 
+        d = q.fetch(limit=n,offset=of)
     memcache.set(memk,d,3000)
     ct = 0
-    for k in d:
+    for key in d:
         ct+=1
-        key= k.key()
-        ent = Species.get(key.parent())
+        #ent = Species.get(key.parent())
+        ent = db.get(key.parent())
+        logging.error(ent.classification)
         p= key.id_or_name().split('/')
         e = {
              "rank": str(p[-2]),
              "name": str(p[-1]).replace("_"," "),
              "classification": simplejson.loads(ent.classification),
-             "authority": simplejson.loads(ent.authority),
-             "names": simplejson.loads(ent.names) #.replace('\\','')
+             "authority": ent.authority,
+             "names": simplejson.loads(ent.names) #.('\\','')
             }
         results.append(e)
     t = int(1000*(time.time() - start))/1000.0
@@ -95,7 +99,7 @@ class Taxonomy(webapp.RequestHandler):
         out = self.methods()
             
     #self.response.out.write(simplejson.dumps(out, indent=4))
-    self.response.out.write(simplejson.dumps(out))
+    self.response.out.write(simplejson.dumps(out).replace("\\/","/"))
     if cb is not None:
         self.response.out.write(")")
         

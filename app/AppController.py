@@ -41,7 +41,7 @@ class MainPage(webapp.RequestHandler):
     
 application = webapp.WSGIApplication(
          [('/', MainPage),
-          ('/col', ColPage),
+          ('/playground/col', ColPage),
           ('/admin/bulkdelete', DeleteBulk)],      
          debug=True)
 

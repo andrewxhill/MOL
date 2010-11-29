@@ -4,14 +4,20 @@ def create_key(value):
 def toList(fn):
     def wrapper(value):
         #open('test.log', 'a').write("%s\n" % value.encode('utf-8'))
-        li = [x.strip() for x in value.split(',')]
-        out = {}
-        for l in li:
-            out[l] = 1
-            l = l.split(" ")
-            if len(l) > 1:
-                for w in l:
-                    out[w] = 1
-        return out.keys()
+        #li = [x.strip() for x in value.split(',')]
+        out = None
+        if value is not None and len(value)>0 and eval(value):
+            values = eval(value)
+            out = values
+            ct = 0
+            while ct<len(values):
+                v = values[ct].split()
+                ct+=1
+                if len(v) > 1:
+                    for n in v:
+                        out.append(n)
+        else:
+            out = None
+        return out
         
     return wrapper
