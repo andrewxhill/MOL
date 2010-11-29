@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us"> 
+<head> 
+<title>jCarousel Examples</title> 
+<link href="/static/style.css" rel="stylesheet" type="text/css" /> 
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script> 
+<script type="text/javascript" src="/static/bhlib.js"></script> 
+<script type="text/javascript" src="/static/jquery.jcarousel.min.js"></script> 
+<link rel="stylesheet" type="text/css" href="/static/skin.css" /> 
+<link rel="stylesheet" type="text/css" href="/static/ie7.css" /> 
+ 
+ 
+<script type="text/javascript"> 
+ 
+var bhl;
+
+var $_GET = {};
+
+document.location.search.replace(/\??(?:([^=]+)=([^&]*)&?)/g, function () {
+    function decode(s) {
+        return decodeURIComponent(s.split("+").join(" "));
+    }
+
+    $_GET[decode(arguments[1])] = decode(arguments[2]);
+});
+var searchterm = $_GET['s'];
+
+ 
+jQuery(document).ready(function() {
+   var bhlkey = "a3b08d91-5b01-4611-9155-ff5eecc2ae52"
+   bhl = $('<div />').hide();
+   bhl.bhLib({'key':bhlkey});
+   bhl.bhLib('GetSubjectTitles',searchterm,{ 
+       oncomplete: function(){
+           console.log('hi');
+           for (var i = 0; i < bhl.data('bhlib').SubjectTitles.length; i++){
+                console.log(bhl.data('bhlib').SubjectTitles[i]);
+           }
+       }
+    });
+   
+});
+ 
+</script> 
+</head> 
+<body> 
+<div id="wrap"> 
+  <h1>jQuery meet BHLib</h1> 
+  <form>
+    Subject: <input type="text" name="s" /><br />
+  </form>
+  <h2>Easy biodiversity mashups using jQuery plugins</h2> 
+ 
+  <h3>I wrote the beginning of a BHL jQuery plugin to then show how simple it would be to combine jquery libraries for quick mashup creation.</h3> 
+  <p> 
+    Most of the rest of this is pulled directly from a <a href="http://sorgalla.com/jcarousel/">jCarousel tutorial</a>. Many areas to optimize, but just to show the idea.
+  </p> 
+  <div id="mycarousel" class="jcarousel-skin-ie7"> 
+    <ul> 
+      <!-- The content will be dynamically loaded in here --> 
+    </ul> 
+  </div> 
+ 
+</div> 
+</body> 
+</html> 

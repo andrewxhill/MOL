@@ -1,0 +1,44 @@
+<html> 
+<head> 
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQucxQLswEwpwyQ05_YSCcBX34rGRS-HzJsCPxZMsoTtmI8GCMsq8A7cQ" type="text/javascript"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script> 
+<script type="text/javascript" src="/static/bhlib.js"></script> 
+<script type="text/javascript" src="/static/jquery.jcarousel.min.js"></script> 
+<link rel="stylesheet" type="text/css" href="/static/skin.css" /> 
+<script type="text/javascript"> 
+$(document).ready(function() {
+   var bhlkey = "a3b08d91-5b01-4611-9155-ff5eecc2ae52"
+   var bhl = $('<div />').hide();
+   bhl.bhLib({'key':bhlkey});
+   var ct = 0;
+   function load_img(id){
+            bhl.bhLib('GetTitleMetadata',id,function(meta){
+                  var src = "http://www.biodiversitylibrary.org/pageimage/" + meta.Items[0].ThumbnailPageID;
+                  var li = $('<li></li>');
+                  var href = $('<a></a>');
+                  href.attr('href',meta.TitleUrl);
+                  var img = $('<img />');
+                  img.attr({'width':"200", 'height':"300", 'alt': ''});
+                  img.attr('src',src); 
+                  $('#mycarousel').append(li.append(img));
+              });
+   };
+   
+   bhl.bhLib('GetSubjectTitles','diptera',
+      function(titles){
+            var id = titles[ct].TitleID;
+      });
+      
+    jQuery('#mycarousel').jcarousel({
+        itemLoadCallback: mycarousel_itemLoadCallback
+    });
+});
+});
+</script>
+</head>
+<body>
+ <div id="content">
+ <ul id="mycarousel" class="jcarousel-skin-tango"> </ul>
+</div>
+ </div> 
+</body>
