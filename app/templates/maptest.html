@@ -4,7 +4,7 @@
 <script type="text/javascript"> 
 var map;
 var specid = '00';
-var mapMinZoom = 3;
+var mapMinZoom = 0;
 var mapMaxZoom = 10;
 
 function QuadTree( tx, ty, zoom ){
@@ -23,7 +23,6 @@ function QuadTree( tx, ty, zoom ){
         quadKey = quadKey + digit.toString();
         i = i-1;
     }
-    console.log(quadKey);
     return quadKey;
 }
         
