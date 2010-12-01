@@ -34,6 +34,12 @@ class ColPage(webapp.RequestHandler):
   def get(self):
     path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
     self.response.out.write(template.render(path, {}))
+    
+class MapPage(webapp.RequestHandler):
+  def get(self):
+    path = os.path.join(os.path.dirname(__file__), 'templates/maptest.html')
+    self.response.out.write(template.render(path, {}))
+    
       
 class MainPage(webapp.RequestHandler):
   def get(self):
@@ -42,6 +48,7 @@ class MainPage(webapp.RequestHandler):
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/playground/col', ColPage),
+          ('/playground/map', MapPage),
           ('/admin/bulkdelete', DeleteBulk)],      
          debug=True)
 

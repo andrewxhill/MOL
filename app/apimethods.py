@@ -104,9 +104,22 @@ class Taxonomy(webapp.RequestHandler):
         self.response.out.write(")")
         
     
-    
+class Tile(webapp.RequestHandler):
+  def get(self):
+    self.post()
+  def post(self):
+    k = self.request.params.get('key', None)
+    s = self.request.params.get('specid', None)
+    key = "%s/%s/%s" % (s,k,'presence-absence')
+    key = db.Key.from_path('Tiles',key.lower())
+    data = Tiles.get(key).blob
+    img = bin(data)[2:]
+    self.response.out.write(img)
+      
+      
 application = webapp.WSGIApplication(
-         [('/api/taxonomy', Taxonomy)],      
+         [('/api/taxonomy', Taxonomy),      
+         ('/api/tile', Tile)],      
          debug=True)
 
 def main():

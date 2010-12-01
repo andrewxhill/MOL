@@ -29,9 +29,6 @@ def TileArray(ro,co,default=0):
     for i in range(ro):
         b.append([default for j in range(co)])
     return b
-
-
-    
     
 def BigQuery(id, z, q, x, y):
     img = 0
