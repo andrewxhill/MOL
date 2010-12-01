@@ -39,3 +39,14 @@ transformers:
       external_name: file
       import_transform: util.toBin(str)
       
+transformers:
+- kind: TileUpdates
+  connector: csv
+  connector_options:
+    encoding: utf_8
+    
+  property_map:      
+    - property: __key__
+      external_name: key
+      export_transform: datastore.Key.name
+      

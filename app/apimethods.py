@@ -215,11 +215,6 @@ class InterpolateTile(webapp.RequestHandler):
         t = TmpTiles.get(db.Key.from_path('TmpTiles',"%s" % (tmpK)))
         #if there was no tile, it means that is an empty quarter of the tile we are creating, that is nice
         if t:
-            b = ''
-            ct = 0
-            #convert all the letters in the stored band back into a string of '1's and '0's
-            for c in t.band:
-                b += bDecode[c]
                 
             #we need to do something kinda not obvious here
             #if the quad is 1 (top right) or 3 (bottom right)
@@ -230,6 +225,13 @@ class InterpolateTile(webapp.RequestHandler):
             #quarter of the new zoomed out tile (which is 256 in each direction)
             orow = 0 if qt in [0,1] else 128
             
+            b = ''
+            ct = 0
+            #convert all the letters in the stored band back into a string of '1's and '0's
+            for c in t.band:
+                b += bDecode[c]
+                
+                
             ct = 0
             row = 0
             skip = True

@@ -5,3 +5,6 @@ class Tiles(db.Model):
     
 class TmpTiles(db.Model):
     band = db.TextProperty()
+    
+class TileUpdates(db.Model):
+    when = db.DateTimeProperty(auto_now_add=True)
