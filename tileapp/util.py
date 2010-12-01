@@ -1,5 +1,5 @@
 from PIL import Image
-
+from google.appengine.ext import db
 
 bEncode = {
     0 : 'A' , 16 : 'Q' , 32 : 'g' , 48 : 'w' ,
@@ -57,6 +57,6 @@ def toBin(fn):
                 tmp = ''
                 ct = 0
         #print out
-        return out
+        return db.Text(out)
         
     return wrapper

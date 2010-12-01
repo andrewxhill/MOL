@@ -25,17 +25,17 @@ python_preamble:
 
 
 transformers:
-- kind: Tiles
+- kind: TmpTiles
   connector: csv
   connector_options:
     encoding: utf_8
     
   property_map:      
-    - property: __key__
+    - property: keyLiteral
       external_name: key
       export_transform: datastore.Key.name
       
     - property: band
       external_name: file
-      import_transform: util.toBin(db.Blob)
+      import_transform: util.toBin(str)
       
