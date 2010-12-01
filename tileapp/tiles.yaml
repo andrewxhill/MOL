@@ -31,7 +31,7 @@ transformers:
     encoding: utf_8
     
   property_map:      
-    - property: keyLiteral
+    - property: __key__
       external_name: key
       export_transform: datastore.Key.name
       
