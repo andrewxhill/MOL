@@ -151,40 +151,101 @@ class Tile(webapp.RequestHandler):
         k = k.split('.')[0]
     else:
         k = '00/210'
-        
+    #k = "00/21"
     key = "%s/%s" % (k,'presence')
+    key = db.Key.from_path('TmpTiles',key)
+    t = TmpTiles.get(key)
     """
     key = db.Key.from_path('Tiles',key.lower())
-    data = Tiles.get(key).blob
+    data = Tiles.get(key).band
     img = bin(data)[2:]
     self.response.out.write(img)
     """
-    t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
-    
-    chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
-    #fix = lambda v: int(c) for c in v
-    b = ''
-    ct = 0
-    for c in t.band:
-        b += bDecode[c]
+    #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
+    if t:
+        chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
+        #fix = lambda v: int(c) for c in v
+        b = ''
+        ct = 0
+        for c in t.band:
+            b += bDecode[c]
+            
+        #we should try to combine the follow two steps into a single function
+        s = chk(b[:-3],256)
+        s = map(lambda x: map(int, x), s)
+
         
-    #we should try to combine the follow two steps into a single function
-    s = chk(b,256)
-    s = map(lambda x: map(int, x), s)
+        f = cStringIO.StringIO()
+        palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
+        w = png.Writer(256,256, palette=palette, bitdepth=1)
+        w.write(f, s)
 
+        # binary PNG data
+        self.response.headers['Content-Type'] = 'image/png'
+        self.response.out.write(f.getvalue())
+
+class InterpolateTile(webapp.RequestHandler):
+  def post(self):
+    self.get()
+  def get(self):
+    key = self.request.params.get('k', None)
+    zoom = len(key)
+    bands = []
+    n = "0" * 65536
+    n = list(n)
+    for i in [0,1,2,3]: #get all four tiles that make up the greater tile
+        tmpK = key.split("/")
+        tmpK[1] = tmpK[1]+str(i)
+        tmpK = '/'.join(tmpK)
+        logging.error(tmpK)
+        t = TmpTiles.get(db.Key.from_path('TmpTiles',"%s" % (tmpK)))
+        if t:
+            b = ''
+            ct = 0
+            #turn the tileband into a bytestring
+            for c in t.band:
+                b += bDecode[c]
+            oct = 0 if i in [0,2] else 128
+            orow = 0 if i in [0,1] else 128
+            ct = 0
+            row = 0
+            skip = True
+            #iterate all charactters
+            for c in b:
+                if c == '1':
+                    n[int((math.floor(row/2)*256) + math.floor(ct/2))] = '1'
+                    n[int(((math.floor(row/2)+1)*256) + math.floor(ct/2))] = '1'
+                    n[int((math.floor(row/2)*256) + math.floor(ct/2) + 1)] = '1'
+                    n[int(((math.floor(row/2)+1)*256) + math.floor(ct/2) + 1)] = '1'
+                ct += 1
+                if ct > 255:
+                    row+=1
+                    ct = 0
+                    
+    chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
+        
+    #logging.error(len(n))
+    tmp = ''.join(n)
+    tmp = chk(tmp,6)
+    logging.error(len(tmp))
+    out = ''
+    ct = 0
+    for z in tmp:
+        ct+=1
+        out += bEncode[int(z,2)]
+    tile = TmpTiles(key=db.Key.from_path('TmpTiles',key))
+    tile.band = db.Text(out)
+    tile.put()
+                    
     
-    f = cStringIO.StringIO()
-    palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
-    w = png.Writer(256,256, palette=palette, bitdepth=1)
-    w.write(f, s)
-
-    # binary PNG data
-    self.response.headers['Content-Type'] = 'image/png'
-    self.response.out.write(f.getvalue())
+        
+        
+        
     
       
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),      
+         ('/api/zoom/tiles', InterpolateTile),      
          ('/api/tile/[^/]+/[^/]+.png', Tile)],      
          debug=True)
 

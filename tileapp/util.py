@@ -56,7 +56,9 @@ def toBin(fn):
                 out += bEncode[int(tmp,2)]
                 tmp = ''
                 ct = 0
+        out += bEncode[int(tmp+'00',2)] #append extra '00' to the end to make full string divisible by 6
         #print out
+        
         return db.Text(out)
         
     return wrapper
