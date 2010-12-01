@@ -27,4 +27,3 @@ handlers:
   
 - url: /.*
   script: AppController.py
-  
