@@ -1,4 +1,4 @@
-application: mol-apps                                    g
+application: mol-apps
 version: 0-1
 runtime: python
 api_version: 1
