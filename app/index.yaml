@@ -13,3 +13,8 @@ indexes:
   properties:
   - name: names
   - name: genus
+
+- kind: TmpTiles
+  properties:
+  - name: __key__
+    direction: desc

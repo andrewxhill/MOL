@@ -1,0 +1,16 @@
+mapreduce:
+- name: Delete all entities of a given kind
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.delete
+    params:
+    - name: entity_kind
+      default: model.Species
+
+- name: Build Tile entities from TmpTile entities
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.tile
+    params:
+    - name: entity_kind
+      default: Tiles.TmpTiles
