@@ -34,7 +34,7 @@ def tile(entity):
       entity: A TmpTiles entity
   """
   queue = TileUpdates(key_name=entity.key().name())
-  op.db.Put(queue)
+  yield op.db.Put(queue)
   tile = Tiles(key_name=entity.key().name())
   tile.band = db.Blob(str(entity.band))
   yield op.db.Put(tile)   
