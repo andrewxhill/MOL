@@ -56,21 +56,24 @@ class Updates(webapp.RequestHandler):
     if len(changed) == 10:
         taskqueue.add(
             url='/cron/tileupdates',
-            params={'cursor': query.cursor()},
-            name="updateTiles")
+            params={'cursor': query.cursor()})
     for c in changed:
         k = c.key().name()
         k = k.split("/")
         #make sure it isn't a 0 level tile
         if len(k[1]) > 1:
             #remove the last number in the quadid to get the quadid of the lower resolution tile that owns it
+            
             k[1] = k[1][:-1]
             #put the array back together
             k = '/'.join(k)
-            taskqueue.add(
-                url='/cron/interpolate/tiles',
-                params={'k': k},
-                name=k)
+            if memcache.get('taskqueue-%s' % k) is not None:
+                pass
+            else:
+                memcache.set('taskqueue-%s' % k, 1)
+                taskqueue.add(
+                    url='/cron/interpolate/tiles',
+                    params={'k': k})
     db.delete(changed)
         
       
@@ -82,7 +85,7 @@ class InterpolateTile(webapp.RequestHandler):
       
     #from now on, assume the key sent was k="01"
     key = self.request.params.get('k', None)
-    loggin.error(key)
+    #logging.error(key)
     bands = []
     
     #we just want a list with a '0' pixel place holder for every pixel in a 256x256 PNG
@@ -174,6 +177,9 @@ class InterpolateTile(webapp.RequestHandler):
     tile = Tiles(key=db.Key.from_path('Tiles',key))
     tile.band = db.Blob(out)
     tile.put()
+    tile = TileUpdates(key=db.Key.from_path('TileUpdates',key))
+    tile.put()
+    taskqueue.add(url='/cron/tileupdates')
        
 class NewTiles(webapp.RequestHandler):
   def post(self):
