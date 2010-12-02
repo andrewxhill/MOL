@@ -5,6 +5,6 @@ cron:
   schedule: every 2 minutes
   
 - description: create blobs from new tiles
-  url: /mapreduce/command/start_job
+  url: /cron/add/tiles
   schedule: every 2 minutes
   

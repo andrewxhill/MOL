@@ -12,6 +12,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import images
 from google.appengine.api import quota
 
+from mapreduce import control as mr_control 
+
 import os, string, Cookie, sha, time, random, cgi
 import urllib, datetime, cStringIO, pickle,random
 import wsgiref.handlers
@@ -172,11 +174,27 @@ class InterpolateTile(webapp.RequestHandler):
     tile = Tiles(key=db.Key.from_path('Tiles',key))
     tile.band = db.Blob(out)
     tile.put()
-                    
+       
+class NewTiles(webapp.RequestHandler):
+  def post(self):
+    self.get()
+  def get(self):
+      
+    mr_control.start_map( 
+      "Build Tile entities from TmpTile entities", 
+      "mappers.tile", 
+      "mapreduce.input_readers.DatastoreInputReader", 
+      {"entity_kind": "Tiles.TmpTiles", 
+      }, 
+      mapreduce_parameters={"done_callback": "/mr-end-task"}, 
+    ) 
+    self.response.headers['Content-Type'] = 'text/plain' 
+    self.response.out.write('MR Cron Started') 
     
 application = webapp.WSGIApplication(
          [('/cron/tileupdates', Updates),
-         ('/cron/interpolate/tiles', InterpolateTile)],      
+         ('/cron/interpolate/tiles', InterpolateTile),      
+         ('/cron/add/tiles', NewTiles)],      
          debug=True)
 
 def main():
