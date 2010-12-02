@@ -95,7 +95,7 @@ class InterpolateTile(webapp.RequestHandler):
     #if you then zoom in, there are 4 tiles: 00, 01, 02, 03
     #so given a key of 0, we know that we have to group together all the information
     #from 00,01,02,03 to make the courser tile, hence the loop below
-    for qt in [0,1,2,3]: #get all four tiles that make up the greater tile
+    for qt in range(4): #get all four tiles that make up the greater tile
         #just because I started naming the keys, with specid/quadid/type
         #i need to change that quadid so I can grab the tile from the datastore
         tmpK = key.split("/")
