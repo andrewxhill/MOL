@@ -9,7 +9,8 @@ var mapMaxZoom = 10;
 
 function QuadTree( tx, ty, zoom ){
     var quadKey = ""
-    ty = (Math.pow(2,zoom) - 1) - ty;
+    //ty = ((1 << z) - y - 1)
+    //ty = (Math.pow(2,zoom) - 1) - ty;
     var i = zoom;
     while (i > 0){
         var digit = 0;

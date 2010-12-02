@@ -255,10 +255,10 @@ class InterpolateTile(webapp.RequestHandler):
             #the right data in a string 
             for c in b:
                 if c != '0': #if the data is '0' we can skip anything, since '0' was the default in the n string we created above
-                    n[oct+int(((math.floor(row/2)+oct)*256) + math.floor(ct/2))] = c
-                    n[oct+int(((math.floor(row/2)+oct+1)*256) + math.floor(ct/2))] = c
-                    n[oct+int(((math.floor(row/2)+oct)*256) + math.floor(ct/2) + 1)] = c
-                    n[oct+int(((math.floor(row/2)+oct+1)*256) + math.floor(ct/2) + 1)] = c
+                    n[oct+int(((math.floor(row/2)+orow)*256) + math.floor(ct/2))] = c
+                    n[oct+int(((math.floor(row/2)+orow+1)*256) + math.floor(ct/2))] = c
+                    n[oct+int(((math.floor(row/2)+orow)*256) + math.floor(ct/2) + 1)] = c
+                    n[oct+int(((math.floor(row/2)+orow+1)*256) + math.floor(ct/2) + 1)] = c
                 ct += 1
                 if ct > 255:
                     row+=1
