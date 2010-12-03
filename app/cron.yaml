@@ -2,8 +2,4 @@
 cron:
 - description: update modified tiles
   url: /cron/tileupdates
-  schedule: every 2 minutes
-  
-- description: create blobs from new tiles
-  url: /cron/add/tiles
-  schedule: every 2 minutes
+  schedule: every 1 minutes

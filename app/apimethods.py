@@ -132,7 +132,6 @@ class Tile(webapp.RequestHandler):
   def post(self):
     self.get()
   def get(self):
-      
     """
         out = []
         m = {(0,0):'q', (0,1):'t', (1,0):'r', (1,1):'s'}
@@ -152,7 +151,7 @@ class Tile(webapp.RequestHandler):
     else:
         k = '00/210'
     #k = "00/21"
-    key = "%s/%s" % (k,'presence')
+    key = "%s" % k
     key = db.Key.from_path('TmpTiles',key)
     t = TmpTiles.get(key)
     """
@@ -169,9 +168,10 @@ class Tile(webapp.RequestHandler):
         ct = 0
         for c in t.band:
             b += bDecode[c]
+        #logging.error(len(b))
             
         #we should try to combine the follow two steps into a single function
-        s = chk(b[:-3],256)
+        s = chk(b[:-2],256)
         s = map(lambda x: map(int, x), s)
 
         
@@ -184,13 +184,14 @@ class Tile(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(f.getvalue())
         
-        
+    else:
+        return 200
         
     
       
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),           
-         ('/api/tile/[^/]+/[^/]+.png', Tile)],      
+         ('/api/tile/[^/]+/[^/]+/[^/]+.png', Tile)],      
          debug=True)
 
 def main():
