@@ -26,7 +26,7 @@ python_preamble:
 
 
 transformers:
-- kind: TmpTiles
+- kind: Tiles
   connector: csv
   connector_options:
     encoding: utf_8
@@ -38,7 +38,7 @@ transformers:
       
     - property: band
       external_name: file
-      import_transform: util.toBin(str)
+      import_transform: util.stdImg(db.Blob)
       
 - kind: TileUpdates
   connector: csv
@@ -50,8 +50,8 @@ transformers:
       external_name: key
       export_transform: datastore.Key.name
       
-    - property: when
-      external_name: key
-      export_transform: time.time
+    - property: zoom
+      external_name: file
+      import_transform: "lambda x: int(x.split('/')[1].replace('z',''))"
       
       

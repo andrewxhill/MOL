@@ -132,15 +132,6 @@ class Tile(webapp.RequestHandler):
   def post(self):
     self.get()
   def get(self):
-    """
-        out = []
-        m = {(0,0):'q', (0,1):'t', (1,0):'r', (1,1):'s'}
-        for i in range(17-zoom):
-            x, rx = divmod(x, 2)
-            y, ry = divmod(y, 2)
-            out.insert(0, m[(rx,ry)])
-        return 't' + ''.join(out)
-        """
     #convert the URL route into the key (removing .png)
     url = self.request.path_info
     assert '/' == url[0]
@@ -152,40 +143,15 @@ class Tile(webapp.RequestHandler):
         k = '00/210'
     #k = "00/21"
     key = "%s" % k
-    key = db.Key.from_path('TmpTiles',key)
-    t = TmpTiles.get(key)
-    """
-    key = db.Key.from_path('Tiles',key.lower())
-    data = Tiles.get(key).band
-    img = bin(data)[2:]
-    self.response.out.write(img)
-    """
+    key = db.Key.from_path('Tiles',key)
+    t = Tiles.get(key)
     #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
     if t:
-        chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
-        #fix = lambda v: int(c) for c in v
-        b = ''
-        ct = 0
-        for c in t.band:
-            b += bDecode[c]
-        #logging.error(len(b))
-            
-        #we should try to combine the follow two steps into a single function
-        s = chk(b[:-2],256)
-        s = map(lambda x: map(int, x), s)
-
-        
-        f = cStringIO.StringIO()
-        palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
-        w = png.Writer(256,256, palette=palette, bitdepth=1)
-        w.write(f, s)
-
-        # binary PNG data
-        self.response.headers['Content-Type'] = 'image/png'
-        self.response.out.write(f.getvalue())
+        self.response.headers['Content-Type'] = "image/png"
+        self.response.out.write(t.band)
         
     else:
-        return 200
+        return 400
         
     
       
