@@ -15,14 +15,17 @@
 # limitations under the License.
 #
 
-from mol.db import TmpTiles
-
-from google.appengine.ext import db
-
-from math import ceil
-import png
-import cStringIO
+from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
+from google.appengine.ext import db
+from math import ceil
+from mol.db import TmpTiles
+import cStringIO
+import os
+import png
+import re
+
+
 
 bEncode = {'0':'A',
            '1':'B',
@@ -152,30 +155,34 @@ bDecode = {'+':'111110',
            'z':'110011'}
 
 class TileService(object):
+  
+  # For example: 01/21/pa
+  KEY_NAME_PATTERN = '[\d]+/[\d]+/[\w]+'
+    
   @staticmethod
   def get_png_tile(url):
-  #convert the URL route into the key (removing .png)
-    print url
-    assert '/' == url[0]
-    path = url[1:]
-    if '/' in path:
-      (b1, b2, k) = path.split("/", 2)
-      k = k.split('.')[0]
-    else:
-      k = '00/210'
-    key = "%s/%s" % (k, 'presence')
-    print 'getting key %s' % key
-    key = db.Key.from_path('TmpTiles', key)
+    """Converts an HTTP request resource into a PNG.
+    
+    Args:
+      url: The HTTP request resource (e.g., /api/tile/00/021/pa.png)
+      
+    Returns:
+      A StringIO object with the PNG data.
+      
+    """
+    key_name = re.findall(TileService.KEY_NAME_PATTERN, url)[0]
+    key = db.Key.from_path('TmpTiles', key_name)
     t = TmpTiles.get(key)
     if t:
-      chk = lambda v, l: [v[i * l:(i + 1) * l] for i in
-                          range(int(ceil(len(v) / float(l))))]
-      #fix = lambda v: int(c) for c in v
+      # Fix = lambda v: int(c) for c in v
       b = ''
       for c in t.band:
         b += bDecode[c]
 
-      #we should try to combine the follow two steps into a single function
+      chk = lambda v, l: [v[i * l:(i + 1) * l] for i in
+                          range(int(ceil(len(v) / float(l))))]
+
+      # We should try to combine the follow two steps into a single function
       s = chk(b[:-3], 256)
       s = map(lambda x: map(int, x), s)
 
@@ -185,23 +192,7 @@ class TileService(object):
       w.write(f, s)
       return f
 
-from google.appengine.api import apiproxy_stub
-from google.appengine.api import apiproxy_stub_map
-
-class DatastoreTestStub(apiproxy_stub.APIProxyStub):
-  def __init__(self):
-    super(DatastoreTestStub, self).__init__('datastore_v3')
-
-  def _Dynamic_Put(self, put_request, put_response):
-    print put_request
-
-  def _Dynamic_Get(self, get_request, get_response):
-    print get_request
-    
-
 if __name__ == '__main__':
-  import os
-  from google.appengine.datastore import datastore_pb
   os.environ['SERVER_SOFTWARE'] = 'Development via nose'
   os.environ['SERVER_NAME'] = 'Foo'
   os.environ['SERVER_PORT'] = '8080'
@@ -211,9 +202,20 @@ if __name__ == '__main__':
 
   apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3', DatastoreFileStub('test-app-run', None, None))
 
-  key = u'01/21/presence'
+  key = u'01/21/pa'
   tile = TmpTiles(key=db.Key.from_path('TmpTiles', key))
+  tile.band = db.Blob(str('0' * 10923));
   tile.put()
-  url = '/api/zoom/tiles?k=01/21'
-  print TileService.get_png_tile(url)
+  url = '/api/zoom/tiles?01/21/pa.png'
+  print TileService.get_png_tile(url).getvalue()
+  #png_file = open('/Users/eighty/tmp.png', 'wb')
+  #png_file.write(TileService.get_png_tile(url).getvalue())
+#  png_file.flush()
+#  png_file.seek(0)
+#  print png_file.read()
+#  png_file.close()
+#  
+
+
+
   

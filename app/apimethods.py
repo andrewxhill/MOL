@@ -13,7 +13,7 @@ from google.appengine.api import images
 from google.appengine.api import quota
 
 import os, string, Cookie, sha, time, random, cgi
-import urllib, datetime, cStringIO, pickle,random
+import urllib, datetime, cStringIO, pickle, random
 import wsgiref.handlers
 import cStringIO, png
 
@@ -32,54 +32,54 @@ class Taxonomy(webapp.RequestHandler):
         }
        }
     return out
-  def fromKey(self,k):
+  def fromKey(self, k):
     results = []
     start = time.time()
-    key = db.Key.from_path('Species',k.lower())
+    key = db.Key.from_path('Species', k.lower())
     ent = Species.get(key)
     ele = k.split("/")
     e = {
          "rank": str(ele[-2]),
-         "name": str(ele[-1]).replace("_"," "),
+         "name": str(ele[-1]).replace("_", " "),
          "classification": simplejson.loads(ent.classification),
          "authority": simplejson.loads(ent.authority),
          "names": simplejson.loads(ent.names) #.replace('\\','')
         }
     results.append(e)
-    t = int(1000*(time.time() - start))/1000.0
-    out = {"time":t,"items":results}
+    t = int(1000 * (time.time() - start)) / 1000.0
+    out = {"time":t, "items":results}
     return out
-  def fromQuery(self,r,s,of,n):
+  def fromQuery(self, r, s, of, n):
     start = time.time()
     results = []
     orderOn = r if r is not None else "genus"
-    memk = "%s/%s/%s/%s" % (r,s,of,n)
+    memk = "%s/%s/%s/%s" % (r, s, of, n)
     d = memcache.get(memk)
     if d is None:
         if r is None:
             #q = SpeciesIndex.gql("WHERE names = :1 ORDER BY %s" % orderOn, s.lower())
-            q = SpeciesIndex.all(keys_only=True).filter("names =",s.lower()).order(orderOn)
+            q = SpeciesIndex.all(keys_only=True).filter("names =", s.lower()).order(orderOn)
         else:
-            q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank,s.lower()).order(orderOn) 
-        d = q.fetch(limit=n,offset=of)
-    memcache.set(memk,d,3000)
+            q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank, s.lower()).order(orderOn) 
+        d = q.fetch(limit=n, offset=of)
+    memcache.set(memk, d, 3000)
     ct = 0
     for key in d:
-        ct+=1
+        ct += 1
         #ent = Species.get(key.parent())
         ent = db.get(key.parent())
         logging.error(ent.classification)
-        p= key.id_or_name().split('/')
+        p = key.id_or_name().split('/')
         e = {
              "rank": str(p[-2]),
-             "name": str(p[-1]).replace("_"," "),
+             "name": str(p[-1]).replace("_", " "),
              "classification": simplejson.loads(ent.classification),
              "authority": ent.authority,
              "names": simplejson.loads(ent.names) #.('\\','')
             }
         results.append(e)
-    t = int(1000*(time.time() - start))/1000.0
-    out = {"time":t,"items":results,"offset":of,"limit":n}
+    t = int(1000 * (time.time() - start)) / 1000.0
+    out = {"time":t, "items":results, "offset":of, "limit":n}
     return out
   def get(self):
     self.post()
@@ -97,12 +97,12 @@ class Taxonomy(webapp.RequestHandler):
     if k:
         out = self.fromKey(k)
     elif s is not None:
-        out = self.fromQuery(r,s,of,n)
+        out = self.fromQuery(r, s, of, n)
     else:
         out = self.methods()
             
     #self.response.out.write(simplejson.dumps(out, indent=4))
-    self.response.out.write(simplejson.dumps(out).replace("\\/","/"))
+    self.response.out.write(simplejson.dumps(out).replace("\\/", "/"))
     if cb is not None:
         self.response.out.write(")")
         
@@ -144,16 +144,17 @@ class Tile(webapp.RequestHandler):
         """
     #convert the URL route into the key (removing .png)
     url = self.request.path_info
+    logging.error(url)
     assert '/' == url[0]
     path = url[1:]
     if '/' in path:
-        (b1,b2, k) = path.split("/", 2)
+        (b1, b2, k) = path.split("/", 2)
         k = k.split('.')[0]
     else:
         k = '00/210'
     #k = "00/21"
-    key = "%s/%s" % (k,'presence')
-    key = db.Key.from_path('TmpTiles',key)
+    key = "%s/%s" % (k, 'presence')
+    key = db.Key.from_path('TmpTiles', key)
     t = TmpTiles.get(key)
     """
     key = db.Key.from_path('Tiles',key.lower())
@@ -163,34 +164,37 @@ class Tile(webapp.RequestHandler):
     """
     #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
     if t:
-        chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
+        chk = lambda v, l: [v[i * l:(i + 1) * l] for i in range(int(math.ceil(len(v) / float(l))))]
         #fix = lambda v: int(c) for c in v
         b = ''
         ct = 0
         for c in t.band:
+            ct += 1
             b += bDecode[c]
-            
+        logging.error(ct)
         #we should try to combine the follow two steps into a single function
-        s = chk(b[:-3],256)
+        s = chk(b[:-3], 256)
         s = map(lambda x: map(int, x), s)
 
         
         f = cStringIO.StringIO()
-        palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
-        w = png.Writer(256,256, palette=palette, bitdepth=1)
+        palette = [(0xff, 0xff, 0xff, 0x00), (0x00, 0x00, 0x00, 0xff)]
+        w = png.Writer(256, 256, palette=palette, bitdepth=1)
         w.write(f, s)
 
         # binary PNG data
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(f.getvalue())
-        
+    else:
+        self.response.out.write('No PNG for %s' % url)
         
         
     
       
 application = webapp.WSGIApplication(
-         [('/api/taxonomy', Taxonomy),           
-         ('/api/tile/[^/]+/[^/]+.png', Tile)],      
+         [('/api/taxonomy', Taxonomy),
+          # /api/tile/[\d]+/[\d]+.png
+         ('/api/tile/[\d]+/[\d]+.png', Tile)],
          debug=True)
 
 def main():
