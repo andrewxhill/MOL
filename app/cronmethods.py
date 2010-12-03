@@ -51,7 +51,7 @@ class Updates(webapp.RequestHandler):
     now = time.time()
     seed = int(now)
     #if it is kicked of by the cron, create 10 tasks
-    query = TileUpdates.all(keys_only=True)
+    query = TileUpdates.all(keys_only=True).order("when")
     #if cursor is not None:
     #    query.with_cursor(cursor)
     changed = query.fetch(90)
