@@ -164,32 +164,35 @@ class TileService(object):
     """Converts an HTTP request resource into a PNG.
     
     Args:
-      url: The HTTP request resource (e.g., /api/tile/00/021/pa.png)
+      url: The HTTP request resource that is expected to contain an entity key
+      (e.g., /api/tile/00/021/pa.png).
       
     Returns:
-      A StringIO object with the PNG data.
+      A cStringIO object with the PNG data.
       
     """
     key_name = re.findall(TileService.KEY_NAME_PATTERN, url)[0]
     key = db.Key.from_path('TmpTiles', key_name)
     t = TmpTiles.get(key)
     if t:
-      # Fix = lambda v: int(c) for c in v
+      chk = lambda v, l: [v[i * l:(i + 1) * l] for i in range(int(ceil(len(v) / float(l))))]
+      
       b = ''
+      ct = 0
       for c in t.band:
+        ct += 1
         b += bDecode[c]
-
-      chk = lambda v, l: [v[i * l:(i + 1) * l] for i in
-                          range(int(ceil(len(v) / float(l))))]
-
-      # We should try to combine the follow two steps into a single function
-      s = chk(b[:-3], 256)
+            
+      # We should try to combine the follow two steps into a single function.
+      # The [:-2] is dealing with the 00 padding stuff.
+      s = chk(b[:-2], 256)
       s = map(lambda x: map(int, x), s)
 
       f = cStringIO.StringIO()
       palette = [(0xff, 0xff, 0xff, 0x00), (0x00, 0x00, 0x00, 0xff)]
       w = png.Writer(256, 256, palette=palette, bitdepth=1)
-      w.write(f, s)
+      w.write(f, s)      
+      
       return f
 
 if __name__ == '__main__':

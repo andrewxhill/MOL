@@ -17,7 +17,7 @@
 
 from mapreduce import operation as op
 from google.appengine.ext import db
-from Tiles import Tiles, TmpTiles, TileUpdates
+from mol.db import *
 
 def delete(entity):
   """Deletes the entity from the datastore."""

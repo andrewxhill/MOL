@@ -19,8 +19,7 @@ import urllib, datetime, cStringIO, pickle,random
 import wsgiref.handlers
 import cStringIO, png
 
-from COL import *
-from Tiles import *
+from mol.db import *
 
 
     

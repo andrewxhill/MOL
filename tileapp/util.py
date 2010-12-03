@@ -1,5 +1,6 @@
 from PIL import Image
 from google.appengine.ext import db
+import os
 
 bEncode = {
     0 : 'A' , 16 : 'Q' , 32 : 'g' , 48 : 'w' ,
@@ -40,7 +41,7 @@ bDecode = {
 def toBin(fn):
     def wrapper(value):
         out = ''
-        img = Image.open("%s.png" % value)   
+        img = Image.open("%s.png" % value)
         b = img.convert("RGBA").getdata()
         i = 0
         ct = 0

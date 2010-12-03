@@ -14,7 +14,7 @@ from google.appengine.api import quota
 import os, string, Cookie, sha, time, random, cgi, urllib, datetime, cStringIO, pickle,random
 import wsgiref.handlers
 
-from COL import *
+from mol.db import *
 
 class DeleteBulk(webapp.RequestHandler):
   def get(self):

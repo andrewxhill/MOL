@@ -5,7 +5,7 @@ mapreduce:
     handler: mappers.delete
     params:
     - name: entity_kind
-      default: model.Species
+      default: mol.db.Species
 
 - name: Build Tile entities from TmpTile entities
   mapper:
@@ -13,4 +13,4 @@ mapreduce:
     handler: mappers.tile
     params:
     - name: entity_kind
-      default: Tiles.TmpTiles
+      default: mol.db.TmpTiles
