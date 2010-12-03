@@ -48,50 +48,58 @@ class Updates(webapp.RequestHandler):
   def post(self):
     self.get()
   def get(self):
-    query = TileUpdates.all()
-    cursor = self.request.get("cursor")
-    if cursor:
-        query.with_cursor(cursor)
-    changed = query.fetch(10)
-    if len(changed) == 10:
-        taskqueue.add(
-            url='/cron/tileupdates',
-            params={'cursor': query.cursor()})
+    now = time.time()
+    seed = int(now)
+    #if it is kicked of by the cron, create 10 tasks
+    query = TileUpdates.all(keys_only=True)
+    #if cursor is not None:
+    #    query.with_cursor(cursor)
+    changed = query.fetch(90)
+    #cursor = query.cursor()
     for c in changed:
-        k = c.key().name()
+        k = c.name()
         k = k.split("/")
         #make sure it isn't a 0 level tile
         if len(k[1]) > 1:
             #remove the last number in the quadid to get the quadid of the lower resolution tile that owns it
-            
             k[1] = k[1][:-1]
             #put the array back together
             k = '/'.join(k)
-            if memcache.get('taskqueue-%s' % k) is not None:
-                pass
-            else:
-                memcache.set('taskqueue-%s' % k, 1)
+            #if task for this key already exists, it will fail
+            name = k.split('/')
+            name = "%s-%s-%d" % (name[0],name[1],int(now/10))
+            try:
+                
                 taskqueue.add(
                     url='/cron/interpolate/tiles',
-                    params={'k': k})
-    db.delete(changed)
-        
+                    params={'k': k, 'seed': seed},
+                    name = '%s' % name,
+                    eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=3))
+                #logging.error(k)
+            except:
+                pass
+                #logging.error('new tileupdates failed: %s' % inst)
+            
+    
       
 
 class InterpolateTile(webapp.RequestHandler):
-  def post(self):
-    self.get()
   def get(self):
+    self.post()
+  def post(self):
       
     #from now on, assume the key sent was k="01"
     key = self.request.params.get('k', None)
+    seed = self.request.params.get('seed', int(time.time()/15))
+    now = time.time()
     #logging.error(key)
     bands = []
     
     #we just want a list with a '0' pixel place holder for every pixel in a 256x256 PNG
-    n = "0" * 65536
+    n = "0" * 65538
     n = list(n)
     
+    delList = []
     #the way that quadtree logic works, is that every tile of 256x256, is quartered
     #into 4 equal tiles when you zoom into it. The naming is super simple and nice
     #at zoom 0, there is 1 tile, with an id= 0
@@ -104,6 +112,9 @@ class InterpolateTile(webapp.RequestHandler):
         tmpK = key.split("/")
         tmpK[1] = tmpK[1]+str(qt)
         tmpK = '/'.join(tmpK)
+        
+        #delete record if it is in the TileUpdates kind
+        delList.append(db.Key.from_path('TileUpdates',tmpK))
         
         #grab it
         t = TmpTiles.get(db.Key.from_path('TmpTiles',"%s" % (tmpK)))
@@ -122,85 +133,70 @@ class InterpolateTile(webapp.RequestHandler):
             b = ''
             ct = 0
             #convert all the letters in the stored band back into a string of '1's and '0's
-            for c in t.band:
-                b += bDecode[c]
-                
-                
             ct = 0
             row = 0
             skip = True
-            #iterate all charactters
-            #but now I also do this funky math because I wanted to avoid turning
-            #the string into a bunch of arrays, i thought this might save a bit of
-            #time in the long run. It seems to work quickly, whether quicker or not is
-            #another question.
-            #but, 4 pixels from a higher resolution tile, will all be used to fill a 
-            #single pixel in the lower resolution tile
-            #something like:
-            #low resolution '11
-            #                11'
-            #becomes a high resolution '1'
-            #so i do that math.floor() to allow two rows and two columns to represent
-            #a single row and a single same column in the low resolution
-            #I then use those oct and orow offsets from above to shift them into the
-            #correct corner of the tile that the high resolution tile describes
-            #sorry, i realized i'm talking about them as 256x256 arrays, you can think
-            #about them that way, i just use simple offsets instead of rows to get to 
-            #the right data in a string 
-            for c in b:
-                if c != '0': #if the data is '0' we can skip anything, since '0' was the default in the n string we created above
-                    n[oct+int(((math.floor(row/2)+orow)*256) + math.floor(ct/2))] = c
-                    n[oct+int(((math.floor(row/2)+orow+1)*256) + math.floor(ct/2))] = c
-                    n[oct+int(((math.floor(row/2)+orow)*256) + math.floor(ct/2) + 1)] = c
-                    n[oct+int(((math.floor(row/2)+orow+1)*256) + math.floor(ct/2) + 1)] = c
-                ct += 1
-                if ct > 255:
-                    row+=1
-                    ct = 0
+            for b in t.band:
+                #whoa that was complicated before, sorry, fixed
+                for c in bDecode[b]:
+                    if c != '0': #if the data is '0' we can skip anything, since '0' was the default in the n string we created above
+                        u = int((math.floor(row/2)+orow)*256 + math.floor(ct/2) + oct)
+                        n[u] = c
+                    ct += 1
+                    if ct > 255:
+                        row+=1
+                        ct = 0
                 
     #this guy i got of the webs, it just chunks a string into array of string length n, chk(str, n)
-    chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
+    #chk = lambda v, l: [v[i*l:(i+1)*l] for i in range(int(math.ceil(len(v)/float(l))))]
         
     #logging.error(len(n))
-    tmp = ''.join(n)
-    tmp = chk(tmp,6)
+    #tmp = ''.join(n)
+    #tmp = chk(tmp,6)
     out = ''
     ct = 0
+    id = 0
     #re-encode the byte string into our character string
-    for z in tmp:
+    while id < len(n):
         ct+=1
-        out += bEncode[int(z,2)]
+        out += bEncode[int(''.join(n[id:(id+6)]),2)]
+        id+=6
+        
+    #delete any tiles processed above
+    db.delete(delList)
+    
     #and store
-    tile = TmpTiles(key=db.Key.from_path('TmpTiles',key))
-    tile.band = db.Text(out)
-    tile.put()
+    putList = []
+    tmp = TmpTiles(key=db.Key.from_path('TmpTiles',key))
+    tmp.band = db.Text(out)
+    putList.append(tmp)
     tile = Tiles(key=db.Key.from_path('Tiles',key))
     tile.band = db.Blob(out)
-    tile.put()
-    tile = TileUpdates(key=db.Key.from_path('TileUpdates',key))
-    tile.put()
-    taskqueue.add(url='/cron/tileupdates')
+    putList.append(tile)
+    
+    #make sure it isn't a 0 level tile
+    if len(key.split("/")[1]) > 1:
+        up = TileUpdates(key=db.Key.from_path('TileUpdates',key))
+        putList.append(up)
+    
+    db.put(putList)
+    
+    #if task for this key already exists but hasn't executed, it will fail
+    try:
+        taskqueue.add(
+            url='/cron/tileupdates',
+            name = '%s-%s-%s' % (10,10,seed),
+            eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=3))
+        #logging.error(cursor)
+    except:
+        #allow the fail to happen quietly
+        pass
+    
        
-class NewTiles(webapp.RequestHandler):
-  def post(self):
-    self.get()
-  def get(self):
-      
-    mr_control.start_map( 
-      "Build Tile entities from TmpTile entities", 
-      "mappers.tile", 
-      "mapreduce.input_readers.DatastoreInputReader", 
-      {"entity_kind": "Tiles.TmpTiles", 
-      }, 
-      mapreduce_parameters={"done_callback": "/mr-end-task"}, 
-    ) 
-    self.response.headers['Content-Type'] = 'text/plain' 
-    self.response.out.write('MR Cron Started') 
     
 application = webapp.WSGIApplication(
          [('/cron/tileupdates', Updates),
-         ('/cron/interpolate/tiles', InterpolateTile),      
-         ('/cron/add/tiles', NewTiles)],      
+         ('/cron/interpolate/tiles', InterpolateTile)],      
          debug=True)
 
 def main():

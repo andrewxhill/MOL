@@ -46,7 +46,7 @@ def toBin(fn):
         ct = 0
         tmp = ''
         while i < len(b):
-            if b[i][3]==255:
+            if b[i][3]!=0:
                 tmp += "1"
             else:
                 tmp += "0"

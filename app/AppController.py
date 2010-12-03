@@ -20,15 +20,22 @@ class DeleteBulk(webapp.RequestHandler):
   def get(self):
     self.post()
   def post(self):
-    tb = self.request.get('tb',"default_db")
-    q = db.GqlQuery("SELECT __key__ FROM %s" % tb)
-    tot = 0
-    r = q.fetch(300)
-    tot = len(r)
-    db.delete(r)
-    if tot==300:
-        taskqueue.add(url='/admin/bulkdelete', params={'tb': tb})
-    return 200
+    tb = self.request.get('tb',None)
+    if tb is None:
+        tc = self.request.get('tc','TileUpdates')
+        q = db.GqlQuery("SELECT __key__ FROM %s" % tc).fetch(20)
+        for a in q:
+            self.response.out.write(a.name())
+            self.response.out.write("<br>")
+    else:
+        q = db.GqlQuery("SELECT __key__ FROM %s" % tb)
+        tot = 0
+        r = q.fetch(300)
+        tot = len(r)
+        db.delete(r)
+        if tot==300:
+            taskqueue.add(url='/admin/bulkdelete', params={'tb': tb})
+        return 200
     
 class ColPage(webapp.RequestHandler):
   def get(self):

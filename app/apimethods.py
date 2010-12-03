@@ -132,7 +132,6 @@ class Tile(webapp.RequestHandler):
   def post(self):
     self.get()
   def get(self):
-      
     """
         out = []
         m = {(0,0):'q', (0,1):'t', (1,0):'r', (1,1):'s'}
@@ -153,8 +152,13 @@ class Tile(webapp.RequestHandler):
     else:
         k = '00/210'
     #k = "00/21"
+<<<<<<< HEAD
     key = "%s/%s" % (k, 'presence')
     key = db.Key.from_path('TmpTiles', key)
+=======
+    key = "%s" % k
+    key = db.Key.from_path('TmpTiles',key)
+>>>>>>> master
     t = TmpTiles.get(key)
     """
     key = db.Key.from_path('Tiles',key.lower())
@@ -171,9 +175,16 @@ class Tile(webapp.RequestHandler):
         for c in t.band:
             ct += 1
             b += bDecode[c]
+<<<<<<< HEAD
         logging.error(ct)
         #we should try to combine the follow two steps into a single function
         s = chk(b[:-3], 256)
+=======
+        #logging.error(len(b))
+            
+        #we should try to combine the follow two steps into a single function
+        s = chk(b[:-2],256)
+>>>>>>> master
         s = map(lambda x: map(int, x), s)
 
         
@@ -185,16 +196,27 @@ class Tile(webapp.RequestHandler):
         # binary PNG data
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(f.getvalue())
+<<<<<<< HEAD
     else:
         self.response.out.write('No PNG for %s' % url)
         
+=======
+        
+    else:
+        return 200
+>>>>>>> master
         
     
       
 application = webapp.WSGIApplication(
+<<<<<<< HEAD
          [('/api/taxonomy', Taxonomy),
           # /api/tile/[\d]+/[\d]+.png
          ('/api/tile/[\d]+/[\d]+.png', Tile)],
+=======
+         [('/api/taxonomy', Taxonomy),           
+         ('/api/tile/[^/]+/[^/]+/[^/]+.png', Tile)],      
+>>>>>>> master
          debug=True)
 
 def main():
