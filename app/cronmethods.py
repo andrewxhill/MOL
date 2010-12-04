@@ -53,12 +53,14 @@ class Updates(webapp.RequestHandler):
                     url='/cron/interpolate/tiles',
                     params={'k': k, 'seed': seed},
                     name = '%s' % name,
-                    eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=3))
+                    eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=1))
                 #logging.error(k)
             except:
                 pass
                 #logging.error('new tileupdates failed: %s' % inst)
-            
+        else:
+            k = '/'.join(k)
+            db.delete(db.Key.from_path('TileUpdates',tmpK))
     
       
 
@@ -97,9 +99,9 @@ class InterpolateTile(webapp.RequestHandler):
                 ct = 0
                 while ct<len(s):
                     if s[ct] != 0:
-                        n[row+orow].append(0)
-                    else:
                         n[row+orow].append(1)
+                    else:
+                        n[row+orow].append(0)
                     ct+=4
                 row+=1
         else:
@@ -117,29 +119,27 @@ class InterpolateTile(webapp.RequestHandler):
     w.write(f, n)   
     
     #and store
-    putList = []
     tile = Tiles(key=db.Key.from_path('Tiles',key))
     tile.band = db.Blob(f.getvalue())
-    putList.append(tile)
+    tile.put()
     f.close()
     
     #make sure it isn't a 0 level tile
     if len(key.split("/")[1]) > 1:
-        up = TileUpdates(key=db.Key.from_path('TileUpdates',key))
-        putList.append(up)
+        #up = TileUpdates(key=db.Key.from_path('TileUpdates',key))
+        #putList.append(up)
         #if task for this key already exists but hasn't executed, it will fail
         try:
             taskqueue.add(
                 queue_name='tile-processing-queue',
                 url='/cron/tileupdates',
                 name = '%s-%s-%s' % (10,10,seed),
-                eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=3))
+                eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=2))
             #logging.error(cursor)
         except:
             #allow the fail to happen quietly
             pass
-    db.put(putList)
-       
+    
     
 application = webapp.WSGIApplication(
          [('/cron/tileupdates', Updates),
