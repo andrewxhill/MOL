@@ -99,15 +99,15 @@ class InterpolateTile(webapp.RequestHandler):
                 ct = 0
                 while ct<len(s):
                     if s[ct] != 0:
-                        n[row+orow].append(1)
+                        n[row+orow].append(u'1')
                     else:
-                        n[row+orow].append(0)
+                        n[row+orow].append(u'0')
                     ct+=4
                 row+=1
         else:
             for r in range(orow,orow+128):
                 for c in range(128):
-                    n[r].append(0)
+                    n[r].append(u'0')
     
     
     #delete any tiles processed above
