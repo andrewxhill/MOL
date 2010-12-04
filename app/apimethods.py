@@ -17,9 +17,9 @@
 
 from django.utils import simplejson
 from google.appengine.api import memcache
-from google.appengine.ext import webapp
+from google.appengine.ext import webapp, db
 from google.appengine.ext.webapp.util import run_wsgi_app
-from mol.db import *
+from mol.db import Species, SpeciesIndex
 from mol.services import TileService
 import logging
 import time
@@ -111,23 +111,26 @@ class Taxonomy(webapp.RequestHandler):
         self.response.out.write(")")
         
 
-class Tile(webapp.RequestHandler):
+class TilePngHandler(webapp.RequestHandler):
+  def __init__(self):
+    super(TilePngHandler, self).__init__()
+    self.ts = TileService()
+    
   def post(self):
     self.get()
  
   def get(self):
     url = self.request.path_info
-    png_data = TileService.get_png_tile(url)
-    if png_data:
-      logging.error('hi')
-      self.response.headers['Content-Type'] = 'image/png'
-      self.response.out.write(png_data.getvalue())        
+    tile = self.ts.tile_from_request_path(url)
+    if tile:
+      self.response.headers['Content-Type'] = "image/png"
+      self.response.out.write(tile.band)
     else:
-      return 200
-      
+      return 400
+          
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),           
-         ('/api/tile/[\d]+/[\d]+/[\w]+.png', Tile)],      
+         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)],      
          debug=True)
 
 def main():

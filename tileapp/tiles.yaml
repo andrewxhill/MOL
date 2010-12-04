@@ -22,10 +22,10 @@ python_preamble:
 - import: google.appengine.api.users
 - import: google.appengine.ext.db
 - import: util
-
+- import: time
 
 transformers:
-- kind: TmpTiles
+- kind: Tiles
   connector: csv
   connector_options:
     encoding: utf_8
@@ -37,6 +37,18 @@ transformers:
       
     - property: band
       external_name: file
-      import_transform: util.toBin(str)
+      import_transform: util.stdImg(db.Blob)
       
+- kind: TileUpdates
+  connector: csv
+  connector_options:
+    encoding: utf_8
+    
+  property_map:      
+    - property: __key__
+      external_name: key
+      export_transform: datastore.Key.name
       
+    - property: zoom
+      external_name: file
+      import_transform: "lambda x: int(x.split('/')[1].replace('z',''))"
