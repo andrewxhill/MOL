@@ -24,17 +24,17 @@ def delete(entity):
   yield op.db.Delete(entity)
 
 def tile(entity):
-  """Converts a TmpTiles entity into a Tiles entity.
+  """Converts a TmpTiles entity into a Tile entity.
 
-  Basically we convert the TmpTiles entity to a Tiles entity by using the same
-  key name and then converting the Text band in TmpTiles to a Blob band in Tiles.
+  Basically we convert the TmpTiles entity to a Tile entity by using the same
+  key name and then converting the Text band in TmpTiles to a Blob band in Tile.
   Since a Blob requires a str argument, the Text band is converted to str.
 
   Args:
       entity: A TmpTiles entity
   """
-  queue = TileUpdates(key_name=entity.key().name())
+  queue = TileUpdate(key_name=entity.key().name())
   yield op.db.Put(queue)
-  tile = Tiles(key_name=entity.key().name())
+  tile = Tile(key_name=entity.key().name())
   tile.band = db.Blob(str(entity.band))
   yield op.db.Put(tile)   

@@ -25,7 +25,7 @@ python_preamble:
 - import: time
 
 transformers:
-- kind: Tiles
+- kind: Tile
   connector: csv
   connector_options:
     encoding: utf_8
@@ -39,7 +39,7 @@ transformers:
       external_name: file
       import_transform: util.stdImg(db.Blob)
       
-- kind: TileUpdates
+- kind: TileUpdate
   connector: csv
   connector_options:
     encoding: utf_8

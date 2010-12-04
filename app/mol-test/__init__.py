@@ -18,7 +18,7 @@
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
-from mol.db import Tiles
+from mol.db import Tile, TileUpdate
 from mol.services import TileError, TileService
 import os
 import time
@@ -53,64 +53,77 @@ class TileServiceTest(unittest.TestCase):
     ds_stub = DatastoreFileStub(APP_ID, None, None)
     apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3', ds_stub)    
 
-  def test_tile_from_request_path(self):
-    # Tests valid paths:
+  def test_put_tile(self):
+    self.assertEqual(None, self.service.put_tile(None))
+    self.assertEqual(None, self.service.put_tile(TileUpdate()))    
+   
     key_name = '00/021/pa'
-    for path in [u'/api/entity/00/021/pa.png', u'/00/021/pa.png', u'00/021/pa']:
-      entity = Tiles(key=db.Key.from_path('Tiles', key_name))
-      data = '0101-%s' % path
+    key = db.Key.from_path(TileService.TILE_KIND, key_name)
+    tile = Tile(key=key)
+    self.assertEqual(key, self.service.put_tile(tile))
+
+  def test_put_tile_update(self):
+    self.assertEqual(None, self.service.put_tile_update(None))
+    self.assertEqual(None, self.service.put_tile_update(Tile()))    
+    
+    # Test invalid zoom  
+    key_name = '00/xxx/pa'
+    key = db.Key.from_path(TileService.TILE_KIND, key_name)
+    tile = Tile(key=key)
+    db.put(tile)
+    tile_update_key = self.service.put_tile_update(tile)
+    self.assertEqual(tile_update_key, None)
+    
+    # Test valid put
+    key_name = '00/021/pa'
+    key = db.Key.from_path(TileService.TILE_KIND, key_name)
+    tile = Tile(key=key)
+    db.put(tile)
+    tile_update_key = self.service.put_tile_update(tile)
+    self.assertNotEqual(tile_update_key, None)
+    self.assertEqual(tile_update_key.name(), key_name)
+    tile_update = db.get(tile_update_key)
+    self.assertNotEqual(tile_update, None)
+    self.assertEqual(tile_update.zoom, 3)
+        
+        
+  def test_zoom_from_key(self):
+    key_name = '00/021/pa'
+    self.assertEqual(None, self.service._zoom_from_key_name(None))
+    self.assertEqual(None, self.service._zoom_from_key_name('/'))
+    self.assertEqual(None, self.service._zoom_from_key_name('//'))
+    self.assertEqual(None, self.service._zoom_from_key_name('/x/y'))    
+    self.assertEqual('021', self.service._zoom_from_key_name('00/021/pa'))
+    
+  def test_is_tile(self):
+    self.assertFalse(self.service._is_tile(None))
+    self.assertFalse(self.service._is_tile(8))
+    self.assertFalse(self.service._is_tile('Tile'))
+    self.assertFalse(self.service._is_tile(TileUpdate()))
+    self.assertTrue(self.service._is_tile(Tile()))
+    
+  def test_tile_from_url(self):
+    # Tests valid urls:
+    key_name = '00/021/pa'
+    for url in [u'/api/entity/00/021/pa.png', u'/00/021/pa.png', u'00/021/pa']:
+      entity = Tile(key=db.Key.from_path('Tile', key_name))
+      data = '0101-%s' % url
       entity.band = db.Blob(str(data));
       entity.put()      
-      tile = self.service.tile_from_request_path(path)
+      tile = self.service.tile_from_url(url)
       self.assertTrue(tile is not None)
       self.assertEqual(tile.key(), entity.key())
       self.assertEqual(tile.band, data)
       
     # Tests None:
-    path = None
-    tile = self.service.tile_from_request_path(path)
+    url = None
+    tile = self.service.tile_from_url(url)
     self.assertEqual(tile, None)
     
-    # Tests invalid paths:
-    for path in ['', 'foo', '/api/tile/foo/bar/baz.png']:
-      try :
-        tile = self.service.tile_from_request_path(path)
-        self.fail('Invalid path %s should cause failure' % path)
-      except TileError as error:
-        print error
-            
-  def test_tile_key_from_request_path(self):
-    # Tests valid paths:
-    key_name = '00/021/pa'
-    for path in [u'/api/entity/00/021/pa.png', u'/00/021/pa.png', u'00/021/pa']:
-      entity = Tiles(key=db.Key.from_path('Tiles', key_name))
-      entity.band = db.Blob(str('0101'));
-      entity.put()      
-      key = self.service.tile_key_from_request_path(path)
-      self.assertTrue(key is not None)
-      self.assertEqual(key, entity.key())
-
-    # Tests None:
-    path = None
-    key = self.service.tile_key_from_request_path(path)
-    self.assertEqual(key, None)
-    
-    # Tests invalid paths:
-    for path in ['', 'foo', '/api/tile/foo/bar/baz.png']:
-      try :
-        key = self.service.tile_key_from_request_path(path)
-        self.fail('Invalid path %s should cause failure' % path)
-      except TileError as error:
-        print error
-      
-  def test_is_valid_request_path(self):
-    # Tests valid paths:
-    for path in ['/api/entity/00/021/pa.png', '/00/021/pa.png', '00/021/pa']:
-      self.assertTrue(self.service.is_valid_request_path(path))
-
-    # Tests invalid paths:
-    for path in ['', None, 'foo', '/api/tile/foo/bar/baz.png']:
-      self.assertFalse(self.service.is_valid_request_path(path))
+    # Tests invalid urls:
+    for url in ['', 'foo', '/api/tile/foo/bar/baz.png']:
+      tile = self.service.tile_from_url(url)
+      self.assertEqual(tile, None)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TileServiceTest)
 unittest.TextTestRunner(verbosity=2).run(suite)

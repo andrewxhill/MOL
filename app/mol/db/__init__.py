@@ -17,15 +17,15 @@
 
 from google.appengine.ext import db
 
-class Tiles(db.Model):
+class Tile(db.Model):
   band = db.BlobProperty()
+
+class TileUpdate(db.Model):
+  zoom = db.IntegerProperty()
     
-class TmpTiles(db.Model):
+class TmpTile(db.Model):
   band = db.TextProperty()
     
-class TileUpdates(db.Model):
-  when = db.DateTimeProperty(auto_now_add=True)
-
 class Species(db.Model):
   authority = db.TextProperty()
   classification = db.TextProperty()

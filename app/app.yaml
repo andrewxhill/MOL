@@ -16,18 +16,18 @@ handlers:
   login: admin
   
 - url: /admin/.*
-  script: AppController.py
+  script: app.py
   login: admin
   
 - url: /cron/.*
-  script: cronmethods.py
+  script: cron.py
   login: admin
   
 - url: /static
   static_dir: static
 
 - url: /api/.*
-  script: apimethods.py
+  script: api.py
   
 - url: /.*
-  script: AppController.py
+  script: app.py
