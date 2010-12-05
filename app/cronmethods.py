@@ -31,8 +31,7 @@ class Updates(webapp.RequestHandler):
     #if it is kicked of by the cron, create 10 tasks
     query = TileUpdates.all(keys_only=True).order("-zoom")
     #if cursor is not None:
-    #    query.with_cursor(cursor)
-    changed = query.fetch(100)
+    changed = query.fetch(400)
     #cursor = query.cursor()
     for c in changed:
         k = c.name()
@@ -45,22 +44,19 @@ class Updates(webapp.RequestHandler):
             k = '/'.join(k)
             #if task for this key already exists, it will fail
             name = k.split('/')
-            name = "%s-%s-%d" % (name[0],name[1],int(now/10))
+            name = "%s-%s%s-%d" % (name[0],name[1],name[2],int(now/10))
             try:
-                
                 taskqueue.add(
                     queue_name='tile-processing-queue',
                     url='/cron/interpolate/tiles',
                     params={'k': k, 'seed': seed},
                     name = '%s' % name,
-                    eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=1))
-                #logging.error(k)
+                    eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=4))
             except:
-                pass
-                #logging.error('new tileupdates failed: %s' % inst)
+                pass 
         else:
             k = '/'.join(k)
-            db.delete(db.Key.from_path('TileUpdates',tmpK))
+            db.delete(db.Key.from_path('TileUpdates',k))
     
       
 
@@ -68,77 +64,56 @@ class InterpolateTile(webapp.RequestHandler):
   def get(self):
     self.post()
   def post(self):
-      
-    #from now on, assume the key sent was k="01"
-    key = self.request.params.get('k', None)
-    seed = self.request.params.get('seed', int(time.time()/15))
-    now = time.time()
     delList = []
-    
-    n = []
-    for i in range(256):
-        n.append([])
-        
-    for qt in range(4):
+    key = self.request.params.get('k', None)
+    now = time.time()
+    seed = self.request.params.get('seed', int(now/15))
+    tile = Tiles.get(db.Key.from_path('Tiles',key))
+    if tile: #if it does exist, turn it into a binary 256x256 matrix
+        n = []
+        row = 0
+        for s in png.Reader(bytes=tile.band).asRGBA()[2]:
+            n.append(['0' if s[(4*x)]==0 else '1' for x in range((len(s)/4))])
+    else: #if tile doesn't exist, create 256x256 matrix
+        n = [['1' for i in range(256)] for i in range(256)]
+        tile = Tiles(key=db.Key.from_path('Tiles',key))
+    for qt in range(4): #cycle through each of the four higher resolution tiles that make up this single tile
         tmpK = key.split("/")
         tmpK[1] = tmpK[1]+str(qt)
         tmpK = '/'.join(tmpK)
         
-        #delete record if it is in the TileUpdates kind
-        delList.append(db.Key.from_path('TileUpdates',tmpK))
-        
-        t = Tiles.get(db.Key.from_path('Tiles',tmpK))
-        
-        orow = 0 if qt in [0,1] else 128
-        ocol = 0 if qt in [0,2] else 128
-        
+        t = TileUpdates.get(db.Key.from_path('TileUpdates',tmpK))
         if t:
-            nt = png.Reader(bytes=images.resize(t.band,128,128)).asRGBA()
+            t = Tiles.get(db.Key.from_path('Tiles',tmpK))
+            delList.append(db.Key.from_path('TileUpdates',tmpK))
+        orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
+        ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
+        if t: 
+            nt = png.Reader(bytes=images.resize(t.band,128,128)).asRGBA() #turn this sub-tile into 1/4 size so that it makes up only 1/4 of the lower resolution tile we are generating
+            poss = []
             row = 0
-            for s in nt[2]:
-                ct = 0
-                while ct<len(s):
-                    if s[ct] != 0:
-                        n[row+orow].append(u'1')
-                    else:
-                        n[row+orow].append(u'0')
-                    ct+=4
+            for s in nt[2]: #iterate through each of the 128 rows of the tile
+                tmp = ['0' if s[(4*x)] == 0 else '1' for x in range((len(s)/4))] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                n[row+orow][ocol:ocol+128] = tmp
                 row+=1
-        else:
-            for r in range(orow,orow+128):
-                for c in range(128):
-                    n[r].append(u'0')
-    
-    
-    #delete any tiles processed above
-    db.delete(delList)
-    
+    db.delete(delList) #delete the sub-tiles from the TileUpdates table
     f = cStringIO.StringIO()
-    palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
+    palette=[(0x00,0x00,0x00,0xff),(0xff,0xff,0xff,0x00)]
     w = png.Writer(256,256, palette=palette, bitdepth=1)
     w.write(f, n)   
-    
-    #and store
-    tile = Tiles(key=db.Key.from_path('Tiles',key))
     tile.band = db.Blob(f.getvalue())
     tile.put()
     f.close()
-    
-    #make sure it isn't a 0 level tile
-    if len(key.split("/")[1]) > 1:
-        #up = TileUpdates(key=db.Key.from_path('TileUpdates',key))
-        #putList.append(up)
-        #if task for this key already exists but hasn't executed, it will fail
+    if len(key.split("/")[1]) > 1: #make sure we didn't just process the 0 level tile
         try:
             taskqueue.add(
                 queue_name='tile-processing-queue',
                 url='/cron/tileupdates',
                 name = '%s-%s-%s' % (10,10,seed),
-                eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=2))
+                eta = datetime.datetime.utcfromtimestamp(now) + datetime.timedelta(seconds=4))
             #logging.error(cursor)
         except:
-            #allow the fail to happen quietly
-            pass
+            pass #allow the fail to happen quietly
     
     
 application = webapp.WSGIApplication(

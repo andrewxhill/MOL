@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
-import time, datetime
+import time, datetime, logging
 
 class TileUpdates(db.Model):
     zoom = db.IntegerProperty()

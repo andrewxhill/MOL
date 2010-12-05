@@ -15,11 +15,3 @@ mapreduce:
     - name: entity_kind
       default: Tiles.TmpTiles
       
-      
-- name: Interpolate lower zoom level tiles for changed speces
-  mapper:
-    input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.interpolate
-    params:
-    - name: entity_kind
-      default: Tiles.TileUpdates
