@@ -25,7 +25,7 @@ import logging
 import time
 
 class Taxonomy(webapp.RequestHandler):
-  
+
   def methods(self):
     out = {"methods":{
         "search": "provide a name string to search for",
@@ -37,7 +37,7 @@ class Taxonomy(webapp.RequestHandler):
         }
        }
     return out
- 
+
   def fromKey(self, k):
     results = []
     start = time.time()
@@ -55,7 +55,7 @@ class Taxonomy(webapp.RequestHandler):
     t = int(1000 * (time.time() - start)) / 1000.0
     out = {"time":t, "items":results}
     return out
-  
+
   def fromQuery(self, r, s, of, n):
     start = time.time()
     results = []
@@ -67,7 +67,7 @@ class Taxonomy(webapp.RequestHandler):
             #q = SpeciesIndex.gql("WHERE names = :1 ORDER BY %s" % orderOn, s.lower())
             q = SpeciesIndex.all(keys_only=True).filter("names =", s.lower()).order(orderOn)
         else:
-            q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank, s.lower()).order(orderOn) 
+            q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank, s.lower()).order(orderOn)
         d = q.fetch(limit=n, offset=of)
     memcache.set(memk, d, 3000)
     ct = 0
@@ -88,10 +88,10 @@ class Taxonomy(webapp.RequestHandler):
     t = int(1000 * (time.time() - start)) / 1000.0
     out = {"time":t, "items":results, "offset":of, "limit":n}
     return out
-  
+
   def get(self):
     self.post()
-  
+
   def post(self):
     cb = self.request.params.get('callback', None)
     if cb is not None:
@@ -101,7 +101,7 @@ class Taxonomy(webapp.RequestHandler):
     r = self.request.params.get('rank', None)
     n = int(self.request.params.get('limit', 10))
     of = int(self.request.params.get('offset', 0))
-    
+
     self.response.headers['Content-Type'] = 'application/json'
     if k:
         out = self.fromKey(k)
@@ -109,23 +109,23 @@ class Taxonomy(webapp.RequestHandler):
         out = self.fromQuery(r, s, of, n)
     else:
         out = self.methods()
-            
+
     #self.response.out.write(simplejson.dumps(out, indent=4))
     self.response.out.write(simplejson.dumps(out).replace("\\/", "/"))
     if cb is not None:
         self.response.out.write(")")
-        
+
 
 class TilePngHandler(webapp.RequestHandler):
   """RequestHandler for map tile PNGs."""
-  
+
   def __init__(self):
     super(TilePngHandler, self).__init__()
     self.ts = TileService()
-    
+
   def post(self):
     self.get()
- 
+
   def get(self):
     url = self.request.path_info
     tile = self.ts.tile_from_url(url)
@@ -133,11 +133,11 @@ class TilePngHandler(webapp.RequestHandler):
       self.response.headers['Content-Type'] = "image/png"
       self.response.out.write(tile.band)
     else:
-      return 400
-          
+      return 404
+
 application = webapp.WSGIApplication(
-         [('/api/taxonomy', Taxonomy),           
-         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)],      
+         [('/api/taxonomy', Taxonomy),
+         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)],
          debug=True)
 
 def main():
