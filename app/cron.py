@@ -26,7 +26,7 @@ import time
 import cStringIO
 
 class Updates(webapp.RequestHandler):
-  
+
   def post(self):
     self.get()
 
@@ -52,7 +52,7 @@ class Updates(webapp.RequestHandler):
             name = k.split('/')
             name = "%s-%s-%d" % (name[0], name[1], int(now / 10))
             try:
-                
+
                 taskqueue.add(
                     queue_name='tile-processing-queue',
                     url='/cron/interpolate/tiles',
@@ -66,34 +66,34 @@ class Updates(webapp.RequestHandler):
         else:
             k = '/'.join(k)
             db.delete(db.Key.from_path('TileUpdate', tmpK))
-    
+
 class InterpolateTile(webapp.RequestHandler):
 
   def get(self):
     self.post()
-  
-  def post(self):    
+
+  def post(self):
     #from now on, assume the key sent was k="01"
     key = self.request.params.get('k', None)
     seed = self.request.params.get('seed', int(time.time() / 15))
     now = time.time()
     delList = []
-    
+
     n = [[] for i in range(256)]
-        
+
     for qt in range(4):
         tmpK = key.split("/")
         tmpK[1] = tmpK[1] + str(qt)
         tmpK = '/'.join(tmpK)
-        
+
         #delete record if it is in the TileUpdates kind
         delList.append(db.Key.from_path('TileUpdate', tmpK))
-        
+
         t = Tile.get(db.Key.from_path('Tile', tmpK))
-        
+
         orow = 0 if qt in [0, 1] else 128
         ocol = 0 if qt in [0, 2] else 128
-        
+
         if t:
             nt = png.Reader(bytes=images.resize(t.band, 128, 128)).asRGBA()
             row = 0
@@ -110,22 +110,22 @@ class InterpolateTile(webapp.RequestHandler):
             for r in range(orow, orow + 128):
                 for c in range(128):
                     n[r].append(u'0')
-    
-    
+
+
     #delete any tiles processed above
     db.delete(delList)
-    
+
     f = cStringIO.StringIO()
     palette = [(0xff, 0xff, 0xff, 0x00), (0x00, 0x00, 0x00, 0xff)]
     w = png.Writer(256, 256, palette=palette, bitdepth=1)
-    w.write(f, n)   
-    
+    w.write(f, n)
+
     #and store
     tile = Tile(key=db.Key.from_path('Tiles', key))
     tile.band = db.Blob(f.getvalue())
     tile.put()
     f.close()
-    
+
     #make sure it isn't a 0 level tile
     if len(key.split("/")[1]) > 1:
         #up = TileUpdates(key=db.Key.from_path('TileUpdates',key))
@@ -141,8 +141,8 @@ class InterpolateTile(webapp.RequestHandler):
         except:
             #allow the fail to happen quietly
             pass
-    
-    
+
+
 application = webapp.WSGIApplication(
          [('/cron/tileupdates', Updates),
          ('/cron/interpolate/tiles', InterpolateTile)],
