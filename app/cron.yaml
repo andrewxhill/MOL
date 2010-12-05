@@ -1,5 +1,4 @@
-
 cron:
 - description: update modified tiles
   url: /cron/tileupdates
-  schedule: every 1 minutes
+  schedule: every 2 minutes

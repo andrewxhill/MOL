@@ -29,26 +29,26 @@ transformers:
   connector: csv
   connector_options:
     encoding: utf_8
-    
-  property_map:      
+
+  property_map:
     - property: __key__
       external_name: key
       export_transform: datastore.Key.name
-      
+
     - property: band
       external_name: file
       import_transform: util.stdImg(db.Blob)
-      
+
 - kind: TileUpdate
   connector: csv
   connector_options:
     encoding: utf_8
-    
-  property_map:      
+
+  property_map:
     - property: __key__
       external_name: key
       export_transform: datastore.Key.name
-      
+
     - property: zoom
       external_name: file
       import_transform: "lambda x: int(x.split('/')[1].replace('z',''))"

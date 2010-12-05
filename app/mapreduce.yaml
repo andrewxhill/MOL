@@ -13,4 +13,4 @@ mapreduce:
     handler: mappers.tile
     params:
     - name: entity_kind
-      default: mol.db.TmpTiles
+      default: mol.db.TmpTile

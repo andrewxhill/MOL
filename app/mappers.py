@@ -15,9 +15,9 @@
 # limitations under the License.
 #
 
-from mapreduce import operation as op
 from google.appengine.ext import db
-from mol.db import *
+from mapreduce import operation as op
+from mol.db import Tile
 
 def delete(entity):
   """Deletes the entity from the datastore."""
@@ -33,8 +33,7 @@ def tile(entity):
   Args:
       entity: A TmpTiles entity
   """
-  queue = TileUpdate(key_name=entity.key().name())
-  yield op.db.Put(queue)
   tile = Tile(key_name=entity.key().name())
   tile.band = db.Blob(str(entity.band))
-  yield op.db.Put(tile)   
+  yield op.db.Put(tile)
+
