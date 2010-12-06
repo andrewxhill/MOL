@@ -21,7 +21,9 @@ from Tiles import Tiles, TmpTiles, TileUpdates
 
 def delete(entity):
   """Deletes the entity from the datastore."""
-  yield op.db.Delete(entity)
+  if len(entity.key().name().split('/')[1]) < 6:
+    yield op.db.Delete(entity)
+  
 
 def tile(entity):
   """Converts a TmpTiles entity into a Tiles entity.

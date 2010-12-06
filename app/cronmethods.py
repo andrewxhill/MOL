@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-import cgi, logging, png, copy, math
+import cgi, logging, png, copy, math, struct
 from django.utils import simplejson
 
 from google.appengine.api import users
@@ -64,6 +64,7 @@ class InterpolateTile(webapp.RequestHandler):
   def get(self):
     self.post()
   def post(self):
+    oS = 3 #tells what band in the png is important. on appengine, it is the 4th band (oF=3) on localhost is is band 1,2 or 3 (I use oF=1)
     delList = []
     key = self.request.params.get('k', None)
     now = time.time()
@@ -71,11 +72,10 @@ class InterpolateTile(webapp.RequestHandler):
     tile = Tiles.get(db.Key.from_path('Tiles',key))
     if tile: #if it does exist, turn it into a binary 256x256 matrix
         n = []
-        row = 0
         for s in png.Reader(bytes=tile.band).asRGBA()[2]:
-            n.append(['0' if s[(4*x)]==0 else '1' for x in range((len(s)/4))])
+            n.append([0 if x in [0,'0'] else 1 for x in s[oS::4]])
     else: #if tile doesn't exist, create 256x256 matrix
-        n = [['1' for i in range(256)] for i in range(256)]
+        n = [[0 for i in range(256)] for i in range(256)]
         tile = Tiles(key=db.Key.from_path('Tiles',key))
     for qt in range(4): #cycle through each of the four higher resolution tiles that make up this single tile
         tmpK = key.split("/")
@@ -89,16 +89,23 @@ class InterpolateTile(webapp.RequestHandler):
         orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
         ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
         if t: 
-            nt = png.Reader(bytes=images.resize(t.band,128,128)).asRGBA() #turn this sub-tile into 1/4 size so that it makes up only 1/4 of the lower resolution tile we are generating
+            tmpI = images.Image(t.band)
+            tmpI.resize(128,128)
+            nt = png.Reader(bytes=tmpI.execute_transforms(output_encoding=images.PNG)).asRGBA8()
+            
+            #nt = png.Reader(bytes=images.resize(t.band,128,128)).asRGBA() #turn this sub-tile into 1/4 size so that it makes up only 1/4 of the lower resolution tile we are generating
             poss = []
             row = 0
             for s in nt[2]: #iterate through each of the 128 rows of the tile
-                tmp = ['0' if s[(4*x)] == 0 else '1' for x in range((len(s)/4))] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                tmp = [0 if x in [0,'0'] else 1 for x in s[oS::4]] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                #tmp = ['0' if s[(4*x)] in [0,'0',0x00] else '1' for x in range((len(s)/4))] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
                 n[row+orow][ocol:ocol+128] = tmp
                 row+=1
     db.delete(delList) #delete the sub-tiles from the TileUpdates table
     f = cStringIO.StringIO()
-    palette=[(0x00,0x00,0x00,0xff),(0xff,0xff,0xff,0x00)]
+    palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
+    if oS == 1:
+        palette=[(0x00,0x00,0x00,0xff),(0xff,0xff,0xff,0x00)]
     w = png.Writer(256,256, palette=palette, bitdepth=1)
     w.write(f, n)   
     tile.band = db.Blob(f.getvalue())
@@ -116,9 +123,115 @@ class InterpolateTile(webapp.RequestHandler):
             pass #allow the fail to happen quietly
     
     
+class Bytes(webapp.RequestHandler):
+  def get(self):
+    oS = 1
+    key = self.request.params.get('k', '1010/03232/pa')
+    tile = Tiles.get(db.Key.from_path('Tiles',key))
+    if 0 == 0x00:
+        self.response.out.write('0 == 0x00')
+    
+    
+    
+    if tile: #if it does exist, turn it into a binary 256x256 matrix
+        n = []
+        row = 0
+        for s in png.Reader(bytes=tile.band).asRGBA()[2]:
+            n.append(['0' if x in [0,'0',0x00] else '1' for x in s[oS::4]])
+            #n.append(['0' if s[(4*x)+3] in [0,'0',0x00] else '1' for x in range((len(s)/4))])
+    else: #if tile doesn't exist, create 256x256 matrix
+        n = [['0' for i in range(256)] for i in range(256)]
+        tile = Tiles(key=db.Key.from_path('Tiles',key))
+    for qt in range(4): #cycle through each of the four higher resolution tiles that make up this single tile
+        tmpK = key.split("/")
+        tmpK[1] = tmpK[1]+str(qt)
+        tmpK = '/'.join(tmpK)
+        
+        t = Tiles.get(db.Key.from_path('Tiles',tmpK))
+        orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
+        ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
+        if t: 
+            tmpI = images.Image(t.band)
+            tmpI.resize(128,128)
+            nt = png.Reader(bytes=tmpI.execute_transforms(output_encoding=images.PNG)).asRGBA()
+            #nt = png.Reader().serialtoflat(bytes=tmpI.execute_transforms(output_encoding=images.PNG))
+            self.response.out.write(nt)
+            self.response.out.write("<br>")
+            #nt = png.Reader(bytes=tmpI.execute_transforms(output_encoding=images.PNG)).asRGBA8() #turn this sub-tile into 1/4 size so that it makes up only 1/4 of the lower resolution tile we are generating
+            
+            poss = []
+            row = 0
+            for s in nt[2]: #iterate through each of the 128 rows of the tile
+                
+                self.response.out.write("%s: <br>" % row)
+                self.response.out.write(s)
+                self.response.out.write("<br>")
+                #tmp = ['0' if s[(4*x)+3] == 0 else '1' for x in range((len(s)/4))] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                tmp = ['0' if x in [0,'0',0x00] else '1' for x in s[oS::4]] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                n[row+orow][ocol:ocol+128] = tmp
+                row+=1
+    ct = 0
+    for i in n:
+        self.response.out.write("%s: <br>" % ct)
+        self.response.out.write(i)
+        self.response.out.write("<br>")
+        ct+=1
+      
+      
+
+class SeeImage(webapp.RequestHandler):
+  def get(self):
+    oS = 1
+    key = self.request.params.get('k', '1010/03232/pa')
+    tile = Tiles.get(db.Key.from_path('Tiles',key))
+    if tile: #if it does exist, turn it into a binary 256x256 matrix
+        n = []
+        row = 0
+        for s in png.Reader(bytes=tile.band).asRGBA()[2]:
+            n.append([0 if x in [0,'0',0x00] else 1 for x in s[oS::4]])
+    else: #if tile doesn't exist, create 256x256 matrix
+        n = [[1 for i in range(256)] for i in range(256)]
+        tile = Tiles(key=db.Key.from_path('Tiles',key))
+    for qt in range(4): #cycle through each of the four higher resolution tiles that make up this single tile
+        tmpK = key.split("/")
+        tmpK[1] = tmpK[1]+str(qt)
+        tmpK = '/'.join(tmpK)
+        
+        t = Tiles.get(db.Key.from_path('Tiles',tmpK))
+        
+        orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
+        ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
+        if t: 
+            tmpI = images.Image(t.band)
+            tmpI.resize(128,128)
+            nt = png.Reader(bytes=tmpI.execute_transforms(output_encoding=images.PNG)).asRGBA8()
+            #nbands = nt[3]['planes']
+            #nt = png.Reader(bytes=images.resize(t.band,128,128)).asRGBA() #turn this sub-tile into 1/4 size so that it makes up only 1/4 of the lower resolution tile we are generating
+            poss = []
+            row = 0
+            for s in nt[2]: #iterate through each of the 128 rows of the tile
+                tmp = [0 if x in [0,'0',0x00] else 1 for x in s[oS::4]] #turn the data into only the binary information based off the transparancy band (4) of the png ignoring the rgb bands (1,2,3)
+                n[row+orow][ocol:ocol+128] = tmp
+                row+=1
+    
+    f = cStringIO.StringIO()
+    palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
+    if oS == 1:
+        palette=[(0x00,0x00,0x00,0xff),(0xff,0xff,0xff,0x00)]
+    
+    #palette=[(0xff),(0x00)]
+    w = png.Writer(256,256, palette=palette, bitdepth=1)
+    #w = png.Writer(256,256, transparent=1, greyscale=True)
+    w.write(f, n)   
+    
+    self.response.headers['Content-Type'] = "image/png"
+    self.response.out.write(f.getvalue())
+    
 application = webapp.WSGIApplication(
          [('/cron/tileupdates', Updates),
-         ('/cron/interpolate/tiles', InterpolateTile)],      
+         ('/cron/see', SeeImage),      
+         ('/cron/interpolate/tiles', InterpolateTile),      
+         ('/cron/bytes', Bytes)],      
          debug=True)
 
 def main():
