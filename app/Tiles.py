@@ -1,18 +1,24 @@
 from google.appengine.ext import db
 from google.appengine.api.labs import taskqueue
 import time, datetime, logging
+from google.appengine.api import memcache
 
-class TileUpdates(db.Model):
+class TileUpdate(db.Model):
     zoom = db.IntegerProperty()
     
-class Tiles(db.Model):
+class Tile(db.Model):
     band = db.BlobProperty()
     def put(self):
-        tmp = TileUpdates(key=db.Key.from_path('TileUpdates',self.key().name()))
+        memcache.set("tile-%s" % self.key().name(), self.band, 180)
+        tmp = TileUpdate(key=db.Key.from_path('TileUpdate',self.key().name()))
         tmp.zoom = len(self.key().name().split('/')[1])
         tmp.put()
+        memcache.set("tile-%s" % self.key().name(), self.band, 180)
         return db.Model.put(self)
+        
+class Tiles(db.Model):
+    band = db.BlobProperty()
     
-class TmpTiles(db.Model):
+class TmpTile(db.Model):
     band = db.TextProperty()
     

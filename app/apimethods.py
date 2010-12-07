@@ -108,7 +108,7 @@ class Taxonomy(webapp.RequestHandler):
         
     
 
-class Tile(webapp.RequestHandler):
+class TileFetch(webapp.RequestHandler):
   def post(self):
     self.get()
   def get(self):
@@ -121,23 +121,67 @@ class Tile(webapp.RequestHandler):
         k = k.split('.')[0]
     else:
         k = '00/210'
-    #k = "00/21"
-    key = "%s" % k
-    key = db.Key.from_path('Tiles',key)
-    t = Tiles.get(key)
-    #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
-    if t:
-        self.response.headers['Content-Type'] = "image/png"
-        self.response.out.write(t.band)
         
+    
+    band = memcache.get("tile-%s" % k)
+    if band is None:
+        #k = "00/21"
+        t = Tile.get(db.Key.from_path('Tile',k))
+        #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
+        if t:
+            
+            memcache.set("tile-%s" % k, t.band, 60)
+            if self.request.params.get('stopQueue', None) is None:
+                for qt in range(4):
+                    tmpK = k.split("/")
+                    tmpK[1] = tmpK[1]+str(qt)
+                    tmpK = '/'.join(tmpK)
+                    #name = tmpK.split('/')
+                    now = time.time()
+                    name = tmpK.split('/')
+                    name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                    try:
+                        taskqueue.add(
+                            queue_name='tile-processing-queue',
+                            params = {'stopQueue': 1},
+                            url='/api/tile/%s.png' % tmpK,
+                            name=name)
+                    except:
+                        pass
+            
+            self.response.headers['Content-Type'] = "image/png"
+            self.response.out.write(t.band)
+            
+        else:
+            return 400
     else:
-        return 400
+        
+        if self.request.params.get('stopQueue', None) is None:
+            for qt in range(4):
+                tmpK = k.split("/")
+                tmpK[1] = tmpK[1]+str(qt)
+                tmpK = '/'.join(tmpK)
+                #name = tmpK.split('/')
+                now = time.time()
+                name = tmpK.split('/')
+                name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                try:
+                    taskqueue.add(
+                        queue_name='tile-processing-queue',
+                        params = {'stopQueue': 1},
+                        url='/api/tile/%s.png' % tmpK,
+                        name=name)
+                except:
+                    pass
+        
+        self.response.headers['Content-Type'] = "image/png"
+        self.response.out.write(band)
         
     
       
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),           
-         ('/api/tile/[^/]+/[^/]+/[^/]+.png', Tile)],      
+         ('/api/tile/[^/]+/[^/]+/[^/]+.png', TileFetch)],      
          debug=True)
 
 def main():
