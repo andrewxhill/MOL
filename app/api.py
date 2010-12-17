@@ -115,7 +115,6 @@ class Taxonomy(webapp.RequestHandler):
     if cb is not None:
         self.response.out.write(")")
 
-
 class TilePngHandler(webapp.RequestHandler):
   """RequestHandler for map tile PNGs."""
 
@@ -123,6 +122,8 @@ class TilePngHandler(webapp.RequestHandler):
     super(TilePngHandler, self).__init__()
     self.ts = TileService()
 
+"""
+class TileFetch(webapp.RequestHandler):
   def post(self):
     self.get()
 
@@ -134,12 +135,85 @@ class TilePngHandler(webapp.RequestHandler):
       self.response.out.write(tile.band)
     else:
       return 404
+    band = memcache.get("tile-%s" % k)
+    if band is None:
+        t = Tile.get(db.Key.from_path('Tile',k))
+        if t:
+            memcache.set("tile-%s" % k, t.band, 60)
+            if self.request.params.get('stopQueue', None) is None:
+                for qt in range(4):
+                    tmpK = k.split("/")
+                    tmpK[1] = tmpK[1]+str(qt)
+                    tmpK = '/'.join(tmpK)
+                    #name = tmpK.split('/')
+                    now = time.time()
+                    name = tmpK.split('/')
+                    name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                    #rewrite this
+                    #try:
+                    #    taskqueue.add(
+                    #        queue_name='tile-processing-queue',
+                    #        params = {'stopQueue': 1},
+                    #        url='/api/tile/%s.png' % tmpK,
+                    #        name=name)
+                    #except:
+                    #    pass
+                    #
+            try:
+                tmp = str(t.band)
+            except:
+                tmp = 0
+            if cmp(tmp,'f')==0:
+                self.redirect("/static/full.png")
+            else:
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(t.band)
+            
+        else:
+            return 400
+    else:
+        if self.request.params.get('stopQueue', None) is None:
+            for qt in range(4):
+                tmpK = k.split("/")
+                tmpK[1] = tmpK[1]+str(qt)
+                tmpK = '/'.join(tmpK)
+                #name = tmpK.split('/')
+                now = time.time()
+                name = tmpK.split('/')
+                name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                #rewrite this
+                #try:
+                #    taskqueue.add(
+                #        queue_name='tile-processing-queue',
+                #        params = {'stopQueue': 1},
+                #        url='/api/tile/%s.png' % tmpK,
+                #        name=name)
+                #except:
+                #    pass
+                
+        try:
+            tmp = str(band)
+        except:
+            tmp = 0
+        if cmp('f',tmp) == 0:
+            self.redirect("/static/full.png")
+        else:
+            self.response.headers['Content-Type'] = "image/png"
+            self.response.out.write(band)
+        
+    
+      
+application = webapp.WSGIApplication(
+         [('/api/taxonomy', Taxonomy),           
+         ('/api/tile/[^/]+/[^/]+/[^/]+.png', TileFetch)],  
+         debug=True)
+"""
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
-         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)],
+         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)], 
          debug=True)
-
+         
 def main():
   run_wsgi_app(application)
 

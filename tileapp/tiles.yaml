@@ -38,7 +38,7 @@ transformers:
     - property: band
       external_name: file
       import_transform: util.stdImg(db.Blob)
-
+      
 - kind: TileUpdate
   connector: csv
   connector_options:
@@ -46,9 +46,11 @@ transformers:
 
   property_map:
     - property: __key__
-      external_name: key
+      external_name: updatekey
       export_transform: datastore.Key.name
 
     - property: zoom
       external_name: file
-      import_transform: "lambda x: int(x.split('/')[1].replace('z',''))"
+      import_transform: "lambda x: int(x.split('/')[1].replace('z','')) - 1"
+      
+      

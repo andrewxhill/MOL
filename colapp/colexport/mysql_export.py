@@ -65,6 +65,7 @@ def run():
     print "table made"
     cursor.execute ("SELECT * FROM spec;") # WHERE genus = 'Cosmosatyrus';")
     data = cursor.fetchall ()
+    totalCount = 0
     for z in data:
         
         rct+=1
@@ -183,8 +184,9 @@ def run():
         specind.write("\t")
         specind.write('COL')
         specind.write("\n")
+        totalCount += 1
     cursor.close ()
-    
+    print 'TotalCount: %s' % totalCount
     
 
 if __name__ == "__main__":

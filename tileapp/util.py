@@ -12,24 +12,32 @@ def stdImg(fn):
         a = []
         col = 0
         row = 0
+        fullTile = True
         while i < len(b):
             if col==0:
                 a.append([])
             if b[i][3]!=0:
-                tmp = '1'
+                a[row].append(0)
+                a[row].append(0)
+                a[row].append(0)
+                a[row].append(255)
             else:
-                tmp = '0'
-            a[row].append(tmp)
+                a[row].append(0)
+                a[row].append(0)
+                a[row].append(0)
+                a[row].append(0)
+                fullTile = False
             col+=1
             if col==256:
                 col = 0
                 row+=1
             i+=1
-        f = cStringIO.StringIO()
-        palette=[(0xff,0xff,0xff,0x00),(0x00,0x00,0x00,0xff)]
-        w = png.Writer(256,256, palette=palette, bitdepth=1)
-        w.write(f, a)   
-        
-        return db.Blob(f.getvalue())
+        if fullTile:
+            return db.Blob('f')
+        else:
+            f = cStringIO.StringIO()
+            w = png.Writer(256,256, planes=4, alpha=True, greyscale=False, bitdepth=8)
+            w.write_passes(f,a,packed=False)
+            return db.Blob(f.getvalue())
         
     return wrapper
