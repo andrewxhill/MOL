@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from abc import ABCMeta, abstractmethod, abstractproperty
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
@@ -85,10 +83,12 @@ class TileService(AbstractTileService):
       return None
     return zoom
     
-  def put_tile(self, tile):
+  def put_tile(self, tile, update=True):
     if not TileService._is_tile(tile):
       return None
     key = db.put(tile)
+    if update:
+        TileService.put_tile_update(tile)
     return key
   
   def put_tile_update(self, tile):

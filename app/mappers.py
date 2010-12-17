@@ -18,7 +18,8 @@
 from google.appengine.ext import db
 from google.appengine.api import memcache
 from google.appengine.api import images
-from Tiles import Tile, TmpTile, TileUpdate
+from mol.db import Tile, TileUpdate
+from mol.services import TileService
 import png, cStringIO
 
 def delete(entity):
