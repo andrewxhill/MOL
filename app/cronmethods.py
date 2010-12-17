@@ -21,7 +21,7 @@ import cStringIO, png
 from COL import *
 from Tiles import *
 
-
+"""
 class Updates(webapp.RequestHandler):
   def post(self):
     self.get()
@@ -59,7 +59,6 @@ class Updates(webapp.RequestHandler):
             db.delete(db.Key.from_path('TileUpdate', k))
 
 
-
 class InterpolateTile(webapp.RequestHandler):
   def get(self):
     self.post()
@@ -69,14 +68,25 @@ class InterpolateTile(webapp.RequestHandler):
     now = time.time()
     seed = self.request.params.get('seed', int(now / 15))
     tile = Tile.get(db.Key.from_path('Tile', key))
+    fullStart = False
     if tile: #if it does exist, turn it into a binary 256x256 matrix
         n = []
         row = 0
-        for s in png.Reader(bytes=tile.band).asRGBA8()[2]:
-            n.append(list(s))
+        try:
+            tmp = str(tile.band)
+        except:
+            tmp = 0
+        if cmp(tmp,'f')==0:
+            fullStart = True
+            n = [[255 if i%4==0 else 0 for i in range(256*4)] for i in range(256)]
+        else:
+            for s in png.Reader(bytes=tile.band).asRGBA8()[2]:
+                n.append(list(s))
     else: #if tile doesn't exist, create 256x256 matrix
         n = [[0 for i in range(256*4)] for i in range(256)]
         tile = Tile(key=db.Key.from_path('Tile',key))
+    fullCt = 0
+    qtCt = 0
     for qt in range(4): #cycle through each of the four higher resolution tiles that make up this single tile
         tmpK = key.split("/")
         tmpK[1] = tmpK[1]+str(qt)
@@ -85,6 +95,7 @@ class InterpolateTile(webapp.RequestHandler):
         band = None
         if t:
             band = memcache.get("tile-%s" % tmpK)
+            band = None
             if band is None:
                 t = Tile.get(db.Key.from_path('Tile', tmpK))
                 if t is not None:
@@ -93,20 +104,46 @@ class InterpolateTile(webapp.RequestHandler):
         orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
         ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
         if band: 
-            poss = []
-            row = 0
-            for s in png.Reader(bytes=images.resize(band,128,128)).asRGBA8()[2]: #iterate through each of the 128 rows of the tile
-                n[row+orow][4*ocol:4*(ocol+128)] = list(s)
-                row+=1
-                
+            qtCt += 1
+            try:
+                tmp = str(band)
+            except:
+                tmp = 0
+            if cmp(tmp,'f')==0: #represents a full tile
+                logging.error('Fullsub: %s' % tmpK)
+                fullCt += 1
+                row = 0
+                while row<128:
+                    n[row+orow][4*ocol:4*(ocol+128)] = [255 if i%4==0 else 0 for i in range(128*4)]
+                    row+=1
+            else:
+                poss = []
+                row = 0
+                for s in png.Reader(bytes=images.resize(band,128,128)).asRGBA8()[2]: #iterate through each of the 128 rows of the tile
+                    n[row+orow][4*ocol:4*(ocol+128)] = list(s)
+                    row+=1
+        
     db.delete(delList) #delete the sub-tiles from the TileUpdates table
-    f = cStringIO.StringIO()
-    w = png.Writer(256,256, planes=4, alpha=True, greyscale=False, bitdepth=8)
-    #w.write_array(f,n)
-    w.write_passes(f,n,packed=False)
-    tile.band = db.Blob(f.getvalue())
-    tile.put()
-    f.close()
+    fullTile = False
+    if fullStart is True and qtCt == fullCt:
+        logging.error('fullStart: %s' % key)
+        fullTile = True
+    elif fullCt == 4:
+        logging.error('fullCt: %s' % key)
+        fullTile = True
+        
+    if fullTile:
+        logging.error('fullTile: %s' % key)
+        tile.band = 'f'
+        tile.put()
+    else:
+        f = cStringIO.StringIO()
+        w = png.Writer(256,256, planes=4, alpha=True, greyscale=False, bitdepth=8)
+        #w.write_array(f,n)
+        w.write_passes(f,n,packed=False)
+        tile.band = db.Blob(f.getvalue())
+        tile.put()
+        f.close()
     if len(key.split("/")[1]) > 1: #make sure we didn't just process the 0 level tile
         try:
             taskqueue.add(
@@ -222,7 +259,7 @@ class SeeImage(webapp.RequestHandler):
     
     self.response.headers['Content-Type'] = "image/png"
     self.response.out.write(f.getvalue())
-    
+
 class DeleteBulk(webapp.RequestHandler):
   def get(self):
     self.post()
@@ -243,12 +280,34 @@ class DeleteBulk(webapp.RequestHandler):
         if tot==300:
             taskqueue.add(url='/admin/bulkdelete', params={'tb': tb})
         return 200
-
+"""
+class InterpolateTiles(webapp.RequestHandler):
+  def get(self):
+    self.post()
+  def post(self):
+    t = TileUpdate.all().fetch(1)
+    if len(t)==1:
+        mr_control.start_map(
+          "Process queued Tiles stored in TileUpdate",
+          "mappers.interpolate",
+          "mapreduce.input_readers.DatastoreInputReader",
+          {"entity_kind": "Tiles.TileUpdate",
+          "shard_count": 2,
+          },
+          mapreduce_parameters={"done_callback": "/"},
+        )
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write('MR Cron Started')
+      
+      
 application = webapp.WSGIApplication(
-         [('/cron/tileupdates', Updates),
-         ('/cron/see', SeeImage),      
-         ('/cron/interpolate/tiles', InterpolateTile),      
-         ('/cron/bytes', Bytes)],      
+         [
+          ('/cron/interpolate',InterpolateTiles),
+         #('/cron/tileupdates', Updates),
+         #('/cron/see', SeeImage),      
+         #('/cron/interpolate/tiles', InterpolateTile),      
+         #('/cron/bytes', Bytes)
+         ],      
          debug=True)
 
 

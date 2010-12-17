@@ -5,13 +5,15 @@ mapreduce:
     handler: mappers.delete
     params:
     - name: entity_kind
-      default: model.Species
-
-- name: Build Tile entities from TmpTile entities
+      default: Tiles.Tile
+      
+- name: Process queued Tiles stored in TileUpdate
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.tile
+    handler: mappers.interpolate
     params:
     - name: entity_kind
-      default: Tiles.TmpTiles
+      default: Tiles.TileUpdate
+    - name: shard_count
+      default: 2
       

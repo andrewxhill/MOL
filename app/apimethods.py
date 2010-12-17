@@ -121,15 +121,11 @@ class TileFetch(webapp.RequestHandler):
         k = k.split('.')[0]
     else:
         k = '00/210'
-        
     
     band = memcache.get("tile-%s" % k)
     if band is None:
-        #k = "00/21"
         t = Tile.get(db.Key.from_path('Tile',k))
-        #t = TmpTiles.gql("WHERE keyLiteral = '%s'" % key).fetch(1)[0]
         if t:
-            
             memcache.set("tile-%s" % k, t.band, 60)
             if self.request.params.get('stopQueue', None) is None:
                 for qt in range(4):
@@ -140,6 +136,7 @@ class TileFetch(webapp.RequestHandler):
                     now = time.time()
                     name = tmpK.split('/')
                     name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                    """#rewrite this
                     try:
                         taskqueue.add(
                             queue_name='tile-processing-queue',
@@ -148,14 +145,20 @@ class TileFetch(webapp.RequestHandler):
                             name=name)
                     except:
                         pass
-            
-            self.response.headers['Content-Type'] = "image/png"
-            self.response.out.write(t.band)
+                    """
+            try:
+                tmp = str(t.band)
+            except:
+                tmp = 0
+            if cmp(tmp,'f')==0:
+                self.redirect("/static/full.png")
+            else:
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(t.band)
             
         else:
             return 400
     else:
-        
         if self.request.params.get('stopQueue', None) is None:
             for qt in range(4):
                 tmpK = k.split("/")
@@ -165,6 +168,7 @@ class TileFetch(webapp.RequestHandler):
                 now = time.time()
                 name = tmpK.split('/')
                 name = "%s%s-%scache-%d" % (name[0],name[1],name[2], int(now / 10))
+                """ #rewrite this
                 try:
                     taskqueue.add(
                         queue_name='tile-processing-queue',
@@ -173,9 +177,16 @@ class TileFetch(webapp.RequestHandler):
                         name=name)
                 except:
                     pass
-        
-        self.response.headers['Content-Type'] = "image/png"
-        self.response.out.write(band)
+                """
+        try:
+            tmp = str(band)
+        except:
+            tmp = 0
+        if cmp('f',tmp) == 0:
+            self.redirect("/static/full.png")
+        else:
+            self.response.headers['Content-Type'] = "image/png"
+            self.response.out.write(band)
         
     
       

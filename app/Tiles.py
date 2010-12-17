@@ -10,14 +10,15 @@ class Tile(db.Model):
     band = db.BlobProperty()
     def put(self):
         memcache.set("tile-%s" % self.key().name(), self.band, 180)
-        tmp = TileUpdate(key=db.Key.from_path('TileUpdate',self.key().name()))
-        tmp.zoom = len(self.key().name().split('/')[1])
-        tmp.put()
-        memcache.set("tile-%s" % self.key().name(), self.band, 180)
+        tmpK = self.key().name().split('/')
+        tmpK[1] = tmpK[1][0:-1]
+        zoom = len(tmpK[1])
+        tmpK = '/'.join(tmpK)
+        if zoom > 0:
+            tmp = TileUpdate(key=db.Key.from_path('TileUpdate',tmpK))
+            tmp.zoom = zoom
+            tmp.put()
         return db.Model.put(self)
-        
-class Tiles(db.Model):
-    band = db.BlobProperty()
     
 class TmpTile(db.Model):
     band = db.TextProperty()
