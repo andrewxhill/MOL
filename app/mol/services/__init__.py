@@ -27,7 +27,7 @@ import re
 class Error(Exception):
   """Base class for exceptions in this module."""
   pass
-  
+
 class TileError(Error):
   """Exception raised for errors related to Tile.
 
@@ -42,9 +42,7 @@ class TileError(Error):
 
 class AbstractTileService(object):
   """An abstract base class for the Tile service."""
-  
-  __metaclass__ = ABCMeta
-  
+
   def put_tile(self, tile):
     """Puts a Tile in the datastore. Returns a key or None if it wasn't put."""
     raise NotImplementedError()
@@ -53,28 +51,28 @@ class AbstractTileService(object):
     """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if 
     it wasn't put.
     """
-    raise NotImplementedError()  
-      
+    raise NotImplementedError()
+
   def tile_from_url(self, url):
     """Returns the Tile associated with a entity URL request url or None if a 
     Tile could not be found."""
     raise NotImplementedError()
-    
+
 class TileService(AbstractTileService):
-  
+
   KEY_NAME_PATTERN = '[\d]+/[\d]+/[\w]+'
   TILE_KIND = 'Tile'
   TILE_UPDATE_KIND = 'TileUpdate'
-  
+
   @staticmethod
   def _is_tile(tile):
-    return tile is not None and isinstance(tile, Tile) 
-  
+    return tile is not None and isinstance(tile, Tile)
+
   @staticmethod
   def _zoom_from_key_name(key_name):
     if key_name is None:
       return None
-    if key_name.count('/') < 2:      
+    if key_name.count('/') < 2:
       return None
     zoom = key_name.split('/')[1]
     try:
@@ -90,22 +88,22 @@ class TileService(AbstractTileService):
     if update:
         TileService.put_tile_update(tile)
     return key
-  
+
   def put_tile_update(self, tile):
     if not TileService._is_tile(tile):
       return None
     if not tile.is_saved() or tile.key().name() is None:
-      return None    
+      return None
     key_name = tile.key().name()
     zoom = self._zoom_from_key_name(key_name)
     if zoom is None:
-      return None    
+      return None
     tu_key = db.Key.from_path(self.TILE_UPDATE_KIND, key_name)
     tu = TileUpdate(key=tu_key)
     tu.zoom = len(zoom)
     tu_key = db.put(tu)
-    return tu_key    
-    
+    return tu_key
+
   def tile_from_url(self, url):
     if url is None:
       return None
@@ -114,7 +112,7 @@ class TileService(AbstractTileService):
       return None
     entity = Tile.get(key)
     return entity
-  
+
   def _key_name(self, string):
     if string is None:
       return None
@@ -123,4 +121,4 @@ class TileService(AbstractTileService):
       key = db.Key.from_path(self.TILE_KIND, key_name)
       return key
     except IndexError:
-      return None      
+      return None
