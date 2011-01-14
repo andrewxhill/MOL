@@ -30,7 +30,7 @@ class Layer():
         #use gdalinfo to populate an info object
         info = subprocess.Popen(
             ["gdalinfo",
-             os.path.join(tmp_store,fname)
+             self.origRaster
             ], stdout=subprocess.PIPE).communicate()[0].split("\n")
         self.info["id"] = self.id
         self.info["zoom"] = {}
