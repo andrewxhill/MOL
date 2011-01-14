@@ -1,3 +1,7 @@
+# Production ini #
+##################
+production.ini
+
 # Compiled source #
 ###################
 *.pyc
