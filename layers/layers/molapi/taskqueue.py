@@ -6,7 +6,7 @@ class Layer():
     
     def __init__(self, dirname=None,filename=None):
         """raster: string filename of file to process"""
-        if raster is not None:
+        if filename is not None:
             self.nulfp= StringIO.StringIO()
             self.origRaster = "%s/%s" % (dirname,filename)
             self.id = filename.split('.')[0]
