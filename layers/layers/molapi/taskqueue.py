@@ -3,22 +3,24 @@ import StringIO
 
 class Layer():
     zoom = 12 #sets the maximum zoom we want to process
+    info = {}
+    errors = []
+    nulfp= StringIO.StringIO()
+    projected = False
+    converted = False
+    tiled = False
     
     def __init__(self, dirname=None,filename=None):
         """raster: string filename of file to process"""
         if filename is not None:
-            self.nulfp= StringIO.StringIO()
             self.origRaster = "%s/%s" % (dirname,filename)
             self.id = filename.split('.')[0]
-            self.errors = []
             self.verifyId()
-            self.info = {}
             self.getInfo()
             self.tileFolder = "/some/tmp/folder/for/tiles/" + self.id
             self.ascName = "/some/tmp/folder/for/%s.asc" % self.id
             self.tifName = "/some/tmp/folder/for/%s.tif" % self.id
-            self.projected = False
-            self.converted = False
+            
         
     def verifyId(self):
         """check to see that the id exists on GAE"""
