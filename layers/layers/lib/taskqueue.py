@@ -24,23 +24,20 @@ import threading
 import urllib
 import urllib2
 
-gaeUrl = "http://localhost:8080/"
+GAE_URL = "http://localhost:8080/"
 
 worker_q = Queue.Queue()
 
 class BulkLoadTiles():
-    self.gaeUrl = gaeUrl
     """class for running the bulkloader to upload tilesets to GAE"""
     def __init__(self, id=None):
         self.id = id
         
-    def uploadTiles():
+    def uploadTiles(self):
         pass
         
-        
-    
 class Layer():
-    gaeUrl = gaeUrl
+    GAE_URL = GAE_URL
     zoom = 1 #sets the maximum zoom we want to process
     info = {}
     errors = []
@@ -66,7 +63,7 @@ class Layer():
     def verifyId(self):
         """check to see that the id exists on GAE"""
         params = {'id': self.id}
-        response = urllib2.urlopen("%sapi/validid" % self.gaeUrl, urllib.urlencode(params))
+        response = urllib2.urlopen("%sapi/validid" % GAE_URL, urllib.urlencode(params))
         data = simplejson.loads(response.read())
         #check for validity now!
         #data['response']['validId'] should be True
@@ -130,7 +127,7 @@ class Layer():
                   'maxLon': self.info['geog']['maxLon'],
                   'minLon': self.info['geog']['minLon'],
                   'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
-        response = urllib2.urlopen("%sapi/layer/update" % self.gaeUrl, urllib.urlencode(params))
+        response = urllib2.urlopen("%sapi/layer/update" % GAE_URL, urllib.urlencode(params))
         out = response.read()
         # TODO: Log out and response
         
