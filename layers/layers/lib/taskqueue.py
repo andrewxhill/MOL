@@ -14,15 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
-import sys
-import subprocess
+from osgeo import gdal
 import Queue
-import threading
 import datetime
+import os
+import simplejson
+import subprocess
+import threading
 import urllib
 import urllib2
-from osgeo import gdal, osr, ogr
 
 worker_q = Queue.Queue()
 
@@ -40,7 +40,7 @@ class Layer():
         
         """raster: string filename of file to process"""
         (dirname, filename) = os.path.split(fullpath)
-        (basename, fileext)= os.path.splitext(filename)
+        (basename, fileext) = os.path.splitext(filename)
         if filename is not None:
             self.origRaster = fullpath
             self.id = basename
@@ -52,7 +52,7 @@ class Layer():
     def verifyId(self):
         """check to see that the id exists on GAE"""
         params = {'id': self.id}
-        response = urllib2.urlopen("http://localhost:8080/api/validid",urllib.urlencode(params))
+        response = urllib2.urlopen("http://localhost:8080/api/validid", urllib.urlencode(params))
         data = simplejson.loads(response.read())
         #check for validity now!
         
@@ -115,16 +115,17 @@ class Layer():
                   'maxLon': self.info['geog']['maxLon'],
                   'minLon': self.info['geog']['minLon'],
                   'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
-        response = urllib2.urlopen("http://localhost:8080/api/layer/update",urllib.urlencode(params))
+        response = urllib2.urlopen("http://localhost:8080/api/layer/update", urllib.urlencode(params))
         out = response.read()
+        # TODO: Log out and response
         
     def storeTiles(self):
-        #store tiles in couchdb
+        #TODO: store tiles in couchdb
         return True
     
     def cleanup(self):
         files = [self.ascName,
-                 self.ascName.replace('.asc','.prj')]
+                 self.ascName.replace('.asc', '.prj')]
         for file in files:
             try:
                 os.remove(file)
