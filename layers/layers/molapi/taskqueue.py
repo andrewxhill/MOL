@@ -1,5 +1,21 @@
-import sys, logging, os, shutil, datetime, time, shlex, subprocess
-import StringIO
+#!/usr/bin/env python
+#
+# Copyright 2011 Map Of Life
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+import sys
+import subprocess
 
 class Layer():
     zoom = 5 #sets the maximum zoom we want to process
@@ -9,9 +25,8 @@ class Layer():
     tiled = False
     tileDir = "tiles/" #/some/tmp/folder/for/tiles/
     ascDir = "" #/some/tmp/folder/for/asc/
-    
-    
-    def __init__(self, dirname="",filename=None):
+        
+    def __init__(self, dirname="", filename=None):
         """raster: string filename of file to process"""
         if filename is not None:
             self.origRaster = dirname.rstrip("/") + "/" + filename if dirname != "" else filename
@@ -19,13 +34,13 @@ class Layer():
             self.verifyId()
             self.tileFolder = self.tileDir + self.id
             self.ascName = self.ascDir + "%s.asc" % self.id
-            self.nulfp= open('%s.log' % self.id,'w')
+            self.nulfp = open('%s.log' % self.id, 'w')
         
     def verifyId(self):
         """check to see that the id exists on GAE"""
         return True
     
-    def getInfo(self,fn):
+    def getInfo(self, fn):
         #use gdalinfo to populate an info object
         info = subprocess.Popen(
             ["gdalinfo",
@@ -80,7 +95,7 @@ class Layer():
             "raster/GridToGoogle",
             self.ascName,
             self.tileFolder,
-            str(self.zoom+1)
+            str(self.zoom + 1)
             ], stderr=self.nulfp)
         self.tiling.wait()
         
@@ -100,7 +115,7 @@ if __name__ == "__main__":
     except:
         dirname = ""
         
-    layer = Layer(dirname=dirname,filename=filename)
+    layer = Layer(dirname=dirname, filename=filename)
     #layer.projectToGMAP()
     layer.convertToASC()
     layer.tile()
