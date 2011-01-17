@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 import sys
 import subprocess
 
@@ -90,7 +91,7 @@ class Layer():
             ["java",
             "-mx300m",
             "-classpath",
-            "/tiler/classes:/tiler/lib/maxent.jar",
+            "/raster/classes:/raster/lib/maxent.jar",
             "-Djava.awt.headless=true",
             "raster/GridToGoogle",
             self.ascName,
@@ -106,7 +107,18 @@ class Layer():
     def storeTiles(self):
         #store tiles in couchdb
         return True
-        
+    
+    def cleanup(self):
+        files = [self.ascName,
+                 self.ascName.replace('asc','prj'),
+                ]
+        for file in files:
+            try:
+                os.remove(file)
+            except:
+                pass
+            
+    
 if __name__ == "__main__":
     #run the code
     filename = str(sys.argv[1])
@@ -119,3 +131,4 @@ if __name__ == "__main__":
     #layer.projectToGMAP()
     layer.convertToASC()
     layer.tile()
+    layer.cleanup()
