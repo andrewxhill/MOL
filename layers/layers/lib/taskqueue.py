@@ -19,7 +19,9 @@ import sys
 import subprocess
 import Queue
 import threading
- 
+import datetime
+from osgeo import gdal, osr, ogr
+
 worker_q = Queue.Queue()
 
 class Layer():
@@ -51,29 +53,11 @@ class Layer():
     
     def getInfo(self, fn):
         #use gdalinfo to populate an info object
-        info = subprocess.Popen(
-            ["gdalinfo",
-             fn
-            ], stdout=subprocess.PIPE).communicate()[0]
-        #better parsing needed
-        """
-        info = info.split("\n")
-        self.info["id"] = self.id
-        self.info["zoom"] = {}
-        self.info["box"] = {}
-        
-        self.info["zoom"]["min"] = 0
-        self.info["zoom"]["max"] = self.zoom
-        
-        upper = info[7].split()
-        lower = info[10].split()
-        self.info["box"]["xmin"] = upper[3].replace(",","")
-        self.info["box"]["xmax"] = lower[3].replace(",","")
-        self.info["box"]["ymax"] = upper[3].replace(",","").replace(")","")
-        self.info["box"]["ymin"] = lower[3].replace(",","").replace(")","")
-        """
-        #should grab projection info here also
-        
+        layer = gdal.Open(fn)
+        self.info['id'] = self.id
+        self.info['date'] = datetime.datetime.now()
+        self.info['proj'] = layer.GetProjection()
+        self.info['geog'] = layer.GetGeoTransform()
         return True
         
     def convertToASC(self):
