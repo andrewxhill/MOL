@@ -17,6 +17,10 @@
 import os
 import sys
 import subprocess
+import Queue
+import threading
+ 
+worker_q = Queue.Queue()
 
 class Layer():
     zoom = 5 #sets the maximum zoom we want to process
@@ -24,18 +28,22 @@ class Layer():
     errors = []
     converted = False
     tiled = False
-    tileDir = "tiles/" #/some/tmp/folder/for/tiles/
-    ascDir = "" #/some/tmp/folder/for/asc/
+    tileDir = "/ftp/tiles/" #/some/tmp/folder/for/tiles/
+    ascDir = "/ftp/asc/" #/some/tmp/folder/for/asc/
+    errDir = "/ftp/errors/"
         
-    def __init__(self, dirname="", filename=None):
+    def __init__(self, fullpath=None):
+        
         """raster: string filename of file to process"""
+        (dirname, filename) = os.path.split(fullpath)
+        (basename, fileext)= os.path.splitext(filename)
         if filename is not None:
-            self.origRaster = dirname.rstrip("/") + "/" + filename if dirname != "" else filename
-            self.id = filename.split('.')[0]
+            self.origRaster = fullpath
+            self.id = basename
             self.verifyId()
             self.tileFolder = self.tileDir + self.id
             self.ascName = self.ascDir + "%s.asc" % self.id
-            self.nulfp = open('%s.log' % self.id, 'w')
+            self.nulfp = open(self.errDir + '%s.log' % self.id, 'w')
         
     def verifyId(self):
         """check to see that the id exists on GAE"""
@@ -110,25 +118,34 @@ class Layer():
     
     def cleanup(self):
         files = [self.ascName,
-                 self.ascName.replace('asc','prj'),
-                ]
+                 self.ascName.replace('.asc','.prj')]
         for file in files:
             try:
                 os.remove(file)
             except:
                 pass
             
+class LayerProcessingThread(threading.Thread):
+    def run(self):
+        print 'Worker thread is running.'
+ 
+        while True:
+            data = worker_q.get()
+            if data['jobtype'] == 'newraster':
+                fullpath = data['fullpath']
+                print fullpath
+                try:
+                    # do task
+                    layer = Layer(fullpath=fullpath)
+                    layer.convertToASC()
+                    layer.tile()
+                    #layer.cleanup()
+                    print 'We got %s tiles, do something with them!' % (fullpath)
+                except Exception, e:
+                    print 'Unable to process in worker thread: ' + str(e)
+                worker_q.task_done()                
+ 
+def start_myworker():
+    worker = LayerProcessingThread()
+    worker.start()
     
-if __name__ == "__main__":
-    #run the code
-    filename = str(sys.argv[1])
-    try:
-        dirname = str(sys.argv[2])
-    except:
-        dirname = ""
-        
-    layer = Layer(dirname=dirname, filename=filename)
-    #layer.projectToGMAP()
-    layer.convertToASC()
-    layer.tile()
-    layer.cleanup()

@@ -10,6 +10,7 @@ import layers.lib.app_globals as app_globals
 import layers.lib.helpers
 from layers.config.routing import make_map
 from layers.model import init_model
+from layers.lib.taskqueue import start_myworker
 
 def load_environment(global_conf, app_conf):
     """Configure the Pylons environment via the ``pylons.config``
@@ -43,3 +44,4 @@ def load_environment(global_conf, app_conf):
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
+    start_myworker()
