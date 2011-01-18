@@ -55,6 +55,7 @@ class Layer():
         #use gdalinfo to populate an info object
         layer = gdal.Open(fn)
         self.info['id'] = self.id
+        self.info['zoom'] = self.zoom
         self.info['date'] = datetime.datetime.now()
         self.info['proj'] = layer.GetProjection()
         self.info['geog'] = layer.GetGeoTransform()

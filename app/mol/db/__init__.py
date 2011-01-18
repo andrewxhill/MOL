@@ -17,6 +17,13 @@
 
 from google.appengine.ext import db
 
+class TileSetIndex(db.Model):
+    remoteLocation = db.StringProperty() #remote url constructor for the dataset, for distributed storage
+    zoom = db.IntegerProperty() #max zoom available for the layer
+    geometry = db.StringProperty() #serialized object describing the extents of the layer
+    dateLastModified = db.DateProperty()
+    dateCreated = db.DateTimpeProperty(auto_now_add=True)
+
 class Tile(db.Model):
   band = db.BlobProperty()
   
