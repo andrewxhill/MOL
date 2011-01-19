@@ -51,7 +51,11 @@ class Layer():
         
     def verifyId(self):
         """check to see that the id exists on GAE"""
-        return True
+        params = {'id': self.id}
+        response = urllib2.urlopen("http://localhost:8080/api/validid",urllib.urlencode(params))
+        data = simplejson.loads(response.read())
+        #check for validity now!
+        
     
     def getInfo(self, fn):
         #use gdalinfo to populate an info object
@@ -112,16 +116,8 @@ class Layer():
                   'minLon': self.info['geog']['minLon'],
                   'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
         response = urllib2.urlopen("http://localhost:8080/api/layer/update",urllib.urlencode(params))
-        print response.read()
-        """
-        c = pycurl.Curl()
-        c.setopt(c.POST, 1)
-        c.setopt(c.URL, "http://localhost:8080/api/layer/update")
-        c.setopt(c.HTTPPOST, params)
-        c.setopt(c.VERBOSE, 1)
-        c.perform()
-        c.close()
-        """
+        out = response.read()
+        
     def storeTiles(self):
         #store tiles in couchdb
         return True
