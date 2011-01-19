@@ -24,6 +24,7 @@ from mol.services import TileService
 import logging
 import time,datetime
 import os
+import pickle
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -154,21 +155,26 @@ class UpdateLayerMetadata(webapp.RequestHandler):
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
         self.authIPs = ['128.138.167.165','127.0.0.1'] #allow localhost testing and the MOL server only
-    def get(self):
+    def post(self):
         data = {}
         if os.environ['REMOTE_ADDR'] in self.authIPs:
             id = self.request.params.get('id')
             data['zoom'] = self.request.params.get('zoom')
             data['proj'] = self.request.params.get('proj')
-            data['date'] = datetime.datetime.strptime(self.request.params.get('date'), "%Y-%m-%d %H:%M:%S.%f")
-            data['maxLat'] = self.request.params.get('maxlat')
-            data['minLat'] = self.request.params.get('minlat')
-            data['maxLon'] = self.request.params.get('maxlon')
-            data['minLon'] = self.request.params.get('minlon')
-            data['remoteLocation'] = self.request.params.get('location')
+            date = self.request.params.get('date')
+            data['date'] = datetime.datetime.strptime(date.split('.')[0], "%Y-%m-%d %H:%M:%S")
+            data['maxLat'] = self.request.params.get('maxLat')
+            data['minLat'] = self.request.params.get('minLat')
+            data['maxLon'] = self.request.params.get('maxLon')
+            data['minLon'] = self.request.params.get('minLon')
+            data['remoteLocation'] = self.request.params.get('remoteLocation')
             if id is not None:
                 key = db.Key(id)
-                md = TileSetIndex.get_or_insert(key.name)
+                md = db.get(key)
+                #key = db.Key.from_path('TileSetIndex', str(id))
+                #md = TileSetIndex.get_by_key_name(id)
+                if md is None:
+                    md = TileSetIndex(name=id)
                 """store or overwrite the data in the model"""
                 try:
                     if md.dateLastModified is not None and md.dateLastModified > data['date']:
@@ -182,7 +188,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                         md.maxLon = float(data['maxLon'])
                         md.minLon = float(data['minLon'])
                         md.remoteLocation = data['remoteLocation']
-                        md.dateLastModified = date['date']
+                        md.dateLastModified = data['date']
                         md.put()
                         """cache the new data"""
                         mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
@@ -191,6 +197,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                         self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
                 except:
                     self.response.out.write('{response: {status: "failed", id: %s, error: "incorrect values"}}' % id) 
+                
             
 class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""  

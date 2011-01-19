@@ -20,12 +20,14 @@ import subprocess
 import Queue
 import threading
 import datetime
+import urllib
+import urllib2
 from osgeo import gdal, osr, ogr
 
 worker_q = Queue.Queue()
 
 class Layer():
-    zoom = 5 #sets the maximum zoom we want to process
+    zoom = 1 #sets the maximum zoom we want to process
     info = {}
     errors = []
     converted = False
@@ -58,7 +60,12 @@ class Layer():
         self.info['zoom'] = self.zoom
         self.info['date'] = datetime.datetime.now()
         self.info['proj'] = layer.GetProjection()
-        self.info['geog'] = layer.GetGeoTransform()
+        geog = layer.GetGeoTransform()
+        #temp holder
+        self.info['geog'] = {'maxLat': 1.2,
+                             'minLat': 1.2,
+                             'maxLon': 1.2,
+                             'minLon': 1.2}
         return True
         
     def convertToASC(self):
@@ -95,8 +102,26 @@ class Layer():
         
     def registerMetadata(self):
         #send metadata to GAE
-        return True
-        
+        params = {'id': '1234a',
+                  'zoom': self.zoom,
+                  'proj': self.info['proj'],
+                  'date': str(datetime.datetime.now()),
+                  'maxLat': self.info['geog']['maxLat'],
+                  'minLat': self.info['geog']['minLat'],
+                  'maxLon': self.info['geog']['maxLon'],
+                  'minLon': self.info['geog']['minLon'],
+                  'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
+        response = urllib2.urlopen("http://localhost:8080/api/layer/update",urllib.urlencode(params))
+        print response.read()
+        """
+        c = pycurl.Curl()
+        c.setopt(c.POST, 1)
+        c.setopt(c.URL, "http://localhost:8080/api/layer/update")
+        c.setopt(c.HTTPPOST, params)
+        c.setopt(c.VERBOSE, 1)
+        c.perform()
+        c.close()
+        """
     def storeTiles(self):
         #store tiles in couchdb
         return True
@@ -124,6 +149,7 @@ class LayerProcessingThread(threading.Thread):
                     layer = Layer(fullpath=fullpath)
                     layer.convertToASC()
                     layer.tile()
+                    layer.registerMetadata()
                     #layer.cleanup()
                     print 'We got %s tiles, do something with them!' % (fullpath)
                 except Exception, e:
