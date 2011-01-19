@@ -26,6 +26,18 @@ from osgeo import gdal, osr, ogr
 
 worker_q = Queue.Queue()
 
+
+
+class BulkLoadTiles():
+    """class for running the bulkloader to upload tilesets to GAE"""
+    def __init__(self, id=None):
+        self.id = id
+        
+    def uploadTiles():
+        pass
+        
+        
+    
 class Layer():
     zoom = 1 #sets the maximum zoom we want to process
     info = {}
@@ -55,6 +67,7 @@ class Layer():
         response = urllib2.urlopen("http://localhost:8080/api/validid",urllib.urlencode(params))
         data = simplejson.loads(response.read())
         #check for validity now!
+        #data['response']['validId'] should be True
         
     
     def getInfo(self, fn):
@@ -150,7 +163,11 @@ class LayerProcessingThread(threading.Thread):
                     print 'We got %s tiles, do something with them!' % (fullpath)
                 except Exception, e:
                     print 'Unable to process in worker thread: ' + str(e)
-                worker_q.task_done()                
+                worker_q.task_done()    
+                
+            if data['jobtype'] == 'bulkload-tiles': 
+                """run the BulkLoadTiles class above"""
+                pass
  
 def start_myworker():
     worker = LayerProcessingThread()

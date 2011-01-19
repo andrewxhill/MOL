@@ -195,8 +195,8 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                         memcache.set("meta-%s" % id,mcData,2592000) #cache the layer data for 30 days
                         
                         self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
-                except:
-                    self.response.out.write('{response: {status: "failed", id: %s, error: "incorrect values"}}' % id) 
+                except Exception, e:
+                    self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id,e)) 
                 
             
 class ValidLayerID(webapp.RequestHandler):
