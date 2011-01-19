@@ -23,6 +23,7 @@ from mol.db import Species, SpeciesIndex
 from mol.services import TileService
 import logging
 import time
+import os
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -147,11 +148,58 @@ class TilePngHandler(webapp.RequestHandler):
         else:
             self.response.headers['Content-Type'] = "image/png"
             self.response.out.write(t.band)
+        
+class UpdateLayerMetadata(webapp.RequestHandler):
+    """RequestHandler for remote server to update layer metadata."""  
+    def __init__(self):
+        super(UpdateLayerMetadata, self).__init__()
+        self.authIPs = ['128.138.167.165','127.0.0.1']
+    def get(self):
+        data = {}
+        if os.environ['REMOTE_ADDR'] in self.authIPs:
+            id = self.request.params.get('id')
+            data['zoom'] = self.request.params.get('zoom')
+            data['proj'] = self.request.params.get('proj')
+            data['maxLat'] = self.request.params.get('maxlat')
+            data['minLat'] = self.request.params.get('minlat')
+            data['maxLon'] = self.request.params.get('maxlon')
+            data['minLon'] = self.request.params.get('minlon')
+            data['remoteLocation'] = self.request.params.get('location')
+            if id is not None:
+                key = db.Key(id)
+                md = TileSetIndex.get_or_insert(key.name)
+                md.zoom = int(data['zoom'])
+                md.proj = data['proj']
+                md.maxLat = float(data['maxLat'])
+                md.minLat = float(data['minLat'])
+                md.maxLon = float(data['maxLon'])
+                md.minLon = float(data['minLon'])
+                md.remoteLocation = data['remoteLocation']
+                md.put()
+                
+                mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
+                memcache.set(id,mcData,2592000) #cache the layer data for 30 days
+                
+            self.response.out.write("{response: {updated: %s}}" % id) 
             
+class ValidLayerID(webapp.RequestHandler):
+    """RequestHandler for testing MOL id authenticity."""  
+    def __init__(self):
+        super(UpdateLayerMetadata, self).__init__()
+    def get(self):
+        id = self.request.params.get('id')
+        key = db.Key(id)
+        if key.kind() == 'Species' and db.Get(key) is not None:
+            self.response.out.write("{response: {validId: true}}") 
+        else:
+            self.response.out.write("{response: {validId: false}}") 
             
+        
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
-         ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler)], 
+          ('/api/validid', ValidLayerID),
+          ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
+          ('/api/layer/update', UpdateLayerMetadata)], 
          debug=True)
          
 def main():
