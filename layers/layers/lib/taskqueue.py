@@ -61,7 +61,7 @@ class Layer():
         self.info['date'] = datetime.datetime.now()
         self.info['proj'] = layer.GetProjection()
         geog = layer.GetGeoTransform()
-        #temp holder
+        #temp holder, should parse from the geog object above
         self.info['geog'] = {'maxLat': 1.2,
                              'minLat': 1.2,
                              'maxLon': 1.2,
