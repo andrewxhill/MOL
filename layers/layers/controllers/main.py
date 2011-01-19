@@ -23,6 +23,10 @@ class MainController(BaseController):
 
     def test_task(self):
         # Put the test file hbw00028 into the taskqueue
-        fullpath = '/ftp/newraster/hbw00028'
-        worker_q.put({'id': str(layer_processing_ids()), 'jobtype': 'newraster', 'fullpath': fullpath})
-        return 'In Queue'
+        #fullpath = '/ftp/newraster/hbw00028'
+        fullpath = '/ftp/newraster/aghtb2wtYXBwc3ISCxIMVGlsZVNldEluZGV4GAEM'
+        if worker_q.empty():
+            worker_q.put({'id': 'aghtb2wtYXBwc3ISCxIMVGlsZVNldEluZGV4GAEM', 'jobtype': 'newraster', 'fullpath': fullpath})
+            return 'In Queue'
+        else:
+            return 'Queue Full'

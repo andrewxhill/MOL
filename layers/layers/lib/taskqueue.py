@@ -37,7 +37,6 @@ class BulkLoadTiles():
         pass
         
 class Layer():
-    GAE_URL = GAE_URL
     zoom = 1 #sets the maximum zoom we want to process
     info = {}
     errors = []
@@ -46,7 +45,8 @@ class Layer():
     tileDir = "/ftp/tiles/" #/some/tmp/folder/for/tiles/
     ascDir = "/ftp/asc/" #/some/tmp/folder/for/asc/
     errDir = "/ftp/errors/"
-        
+    idIsValid = False
+    
     def __init__(self, fullpath=None):
         
         """raster: string filename of file to process"""
@@ -55,7 +55,6 @@ class Layer():
         if filename is not None:
             self.origRaster = fullpath
             self.id = basename
-            self.verifyId()
             self.tileFolder = self.tileDir + self.id
             self.ascName = self.ascDir + "%s.asc" % self.id
             self.nulfp = open(self.errDir + '%s.log' % self.id, 'w')
@@ -67,6 +66,7 @@ class Layer():
         data = simplejson.loads(response.read())
         #check for validity now!
         #data['response']['validId'] should be True
+        return True
         
     
     def getInfo(self, fn):
@@ -78,9 +78,9 @@ class Layer():
         self.info['proj'] = layer.GetProjection()
         geog = layer.GetGeoTransform()
         #temp holder, should parse from the geog object above
-        self.info['geog'] = {'maxLat': 1.2,
+        self.info['geog'] = {'maxLat': 1.4,
                              'minLat': 1.2,
-                             'maxLon': 1.2,
+                             'maxLon': 1.4,
                              'minLon': 1.2}
         return True
         
@@ -118,7 +118,7 @@ class Layer():
         
     def registerMetadata(self):
         #send metadata to GAE
-        params = {'id': '1234a',
+        params = {'id': self.id,
                   'zoom': self.zoom,
                   'proj': self.info['proj'],
                   'date': str(datetime.datetime.now()),
@@ -152,7 +152,6 @@ class LayerProcessingThread(threading.Thread):
             data = worker_q.get()
             if data['jobtype'] == 'newraster':
                 fullpath = data['fullpath']
-                print fullpath
                 try:
                     # do task
                     layer = Layer(fullpath=fullpath)
@@ -165,7 +164,7 @@ class LayerProcessingThread(threading.Thread):
                     print 'Unable to process in worker thread: ' + str(e)
                 worker_q.task_done()    
                 
-            if data['jobtype'] == 'bulkload-tiles': 
+            elif data['jobtype'] == 'bulkload-tiles': 
                 """run the BulkLoadTiles class above"""
                 pass
  
