@@ -19,10 +19,10 @@ from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import webapp, db
 from google.appengine.ext.webapp.util import run_wsgi_app
-from mol.db import Species, SpeciesIndex
+from mol.db import Species, SpeciesIndex, TileSetIndex
 from mol.services import TileService
 import logging
-import time
+import time,datetime
 import os
 
 class Taxonomy(webapp.RequestHandler):
@@ -153,13 +153,14 @@ class UpdateLayerMetadata(webapp.RequestHandler):
     """RequestHandler for remote server to update layer metadata."""  
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
-        self.authIPs = ['128.138.167.165','127.0.0.1']
+        self.authIPs = ['128.138.167.165','127.0.0.1'] #allow localhost testing and the MOL server only
     def get(self):
         data = {}
         if os.environ['REMOTE_ADDR'] in self.authIPs:
             id = self.request.params.get('id')
             data['zoom'] = self.request.params.get('zoom')
             data['proj'] = self.request.params.get('proj')
+            data['date'] = datetime.datetime.strptime(self.request.params.get('date'), "%Y-%m-%d %H:%M:%S.%f")
             data['maxLat'] = self.request.params.get('maxlat')
             data['minLat'] = self.request.params.get('minlat')
             data['maxLon'] = self.request.params.get('maxlon')
@@ -168,19 +169,28 @@ class UpdateLayerMetadata(webapp.RequestHandler):
             if id is not None:
                 key = db.Key(id)
                 md = TileSetIndex.get_or_insert(key.name)
-                md.zoom = int(data['zoom'])
-                md.proj = data['proj']
-                md.maxLat = float(data['maxLat'])
-                md.minLat = float(data['minLat'])
-                md.maxLon = float(data['maxLon'])
-                md.minLon = float(data['minLon'])
-                md.remoteLocation = data['remoteLocation']
-                md.put()
-                
-                mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-                memcache.set(id,mcData,2592000) #cache the layer data for 30 days
-                
-            self.response.out.write("{response: {updated: %s}}" % id) 
+                """store or overwrite the data in the model"""
+                try:
+                    if md.dateLastModified is not None and md.dateLastModified > data['date']:
+                        """if the metadata shipped is older than the metadata on GAE then don't store"""
+                        self.response.out.write('{response: {status: "failed", id: %s, error: "newer layer exists"}}' % id) 
+                    else:
+                        md.zoom = int(data['zoom'])
+                        md.proj = data['proj']
+                        md.maxLat = float(data['maxLat'])
+                        md.minLat = float(data['minLat'])
+                        md.maxLon = float(data['maxLon'])
+                        md.minLon = float(data['minLon'])
+                        md.remoteLocation = data['remoteLocation']
+                        md.dateLastModified = date['date']
+                        md.put()
+                        """cache the new data"""
+                        mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
+                        memcache.set(id,mcData,2592000) #cache the layer data for 30 days
+                        
+                        self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
+                except:
+                    self.response.out.write('{response: {status: "failed", id: %s, error: "incorrect values"}}' % id) 
             
 class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""  
