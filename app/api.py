@@ -192,7 +192,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                         md.put()
                         """cache the new data"""
                         mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-                        memcache.set(id,mcData,2592000) #cache the layer data for 30 days
+                        memcache.set("meta-%s" % id,mcData,2592000) #cache the layer data for 30 days
                         
                         self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
                 except:
