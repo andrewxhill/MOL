@@ -183,7 +183,6 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                     md = TileSetIndex.get(key)
                     if md is None:
                         md = TileSetIndex(key=key)
-                        #md = TileSetIndex(name=id)
                     """store or overwrite the data in the model"""
                     try:
                         if md.dateLastModified is not None and md.dateLastModified > data['date']:

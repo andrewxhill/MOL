@@ -135,7 +135,7 @@ class Layer():
                   'minLat': str(self.info['geog']['minLat']),
                   'maxLon': self.info['geog']['maxLon'],
                   'minLon': self.info['geog']['minLon'],
-                  'remoteLocation': 'http://127.0.0.1/zoom/x/y.png'}
+                  'remoteLocation': 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png' % self.id}
         resource = urllib2.Request("%sapi/layer/update" % GAE_URL, urllib.urlencode(params))
         response = urllib2.urlopen(resource)
         out = response.read()
@@ -153,7 +153,6 @@ class Layer():
                 os.remove(file)
             except:
                 pass
-                
         try:
             shutil.rmtree(self.dstDir + self.id)
         except:
