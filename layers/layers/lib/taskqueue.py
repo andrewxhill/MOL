@@ -18,6 +18,7 @@ from osgeo import gdal
 import Queue
 import datetime
 import os
+import shutil
 import simplejson
 import subprocess
 import threading
@@ -46,6 +47,8 @@ class Layer():
     tileDir = "/ftp/tiles/" #/some/tmp/folder/for/tiles/
     ascDir = "/ftp/asc/" #/some/tmp/folder/for/asc/
     errDir = "/ftp/errors/"
+    srcDir = "/ftp/newraster/"
+    dstDir = "/ftp/grid/"
     idIsValid = False
     
     def __init__(self, fullpath=None):
@@ -128,13 +131,12 @@ class Layer():
                   'zoom': self.zoom,
                   'proj': self.info['proj'],
                   'date': str(datetime.datetime.now()),
-                  'maxLat': self.info['geog']['maxLat'],
-                  'minLat': self.info['geog']['minLat'],
+                  'maxLat': str(self.info['geog']['maxLat']),
+                  'minLat': str(self.info['geog']['minLat']),
                   'maxLon': self.info['geog']['maxLon'],
                   'minLon': self.info['geog']['minLon'],
-                  'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
-        resource = "%sapi/layer/update" % (GAE_URL, urllib.urlencode(params))
-        print resource
+                  'remoteLocation': 'http://127.0.0.1/zoom/x/y.png'}
+        resource = urllib2.Request("%sapi/layer/update" % GAE_URL, urllib.urlencode(params))
         response = urllib2.urlopen(resource)
         out = response.read()
         # TODO: Log out and response
@@ -151,6 +153,20 @@ class Layer():
                 os.remove(file)
             except:
                 pass
+                
+        try:
+            shutil.rmtree(self.dstDir + self.id)
+        except:
+            pass
+        try:
+            shutil.copytree(self.origRaster, self.dstDir + self.id)
+        except:
+            pass
+        try:
+            shutil.rmtree(self.srcDir + self.id)
+        except:
+            pass
+        
             
 class LayerProcessingThread(threading.Thread):
     def run(self):
@@ -166,7 +182,7 @@ class LayerProcessingThread(threading.Thread):
                     layer.convertToASC()
                     layer.tile()
                     layer.registerMetadata()
-                    #layer.cleanup()
+                    layer.cleanup()
                     print 'We got %s tiles, do something with them!' % (fullpath)
                 except Exception, e:
                     print 'Unable to process in worker thread: ' + str(e)

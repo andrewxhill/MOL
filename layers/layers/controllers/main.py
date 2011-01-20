@@ -33,9 +33,10 @@ class MainController(BaseController):
         return 'Hello World'
 
     def test_task(self):
-        fullpath = '/ftp/newraster/aghtb2wtYXBwc3ISCxIMVGlsZVNldEluZGV4GAEM'
-        if worker_q.empty():
-            worker_q.put({'id': 'aghtb2wtYXBwc3ISCxIMVGlsZVNldEluZGV4GAEM', 'jobtype': 'newraster', 'fullpath': fullpath})
+        id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
+        fullpath = '/ftp/example/%s' % id
+        if worker_q.empty(): 
+            worker_q.put({'id': id, 'jobtype': 'newraster', 'fullpath': fullpath})
             return 'In Queue'
         else:
             return 'Queue Full'
