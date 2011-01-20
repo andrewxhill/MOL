@@ -14,18 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import webapp, db
 from google.appengine.ext.webapp.util import run_wsgi_app
 from mol.db import Species, SpeciesIndex, TileSetIndex
-from mol.services import TileService
+from mol.services import TileService, LayerService
 import logging
 import time, datetime
 import os
 import pickle
 from google.appengine.api.datastore_errors import BadKeyError
+
+HTTP_STATUS_CODE_NOT_FOUND = 404
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -204,28 +205,18 @@ class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""  
     def __init__(self):
         super(ValidLayerID, self).__init__()
-        self.valid_response = "{response: {validId: true}}"
-        self.invalid_response = "{response: {validId: false}}"
+        self.layer_service = LayerService()
             
+    def _error(self, msg):
+        self.response.set_status(HTTP_STATUS_CODE_NOT_FOUND, msg)
+        self.response.clear()
+        
     def get(self):
-        # Error checks the 'id' request param:
-        id = self.request.params.get('id')    
-        if id is None or len(id) == 0:
-            self.response.out.write(self.invalid_response)
-            return 
-        
-        # Tries looking up a datastore key by the 'id' request param:
-        key = None
-        try:
-            key = db.Key(id)
-            if key.kind() == 'Species' and db.Get(key) is not None:
-                self.response.out.write(self.valid_response) 
-        except BadKeyError:
-            # TODO: Log?
-            pass
-        
-        # Invalid 'id' request param so return invalid response:
-        self.response.out.write(self.invalid_response)          
+        id = self.request.params.get('id')
+        if self.layer_service.is_id_valid(id):
+            self.response.out.write(id) 
+        else:
+            self.error(404)
         
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),

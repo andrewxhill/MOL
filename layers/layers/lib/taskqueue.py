@@ -23,6 +23,7 @@ import subprocess
 import threading
 import urllib
 import urllib2
+from urllib2 import URLError, HTTPError
 
 GAE_URL = "http://localhost:8080/"
 
@@ -37,7 +38,6 @@ class BulkLoadTiles():
         pass
         
 class Layer():
-    GAE_URL = GAE_URL
     zoom = 1 #sets the maximum zoom we want to process
     info = {}
     errors = []
@@ -50,6 +50,7 @@ class Layer():
     def __init__(self, fullpath=None):
         
         """raster: string filename of file to process"""
+        print 'FULLPATH: %s' % fullpath
         (dirname, filename) = os.path.split(fullpath)
         (basename, fileext) = os.path.splitext(filename)
         if filename is not None:
@@ -59,18 +60,23 @@ class Layer():
             self.tileFolder = self.tileDir + self.id
             self.ascName = self.ascDir + "%s.asc" % self.id
             self.nulfp = open(self.errDir + '%s.log' % self.id, 'w')
+            print self.__dict__
         
     def verifyId(self):
-        """check to see that the id exists on GAE"""
+        """Verifies the layer id using a web service on GAE that returns 200 for 
+        a valid id and a 404 for invalid id.
+        """
         params = {'id': self.id}
-        response = urllib2.urlopen("%sapi/validid" % GAE_URL, urllib.urlencode(params))
-        data = simplejson.loads(response.read())
-        #check for validity now!
-        #data['response']['validId'] should be True
-        
+        resource = "%sapi/validid?%s" % (GAE_URL, urllib.urlencode(params))
+        try:
+            urllib2.urlopen(resource)
+            return True
+        except HTTPError as e:            
+            print 'URLError: %s' % e.code  
+            return False
     
     def getInfo(self, fn):
-        #use gdalinfo to populate an info object
+        #use gdalinfo= to populate an info object
         layer = gdal.Open(fn)
         self.info['id'] = self.id
         self.info['zoom'] = self.zoom
@@ -127,7 +133,9 @@ class Layer():
                   'maxLon': self.info['geog']['maxLon'],
                   'minLon': self.info['geog']['minLon'],
                   'remoteLocation': 'http://127.0.0.1/{zoom}/{x}/{y}.png'}
-        response = urllib2.urlopen("%sapi/layer/update" % GAE_URL, urllib.urlencode(params))
+        resource = "%sapi/layer/update" % (GAE_URL, urllib.urlencode(params))
+        print resource
+        response = urllib2.urlopen(resource)
         out = response.read()
         # TODO: Log out and response
         

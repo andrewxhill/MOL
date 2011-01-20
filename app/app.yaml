@@ -27,7 +27,7 @@ handlers:
   static_dir: static
 
 - url: /api/.*
-  script: api.py
+  script: mol/api/__init__.py
   
 - url: /.*
   script: app.py

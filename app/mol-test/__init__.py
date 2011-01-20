@@ -14,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
-from mol.db import Tile, TileUpdate
-from mol.services import TileError, TileService
+from mol.db import Tile, TileUpdate, Species, SpeciesIndex
+from mol.services import TileError, TileService, LayerService
 import os
 import time
 import unittest
@@ -28,6 +27,57 @@ APP_ID = 'mol-lab'
 AUTH_DOMAIN = 'gmail.com' 
 LOGGED_IN_USER = 'test@example.com' 
 
+class LayerServiceTest(unittest.TestCase):
+  """Unit tests for LayerService class."""
+  
+  def setUp(self):    
+    """Sets up the test environment."""
+    
+    # The LayerService to use for testing:
+    self.service = LayerService()
+    
+    # It's an error to register the same service twice:
+    if apiproxy_stub_map.apiproxy.GetStub('datastore_v3') is not None:
+      return;    
+    
+    # Let's us run unit tests without running the dev server:
+    os.environ['TZ'] = 'UTC' 
+    time.tzset()     
+    os.environ['SERVER_SOFTWARE'] = 'Development via nose'
+    os.environ['SERVER_NAME'] = 'Foo'
+    os.environ['SERVER_PORT'] = '8080'
+    os.environ['APPLICATION_ID'] = APP_ID
+    os.environ['USER_EMAIL'] = 'test@example.com'
+    os.environ['CURRENT_VERSION_ID'] = 'testing-version'
+    ds_stub = DatastoreFileStub(APP_ID, None, None)
+    apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3', ds_stub)    
+
+  def test_is_valid_id(self):
+    self.assertEqual(False, self.service.is_id_valid(None))
+    self.assertEqual(False, self.service.is_id_valid(''))
+    self.assertEqual(False, self.service.is_id_valid(' '))
+    self.assertEqual(False, self.service.is_id_valid('foo'))
+    
+    # Valid id
+    key_name = 'testlayer'
+    key = db.Key.from_path('Species', key_name)
+    species = Species(key=key)
+    id = str(db.put(species))
+    self.assertEqual(True, self.service.is_id_valid(id))
+
+    # Invalid id
+    key_name = 'testlayerINVALID'
+    key = db.Key.from_path('Species', key_name)
+    id = str(key)
+    self.assertEqual(False, self.service.is_id_valid(id))
+
+    # Invalid id
+    key_name = 'testlayer'
+    key = db.Key.from_path('SpeciesIndex', key_name)
+    species = SpeciesIndex(key=key)
+    id = str(db.put(species))
+    self.assertEqual(False, self.service.is_id_valid(id))
+        
 class TileServiceTest(unittest.TestCase):
   """Unit tests for TileService class."""
   
@@ -125,5 +175,8 @@ class TileServiceTest(unittest.TestCase):
       tile = self.service.tile_from_url(url)
       self.assertEqual(tile, None)
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TileServiceTest)
+suite = unittest.TestLoader().loadTestsFromTestCase(LayerServiceTest)
 unittest.TextTestRunner(verbosity=2).run(suite)
+#suite = unittest.TestLoader().loadTestsFromTestCase(TileServiceTest)
+#unittest.TextTestRunner(verbosity=2).run(suite)
+
