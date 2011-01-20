@@ -23,40 +23,75 @@ import cStringIO
 import os
 import png
 import re
+from google.appengine.api.datastore_errors import BadKeyError
 
 class Error(Exception):
-  """Base class for exceptions in this module."""
-  pass
+    """Base class for exceptions in this module."""
+    pass
 
 class TileError(Error):
-  """Exception raised for errors related to Tile.
+    """Exception raised for errors related to Tile.
 
-  Attributes:
-    expr -- input expression in which the error occurred
-    msg  -- explanation of the error
-  """
-
-  def __init__(self, expr, msg):
-    self.expr = expr
-    self.msg = msg
-
-class AbstractTileService(object):
-  """An abstract base class for the Tile service."""
-
-  def put_tile(self, tile):
-    """Puts a Tile in the datastore. Returns a key or None if it wasn't put."""
-    raise NotImplementedError()
-
-  def put_tile_update(self, tile):
-    """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if 
-    it wasn't put.
+    Attributes:
+      expr -- input expression in which the error occurred
+      msg  -- explanation of the error
     """
-    raise NotImplementedError()
 
-  def tile_from_url(self, url):
-    """Returns the Tile associated with a entity URL request url or None if a 
-    Tile could not be found."""
-    raise NotImplementedError()
+    def __init__(self, expr, msg):
+        self.expr = expr
+        self.msg = msg
+
+class AbstractLayerService(object):
+    """An abstract base class for the Layer service."""
+    
+    def is_id_valid(self, id):
+        """Returns true if the id is valid, otherwise returns false."""
+        raise NotImplementedError()
+    
+class LayerService(AbstractLayerService):
+        
+    def is_id_valid(self, id):
+        # Checks input for null or empty string:
+        if id is None:
+            return False
+        if len(id.strip()) == 0:            
+            return False
+        
+        # Checks if the id can be encoded into a Key:
+        key = None
+        try:
+            key = db.Key(id)
+            if key is None:
+                return False
+        except BadKeyError:
+            return False
+            
+        # Checks for a Species kind with an entity in the datastore:
+        if key.kind() != 'Species':
+            return False
+        if db.get(key) is None:
+            return False
+        
+        # Passed all checks so id is valid:
+        return True
+    
+class AbstractTileService(object):
+    """An abstract base class for the Tile service."""
+
+    def put_tile(self, tile):
+        """Puts a Tile in the datastore. Returns a key or None if it wasn't put."""
+        raise NotImplementedError()
+
+    def put_tile_update(self, tile):
+        """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if 
+        it wasn't put.
+        """
+        raise NotImplementedError()
+
+    def tile_from_url(self, url):
+        """Returns the Tile associated with a entity URL request url or None if a 
+        Tile could not be found."""
+        raise NotImplementedError()
 
 class TileService(AbstractTileService):
 
@@ -86,7 +121,7 @@ class TileService(AbstractTileService):
       return None
     key = db.put(tile)
     if update:
-        TileService.put_tile_update(tile)
+        self.put_tile_update(tile)
     return key
 
   def put_tile_update(self, tile):
@@ -122,3 +157,4 @@ class TileService(AbstractTileService):
       return key
     except IndexError:
       return None
+

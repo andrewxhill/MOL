@@ -14,17 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 from django.utils import simplejson
 from google.appengine.api import memcache
 from google.appengine.ext import webapp, db
 from google.appengine.ext.webapp.util import run_wsgi_app
 from mol.db import Species, SpeciesIndex, TileSetIndex
-from mol.services import TileService
+from mol.services import TileService, LayerService
 import logging
-import time,datetime
+import time, datetime
 import os
 import pickle
+from google.appengine.api.datastore_errors import BadKeyError
+
+HTTP_STATUS_CODE_NOT_FOUND = 404
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -144,7 +146,7 @@ class TilePngHandler(webapp.RequestHandler):
         except:
             tmp = 0
             
-        if cmp(tmp,'f')==0:
+        if cmp(tmp, 'f') == 0:
             self.redirect("/static/full.png")
         else:
             self.response.headers['Content-Type'] = "image/png"
@@ -154,7 +156,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
     """RequestHandler for remote server to update layer metadata."""  
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
-        self.authIPs = ['128.138.167.165','127.0.0.1'] #allow localhost testing and the MOL server only
+        self.authIPs = ['128.138.167.165', '127.0.0.1'] #allow localhost testing and the MOL server only
     def post(self):
         data = {}
         if os.environ['REMOTE_ADDR'] in self.authIPs:
@@ -192,31 +194,35 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                         md.put()
                         """cache the new data"""
                         mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-                        memcache.set("meta-%s" % id,mcData,2592000) #cache the layer data for 30 days
+                        memcache.set("meta-%s" % id, mcData, 2592000) #cache the layer data for 30 days
                         
                         self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
                 except Exception, e:
-                    self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id,e)) 
+                    self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e)) 
                 
             
 class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""  
     def __init__(self):
         super(ValidLayerID, self).__init__()
+        self.layer_service = LayerService()
+            
+    def _error(self, msg):
+        self.response.set_status(HTTP_STATUS_CODE_NOT_FOUND, msg)
+        self.response.clear()
+        
     def get(self):
         id = self.request.params.get('id')
-        key = db.Key(id)
-        if key.kind() == 'Species' and db.Get(key) is not None:
-            self.response.out.write("{response: {validId: true}}") 
+        if self.layer_service.is_id_valid(id):
+            self.response.out.write(id) 
         else:
-            self.response.out.write("{response: {validId: false}}") 
-            
+            self.error(404)
         
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/validid', ValidLayerID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/api/layer/update', UpdateLayerMetadata)], 
+          ('/api/layer/update', UpdateLayerMetadata)],
          debug=True)
          
 def main():
