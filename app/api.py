@@ -202,7 +202,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
 class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""  
     def __init__(self):
-        super(UpdateLayerMetadata, self).__init__()
+        super(ValidLayerID, self).__init__()
     def get(self):
         id = self.request.params.get('id')
         key = db.Key(id)
