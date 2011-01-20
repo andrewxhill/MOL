@@ -171,12 +171,12 @@ class UpdateLayerMetadata(webapp.RequestHandler):
             data['minLon'] = self.request.params.get('minLon')
             data['remoteLocation'] = self.request.params.get('remoteLocation')
             if id is not None:
+                """this part does not work, i didn't have available Species entities to test with"""
                 key = db.Key(id)
-                md = db.get(key)
-                #key = db.Key.from_path('TileSetIndex', str(id))
-                #md = TileSetIndex.get_by_key_name(id)
+                md = TileSetIndex.get_by_key_name(key.name())
                 if md is None:
-                    md = TileSetIndex(name=id)
+                    md = TileSetIndex(name=key.name())
+                    #md = TileSetIndex(name=id)
                 """store or overwrite the data in the model"""
                 try:
                     if md.dateLastModified is not None and md.dateLastModified > data['date']:
