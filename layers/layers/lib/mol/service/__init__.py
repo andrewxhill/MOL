@@ -63,7 +63,8 @@ class _GdalUtil(object):
             Dictionary with maxLat, minLat, maxLon, and minLon keys.
         """
         # TODO(Andrew): Build proper bounding box from geotrans tuple values.
-        return {'maxLat': 1.4, 'minLat': 1.2, 'maxLon': 1.4, 'minLon': 1.2}
+        bb = list(geotrans)
+        return {'maxLat': max(bb[1::2]), 'minLat': min(bb[1::2]), 'maxLon': max(bb[0::2]), 'minLon': min(bb[0::2])}
     
     @staticmethod
     def getmetadata(filepath):
