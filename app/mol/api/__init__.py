@@ -172,34 +172,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
             data['remoteLocation'] = self.request.params.get('remoteLocation')
             if id is not None:
                 """this part does not work, i didn't have available Species entities to test with"""
-                key = db.Key(id)
-                md = TileSetIndex.get_by_key_name(key.name())
-                if md is None:
-                    md = TileSetIndex(name=key.name())
-                    #md = TileSetIndex(name=id)
-                """store or overwrite the data in the model"""
-                try:
-                    if md.dateLastModified is not None and md.dateLastModified > data['date']:
-                        """if the metadata shipped is older than the metadata on GAE then don't store"""
-                        self.response.out.write('{response: {status: "failed", id: %s, error: "newer layer exists"}}' % id) 
-                    else:
-                        md.zoom = int(data['zoom'])
-                        md.proj = data['proj']
-                        md.maxLat = float(data['maxLat'])
-                        md.minLat = float(data['minLat'])
-                        md.maxLon = float(data['maxLon'])
-                        md.minLon = float(data['minLon'])
-                        md.remoteLocation = data['remoteLocation']
-                        md.dateLastModified = data['date']
-                        md.put()
-                        """cache the new data"""
-                        mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-                        memcache.set("meta-%s" % id, mcData, 2592000) #cache the layer data for 30 days
-                        
-                        self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
-                except Exception, e:
-                    self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e))
-                    
+                key = db.Key(id)                    
                 key_name = key.name()
                 if key_name:
                     key = db.Key.from_path('TileSetIndex', key_name)
@@ -210,7 +183,8 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                     try:
                         if md.dateLastModified is not None and md.dateLastModified > data['date']:
                             """if the metadata shipped is older than the metadata on GAE then don't store"""
-                            self.response.out.write('{response: {status: "failed", id: %s, error: "newer layer exists"}}' % id) 
+                            #self.response.out.write('{response: {status: "failed", id: %s, error: "newer layer exists"}}' % id) 
+                            self.error(409) #Conflict
                         else:
                             md.zoom = int(data['zoom'])
                             md.proj = data['proj']
@@ -225,9 +199,15 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                             mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
                             memcache.set("meta-%s" % id, mcData, 2592000) #cache the layer data for 30 days
                             
-                            self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
+                            #self.response.out.write('{response: {status: "updated", id: %s}}' % id) 
+                            self.response.out.write(id) 
                     except Exception, e:
-                        self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e)) 
+                        #self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e)) 
+                        self.error(400)
+            else:
+                self.error(400)
+        else:
+            self.error(403)
                     
             
 class ValidLayerID(webapp.RequestHandler):
