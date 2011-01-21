@@ -14,19 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from osgeo import gdal
+from mol.service import Layer, LayerError
 import Queue
-import datetime
-import os
-import shutil
-import simplejson
-import subprocess
 import threading
-import urllib
-import urllib2
-from urllib2 import URLError, HTTPError
 
-GAE_URL = "http://localhost:8080/"
+TILE_DIR = "/ftp/tiles/" 
+ASC_DIR = "/ftp/asc/" 
+ERR_DIR = "/ftp/errors/"
+SRC_DIR = "/ftp/newraster/"
+DST_DIR = "/ftp/grid/"
+
+NEW_RASTER_JOB_TYPE = 'newraster'
+BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
+Q_ITEM_FULL_PATH = 'fullpath'
+Q_ITEM_JOB_TYPE = 'jobtype'
 
 worker_q = Queue.Queue()
 
@@ -36,162 +37,56 @@ class BulkLoadTiles():
         self.id = id
         
     def uploadTiles(self):
-        pass
-        
-class Layer():
-    zoom = 1 #sets the maximum zoom we want to process
-    info = {}
-    errors = []
-    converted = False
-    tiled = False
-    tileDir = "/ftp/tiles/" #/some/tmp/folder/for/tiles/
-    ascDir = "/ftp/asc/" #/some/tmp/folder/for/asc/
-    errDir = "/ftp/errors/"
-    srcDir = "/ftp/newraster/"
-    dstDir = "/ftp/grid/"
-    idIsValid = False
-    
-    def __init__(self, fullpath=None):
-        
-        """raster: string filename of file to process"""
-        print 'FULLPATH: %s' % fullpath
-        (dirname, filename) = os.path.split(fullpath)
-        (basename, fileext) = os.path.splitext(filename)
-        if filename is not None:
-            self.origRaster = fullpath
-            self.id = basename
-            self.tileFolder = self.tileDir + self.id
-            self.ascName = self.ascDir + "%s.asc" % self.id
-            self.nulfp = open(self.errDir + '%s.log' % self.id, 'w')
-            print self.__dict__
-        
-    def verifyId(self):
-        """Verifies the layer id using a web service on GAE that returns 200 for 
-        a valid id and a 404 for invalid id.
-        """
-        params = {'id': self.id}
-        resource = "%sapi/validid?%s" % (GAE_URL, urllib.urlencode(params))
-        try:
-            urllib2.urlopen(resource)
-            return True
-        except HTTPError as e:            
-            print 'URLError: %s' % e.code  
-            return False
-
-    def getInfo(self, fn):
-        #use gdalinfo= to populate an info object
-        layer = gdal.Open(fn)
-        self.info['id'] = self.id
-        self.info['zoom'] = self.zoom
-        self.info['date'] = datetime.datetime.now()
-        self.info['proj'] = layer.GetProjection()
-        geog = layer.GetGeoTransform()
-        #temp holder, should parse from the geog object above
-        self.info['geog'] = {'maxLat': 1.4,
-                             'minLat': 1.2,
-                             'maxLon': 1.4,
-                             'minLon': 1.2}
-        return True
-        
-    def convertToASC(self):
-        #create a geotiff
-        self.translating = subprocess.Popen(
-            ["gdal_translate",
-            "-of",
-            "AAIGrid",
-            "-a_srs",
-             "epsg:900913",
-             self.origRaster,
-             self.ascName
-            ], stderr=self.nulfp)
-        self.translating.wait()
-        self.converted = True
-        self.getInfo(self.ascName)
-        
-    def tile(self):
-        if not self.converted:
-            self.convertToASC()
-            
-        self.tiling = subprocess.Popen(
-            ["java",
-            "-mx300m",
-            "-classpath",
-            "/raster/classes:/raster/lib/maxent.jar",
-            "-Djava.awt.headless=true",
-            "raster/GridToGoogle",
-            self.ascName,
-            self.tileFolder,
-            str(self.zoom + 1)
-            ], stderr=self.nulfp)
-        self.tiling.wait()
-        
-    def registerMetadata(self):
-        #send metadata to GAE
-        params = {'id': self.id,
-                  'zoom': self.zoom,
-                  'proj': self.info['proj'],
-                  'date': str(datetime.datetime.now()),
-                  'maxLat': str(self.info['geog']['maxLat']),
-                  'minLat': str(self.info['geog']['minLat']),
-                  'maxLon': self.info['geog']['maxLon'],
-                  'minLon': self.info['geog']['minLon'],
-                  'remoteLocation': 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png' % self.id}
-        resource = urllib2.Request("%sapi/layer/update" % GAE_URL, urllib.urlencode(params))
-        response = urllib2.urlopen(resource)
-        out = response.read()
-        # TODO: Log out and response
-        
-    def storeTiles(self):
-        #TODO: store tiles in couchdb
-        return True
-    
-    def cleanup(self):
-        files = [self.ascName,
-                 self.ascName.replace('.asc', '.prj')]
-        for file in files:
-            try:
-                os.remove(file)
-            except:
-                pass
-        try:
-            shutil.rmtree(self.dstDir + self.id)
-        except:
-            pass
-        try:
-            shutil.copytree(self.origRaster, self.dstDir + self.id)
-        except:
-            pass
-        try:
-            shutil.rmtree(self.srcDir + self.id)
-        except:
-            pass
-        
-            
-class LayerProcessingThread(threading.Thread):
-    def run(self):
-        print 'Worker thread is running.'
- 
-        while True:
-            data = worker_q.get()
-            if data['jobtype'] == 'newraster':
-                fullpath = data['fullpath']
-                try:
-                    # do task
-                    layer = Layer(fullpath=fullpath)
-                    layer.convertToASC()
-                    layer.tile()
-                    layer.registerMetadata()
-                    layer.cleanup()
-                    print 'We got %s tiles, do something with them!' % (fullpath)
-                except Exception, e:
-                    print 'Unable to process in worker thread: ' + str(e)
-                worker_q.task_done()    
+        raise NotImplementedError()
                 
-            elif data['jobtype'] == 'bulkload-tiles': 
-                """run the BulkLoadTiles class above"""
-                pass
- 
+class LayerProcessingThread(threading.Thread):
+        
+    def run(self):
+        """Pulls tasks from the queue and dispatches based on job type."""
+        while True:
+            task = worker_q.get()
+            jobtype = task[Q_ITEM_JOB_TYPE]
+            if jobtype == NEW_RASTER_JOB_TYPE:
+                self.newraster(task)                
+            elif jobtype == BULKLOAD_TILES_JOB_TYPE: 
+                raise NotImplementedError()
+
+    def newraster(self, task):
+        """Tiles an asc file speicified in the task and registers metadata with
+        GAE.
+        
+        Arguments:
+            task - an item from the queue expected to have acs path
+        """                
+        # Validates task:
+        if task is None:
+            # TODO
+            return
+        if not task.has_key(Q_ITEM_FULL_PATH):
+            # TODO
+            return        
+        fullpath = task[Q_ITEM_FULL_PATH]
+        if fullpath is None or len(fullpath.strip()) == 0:
+            # TODO
+            return
+        
+        # Executes the job                
+        try:
+            layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR)
+            layer.toasc()
+            layer.totiles()
+            layer.register()
+            layer.cleanup()
+        except LayerError as e:
+            # TODO
+            print 'LayerError: ' + e.msg
+        except Exception as e:
+            # TODO
+            print 'Exception: ' + str(e)            
+        
+        # Notifies queue that this formerly enqueued task is complete:
+        worker_q.task_done()    
+            
 def start_myworker():
     worker = LayerProcessingThread()
     worker.start()
-    
