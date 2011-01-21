@@ -62,7 +62,6 @@ class _GdalUtil(object):
         Returns:
             Dictionary with maxLat, minLat, maxLon, and minLon keys.
         """
-        # TODO(Andrew): Build proper bounding box from geotrans tuple values.
         bb = list(geotrans)
         return {'maxLat': max(bb[1::2]), 'minLat': min(bb[1::2]), 'maxLon': max(bb[0::2]), 'minLon': min(bb[0::2])}
     
