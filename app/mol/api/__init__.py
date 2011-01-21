@@ -200,6 +200,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
                 except Exception, e:
                     self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e))
                     
+                key_name = key.name()
                 if key_name:
                     key = db.Key.from_path('TileSetIndex', key_name)
                     md = TileSetIndex.get(key)
