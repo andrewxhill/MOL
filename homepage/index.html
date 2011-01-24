@@ -7,9 +7,10 @@
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQQVdp0qK6LIdtUMkyJyGau2FAr6Q"></script> 
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQnqYmZFNw176Z9eGZLF4M7kSq-MhQPJ1PZw_xe7fLxFc65vo_OiMHM5A"></script> 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
         <script src="/javascript/gfeed.js" type="text/javascript"></script> 
+        <script src="/javascript/gritter.min.js" type="text/javascript"></script> 
         <script type="text/javascript">
-        
             function addOverlay(map){
                 var BlueMarble = new google.maps.ImageMapType({
                     getTileUrl: function(coord, zoom) {
@@ -29,13 +30,23 @@
                 map.overlayMapTypes.push(BlueMarble);
              
             }
+            
+            function gritterModal(){
+                $.gritter.add({
+                title: "We're not ready yet",
+                text: "The Map of Life is busy getting a large set of base layers and processes developed for our launch. You can follow our <a href='http://mol.colorado.edu/blog'>Blog</a> to stay up to date with our progress.",
+                //image: '/static/images/icons/phylobox-80.png',
+                sticky: false, 
+                time: 4000
+                });
+            }
             function initialize() {
                 var myLatlng = new google.maps.LatLng(30,50);
                 var myOptions = {
                 zoom: 2,
                 center: myLatlng,
                 disableDefaultUI: true,
-                mapTypeId: google.maps.MapTypeId.SATELLITE
+                mapTypeId: google.maps.MapTypeId.TERRAIN
                 }
                 var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
                 addOverlay(map);
@@ -46,11 +57,18 @@
                     max: 2
                 }); 
                 
-                $(".main_link").hover(function() {
-                    $(this).attr("src","images/" + this.id + "-hover.png");
-                    }, function() {
-                    $(this).attr("src","images/" + this.id + ".png");
+                $(".main_link").click(function() {
+                    gritterModal();
                 });
+                
+                $(".main_link").hover(function() {
+                        $(this).css({ "opacity": 0.85});
+                    }, function() {
+                        $(this).css({ "opacity": 1.0});
+                });
+                
+                
+                
             }
                
             function loadScript() {
@@ -89,6 +107,6 @@
                 </div>
             </div>
         </div>
-        <div id="footer">About | Contact</div>
+        <div id="footer"><a href="http://mol.colorado.edu/blog/?p=37">Project Overview</a> | <a href="http://mol.colorado.edu/blog/?cat=14">Technology</a> | <a href="javascript::">Contact</a></div>
     </body>
 </html>      
