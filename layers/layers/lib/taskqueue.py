@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 from mol.service import Layer, LayerError
+from mol.service import GenerateTiles
 import Queue
 import threading
 
@@ -23,6 +24,8 @@ ASC_DIR = "/ftp/asc/"
 ERR_DIR = "/ftp/errors/"
 SRC_DIR = "/ftp/newraster/"
 DST_DIR = "/ftp/grid/"
+SHP_DIR = "/ftp/shp/"
+MAP_XML = "/ftp/mapfile.xml"
 
 NEW_RASTER_JOB_TYPE = 'newraster'
 BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
@@ -70,10 +73,10 @@ class LayerProcessingThread(threading.Thread):
             # TODO
             return
         
-        # Executes the job                
+        # Executes the job      
+        layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)          
         try:
-            layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR)
-            layer.toasc()
+            
             layer.totiles()
             layer.register()
             layer.cleanup()
