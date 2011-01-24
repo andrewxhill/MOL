@@ -1,0 +1,21 @@
+body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; 
+    min-width: 860px; margin: 0px; height: 100%; width: 100%; background: #232323; }
+div#header { padding: 15px; width: 100%; height: auto; color: #fff; font-size: 50px; font-weight: bold;}
+div#container { background: #ceff84; float: left; width: 100%; height: 100%;}
+div#content_top{ text-align: center; padding: 10px; color: #333; font-size: 22px;}
+div#content_bottom{ text-align: center; padding: 10px; color: #333; font-size: 22px;}
+div#main_links { width: 790px ; margin-left: auto ; margin-right: auto ; }
+div#text_blocks { width: 860px ; margin-left: auto ; margin-right: auto ; }
+img.main_link { margin: 20px; float: left; width: 350px; height: 100px; border: none; }
+div#block_title { margin-left: 10px; margin-right: 10px; float: left; text-align: left; padding: 1px; color: #111; font-size: 24px; width: 400px; }
+div#feeds, div#about { overflow: hidden; margin: 10px; float: left; text-align: justify; padding: 1px; color: #333; font-size: 18px; height: 300px; width: 400px; }
+div#map_canvas { float: left; width: 100%; height: 200px; padding: 0px; margin: 0px;}
+div#tweets { margin-top: 5px; padding: 15px; width: 100%; height: auto; color: #fff; font-size: 12px;}
+div#footer { text-align: center; margin-top: 5px; padding: 15px; width: 100%; height: auto; color: #fff; font-size: 12px;}
+
+div#dump{
+    background: #88c134; /* for non-css3 browsers */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#91e512', endColorstr='#88c134'); /* for IE */
+    background: -webkit-gradient(linear, left top, left bottom, from(#91e512), to(#88c134)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #91e512,  #88c134); /* for firefox 3.6+ */
+}
