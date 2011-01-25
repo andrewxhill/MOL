@@ -1,7 +1,7 @@
 body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; 
     min-width: 860px; margin: 0px; height: 100%; width: 100%; background: #232323; }
 div#header { padding-top: 15px; padding-bottom: 15px; width: 100%; height: auto; color: #fff; font-size: 50px; font-weight: bold;}
-div#header #title{ padding-left: 30px; }
+div#header #title{ padding-left: 30px; font-variant: small-caps; }
 div#container { background: #ceff84; float: left; width: 100%; height: 100%;}
 div#content_top{ text-align: center; padding: 10px; color: #333; font-size: 22px;}
 div#content_bottom{ text-align: center; padding: 10px; color: #333; font-size: 22px;}
