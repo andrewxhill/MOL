@@ -19,7 +19,7 @@ div#blog, div#about, div#code { overflow: hidden; margin: 10px; float: left; tex
 div.gfc-resultsHeader{ border: none; }
 
 dif#footer {width: 90%; margin-top: 20px;}
-div#footer_links { float: right; text-align: left; padding-left: 45px; height: auto; color: #fff; }
+div#footer_links { float: right; text-align: left; padding-right: 20px; padding-right: 20px; height: auto; color: #fff; }
 div#footer_links a { font-size: 12px; color: #aaa; padding-right: 8px; padding-left: 8px; line-height: 150%; text-decoration: underline;}
 
 
