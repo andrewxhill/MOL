@@ -14,7 +14,7 @@ img.main_link { margin: 20px; float: left; width: 350px; height: 100px; border: 
 div#block_title { margin-left: 10px; margin-right: 10px; float: left; text-align: center; padding: 1px; color: #111; font-size: 24px; width: 260px; }
 
 /* div#blog, div#about { overflow: hidden; margin: 10px; float: left; text-align: justify; padding: 1px; color: #333; font-size: 18px; height: 300px; width: 400px; } */
-div#blog, div#about, div#code { overflow: hidden; margin: 10px; float: left; text-align: left; padding: 1px; color: #333; font-size: 16px; height: 300px; width: 260px; }
+div#blog, div#about, div#code { overflow: hidden; margin: 10px; float: left; text-align: left; padding: 1px; color: #333; font-size: 16px; height: 295px; width: 260px; }
 
 div.gfc-resultsHeader{ border: none; }
 
