@@ -41,15 +41,19 @@
                 });
             }
             function initialize() {
-                var myLatlng = new google.maps.LatLng(30,50);
+                //var uLat = google.loader.ClientLocation.latitude;
+                //var uLon =  google.loader.ClientLocation.longitude;
+                var myLatlng = new google.maps.LatLng(30, 50);
                 var myOptions = {
-                zoom: 2,
-                center: myLatlng,
-                disableDefaultUI: true,
-                mapTypeId: google.maps.MapTypeId.TERRAIN
+                    center: myLatlng,
+                    zoom: 2,
+                    disableDefaultUI: true,
+                    disableDoubleClickZoom: true,
+                    draggable: false
                 }
                 var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
                 addOverlay(map);
+                
               
                 $('#blog').gFeed({ 
                     url: 'http://mol.colorado.edu/blog/?feed=rss2&a=3',
@@ -95,10 +99,10 @@
             <div id="content_middle">
                 <div id="main_links">
                     <a href="javascript::" id="button_link">
-                        <img id="examples" class="main_link" src="/images/examples.png" />
+                        <img id="vision" class="main_link" src="/images/vision.png" />
                     </a>
                     <a href="javascript::" id="button_link">
-                        <img id="explore" class="main_link" src="/images/explore.png" />
+                        <img id="examples" class="main_link" src="/images/examples.png" />
                     </a>
                 </div>
                 <div id="text_blocks">
