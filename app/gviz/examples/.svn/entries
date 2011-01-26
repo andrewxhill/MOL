@@ -1,0 +1,54 @@
+8
+
+dir
+15
+http://google-visualization-python.googlecode.com/svn/trunk/examples
+http://google-visualization-python.googlecode.com/svn
+
+
+
+2009-01-08T14:07:24.015191Z
+10
+misha.seltzer
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+d42a221a-af4f-11dd-872e-17ce28d58b44
+
+dynamic_example.py
+file
+
+
+
+
+2011-01-23T16:38:11.000000Z
+8d78c73e0e5244eb4cf7b834a5133f8f
+2009-01-08T14:07:24.015191Z
+10
+misha.seltzer
+has-props
+
+static_example.py
+file
+
+
+
+
+2011-01-23T16:38:11.000000Z
+7d042119a0b4f488dcaeadcb99cb817e
+2008-11-19T13:09:42.773171Z
+4
+misha.seltzer
+has-props
+

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Catalog of Life - Search Interface</title>
+    <link  href="//fonts.googleapis.com/css?family=Josefin+Sans:100,100italic,300,300italic,400,400italic,600,600italic,700,700italic" rel="stylesheet" type="text/css" >
+    <style>
+        #mol {
+            font-family: 'Josefin Sans', serif;
+            font-size: 36px;
+            font-style: normal;
+            font-weight: 400;
+            text-shadow: none;
+            text-decoration: none;
+            text-transform: none;
+            letter-spacing: -0.027em;
+            word-spacing: -0.108em;
+            line-height: 1.17;
+        }
+    </style>
+    <script src="https://www.google.com/jsapi"></script>
+    <script src="../static/tablequerywrapper.js"></script>
+</head>
+<body style="font: 75% Lucida Grande, Trebuchet MS">
+    <div id='mol'>Map of Life</div>
+    <input type='textbox' id='queryText' style="width: 300px;">
+    <button id='submitButton' value="submit" type="submit">Search Catalog of Life</button>
+    <p>
+    <div id="table"></div>
+
+    <script>
+    google.load('visualization', '1', {'packages' : ['table']});
+    google.setOnLoadCallback(init);
+    var dataSourceUrl = 'http://col.latest.mol-lab.appspot.com/api/taxonomy';
+    var query, options, container, submitButton;
+	
+    // Some setup:
+    $ = (function () {
+      var queryPlaceholder = "concolor";
+      var $ = function(id) {
+        return document.getElementById(id);
+      }
+      $('queryText').setAttribute('placeholder', queryPlaceholder);
+      $('queryText').addEventListener('keyup', function(evt) {
+        if (evt.keyCode === 13) {
+          $('submitButton').click();
+        }
+      }, false);
+      $('queryText').addEventListener('click', function(evt) {
+        if ($('queryText').value === ''){ 
+        	$('queryText').value = queryPlaceholder;
+      	}
+      }, false);
+      return $;
+    }());
+    
+    function init() {
+      query = new google.visualization.Query(dataSourceUrl);
+      container = document.getElementById("table");
+      options = {'pageSize': -1, 'sort': 'disable'};
+      submitButton = $('submitButton');
+    }
+
+    function sendAndDraw() {
+      query.abort();
+      var callback = function(isDone) {
+        if (isDone) {
+          $('submitButton').removeAttribute('disabled', 0);
+      	} else {
+          $('submitButton').setAttribute('disabled', 1);
+      	}
+      }
+      var tableQueryWrapper = new TableQueryWrapper(query, container, options, callback);
+      tableQueryWrapper.sendAndDraw();
+    }
+	
+    function setOption(prop, value) {
+      options[prop] = value;
+      sendAndDraw();
+    }
+        
+    var app = app || {};
+    app.handleOnClick = function(evt) {
+      var gql = $('queryText').value || $('queryText').getAttribute('placeholder')    
+      setOption('gql', gql)
+    }
+
+    $('submitButton').addEventListener('click', app.handleOnClick, false);
+  </script>
+</body>
+</html>
