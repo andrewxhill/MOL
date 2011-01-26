@@ -24,46 +24,46 @@ __all__ = ['Put', 'Delete']
 # TODO(user): handler function annotation which requests to
 # use db calls directly without batching them/doing async db calls.
 class Put(object):
-  """Put entity into datastore via mutation_pool.
+    """Put entity into datastore via mutation_pool.
 
-  See mapreduce.context.MutationPool.
-  """
-
-  def __init__(self, entity):
-    """Constructor.
-
-    Args:
-      entity: an entity to put.
+    See mapreduce.context.MutationPool.
     """
-    self.entity = entity
 
-  def __call__(self, context):
-    """Perform operation.
+    def __init__(self, entity):
+        """Constructor.
 
-    Args:
-      context: mapreduce context as context.Context.
-    """
-    context.mutation_pool.put(self.entity)
+        Args:
+          entity: an entity to put.
+        """
+        self.entity = entity
+
+    def __call__(self, context):
+        """Perform operation.
+
+        Args:
+          context: mapreduce context as context.Context.
+        """
+        context.mutation_pool.put(self.entity)
 
 
 class Delete(object):
-  """Delete entity from datastore via mutation_pool.
+    """Delete entity from datastore via mutation_pool.
 
-  See mapreduce.context.MutationPool.
-  """
-
-  def __init__(self, entity):
-    """Constructor.
-
-    Args:
-      entity: a key or model instance to delete.
+    See mapreduce.context.MutationPool.
     """
-    self.entity = entity
 
-  def __call__(self, context):
-    """Perform operation.
+    def __init__(self, entity):
+        """Constructor.
 
-    Args:
-      context: mapreduce context as context.Context.
-    """
-    context.mutation_pool.delete(self.entity)
+        Args:
+          entity: a key or model instance to delete.
+        """
+        self.entity = entity
+
+    def __call__(self, context):
+        """Perform operation.
+
+        Args:
+          context: mapreduce context as context.Context.
+        """
+        context.mutation_pool.delete(self.entity)

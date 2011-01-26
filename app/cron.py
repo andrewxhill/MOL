@@ -27,32 +27,32 @@ import time
 
 
 class InterpolateTiles(webapp.RequestHandler):
-  def get(self):
-    self.post()
-  def post(self):
-    t = TileUpdate.all().fetch(1)
-    if len(t)==1:
-        mr_control.start_map(
-          "Process queued Tiles stored in TileUpdate",
-          "mappers.interpolate",
-          "mapreduce.input_readers.DatastoreInputReader",
-          {"entity_kind": "Tiles.TileUpdate",
-          "shard_count": 2,
-          },
-          mapreduce_parameters={"done_callback": "/"},
-        )
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('MR Cron Started')
-      
+    def get(self):
+        self.post()
+    def post(self):
+        t = TileUpdate.all().fetch(1)
+        if len(t)==1:
+            mr_control.start_map(
+              "Process queued Tiles stored in TileUpdate",
+              "mappers.interpolate",
+              "mapreduce.input_readers.DatastoreInputReader",
+              {"entity_kind": "Tiles.TileUpdate",
+              "shard_count": 2,
+              },
+              mapreduce_parameters={"done_callback": "/"},
+            )
+            self.response.headers['Content-Type'] = 'text/plain'
+            self.response.out.write('MR Cron Started')
+
 application = webapp.WSGIApplication(
          [
           ('/cron/interpolate',InterpolateTiles)
-         ],      
+         ],
          debug=True)
 
 
 def main():
-  run_wsgi_app(application)
+    run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
+    main()

@@ -28,158 +28,158 @@ _OFFSET = 2**32
 
 
 class QuotaManager(object):
-  """Simple quota system manager, backed by memcache storage.
+    """Simple quota system manager, backed by memcache storage.
 
-  Since memcache storage is not reliable, this quota system is not reliable and
-  best effort only.
+    Since memcache storage is not reliable, this quota system is not reliable and
+    best effort only.
 
-  Quota is managed by buckets. Each bucket contains a 32-bit int value of
-  available quota. Buckets should be refilled manually with 'put' method.
+    Quota is managed by buckets. Each bucket contains a 32-bit int value of
+    available quota. Buckets should be refilled manually with 'put' method.
 
-  It is safe to use a single bucket from multiple clients simultaneously.
-  """
-
-  def __init__(self, memcache_client):
-    """Initialize new instance.
-
-    Args:
-      memcache_client: an instance of memcache client to use.
+    It is safe to use a single bucket from multiple clients simultaneously.
     """
-    self.memcache_client = memcache_client
 
-  def put(self, bucket, amount):
-    """Put amount into quota bucket.
+    def __init__(self, memcache_client):
+        """Initialize new instance.
 
-    Args:
-      bucket: quota bucket as string.
-      amount: amount to bit put into quota as int.
-    """
-    self.memcache_client.incr(bucket, delta=amount,
-                              initial_value=_OFFSET, namespace=_QUOTA_NAMESPACE)
+        Args:
+          memcache_client: an instance of memcache client to use.
+        """
+        self.memcache_client = memcache_client
 
-  def consume(self, bucket, amount, consume_some=False):
-    """Consume amount from quota bucket.
+    def put(self, bucket, amount):
+        """Put amount into quota bucket.
 
-    Args:
-      bucket: quota bucket as string.
-      amount: amount to consume.
-      consume_some: specifies behavior in case of not enough quota. If False,
-        the method will leave quota intact and return 0. If True, will try to
-        consume as much as possible.
+        Args:
+          bucket: quota bucket as string.
+          amount: amount to bit put into quota as int.
+        """
+        self.memcache_client.incr(bucket, delta=amount,
+                                  initial_value=_OFFSET, namespace=_QUOTA_NAMESPACE)
 
-    Returns:
-      Amount of quota consumed.
-    """
-    new_quota = self.memcache_client.decr(
-        bucket, delta=amount, initial_value=_OFFSET, namespace=_QUOTA_NAMESPACE)
+    def consume(self, bucket, amount, consume_some=False):
+        """Consume amount from quota bucket.
 
-    if new_quota >= _OFFSET:
-      return amount
+        Args:
+          bucket: quota bucket as string.
+          amount: amount to consume.
+          consume_some: specifies behavior in case of not enough quota. If False,
+            the method will leave quota intact and return 0. If True, will try to
+            consume as much as possible.
 
-    if consume_some and _OFFSET - new_quota < amount:
-      # we still can consume some
-      self.put(bucket, _OFFSET - new_quota)
-      return amount - (_OFFSET - new_quota)
-    else:
-      self.put(bucket, amount)
-      return 0
+        Returns:
+          Amount of quota consumed.
+        """
+        new_quota = self.memcache_client.decr(
+            bucket, delta=amount, initial_value=_OFFSET, namespace=_QUOTA_NAMESPACE)
 
-  def get(self, bucket):
-    """Get current bucket amount.
+        if new_quota >= _OFFSET:
+            return amount
 
-    Args:
-      bucket: quota bucket as string.
+        if consume_some and _OFFSET - new_quota < amount:
+            # we still can consume some
+            self.put(bucket, _OFFSET - new_quota)
+            return amount - (_OFFSET - new_quota)
+        else:
+            self.put(bucket, amount)
+            return 0
 
-    Returns:
-      current bucket amount as int.
-    """
-    amount = self.memcache_client.get(bucket, namespace=_QUOTA_NAMESPACE)
-    if amount:
-      return int(amount) - _OFFSET
-    else:
-      return 0
+    def get(self, bucket):
+        """Get current bucket amount.
 
-  def set(self, bucket, amount):
-    """Set bucket amount.
+        Args:
+          bucket: quota bucket as string.
 
-    Args:
-      bucket: quota bucket as string.
-      amount: new bucket amount as int.
-    """
-    self.memcache_client.set(bucket, amount + _OFFSET,
-                             namespace=_QUOTA_NAMESPACE)
+        Returns:
+          current bucket amount as int.
+        """
+        amount = self.memcache_client.get(bucket, namespace=_QUOTA_NAMESPACE)
+        if amount:
+            return int(amount) - _OFFSET
+        else:
+            return 0
+
+    def set(self, bucket, amount):
+        """Set bucket amount.
+
+        Args:
+          bucket: quota bucket as string.
+          amount: new bucket amount as int.
+        """
+        self.memcache_client.set(bucket, amount + _OFFSET,
+                                 namespace=_QUOTA_NAMESPACE)
 
 
 class QuotaConsumer(object):
-  """Quota consumer wrapper for efficient quota consuming/reclaiming.
+    """Quota consumer wrapper for efficient quota consuming/reclaiming.
 
-  Quota is consumed in batches and put back in dispose() method.
+    Quota is consumed in batches and put back in dispose() method.
 
-  WARNING: Always call the dispose() method if you need to keep quota
-  consistent.
-  """
-
-  def __init__(self, quota_manager, bucket, batch_size):
-    """Initialize new instance.
-
-    Args:
-      quota_manager: quota manager to use for quota operations as QuotaManager.
-      bucket: quota bucket name as string.
-      batch_size: batch size for quota consuming as int.
+    WARNING: Always call the dispose() method if you need to keep quota
+    consistent.
     """
-    self.quota_manager = quota_manager
-    self.batch_size = batch_size
-    self.bucket = bucket
-    self.quota = 0
 
-  def consume(self, amount=1):
-    """Consume quota.
+    def __init__(self, quota_manager, bucket, batch_size):
+        """Initialize new instance.
 
-    Args:
-      amount: amount of quota to be consumed as int.
+        Args:
+          quota_manager: quota manager to use for quota operations as QuotaManager.
+          bucket: quota bucket name as string.
+          batch_size: batch size for quota consuming as int.
+        """
+        self.quota_manager = quota_manager
+        self.batch_size = batch_size
+        self.bucket = bucket
+        self.quota = 0
 
-    Returns:
-      True if quota was successfully consumed, False if there's not enough
-      quota.
-    """
-    while self.quota < amount:
-      delta = self.quota_manager.consume(self.bucket, self.batch_size,
-                                         consume_some=True)
-      if not delta:
-        return False
-      self.quota += delta
+    def consume(self, amount=1):
+        """Consume quota.
 
-    self.quota -= amount
-    return True
+        Args:
+          amount: amount of quota to be consumed as int.
 
-  def put(self, amount=1):
-    """Put quota back.
+        Returns:
+          True if quota was successfully consumed, False if there's not enough
+          quota.
+        """
+        while self.quota < amount:
+            delta = self.quota_manager.consume(self.bucket, self.batch_size,
+                                               consume_some=True)
+            if not delta:
+                return False
+            self.quota += delta
 
-    Args:
-      amount: amount of quota as int.
-    """
-    self.quota += amount
+        self.quota -= amount
+        return True
 
-  def check(self, amount=1):
-    """Check that we have enough quota right now.
+    def put(self, amount=1):
+        """Put quota back.
 
-    This doesn't lock or consume the quota. Following consume might in fact
-    fail/succeeded.
+        Args:
+          amount: amount of quota as int.
+        """
+        self.quota += amount
 
-    Args:
-      amount: amount of quota to check.
+    def check(self, amount=1):
+        """Check that we have enough quota right now.
 
-    Returns:
-      True if we have enough quota to consume specified amount right now. False
-      otherwise.
-  """
-    if self.quota >= amount:
-      return True
-    return self.quota + self.quota_manager.get(self.bucket) >= amount
+        This doesn't lock or consume the quota. Following consume might in fact
+        fail/succeeded.
 
-  def dispose(self):
-    """Dispose QuotaConsumer and put all actually unconsumed quota back.
+        Args:
+          amount: amount of quota to check.
 
-    This method has to be called for quota consistency!
-    """
-    self.quota_manager.put(self.bucket, self.quota)
+        Returns:
+          True if we have enough quota to consume specified amount right now. False
+          otherwise.
+      """
+        if self.quota >= amount:
+            return True
+        return self.quota + self.quota_manager.get(self.bucket) >= amount
+
+    def dispose(self):
+        """Dispose QuotaConsumer and put all actually unconsumed quota back.
+
+        This method has to be called for quota consistency!
+        """
+        self.quota_manager.put(self.bucket, self.quota)

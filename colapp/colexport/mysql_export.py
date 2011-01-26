@@ -8,7 +8,7 @@ conn = MySQLdb.connect (host = "localhost",
                        user = "username",
                        passwd = "password",
                        db = "col2010ac")
-                       
+
 specindQ = open("colexport/specind-quarantine.csv","w+")
 bulk = open("upload.sh","w+")
 
@@ -22,7 +22,7 @@ def fix_latin(z):
             r.append(z[c])
         c+=1
     return r
-    
+
 def cs(val,lower=1,quote=1): #clean the string from some weird junk in some of the fields
     if val==None or val=='None':
         return "NULL"
@@ -33,7 +33,7 @@ def cs(val,lower=1,quote=1): #clean the string from some weird junk in some of t
     if quote==1:
         return "'" + val + "'"
     return val
-    
+
 def run():
     fnum = 0
     rct = 0
@@ -57,7 +57,7 @@ def run():
         key = key.rstrip(',')
         if "," in key: #some COL rows have concatenated name/author but are really duplicates of correct rows. remove them here
             print key
-        else:                                         
+        else:
             sql = 'INSERT INTO spec (record_id, col_lsid, rank, kingdom, phylum, classx, orderx, family, superfamily, genus, species, infraspecies, author, database_full_name,name_code,keyx) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);' % (r[0], cs(r[1]), cs(r[2]), cs(r[3]), cs(r[4]), cs(r[5]), cs(r[6]), cs(r[7]), cs(r[8]), cs(r[9]), cs(r[10]), cs(r[11]), cs(r[12],0).lstrip('(').rstrip(')'), cs(r[13],0), cs(r[14],0), key)
             #print sql
             cursor.execute(sql)
@@ -67,9 +67,9 @@ def run():
     data = cursor.fetchall ()
     totalCount = 0
     for z in data:
-        
+
         rct+=1
-        
+
         if rct==10000:
             fnum+=1
             specindN.close()
@@ -78,9 +78,9 @@ def run():
             bulk.write("../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind-%s.csv --kind=Species  ../app/\n" % fnum)
             bulk.write("../../../google_appengine/appcfg.py upload_data --batch_size=25 --config_file=bulkloaders/col-mol.yaml --filename=colexport/specind-%s.csv --kind=SpeciesIndex  ../app/\n" % fnum)
             rct=0
-        
+
         r = fix_latin(z)
-        
+
         names = []
         namesdicts = []
         cursor.execute ('SELECT c.common_name,c.language FROM common_names c WHERE name_code = "%s";' % r[2])
@@ -95,12 +95,12 @@ def run():
                 "author": None,
                 "source": "COL",
                 })
-            
+
         charFlag = False
         cursor.execute ('SELECT s.genus,s.species,s.infraspecies,s.is_accepted_name,author FROM scientific_names s where accepted_name_code = "%s";' % r[2])
         sn = cursor.fetchall ()
         for p in sn:
-            
+
             n = fix_latin(p)
             #n = p
             if n[2] is None or len(n[2])==0:
@@ -120,7 +120,7 @@ def run():
             else:
                 nd["type"]="scientific name"
             nd["source"] = "COL"
-            namesdicts.append(nd)  
+            namesdicts.append(nd)
         if r[16] is not None and type(r[16]) != type(None):
             r[16] = r[16].strip().lstrip("(").rstrip(")")
         taxonomy = {
@@ -129,29 +129,29 @@ def run():
                 "class": r[9],
                 "order": r[10],
                 "family": r[11],
-                "superfamily": r[12], 
-                "genus": r[13], 
+                "superfamily": r[12],
+                "genus": r[13],
                 "species": r[14],
                 "infraspecies": None}
-                
+
         if r[16] is not None and type(r[16]) != type(None):
             taxonomy["author"] = r[16].strip().lstrip("(").rstrip(")")
         if r[15] is not None:
             taxonomy["infraspecies"] = r[15]
-            
+
         authority = {"authority": "COL",
                      "database": r[4],
                      "external identifier": r[3]
                      }
-        
+
         """
-        tmps = sys.getsizeof(r[1]) 
+        tmps = sys.getsizeof(r[1])
         if tmps > 77:
             print tmps, r[1]
             specind = specindL
         else:
             specind = specindS
-        
+
         if r[0] in [3355466,3353868,958299,965444,958495,969162,962838,958073]:
             specind = specindA
         """
@@ -166,14 +166,14 @@ def run():
         except:
             specind = specindQ
             print "You probably have a linebreak in a cell. Do a text search on '%s' to find it." % r[1]
-            
+
         for i in r:
             if i is None:
                 specind.write('')
             else:
                 specind.write("%s" % i)
-                
-            specind.write("\t")  
+
+            specind.write("\t")
         specind.write(simplejson.dumps(names).replace("\\/","/"))
         specind.write("\t")
         specind.write(simplejson.dumps(namesdicts).replace("\\/","/"))
@@ -187,7 +187,7 @@ def run():
         totalCount += 1
     cursor.close ()
     print 'TotalCount: %s' % totalCount
-    
+
 
 if __name__ == "__main__":
     run()

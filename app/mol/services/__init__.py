@@ -43,20 +43,20 @@ class TileError(Error):
 
 class AbstractLayerService(object):
     """An abstract base class for the Layer service."""
-    
+
     def is_id_valid(self, id):
         """Returns true if the id is valid, otherwise returns false."""
         raise NotImplementedError()
-    
+
 class LayerService(AbstractLayerService):
-        
+
     def is_id_valid(self, id):
         # Checks input for null or empty string:
         if id is None:
             return False
-        if len(id.strip()) == 0:            
+        if len(id.strip()) == 0:
             return False
-        
+
         # Checks if the id can be encoded into a Key:
         key = None
         try:
@@ -65,16 +65,16 @@ class LayerService(AbstractLayerService):
                 return False
         except BadKeyError:
             return False
-            
+
         # Checks for a Species kind with an entity in the datastore:
         if key.kind() != 'Species':
             return False
         if db.get(key) is None:
             return False
-        
+
         # Passed all checks so id is valid:
         return True
-    
+
 class AbstractTileService(object):
     """An abstract base class for the Tile service."""
 
@@ -83,78 +83,77 @@ class AbstractTileService(object):
         raise NotImplementedError()
 
     def put_tile_update(self, tile):
-        """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if 
+        """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if
         it wasn't put.
         """
         raise NotImplementedError()
 
     def tile_from_url(self, url):
-        """Returns the Tile associated with a entity URL request url or None if a 
+        """Returns the Tile associated with a entity URL request url or None if a
         Tile could not be found."""
         raise NotImplementedError()
 
 class TileService(AbstractTileService):
 
-  KEY_NAME_PATTERN = '[\d]+/[\d]+/[\w]+'
-  TILE_KIND = 'Tile'
-  TILE_UPDATE_KIND = 'TileUpdate'
+    KEY_NAME_PATTERN = '[\d]+/[\d]+/[\w]+'
+    TILE_KIND = 'Tile'
+    TILE_UPDATE_KIND = 'TileUpdate'
 
-  @staticmethod
-  def _is_tile(tile):
-    return tile is not None and isinstance(tile, Tile)
+    @staticmethod
+    def _is_tile(tile):
+        return tile is not None and isinstance(tile, Tile)
 
-  @staticmethod
-  def _zoom_from_key_name(key_name):
-    if key_name is None:
-      return None
-    if key_name.count('/') < 2:
-      return None
-    zoom = key_name.split('/')[1]
-    try:
-      int(zoom)
-    except ValueError:
-      return None
-    return zoom
-    
-  def put_tile(self, tile, update=True):
-    if not TileService._is_tile(tile):
-      return None
-    key = db.put(tile)
-    if update:
-        self.put_tile_update(tile)
-    return key
+    @staticmethod
+    def _zoom_from_key_name(key_name):
+        if key_name is None:
+            return None
+        if key_name.count('/') < 2:
+            return None
+        zoom = key_name.split('/')[1]
+        try:
+            int(zoom)
+        except ValueError:
+            return None
+        return zoom
 
-  def put_tile_update(self, tile):
-    if not TileService._is_tile(tile):
-      return None
-    if not tile.is_saved() or tile.key().name() is None:
-      return None
-    key_name = tile.key().name()
-    zoom = self._zoom_from_key_name(key_name)
-    if zoom is None:
-      return None
-    tu_key = db.Key.from_path(self.TILE_UPDATE_KIND, key_name)
-    tu = TileUpdate(key=tu_key)
-    tu.zoom = len(zoom)
-    tu_key = db.put(tu)
-    return tu_key
+    def put_tile(self, tile, update=True):
+        if not TileService._is_tile(tile):
+            return None
+        key = db.put(tile)
+        if update:
+            self.put_tile_update(tile)
+        return key
 
-  def tile_from_url(self, url):
-    if url is None:
-      return None
-    key = self._key_name(url)
-    if key is None:
-      return None
-    entity = Tile.get(key)
-    return entity
+    def put_tile_update(self, tile):
+        if not TileService._is_tile(tile):
+            return None
+        if not tile.is_saved() or tile.key().name() is None:
+            return None
+        key_name = tile.key().name()
+        zoom = self._zoom_from_key_name(key_name)
+        if zoom is None:
+            return None
+        tu_key = db.Key.from_path(self.TILE_UPDATE_KIND, key_name)
+        tu = TileUpdate(key=tu_key)
+        tu.zoom = len(zoom)
+        tu_key = db.put(tu)
+        return tu_key
 
-  def _key_name(self, string):
-    if string is None:
-      return None
-    try:
-      key_name = re.findall(self.KEY_NAME_PATTERN, string)[0]
-      key = db.Key.from_path(self.TILE_KIND, key_name)
-      return key
-    except IndexError:
-      return None
+    def tile_from_url(self, url):
+        if url is None:
+            return None
+        key = self._key_name(url)
+        if key is None:
+            return None
+        entity = Tile.get(key)
+        return entity
 
+    def _key_name(self, string):
+        if string is None:
+            return None
+        try:
+            key_name = re.findall(self.KEY_NAME_PATTERN, string)[0]
+            key = db.Key.from_path(self.TILE_KIND, key_name)
+            return key
+        except IndexError:
+            return None

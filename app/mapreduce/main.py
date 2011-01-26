@@ -38,53 +38,53 @@ STATIC_RE = r".*/([^/]*\.(?:css|js)|status|detail)$"
 
 
 class RedirectHandler(webapp.RequestHandler):
-  """Redirects the user back to the status page."""
+    """Redirects the user back to the status page."""
 
-  def get(self):
-    new_path = self.request.path
-    if not new_path.endswith("/"):
-      new_path += "/"
-    new_path += "status"
-    self.redirect(new_path)
+    def get(self):
+        new_path = self.request.path
+        if not new_path.endswith("/"):
+            new_path += "/"
+        new_path += "status"
+        self.redirect(new_path)
 
 
 def create_application():
-  """Create new WSGIApplication and register all handlers.
+    """Create new WSGIApplication and register all handlers.
 
-  Returns:
-    an instance of webapp.WSGIApplication with all mapreduce handlers
-    registered.
-  """
-  return webapp.WSGIApplication([
-      # Task queue handlers.
-      (r".*/worker_callback", handlers.MapperWorkerCallbackHandler),
-      (r".*/controller_callback", handlers.ControllerCallbackHandler),
-      (r".*/kickoffjob_callback", handlers.KickOffJobHandler),
+    Returns:
+      an instance of webapp.WSGIApplication with all mapreduce handlers
+      registered.
+    """
+    return webapp.WSGIApplication([
+        # Task queue handlers.
+        (r".*/worker_callback", handlers.MapperWorkerCallbackHandler),
+        (r".*/controller_callback", handlers.ControllerCallbackHandler),
+        (r".*/kickoffjob_callback", handlers.KickOffJobHandler),
 
-      # RPC requests with JSON responses
-      # All JSON handlers should have /command/ prefix.
-      (r".*/command/start_job", handlers.StartJobHandler),
-      (r".*/command/cleanup_job", handlers.CleanUpJobHandler),
-      (r".*/command/abort_job", handlers.AbortJobHandler),
-      (r".*/command/list_configs", status.ListConfigsHandler),
-      (r".*/command/list_jobs", status.ListJobsHandler),
-      (r".*/command/get_job_detail", status.GetJobDetailHandler),
+        # RPC requests with JSON responses
+        # All JSON handlers should have /command/ prefix.
+        (r".*/command/start_job", handlers.StartJobHandler),
+        (r".*/command/cleanup_job", handlers.CleanUpJobHandler),
+        (r".*/command/abort_job", handlers.AbortJobHandler),
+        (r".*/command/list_configs", status.ListConfigsHandler),
+        (r".*/command/list_jobs", status.ListJobsHandler),
+        (r".*/command/get_job_detail", status.GetJobDetailHandler),
 
-      # UI static files
-      (STATIC_RE, status.ResourceHandler),
+        # UI static files
+        (STATIC_RE, status.ResourceHandler),
 
-      # Redirect non-file URLs that do not end in status/detail to status page.
-      (r".*", RedirectHandler),
-  ],
-  debug=True)
+        # Redirect non-file URLs that do not end in status/detail to status page.
+        (r".*", RedirectHandler),
+    ],
+    debug=True)
 
 
 APP = create_application()
 
 
 def main():
-  util.run_wsgi_app(APP)
+    util.run_wsgi_app(APP)
 
 
 if __name__ == "__main__":
-  main()
+    main()

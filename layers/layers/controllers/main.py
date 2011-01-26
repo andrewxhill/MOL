@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 def layer_processing_ids():
     return uuid.uuid4()
-    
+
 class MainController(BaseController):
 
     def index(self):
@@ -35,7 +35,7 @@ class MainController(BaseController):
     def test_task(self):
         id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
         fullpath = '/ftp/example/%s' % id
-        if worker_q.empty(): 
+        if worker_q.empty():
             worker_q.put({'id': id, 'jobtype': 'newraster', 'fullpath': fullpath})
             return 'In Queue'
         else:

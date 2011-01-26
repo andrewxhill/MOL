@@ -22,16 +22,16 @@ from mapreduce.lib.graphy import pie_chart
 from mapreduce.lib.graphy.backends.google_chart_api import encoders
 
 def _GetChartFactory(chart_class, display_class):
-  """Create a factory method for instantiating charts with displays.
+    """Create a factory method for instantiating charts with displays.
 
-  Returns a method which, when called, will create & return a chart with
-  chart.display already populated.
-  """
-  def Inner(*args, **kwargs):
-    chart = chart_class(*args, **kwargs)
-    chart.display = display_class(chart)
-    return chart
-  return Inner
+    Returns a method which, when called, will create & return a chart with
+    chart.display already populated.
+    """
+    def Inner(*args, **kwargs):
+        chart = chart_class(*args, **kwargs)
+        chart.display = display_class(chart)
+        return chart
+    return Inner
 
 # These helper methods make it easy to get chart objects with display
 # objects already setup.  For example, this:
