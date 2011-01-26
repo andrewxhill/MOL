@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # Copyright 2010 Map Of Life
 #
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from osgeo import gdal
+from osgeo import gdal, ogr
 from urllib2 import HTTPError
 import datetime
 import os.path
@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import urllib
 import urllib2
+import math
 
 GAE_URL = "http://localhost:8080/"
 VALID_ID_SERVICE_URL = "%sapi/validid" % GAE_URL
@@ -47,18 +48,30 @@ class LayerError(Error):
 def _isempty(s):
     return len(s.strip()) == 0
 
+def MetersToLatLon(bb):
+    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
+    mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
+    originShift = 2 * math.pi * 6378137 / 2.0
+    lon = (mx / originShift) * 180.0
+    lat = (my / originShift) * 180.0
+    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
+    lon0 = (mx0 / originShift) * 180.0
+    lat0 = (my0 / originShift) * 180.0
+    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    return lon, lat, lon0, lat0
+
 class _GdalUtil(object):
     """GDAL Utility class with static helper methods."""
 
     @staticmethod
     def getboundingbox(geotrans):
-        """Returns a bounding box coordinate dictionary with maxLat, minLat,
-        maxLon, and minLon keys given the affine transformation coefficients
+        """Returns a bounding box coordinate dictionary with maxLat, minLat, 
+        maxLon, and minLon keys given the affine transformation coefficients 
         returned from osgeo.gdal.Dataset.GetGeoTransform().
-
+        
         Arguments:
             geotrans - the affine transformation coefficients tuple.
-
+        
         Returns:
             Dictionary with maxLat, minLat, maxLon, and minLon keys.
         """
@@ -72,27 +85,35 @@ class _GdalUtil(object):
     def getmetadata(filepath):
         """Returns a metadata dictionary for the asc file identified by filepath
         with the following keys:
-
+            
         proj - The projection
         bb - The bounding box coordinates
-
+        
         Arguments:
             filepath - path to an asc file
-
+        
         Returns:
-            Dictionary with proj and bb keys or None if error.
-
+            Dictionary with proj and bb keys or None if error. 
+        
         Raises:
-            LayerError if filepath is invalid.
+            LayerError if filepath is invalid.       
         """
         Layer.validatepath(filepath, dir=False)
+        vector = ogr.GetDriverByName('ESRI Shapefile')
+        src_ds = vector.Open(filepath)
+        src_lyr = src_ds.GetLayer(0)
+        src_extent = src_lyr.GetExtent()
+        bb = MetersToLatLon(src_extent)
+        bb = {'minLon': min(bb[0], bb[2]), 'minLat': min(bb[1], bb[3]), 'maxLon': max(bb[0], bb[2]), 'maxLat': max(bb[1], bb[3])}
+        """
         ascdata = gdal.Open(filepath)
         if ascdata is None:
             return None
         projection = ascdata.GetProjection()
-        geotrans = ascdata.GetGeoTransform()
+        geotrans = ascdata.GetGeoTransform()        
         bb = _GdalUtil.getboundingbox(geotrans)
-        return {'proj' : projection, 'geog': bb}
+        """
+        return {'proj' : 'EPSG:900913', 'geog': bb}
 
 class Layer(object):
 
@@ -124,22 +145,22 @@ class Layer(object):
 
     @staticmethod
     def idfrompath(path):
-        """Returns the id for a path which is the root filename of the path
-        without the extension. For example, 'foo' is the id for path
+        """Returns the id for a path which is the root filename of the path 
+        without the extension. For example, 'foo' is the id for path 
         '/bar/baz/foo.txt'.
         """
         # Checks for a valid path value:
         if path is None or _isempty(path):
             raise LayerError('', 'The path was None or empty string')
-        Layer.validatepath(path)
+        Layer.validatepath(path, dir=False)
         tail = os.path.split(path)[1]
         root = os.path.splitext(tail)[0]
-        return root
+        return root, os.path.split(path)[0]
 
     @staticmethod
     def validatepath(path, dir=True, read=True, write=False):
         """Raises a LayerError if the path is invalid.
-
+    
         Arguments:
             path - the path to a file or directory
             dir = True if the path is a directory and False if it's a file
@@ -168,10 +189,10 @@ class Layer(object):
         if write and not os.access(path, os.W_OK):
             raise LayerError('', 'The path is not writable: %s' % path)
 
-    def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, zoom=1,
+    def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, mapfile, zoom=1,
                  converted=False, tiled=False):
         """Constructs a new Layer object.
-
+        
         Arguments:
             path - filesystem path of a directory containing raster layer data
             TODO...
@@ -191,7 +212,7 @@ class Layer(object):
             raise LayerError('', 'The dstdir was null or empty string')
 
         # Validates the layer file path and directories:
-        Layer.validatepath(path)
+        Layer.validatepath(path, dir=False)
         Layer.validatepath(tiledir, write=True)
         Layer.validatepath(ascdir, write=True)
         Layer.validatepath(errdir, write=True)
@@ -205,12 +226,14 @@ class Layer(object):
         self.errdir = errdir
         self.srcdir = srcdir
         self.dstdir = dstdir
+        self.mapfile = mapfile
         self.zoom = zoom
         self.converted = converted
         self.tiled = tiled
+        self.meta = None
 
         # Sets the layer id:
-        self.id = Layer.idfrompath(path)
+        self.id, self.srcdir = Layer.idfrompath(path)
 
         # Sets the asc file path for this layer:
         filename = '%s.asc' % self.id
@@ -232,23 +255,22 @@ class Layer(object):
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
-
+        
         Arguments:
             layer - a Layer object to update
         """
-        meta = _GdalUtil.getmetadata(self.ascfilepath)
-        if meta is None:
+        if self.meta is None:
             return False
 
         # Builds URL request params:
         params = {'id': self.id,
                   'zoom': self.zoom,
-                  'proj' : meta['proj'],
+                  'proj' : self.meta['proj'],
                   'date' : str(datetime.datetime.now()),
-                  'maxLat' : str(meta['geog']['maxLat']),
-                  'minLat' : str(meta['geog']['minLat']),
-                  'maxLon' : str(meta['geog']['maxLon']),
-                  'minLon' : str(meta['geog']['minLon']),
+                  'maxLat' : str(self.meta['geog']['maxLat']),
+                  'minLat' : str(self.meta['geog']['minLat']),
+                  'maxLon' : str(self.meta['geog']['maxLon']),
+                  'minLon' : str(self.meta['geog']['minLon']),
                   'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id
                   }
         query = urllib.urlencode(params)
@@ -289,10 +311,24 @@ class Layer(object):
 
     def totiles(self):
         """Creates tiles for zoom + 1. Note that this method blocks."""
+        """
         # Creates the GeoTiff if it doesn't already exist:
         if not self.converted:
             self.toasc()
+        """
+        if self.meta is None:
+            self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
 
+        tmp_xml = open(self.mapfile, 'r').read().replace('layer_name', self.id)
+        print self.srcdir
+        mapfile = self.srcdir + '/' + self.id + '.xml'
+        open(mapfile, "w+").write(tmp_xml)
+        a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
+        bbox = (int(a + 177) - 180, int(b + 177) - 180, math.ceil(x + 183) - 180, math.ceil(y + 183) - 180)
+
+        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/') + "/", 0, 6, "World")
+
+        """
         self.tiling = subprocess.Popen(
             ["java",
             "-mx300m",
@@ -304,12 +340,13 @@ class Layer(object):
             self.mytiledir,
             str(self.zoom + 1)
             ], stderr=self.errlog)
-
         # Waits for the tiling process to finish:
         self.tiling.wait()
+        """
 
     def toasc(self):
         """Converts layer to a GeoTiff. Note that this method blocks."""
+
         # Creates a GeoTiff:
         self.translating = subprocess.Popen(
             ["gdal_translate",
@@ -326,3 +363,7 @@ class Layer(object):
 
         # FIXME: May not have been converted if there were errors:
         self.converted = True
+
+        if self.meta is None:
+            self.meta = _GdalUtil.getmetadata(self.path)
+
