@@ -22,22 +22,22 @@ __all__ = ['Increment']
 
 
 class Increment(object):
-  """Increment counter operation."""
+    """Increment counter operation."""
 
-  def __init__(self, counter_name, delta=1):
-    """Constructor.
+    def __init__(self, counter_name, delta=1):
+        """Constructor.
 
-    Args:
-      counter_name: name of the counter as string
-      delta: increment delta as int.
-    """
-    self.counter_name = counter_name
-    self.delta = delta
+        Args:
+          counter_name: name of the counter as string
+          delta: increment delta as int.
+        """
+        self.counter_name = counter_name
+        self.delta = delta
 
-  def __call__(self, context):
-    """Execute operation.
+    def __call__(self, context):
+        """Execute operation.
 
-    Args:
-      context: mapreduce context as context.Context.
-    """
-    context.counters.increment(self.counter_name, self.delta)
+        Args:
+          context: mapreduce context as context.Context.
+        """
+        context.counters.increment(self.counter_name, self.delta)

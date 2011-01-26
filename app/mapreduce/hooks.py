@@ -22,64 +22,64 @@ __all__ = ["Hooks"]
 
 
 class Hooks(object):
-  """Allows subclasses to control some aspects of mapreduce execution.
+    """Allows subclasses to control some aspects of mapreduce execution.
 
-  control.start_map accepts an optional "hooks" argument that can be passed a
-  subclass of this class.
-  """
-
-  def enqueue_worker_task(self, task, queue_name):
-    """Enqueues a worker task that is used to run the mapper.
-
-    Args:
-      task: A taskqueue.Task that must be queued in order for the mapreduce
-        mappers.py to be run.
-      queue_name: The queue where the task should be run e.g. "default".
-
-    Raises:
-      NotImplementedError: to indicate that the default worker queueing strategy
-        should be used.
+    control.start_map accepts an optional "hooks" argument that can be passed a
+    subclass of this class.
     """
-    raise NotImplementedError()
 
-  def enqueue_kickoff_task(self, task, queue_name):
-    """Enqueues a task that is used to start the mapreduce.
+    def enqueue_worker_task(self, task, queue_name):
+        """Enqueues a worker task that is used to run the mapper.
 
-    Args:
-      task: A taskqueue.Task that must be queued in order for the mapreduce
-        to start.
-      queue_name: The queue where the task should be run e.g. "default".
+        Args:
+          task: A taskqueue.Task that must be queued in order for the mapreduce
+            mappers.py to be run.
+          queue_name: The queue where the task should be run e.g. "default".
 
-    Raises:
-      NotImplementedError: to indicate that the default mapreduce start strategy
-        should be used.
-    """
-    raise NotImplementedError()
+        Raises:
+          NotImplementedError: to indicate that the default worker queueing strategy
+            should be used.
+        """
+        raise NotImplementedError()
 
-  def enqueue_done_task(self, task, queue_name):
-    """Enqueues a task that is triggered when the mapreduce completes.
+    def enqueue_kickoff_task(self, task, queue_name):
+        """Enqueues a task that is used to start the mapreduce.
 
-    Args:
-      task: A taskqueue.Task that must be queued in order for the client to be
-        notified when the mapreduce is complete.
-      queue_name: The queue where the task should be run e.g. "default".
+        Args:
+          task: A taskqueue.Task that must be queued in order for the mapreduce
+            to start.
+          queue_name: The queue where the task should be run e.g. "default".
 
-    Raises:
-      NotImplementedError: to indicate that the default mapreduce notification
-        strategy should be used.
-    """
-    raise NotImplementedError()
+        Raises:
+          NotImplementedError: to indicate that the default mapreduce start strategy
+            should be used.
+        """
+        raise NotImplementedError()
 
-  def enqueue_controller_task(self, task, queue_name):
-    """Enqueues a task that is used to monitor the mapreduce process.
+    def enqueue_done_task(self, task, queue_name):
+        """Enqueues a task that is triggered when the mapreduce completes.
 
-    Args:
-      task: A taskqueue.Task that must be queued in order for updates to the
-        mapreduce process to be properly tracked.
-      queue_name: The queue where the task should be run e.g. "default".
+        Args:
+          task: A taskqueue.Task that must be queued in order for the client to be
+            notified when the mapreduce is complete.
+          queue_name: The queue where the task should be run e.g. "default".
 
-    Raises:
-      NotImplementedError: to indicate that the default mapreduce tracking
-        strategy should be used.
-    """
-    raise NotImplementedError()
+        Raises:
+          NotImplementedError: to indicate that the default mapreduce notification
+            strategy should be used.
+        """
+        raise NotImplementedError()
+
+    def enqueue_controller_task(self, task, queue_name):
+        """Enqueues a task that is used to monitor the mapreduce process.
+
+        Args:
+          task: A taskqueue.Task that must be queued in order for updates to the
+            mapreduce process to be properly tracked.
+          queue_name: The queue where the task should be run e.g. "default".
+
+        Raises:
+          NotImplementedError: to indicate that the default mapreduce tracking
+            strategy should be used.
+        """
+        raise NotImplementedError()

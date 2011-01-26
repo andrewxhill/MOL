@@ -23,17 +23,17 @@ from tempfile import NamedTemporaryFile
 
 class LayerTest(unittest.TestCase):
     """Unit tests for LayerService class."""
-      
+
     def test_constructor(self):
         valid = tempfile.mkdtemp()
-        invalid = [None, '', ' ', '/#@$%#']        
+        invalid = [None, '', ' ', '/#@$%#']
         for dir in invalid:
             try:
                 RasterLayer(dir, valid, valid, valid)
                 self.fail("Invalid directory")
             except RasterLayerError as e:
                 print e
-        
+
         for dir in invalid:
             try:
                 RasterLayer(valid, dir, valid, valid)
@@ -47,23 +47,23 @@ class LayerTest(unittest.TestCase):
                 self.fail("Invalid directory")
             except RasterLayerError as e:
                 print e
-                
+
         for dir in invalid:
             try:
                 RasterLayer(valid, valid, valid, dir)
                 self.fail("Invalid directory")
             except RasterLayerError as e:
                 print e
-            
+
         path = '/ftp/newraster/hbw00028'
         layer = RasterLayer(path, valid, valid, valid)
         self.assertNotEqual(None)
-        
-        
+
+
     def test_validatepath(self):
         pass
         # TODO
-    
+
     def test_idfrompath(self):
         try:
             RasterLayer.idfrompath(None)
@@ -71,17 +71,17 @@ class LayerTest(unittest.TestCase):
             RasterLayer.idfrompath('')
             self.fail('Invalid path')
             RasterLayer.idfrompath(' ')
-            self.fail('Invalid path')          
-          
+            self.fail('Invalid path')
+
             # TODO: Checks for inaccessible paths
-                    
+
         except RasterLayerError as e:
             print e
-      
+
         f = NamedTemporaryFile(suffix='.txt')
-        tail = os.path.split(f.name)[1]      
+        tail = os.path.split(f.name)[1]
         root = os.path.splitext(tail)[0]
         self.assertEqual(root, RasterLayer.idfrompath(f.name))
-      
+
 suite = unittest.TestLoader().loadTestsFromTestCase(LayerTest)
 unittest.TextTestRunner(verbosity=2).run(suite)

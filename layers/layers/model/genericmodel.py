@@ -11,10 +11,10 @@ class GenericDBRecord():
 
     def get(self, searchstring, **modifiers):
         """Factory method that returns a list of GenericDBRecord instances based on arbitrary search criteria.
-        
+
         :arg searchstring: specifies search criteria, using standard SQL operators
         :type searchstring: string
-        
+
         :keyword orderby: an attribute (table column) [asc|desc] by which to sort the results
         :type orderby: string
         :keyword limit: indicates how many result objects to return
@@ -23,9 +23,9 @@ class GenericDBRecord():
         :type offset: integer
 
         :returns: a list of record objects matching the search criteria
-        
+
         Examples::
-        
+
             # RecordClass is a subclass of GenericDBRecord
             RecordClass().get("id > 200")
             RecordClass().get("id > 200", orderby='name_txt', limit=10, offset=100)"""
@@ -33,20 +33,20 @@ class GenericDBRecord():
 
     def getall(self, **modifiers):
         """Factory method that retrieves all instances of GenericDBRecord from the DB table.
-        
+
         :keyword orderby: an attribute (table column) [asc|desc] by which to sort the results
         :type orderby: string
         :keyword limit: indicates how many result objects to return
         :type limit: integer
         :keyword offset: which result (numbered from 0) to start with
         :type offset: integer
-        
+
         :returns: a list of all record objects in the database"""
         return self._buildquery('', modifiers).all()
 
     def asdict(self, recurse=False):
         """Convert the public attributes (e.g., table columns) of this object to a dictionary.
-        
+
         :param recurse: optional; indicates if GenericDBRecord objects contained as member data in this object should be recursively processed
         :type recurse: boolean"""
         dict = {}
