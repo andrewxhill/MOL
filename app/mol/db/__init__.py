@@ -20,10 +20,10 @@ class TileSetIndex(db.Model):
     remoteLocation = db.StringProperty() #remote url constructor for the dataset, for distributed storage
     zoom = db.IntegerProperty() #max zoom available for the layer
     proj = db.StringProperty() #max zoom available for the layer
-    maxLat = db.FloatProperty() 
-    minLat = db.FloatProperty() 
-    maxLon = db.FloatProperty() 
-    minLon = db.FloatProperty() 
+    maxLat = db.FloatProperty()
+    minLat = db.FloatProperty()
+    maxLon = db.FloatProperty()
+    minLon = db.FloatProperty()
     dateLastModified = db.DateTimeProperty(auto_now_add=True)
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     
@@ -38,24 +38,21 @@ class TileSetIndex(db.Model):
             self.zoom = int(value)
         except ValueError:
             self.zoom = None
-    
-     
-
 
 class Tile(db.Model):
     band = db.BlobProperty()
-  
+
 class TileUpdate(db.Model):
     zoom = db.IntegerProperty()
-    
+
 class TmpTile(db.Model):
     band = db.TextProperty()
-    
+
 class Species(db.Model):
     authority = db.TextProperty()
     classification = db.TextProperty()
     names = db.TextProperty()
-    
+
 class SpeciesIndex(db.Model):
     names = db.StringListProperty()
     authorityName = db.StringProperty()
@@ -68,5 +65,3 @@ class SpeciesIndex(db.Model):
     genus = db.StringProperty()
     species = db.StringProperty()
     infraSpecies = db.StringProperty()
-   
-

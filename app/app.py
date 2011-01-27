@@ -19,29 +19,40 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
-    
+
 class ColPage(webapp.RequestHandler):
-  def get(self):
-    path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
-    self.response.out.write(template.render(path, {}))
-    
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
+        self.response.out.write(template.render(path, {}))
+
 class MapPage(webapp.RequestHandler):
-  def get(self):
-    path = os.path.join(os.path.dirname(__file__), 'templates/maptest.html')
-    self.response.out.write(template.render(path, {}))
-      
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'templates/maptest.html')
+        self.response.out.write(template.render(path, {}))
+
 class MainPage(webapp.RequestHandler):
-  def get(self):
-    self.response.out.write('hi')
-    
+    def get(self):
+        self.response.out.write('hi')
+
+class BaseHandler(webapp.RequestHandler):
+    def render_template(self, file, template_args):
+        path = os.path.join(os.path.dirname(__file__), "templates", file)
+        self.response.out.write(template.render(path, template_args))
+
+class ColSearchHandler(BaseHandler):
+    """Handler for the COL search UI."""
+    def get(self):
+        self.render_template("pager.html", {})
+
 application = webapp.WSGIApplication(
          [('/', MainPage),
+          ('/col/search', ColSearchHandler),
           ('/playground/col', ColPage),
-          ('/playground/map', MapPage)],      
+          ('/playground/map', MapPage)],
          debug=True)
 
 def main():
-  run_wsgi_app(application)
+    run_wsgi_app(application)
 
 if __name__ == "__main__":
-  main()
+    main()

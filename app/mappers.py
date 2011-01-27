@@ -26,13 +26,13 @@ def delete(entity):
     """Deletes the entity from the datastore."""
     #if len(entity.key().name().split('/')[1]) < 6:
     yield op.db.Delete(entity)
-   
+
 
 def interpolate(entity):
     """Processes any changed tiles
-    
+
     description
-    
+
     Args:
       entity: A TileUPdate entity
     """
@@ -56,7 +56,7 @@ def interpolate(entity):
     else: #if tile doesn't exist, create 256x256 matrix
         n = [[0 for i in range(256*4)] for i in range(256)]
         tile = Tile(key=db.Key.from_path('Tile',key))
-        
+
     fullCt = 0
     qtCt = 0
     mod = False
@@ -70,10 +70,10 @@ def interpolate(entity):
             t = Tile.get(db.Key.from_path('Tile', tmpK))
             if t is not None:
                 band = t.band
-                
+
         orow = 0 if qt in [0,1] else 128 #row offset if the tile is either sub-quadtree 1,3
         ocol = 0 if qt in [0,2] else 128 #col offset if the tile is either sub-quadtree 2,3
-        if band: 
+        if band:
             mod = True
             qtCt += 1
             try:
@@ -92,16 +92,16 @@ def interpolate(entity):
                 for s in png.Reader(bytes=images.resize(band,128,128)).asRGBA8()[2]: #iterate through each of the 128 rows of the tile
                     n[row+orow][4*ocol:4*(ocol+128)] = list(s)
                     row+=1
-        
+
     yield op.db.Delete(db.Key.from_path('TileUpdate',key)) #delete the sub-tiles from the TileUpdates table
-    
+
     if mod:
         fullTile = False
         if fullCt == 4:
             fullTile = True
         elif fullStart is True and qtCt == fullCt:
             fullTile = True
-            
+
         if fullTile:
             tile.band = 'f'
         else:
@@ -111,16 +111,15 @@ def interpolate(entity):
             w.write_passes(f,n,packed=False)
             tile.band = db.Blob(f.getvalue())
             f.close()
-            
+
         yield op.db.Put(tile)
-        
+
         tmpK = key.split("/")
-        tmpK[1] = tmpK[1][0:-1] 
+        tmpK[1] = tmpK[1][0:-1]
         zoom = len(str(tmpK[1]))
         tmpK = '/'.join(tmpK)
-        
+
         if zoom > 0:
             update = TileUpdate(key=db.Key.from_path('TileUpdate',tmpK))
             update.zoom = zoom
-            yield op.db.Put(update) 
-        
+            yield op.db.Put(update)

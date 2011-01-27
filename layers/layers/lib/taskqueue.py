@@ -19,8 +19,8 @@ from mol.service import GenerateTiles
 import Queue
 import threading
 
-TILE_DIR = "/ftp/tiles/" 
-ASC_DIR = "/ftp/asc/" 
+TILE_DIR = "/ftp/tiles/"
+ASC_DIR = "/ftp/asc/"
 ERR_DIR = "/ftp/errors/"
 SRC_DIR = "/ftp/newraster/"
 DST_DIR = "/ftp/grid/"
@@ -38,12 +38,12 @@ class BulkLoadTiles():
     """class for running the bulkloader to upload tilesets to GAE"""
     def __init__(self, id=None):
         self.id = id
-        
+
     def uploadTiles(self):
         raise NotImplementedError()
-                
+
 class LayerProcessingThread(threading.Thread):
-        
+
     def run(self):
         """Pulls tasks from the queue and dispatches based on job type."""
         while True:
@@ -51,33 +51,33 @@ class LayerProcessingThread(threading.Thread):
             print 'Got new task'
             jobtype = task[Q_ITEM_JOB_TYPE]
             if jobtype == NEW_RASTER_JOB_TYPE:
-                self.newraster(task)                
-            elif jobtype == BULKLOAD_TILES_JOB_TYPE: 
+                self.newraster(task)
+            elif jobtype == BULKLOAD_TILES_JOB_TYPE:
                 raise NotImplementedError()
 
     def newraster(self, task):
         """Tiles an asc file speicified in the task and registers metadata with
         GAE.
-        
+
         Arguments:
             task - an item from the queue expected to have acs path
-        """                
+        """
         # Validates task:
         if task is None:
             # TODO
             return
         if not task.has_key(Q_ITEM_FULL_PATH):
             # TODO
-            return        
+            return
         fullpath = task[Q_ITEM_FULL_PATH]
         if fullpath is None or len(fullpath.strip()) == 0:
             # TODO
             return
-        
+
         # Executes the job      
-        layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)          
+        layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
         try:
-            
+
             layer.totiles()
             layer.register()
             layer.cleanup()
@@ -86,11 +86,11 @@ class LayerProcessingThread(threading.Thread):
             print 'LayerError: ' + e.msg
         except Exception as e:
             # TODO
-            print 'Exception: ' + str(e)            
-        
+            print 'Exception: ' + str(e)
+
         # Notifies queue that this formerly enqueued task is complete:
-        worker_q.task_done()    
-            
+        worker_q.task_done()
+
 def start_myworker():
     worker = LayerProcessingThread()
     worker.start()

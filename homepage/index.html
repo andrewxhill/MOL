@@ -41,20 +41,30 @@
                 });
             }
             function initialize() {
-                var myLatlng = new google.maps.LatLng(30,50);
+                //var uLat = google.loader.ClientLocation.latitude;
+                //var uLon =  google.loader.ClientLocation.longitude;
+                var myLatlng = new google.maps.LatLng(30, 50);
                 var myOptions = {
-                zoom: 2,
-                center: myLatlng,
-                disableDefaultUI: true,
-                mapTypeId: google.maps.MapTypeId.TERRAIN
+                    center: myLatlng,
+                    zoom: 2,
+                    disableDefaultUI: true,
+                    disableDoubleClickZoom: true,
+                    draggable: false
                 }
                 var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
                 addOverlay(map);
+                
               
-                $('#feeds').gFeed({ 
+                $('#blog').gFeed({ 
                     url: 'http://mol.colorado.edu/blog/?feed=rss2&a=3',
                     tabs: false,
                     max: 2
+                }); 
+                
+                $('#code').gFeed({ 
+                    url: 'https://github.com/andrewxhill/MOL/commits/modularize.atom',
+                    tabs: false,
+                    max: 3
                 }); 
                 
                 $(".main_link").click(function() {
@@ -82,18 +92,23 @@
         </script>
     </head>
     <body>
-        <div id="header">The Map of Life</div>
+        <div id="header"><div id="title">The Map of Life</div></div>
         <div id="container">
             <div id="content_top">An infrastructure for integrating global species distribution knowledge</div>
             <div id="map_canvas"></div> 
-            <div id="content_bottom">
+            <div id="content_middle">
                 <div id="main_links">
-                    <img id="examples" class="main_link" src="/images/examples.png" />
-                    <img id="explore" class="main_link" src="/images/explore.png" />
+                    <a href="javascript::" id="button_link">
+                        <img id="vision" class="main_link" src="/images/vision.png" />
+                    </a>
+                    <a href="javascript::" id="button_link">
+                        <img id="examples" class="main_link" src="/images/examples.png" />
+                    </a>
                 </div>
                 <div id="text_blocks">
-                    <div id="block_title">About</div>
-                    <div id="block_title">Latest MOL Blog Post</div>
+                    <div id="block_title">About MOL</div>
+                    <div id="block_title">Latest Blog Post</div>
+                    <div id="block_title">Code Development</div>
                     <div id="about">
                         Map of Life aims to develop a conceptual and cyberinfrastructure 
                         framework for provisioning and improving reliable species geographic range 
@@ -103,10 +118,15 @@
                         geographic ranges across taxonomic groups and regions, such as scientists, 
                         land-managers, governments, policy-makers and the general public.  
                     </div>
-                    <div id="feeds"></div>
+                    <div id="blog"></div>
+                    <div id="code"></div>
                 </div>
             </div>
         </div>
-        <div id="footer"><a href="http://mol.colorado.edu/blog/?p=37">Project Overview</a> | <a href="http://mol.colorado.edu/blog/?cat=14">Technology</a> | <a href="javascript::">Contact</a></div>
+        <div id="footer">
+            <div id="footer_links">
+                <a href="http://mol.colorado.edu/blog/?p=37">Project Overview</a> | <a href="http://mol.colorado.edu/blog/?cat=14">Map of Life Technology</a> | <a href="javascript::">Tutorials</a> | <a href="javascript::">People</a> | <a href="javascript::">Contact</a>
+            </div>
+        </div>
     </body>
 </html>      

@@ -19,5 +19,5 @@ def toList(fn):
         else:
             out = None
         return out
-        
+
     return wrapper

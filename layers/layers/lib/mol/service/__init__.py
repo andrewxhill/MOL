@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # Copyright 2010 Map Of Life
 #
@@ -47,7 +47,7 @@ class LayerError(Error):
 
 def _isempty(s):
     return len(s.strip()) == 0
-    
+
 def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
     mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
@@ -59,10 +59,10 @@ def MetersToLatLon(bb):
     lat0 = (my0 / originShift) * 180.0
     lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
-    
+
 class _GdalUtil(object):
     """GDAL Utility class with static helper methods."""
-    
+
     @staticmethod
     def getboundingbox(geotrans):
         """Returns a bounding box coordinate dictionary with maxLat, minLat, 
@@ -80,7 +80,7 @@ class _GdalUtil(object):
                 'maxLon': max(list(geotrans)[0::2]),
                 'minLon': min(list(geotrans)[0::2])
                 }
-    
+
     @staticmethod
     def getmetadata(filepath):
         """Returns a metadata dictionary for the asc file identified by filepath
@@ -114,9 +114,9 @@ class _GdalUtil(object):
         bb = _GdalUtil.getboundingbox(geotrans)
         """
         return {'proj' : 'EPSG:900913', 'geog': bb}
-    
-class Layer(object):         
-        
+
+class Layer(object):
+
     @staticmethod
     def isidvalid(id):
         """Returns True if the id is successfully validated against the GAE
@@ -125,24 +125,24 @@ class Layer(object):
         # Validates the id value:
         if id is None or _isempty(id):
             return False
-        
+
         # Validates id against GAE web service:
         params = {'id': id}
         resource = "%s?%s" % (VALID_ID_SERVICE_URL, urllib.urlencode(params))
         code = None
         try:
             code = urllib2.urlopen(resource).code
-        except HTTPError as e:            
+        except HTTPError as e:
             code = e.code
-        
+
         if code == 200:
             return True
         if code == 404:
             return False
-        
+
         return False
         # TODO: how to handle other response codes?
-        
+
     @staticmethod
     def idfrompath(path):
         """Returns the id for a path which is the root filename of the path 
@@ -156,7 +156,7 @@ class Layer(object):
         tail = os.path.split(path)[1]
         root = os.path.splitext(tail)[0]
         return root, os.path.split(path)[0]
-        
+
     @staticmethod
     def validatepath(path, dir=True, read=True, write=False):
         """Raises a LayerError if the path is invalid.
@@ -170,27 +170,27 @@ class Layer(object):
         # Checks for a valid path value:
         if path is None or _isempty(path):
             raise LayerError('', 'The path was None or empty string')
-    
+
         # Checks if the path exists:
         if not os.access(path, os.F_OK):
-            raise LayerError('', 'The path does not exist: %s' % path)    
-    
+            raise LayerError('', 'The path does not exist: %s' % path)
+
         # Checks for a valid directory:
         if dir:
             if not os.path.isdir(path):
                 raise LayerError('', 'The path is not a directory: %s' % path)
-        else: 
+        else:
             if not os.path.isfile(path):
-                raise LayerError('', 'The path is not a file: %s' % path)            
-    
+                raise LayerError('', 'The path is not a file: %s' % path)
+
         # Checks for valid readability and writability:
         if read and not os.access(path, os.R_OK):
             raise LayerError('', 'The path is not readable: %s' % path)
-        if write and not os.access(path, os.W_OK):            
-            raise LayerError('', 'The path is not writable: %s' % path)        
-    
+        if write and not os.access(path, os.W_OK):
+            raise LayerError('', 'The path is not writable: %s' % path)
+
     def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, mapfile, zoom=1,
-                 converted=False, tiled=False):   
+                 converted=False, tiled=False):
         """Constructs a new Layer object.
         
         Arguments:
@@ -199,7 +199,7 @@ class Layer(object):
         """
         # Validates argument values:
         if path is None or _isempty(path):
-            raise LayerError('', 'The path was null or empty string')        
+            raise LayerError('', 'The path was null or empty string')
         if tiledir is None or _isempty(tiledir):
             raise LayerError('', 'The tiledir was null or empty string')
         if ascdir is None or _isempty(ascdir):
@@ -207,21 +207,21 @@ class Layer(object):
         if errdir is None or _isempty(errdir):
             raise LayerError('', 'The errdir was null or empty string')
         if srcdir is None or _isempty(srcdir):
-            raise LayerError('', 'The srcdir was null or empty string')        
+            raise LayerError('', 'The srcdir was null or empty string')
         if dstdir is None or _isempty(dstdir):
-            raise LayerError('', 'The dstdir was null or empty string')        
-                            
+            raise LayerError('', 'The dstdir was null or empty string')
+
         # Validates the layer file path and directories:
         Layer.validatepath(path, dir=False)
-        Layer.validatepath(tiledir, write=True)        
-        Layer.validatepath(ascdir, write=True)        
-        Layer.validatepath(errdir, write=True)        
-        Layer.validatepath(srcdir)        
-        Layer.validatepath(dstdir, write=True)        
-        
+        Layer.validatepath(tiledir, write=True)
+        Layer.validatepath(ascdir, write=True)
+        Layer.validatepath(errdir, write=True)
+        Layer.validatepath(srcdir)
+        Layer.validatepath(dstdir, write=True)
+
         # Sets properties with the argument values:
-        self.path = path    
-        self.tiledir = tiledir        
+        self.path = path
+        self.tiledir = tiledir
         self.ascdir = ascdir
         self.errdir = errdir
         self.srcdir = srcdir
@@ -231,14 +231,14 @@ class Layer(object):
         self.converted = converted
         self.tiled = tiled
         self.meta = None
-        
+
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
 
         # Sets the asc file path for this layer:
         filename = '%s.asc' % self.id
         self.ascfilepath = os.path.join(ascdir, filename)
-        
+
         # Sets the tile directory for this layer:
         dirpath = os.path.join(tiledir, self.id)
         if not os.path.exists(dirpath):
@@ -247,11 +247,11 @@ class Layer(object):
             except OSError as e:
                 raise LayerError(e.strerror, e.strerror)
         self.mytiledir = dirpath
-                
+
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
         self.errlog = open(dirpath, 'w')
-    
+
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
@@ -261,7 +261,7 @@ class Layer(object):
         """
         if self.meta is None:
             return False
-        
+
         # Builds URL request params:
         params = {'id': self.id,
                   'zoom': self.zoom,
@@ -274,14 +274,14 @@ class Layer(object):
                   'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id
                   }
         query = urllib.urlencode(params)
-        
+
         # Builds and sends the request:
         resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
         response = urllib2.urlopen(resource)
         return True
         # TODO(Aaron): Handling the response is pending a REST API change
         # return response.code == 204
-    
+
     def dbtiles(self):
         """Stores tiles in the database."""
         # TODO
@@ -308,7 +308,7 @@ class Layer(object):
             shutil.rmtree(self.srcdir + self.id)
         except:
             pass
-            
+
     def totiles(self):
         """Creates tiles for zoom + 1. Note that this method blocks."""
         """
@@ -318,16 +318,16 @@ class Layer(object):
         """
         if self.meta is None:
             self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
-        
+
         tmp_xml = open(self.mapfile, 'r').read().replace('layer_name', self.id)
         print self.srcdir
         mapfile = self.srcdir + '/' + self.id + '.xml'
         open(mapfile, "w+").write(tmp_xml)
         a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
         bbox = (int(a + 177) - 180, int(b + 177) - 180, math.ceil(x + 183) - 180, math.ceil(y + 183) - 180)
-                
-        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/') + "/", 0, 6, "agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA")
-        
+
+        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/') + "/", 0, 6, "World")
+
         """
         self.tiling = subprocess.Popen(
             ["java",
@@ -343,10 +343,10 @@ class Layer(object):
         # Waits for the tiling process to finish:
         self.tiling.wait()
         """
-        
+
     def toasc(self):
         """Converts layer to a GeoTiff. Note that this method blocks."""
-        
+
         # Creates a GeoTiff:
         self.translating = subprocess.Popen(
             ["gdal_translate",
@@ -357,12 +357,13 @@ class Layer(object):
              self.path,
              self.ascfilepath
             ], stderr=self.errlog)
-        
+
         # Waits for GeoTiff creation process to finish:
         self.translating.wait()
-        
+
         # FIXME: May not have been converted if there were errors:
         self.converted = True
-        
+
         if self.meta is None:
             self.meta = _GdalUtil.getmetadata(self.path)
+
