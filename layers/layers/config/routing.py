@@ -20,7 +20,11 @@ def make_map():
 
     # CUSTOM ROUTES HERE
     map.connect('/', controller='main', action='index')
+    map.connect('/test_task', controller='main', action='test_task')
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
+
+    # Cron REST API
+    map.resource('api', 'api')
 
     return map

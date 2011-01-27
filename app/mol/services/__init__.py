@@ -18,7 +18,7 @@ from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
 from math import ceil
-from mol.db import Tile, TileUpdate
+from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import os
 import png
@@ -44,11 +44,46 @@ class TileError(Error):
 class AbstractLayerService(object):
     """An abstract base class for the Layer service."""
     
+    def update_tileset_index(self, params):
+        raise NotImplementedError()
+        
     def is_id_valid(self, id):
         """Returns true if the id is valid, otherwise returns false."""
         raise NotImplementedError()
-    
+        
 class LayerService(AbstractLayerService):
+    
+    UPDATE_TILESET_INDEX_CONFLICT = 'conflict'
+    UPDATE_TILESET_INDEX_ERROR = 'error'
+    UPDATE_TILESET_INDEX_OK = 'ok'
+    
+    def update_tileset_index(self, params):        
+        # Validates id which is the string-encoded entity key:
+        id = params.get('id')
+        if id is None or len(id.strip()) == 0:
+            return LayerService.UPDATE_TILESET_INDEX_ERROR
+        
+        # Creates the entity key from the id:
+        key = None
+        try:
+            key = db.Key(id)
+        except BadKeyError:
+            return LayerService.UPDATE_TILESET_INDEX_ERROR
+        
+        # Ensures the key is for a TileSetIndex entity:
+        if key.kind() is not 'TileSetIndex':
+            return LayerService.UPDATE_TILESET_INDEX_ERROR
+        
+        entity = TileSetIndex.get(key)
+        if entity is None:
+            entity = TileSetIndex(key=key)
+        
+        if entity.dateLastModified is not None:
+            if entity.dateLastModified > params['date']:
+                return LayerService.UPDATE_TILESET_INDEX_CONFLICT
+        
+        
+        
         
     def is_id_valid(self, id):
         # Checks input for null or empty string:

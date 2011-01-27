@@ -1,51 +1,51 @@
 #!/usr/bin/python
-from math import pi,cos,sin,log,exp,atan
+from math import pi, cos, sin, log, exp, atan
 from subprocess import call
 import sys, os
 from Queue import Queue
 import mapnik
 import threading
 
-DEG_TO_RAD = pi/180
-RAD_TO_DEG = 180/pi
+DEG_TO_RAD = pi / 180
+RAD_TO_DEG = 180 / pi
 
 # Default number of rendering threads to spawn, should be roughly equal to number of CPU cores available
 NUM_THREADS = 4
 
 
-def minmax (a,b,c):
-    a = max(a,b)
-    a = min(a,c)
+def minmax (a, b, c):
+    a = max(a, b)
+    a = min(a, c)
     return a
 
 class GoogleProjection:
-    def __init__(self,levels=18):
+    def __init__(self, levels=18):
         self.Bc = []
         self.Cc = []
         self.zc = []
         self.Ac = []
         c = 256
-        for d in range(0,levels):
-            e = c/2;
-            self.Bc.append(c/360.0)
-            self.Cc.append(c/(2 * pi))
-            self.zc.append((e,e))
+        for d in range(0, levels):
+            e = c / 2;
+            self.Bc.append(c / 360.0)
+            self.Cc.append(c / (2 * pi))
+            self.zc.append((e, e))
             self.Ac.append(c)
             c *= 2
                 
-    def fromLLtoPixel(self,ll,zoom):
+    def fromLLtoPixel(self, ll, zoom):
          d = self.zc[zoom]
          e = round(d[0] + ll[0] * self.Bc[zoom])
-         f = minmax(sin(DEG_TO_RAD * ll[1]),-0.9999,0.9999)
-         g = round(d[1] + 0.5*log((1+f)/(1-f))*-self.Cc[zoom])
-         return (e,g)
+         f = minmax(sin(DEG_TO_RAD * ll[1]), -0.9999, 0.9999)
+         g = round(d[1] + 0.5 * log((1 + f) / (1 - f)) * -self.Cc[zoom])
+         return (e, g)
      
-    def fromPixelToLL(self,px,zoom):
+    def fromPixelToLL(self, px, zoom):
          e = self.zc[zoom]
-         f = (px[0] - e[0])/self.Bc[zoom]
-         g = (px[1] - e[1])/-self.Cc[zoom]
-         h = RAD_TO_DEG * ( 2 * atan(exp(g)) - 0.5 * pi)
-         return (f,h)
+         f = (px[0] - e[0]) / self.Bc[zoom]
+         g = (px[1] - e[1]) / -self.Cc[zoom]
+         h = RAD_TO_DEG * (2 * atan(exp(g)) - 0.5 * pi)
+         return (f, h)
 
 
 
@@ -60,7 +60,7 @@ class RenderThread:
         # Obtain <Map> projection
         self.prj = mapnik.Projection(self.m.srs)
         # Projects between tile pixel co-ordinates and LatLong (EPSG:4326)
-        self.tileproj = GoogleProjection(maxZoom+1)
+        self.tileproj = GoogleProjection(maxZoom + 1)
 
 
     def render_tile(self, tile_uri, x, y, z):
@@ -73,14 +73,14 @@ class RenderThread:
         l1 = self.tileproj.fromPixelToLL(p1, z);
 
         # Convert to map projection (e.g. mercator co-ords EPSG:900913)
-        c0 = self.prj.forward(mapnik.Coord(l0[0],l0[1]))
-        c1 = self.prj.forward(mapnik.Coord(l1[0],l1[1]))
+        c0 = self.prj.forward(mapnik.Coord(l0[0], l0[1]))
+        c1 = self.prj.forward(mapnik.Coord(l1[0], l1[1]))
 
         # Bounding box for the tile
-        if hasattr(mapnik,'mapnik_version') and mapnik.mapnik_version() >= 800:
-            bbox = mapnik.Box2d(c0.x,c0.y, c1.x,c1.y)
+        if hasattr(mapnik, 'mapnik_version') and mapnik.mapnik_version() >= 800:
+            bbox = mapnik.Box2d(c0.x, c0.y, c1.x, c1.y)
         else:
-            bbox = mapnik.Envelope(c0.x,c0.y, c1.x,c1.y)
+            bbox = mapnik.Envelope(c0.x, c0.y, c1.x, c1.y)
         render_size = 256
         self.m.resize(render_size, render_size)
         self.m.zoom_to_box(bbox)
@@ -102,13 +102,13 @@ class RenderThread:
             else:
                 (name, tile_uri, x, y, z) = r
 
-            exists= ""
+            exists = ""
             if os.path.isfile(tile_uri):
-                exists= "exists"
+                exists = "exists"
             else:
                 self.render_tile(tile_uri, x, y, z)
-            bytes=os.stat(tile_uri)[6]
-            empty= ''
+            bytes = os.stat(tile_uri)[6]
+            empty = ''
             if bytes == 103:
                 empty = " Empty Tile "
             self.printLock.acquire()
@@ -118,8 +118,8 @@ class RenderThread:
 
 
 
-def render_tiles(bbox, mapfile, tile_dir, minZoom=1,maxZoom=18, name="unknown", num_threads=NUM_THREADS):
-    print "render_tiles(",bbox, mapfile, tile_dir, minZoom,maxZoom, name,")"
+def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown", num_threads=NUM_THREADS):
+    print "render_tiles(", bbox, mapfile, tile_dir, minZoom, maxZoom, name, ")"
 
     # Launch rendering threads
     queue = Queue(32)
@@ -135,30 +135,30 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1,maxZoom=18, name="unknown", 
     if not os.path.isdir(tile_dir):
          os.mkdir(tile_dir)
 
-    gprj = GoogleProjection(maxZoom+1) 
+    gprj = GoogleProjection(maxZoom + 1) 
 
-    ll0 = (bbox[0],bbox[3])
-    ll1 = (bbox[2],bbox[1])
+    ll0 = (bbox[0], bbox[3])
+    ll1 = (bbox[2], bbox[1])
 
-    for z in range(minZoom,maxZoom + 1):
-        px0 = gprj.fromLLtoPixel(ll0,z)
-        px1 = gprj.fromLLtoPixel(ll1,z)
+    for z in range(minZoom, maxZoom + 1):
+        px0 = gprj.fromLLtoPixel(ll0, z)
+        px1 = gprj.fromLLtoPixel(ll1, z)
 
         # check if we have directories in place
         zoom = "%s" % z
         if not os.path.isdir(tile_dir + zoom):
             os.mkdir(tile_dir + zoom)
-        for x in range(int(px0[0]/256.0),int(px1[0]/256.0)+1):
+        for x in range(int(px0[0] / 256.0), int(px1[0] / 256.0) + 1):
             # Validate x co-ordinate
-            if (x < 0) or (x >= 2**z):
+            if (x < 0) or (x >= 2 ** z):
                 continue
             # check if we have directories in place
             str_x = "%s" % x
             if not os.path.isdir(tile_dir + zoom + '/' + str_x):
                 os.mkdir(tile_dir + zoom + '/' + str_x)
-            for y in range(int(px0[1]/256.0),int(px1[1]/256.0)+1):
+            for y in range(int(px0[1] / 256.0), int(px1[1] / 256.0) + 1):
                 # Validate x co-ordinate
-                if (y < 0) or (y >= 2**z):
+                if (y < 0) or (y >= 2 ** z):
                     continue
                 str_y = "%s" % y
                 tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'
@@ -178,9 +178,9 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1,maxZoom=18, name="unknown", 
 
 if __name__ == "__main__":
     home = os.environ['HOME']
-    bbox = (-180.0,-90.0, 180.0,90.0)
+    bbox = (-180.0, -90.0, 180.0, 90.0)
     mapfile = home + "/mapnik/mapfile.xml"
     tile_dir = home + "/mapnik/tiles/"
-    render_tiles(bbox, mapfile, tile_dir, 0, 5, "World")
+    render_tiles(bbox, mapfile, tile_dir, 0, 5, "agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA")
     
     

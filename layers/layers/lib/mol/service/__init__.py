@@ -48,16 +48,16 @@ class LayerError(Error):
 def _isempty(s):
     return len(s.strip()) == 0
     
-def MetersToLatLon( bb ):
+def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
-    mx, my, mx0, my0 = bb[0],bb[1],bb[2],bb[3]
+    mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
     originShift = 2 * math.pi * 6378137 / 2.0
     lon = (mx / originShift) * 180.0
     lat = (my / originShift) * 180.0
-    lat = 180 / math.pi * (2 * math.atan( math.exp( lat * math.pi / 180.0)) - math.pi / 2.0)
+    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
     lon0 = (mx0 / originShift) * 180.0
     lat0 = (my0 / originShift) * 180.0
-    lat0 = 180 / math.pi * (2 * math.atan( math.exp( lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
     
 class _GdalUtil(object):
@@ -104,7 +104,7 @@ class _GdalUtil(object):
         src_lyr = src_ds.GetLayer(0)
         src_extent = src_lyr.GetExtent()
         bb = MetersToLatLon(src_extent)
-        bb = {'minLon': min(bb[0],bb[2]), 'minLat': min(bb[1],bb[3]), 'maxLon': max(bb[0],bb[2]), 'maxLat': max(bb[1],bb[3])}
+        bb = {'minLon': min(bb[0], bb[2]), 'minLat': min(bb[1], bb[3]), 'maxLon': max(bb[0], bb[2]), 'maxLat': max(bb[1], bb[3])}
         """
         ascdata = gdal.Open(filepath)
         if ascdata is None:
@@ -319,14 +319,14 @@ class Layer(object):
         if self.meta is None:
             self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
         
-        tmp_xml = open(self.mapfile,'r').read().replace('layer_name',self.id)
+        tmp_xml = open(self.mapfile, 'r').read().replace('layer_name', self.id)
         print self.srcdir
         mapfile = self.srcdir + '/' + self.id + '.xml'
         open(mapfile, "w+").write(tmp_xml)
-        a,b,x,y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
-        bbox = (int(a+177)-180,int(b+177)-180,math.ceil(x+183)-180,math.ceil(y+183)-180)
+        a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
+        bbox = (int(a + 177) - 180, int(b + 177) - 180, math.ceil(x + 183) - 180, math.ceil(y + 183) - 180)
                 
-        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/')+"/", 0, 6, "World")
+        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/') + "/", 0, 6, "agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA")
         
         """
         self.tiling = subprocess.Popen(

@@ -33,7 +33,7 @@ class MainController(BaseController):
         return 'Hello World'
 
     def test_task(self):
-        id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
+        id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA' #'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
         fullpath = '/ftp/example/%s/%s.shp' % (id, id)
         if worker_q.empty(): 
             worker_q.put({'id': id, 'jobtype': 'newraster', 'fullpath': fullpath})

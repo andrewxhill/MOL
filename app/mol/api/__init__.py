@@ -27,6 +27,8 @@ import pickle
 from google.appengine.api.datastore_errors import BadKeyError
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
+HTTP_STATUS_CODE_FORBIDDEN = 403
+HTTP_STATUS_CODE_BAD_REQUEST = 400
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -151,13 +153,47 @@ class TilePngHandler(webapp.RequestHandler):
         else:
             self.response.headers['Content-Type'] = "image/png"
             self.response.out.write(t.band)
-        
+   
+     
 class UpdateLayerMetadata(webapp.RequestHandler):
     """RequestHandler for remote server to update layer metadata."""  
+    
+    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
+    REQUEST_PARAMS = ['id', 'zoom', 'proj', 'date', 'maxLat', 'minLat', 'maxLon',
+                      'minLon', 'remoteLocation']
+        
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
-        self.authIPs = ['128.138.167.165', '127.0.0.1'] #allow localhost testing and the MOL server only
+        self.authIPs = ['128.138.167.165', '127.0.0.1']
+   
     def post(self):
+        # Ensures client request is coming from an authorized IP address:
+        if os.environ['REMOTE_ADDR'] not in UpdateLayerMetadata.AUTHORIZED_IPS:
+            self.error(HTTP_STATUS_CODE_FORBIDDEN)
+        
+        # Validates id which is the string-encoded entity key:
+        id = self.request.params.get('id')
+        if id is None or len(id.strip()) == 0:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        # Creates the entity key from the id:
+        key = None
+        try:
+            key = db.Key(id)
+        except BadKeyError:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        # Ensures the key is for a TileSetIndex entity:
+        if key.kind() is not 'TileSetIndex':
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        
+        key_name = key.name()
+        if key_name is None:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        key = db.Key.from_path('TileSetIndex', key_name)
+        md = TileSetIndex.get(key)
+        
         data = {}
         if os.environ['REMOTE_ADDR'] in self.authIPs:
             id = self.request.params.get('id')

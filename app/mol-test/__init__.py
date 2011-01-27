@@ -17,7 +17,7 @@
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
-from mol.db import Tile, TileUpdate, Species, SpeciesIndex
+from mol.db import Tile, TileUpdate, Species, SpeciesIndex, TileSetIndex
 from mol.services import TileError, TileService, LayerService
 import os
 import time
@@ -27,6 +27,16 @@ APP_ID = 'mol-lab'
 AUTH_DOMAIN = 'gmail.com' 
 LOGGED_IN_USER = 'test@example.com' 
 
+class TileSetIndexTest(unittest.TestCase):
+    
+    def test_setters(self):
+        obj = TileSetIndex()
+        TileSetIndex.setzoom(obj, 1)
+        self.assertEqual(obj.zoom, 1)
+        
+        obj.set_zoom(2)
+        self.assertEqual(obj.zoom, 2)
+        
 class LayerServiceTest(unittest.TestCase):
   """Unit tests for LayerService class."""
   
@@ -175,8 +185,12 @@ class TileServiceTest(unittest.TestCase):
       tile = self.service.tile_from_url(url)
       self.assertEqual(tile, None)
 
-suite = unittest.TestLoader().loadTestsFromTestCase(LayerServiceTest)
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TileSetIndexTest)
 unittest.TextTestRunner(verbosity=2).run(suite)
+
+#suite = unittest.TestLoader().loadTestsFromTestCase(LayerServiceTest)
+#unittest.TextTestRunner(verbosity=2).run(suite)
 #suite = unittest.TestLoader().loadTestsFromTestCase(TileServiceTest)
 #unittest.TextTestRunner(verbosity=2).run(suite)
 

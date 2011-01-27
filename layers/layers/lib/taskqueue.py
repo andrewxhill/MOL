@@ -48,6 +48,7 @@ class LayerProcessingThread(threading.Thread):
         """Pulls tasks from the queue and dispatches based on job type."""
         while True:
             task = worker_q.get()
+            print 'Got new task'
             jobtype = task[Q_ITEM_JOB_TYPE]
             if jobtype == NEW_RASTER_JOB_TYPE:
                 self.newraster(task)                
