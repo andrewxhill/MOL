@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mol.service import Layer, LayerError
-from mol.service import GenerateTiles
+from mol.service import GenerateTiles, Layer, LayerError
 import Queue
+import logging
 import threading
 
 TILE_DIR = "/ftp/tiles/"
@@ -28,6 +28,7 @@ SHP_DIR = "/ftp/shp/"
 MAP_XML = "/ftp/mapfile.xml"
 
 NEW_RASTER_JOB_TYPE = 'newraster'
+NEW_SHP_JOB_TYPE = 'newshp'
 BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
 Q_ITEM_FULL_PATH = 'fullpath'
 Q_ITEM_JOB_TYPE = 'jobtype'
@@ -48,14 +49,14 @@ class LayerProcessingThread(threading.Thread):
         """Pulls tasks from the queue and dispatches based on job type."""
         while True:
             task = worker_q.get()
-            print 'Got new task'
             jobtype = task[Q_ITEM_JOB_TYPE]
-            if jobtype == NEW_RASTER_JOB_TYPE:
-                self.newraster(task)
+            logging.info('New job: ' + jobtype)
+            if jobtype == NEW_SHP_JOB_TYPE:
+                self.newshp(task)
             elif jobtype == BULKLOAD_TILES_JOB_TYPE:
                 raise NotImplementedError()
 
-    def newraster(self, task):
+    def newshp(self, task):
         """Tiles an asc file speicified in the task and registers metadata with
         GAE.
 

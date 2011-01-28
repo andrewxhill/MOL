@@ -7,7 +7,7 @@ class Globals(object):
 
     """
     
-    NEW_RASTER_SCAN_DIR = '/ftp/newraster' 
+    NEW_SHP_SCAN_DIR = '/ftp/example' 
 
     def __init__(self):
         """One instance of Globals is created during application
