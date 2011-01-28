@@ -91,6 +91,8 @@ class Taxonomy(webapp.RequestHandler):
                  "authority": ent.authority,
                  "names": simplejson.loads(ent.names) #.('\\','')
                 }
+            logging.info('ent.NAMES ' + ent.names)
+            logging.info('e.NAMES ' + str(e['names']))
             results.append(e)
         t = int(1000 * (time.time() - start)) / 1000.0
         out = {"time":t, "items":results, "offset":of, "limit":n}
@@ -114,18 +116,35 @@ class Taxonomy(webapp.RequestHandler):
         elif gql is not None:
             out = self.fromQuery(rank, gql, offset, limit)
         data = out.get('items')
+        #data = simplejson.loads("""[{"authority": "COL", "classification": {"kingdom": "animalia", "superfamily": null, "family": "pomacentridae", "author": "Gill, 1862", "class": "actinopterygii", "infraspecies": null, "phylum": "chordata", "genus": "abudefduf", "order": "perciformes", "species": "concolor"}, "name": "abudefduf concolor", "rank": "species", "names": [{"source": "COL", "type": "common name", "name": "Tono", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca rebozada", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "M\u00f8rk sergentfisk", "language": "Danish", "author": null}, {"source": "COL", "type": "common name", "name": "Night sergeant", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Dusky seargent", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Chauffet de nuit", "language": "French", "author": null}, {"source": "COL", "type": "common name", "name": "Ayangue pardo", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "&#38620;&#33394;&#35910;&#23064;&#39770;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "common name", "name": "&#26434;&#33394;&#35910;&#23064;&#40060;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "accepted name", "name": "Abudefduf concolor", "language": "latin", "author": "Gill, 1862"}, {"source": "COL", "type": "scientific name", "name": "Pomacentrus robustus", "language": "latin", "author": "G\u00fcnther, 1862"}, {"source": "COL", "type": "scientific name", "name": "Euschistodus concolor", "language": "latin", "author": "Gill, 1862"}]}]""", encoding='utf-8')
 
         # TODO: how to handle 'classification' and 'names' in table format?
         # Right now just flattening classification and ignoring names...
         rows = []
         for rec in data:
-            row = {'authority':rec['authority'], 'name':rec['name'], 'rank':rec['rank']}
-            for name in rec['classification'].keys():
-                row[name] = rec['classification'][name]
+            row = {'Accepted Name':rec['name'].capitalize(), 'Author':rec['classification']['author']} #{'authority':rec['authority'], 'name':rec['name'], 'rank':rec['rank']}
+            taxonomy = '%s/%s/%s/%s/%s' % (rec['classification']['kingdom'].capitalize(),
+                                           rec['classification']['phylum'].capitalize(),
+                                           rec['classification']['class'].capitalize(),
+                                           rec['classification']['order'].capitalize(),
+                                           rec['classification']['family'].capitalize())
+            row['Kingdom/Phylum/Class/Order/Family'] = taxonomy
+
+            #for name in rec['classification'].keys():
+            #    row[name] = rec['classification'][name]
+
+            names_csv = ''
+            for name in rec['names']:
+                names_csv += name['name'].capitalize() + ','
+            row['Synonyms CSV'] = names_csv[:-1]
             rows.append(row)
 
         # Builds DataTable for Google Visualization API:
-        description = {}
+        description = {'Accepted Name': ('string', 'accepted name'),
+                       'Author': ('string', 'author'),
+                       'Kingdom/Phylum/Class/Order/Family': ('string', 'Kingdom/Pyhlum/Cass/Family'),
+                       'Synonyms CSV': ('string', 'synonyms csv')}
+
         if len(rows) > 0:
             spec = rows[0]
             logging.info(type(spec))
