@@ -17,12 +17,13 @@
 from osgeo import gdal, ogr
 from urllib2 import HTTPError
 import datetime
+import logging
+import math
 import os.path
 import shutil
 import subprocess
 import urllib
 import urllib2
-import math
 
 GAE_URL = "http://localhost:8080/"
 VALID_ID_SERVICE_URL = "%sapi/validid" % GAE_URL
@@ -173,7 +174,8 @@ class Layer(object):
 
         # Checks if the path exists:
         if not os.access(path, os.F_OK):
-            raise LayerError('', 'The path does not exist: %s' % path)
+            logging.error(path)
+            raise LayerError(path, 'The path does not exist')
 
         # Checks for a valid directory:
         if dir:

@@ -226,10 +226,12 @@ class TilePngHandler(webapp.RequestHandler):
 
 class UpdateLayerMetadata(webapp.RequestHandler):
     """RequestHandler for remote server to update layer metadata."""
+    
+    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
+    
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
-        self.authIPs = ['128.138.167.165', '127.0.0.1']
-   
+    
     def post(self):
         # Ensures client request is coming from an authorized IP address:
         if os.environ['REMOTE_ADDR'] not in UpdateLayerMetadata.AUTHORIZED_IPS:
@@ -259,7 +261,7 @@ class UpdateLayerMetadata(webapp.RequestHandler):
         md = TileSetIndex.get(key)
         
         data = {}
-        if os.environ['REMOTE_ADDR'] in self.authIPs:
+        if os.environ['REMOTE_ADDR'] in UpdateLayerMetadata.AUTHORIZED_IPS:
             id = self.request.params.get('id')
             data['zoom'] = self.request.params.get('zoom')
             data['proj'] = self.request.params.get('proj')
