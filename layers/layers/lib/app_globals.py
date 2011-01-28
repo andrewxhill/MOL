@@ -6,6 +6,8 @@ class Globals(object):
     life of the application
 
     """
+    
+    NEW_SHP_SCAN_DIR = '/ftp/example' 
 
     def __init__(self):
         """One instance of Globals is created during application

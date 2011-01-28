@@ -18,7 +18,7 @@ from google.appengine.api import apiproxy_stub, apiproxy_stub_map
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
 from math import ceil
-from mol.db import Tile, TileUpdate
+from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import os
 import png
@@ -43,7 +43,7 @@ class TileError(Error):
 
 class AbstractLayerService(object):
     """An abstract base class for the Layer service."""
-
+    
     def is_id_valid(self, id):
         """Returns true if the id is valid, otherwise returns false."""
         raise NotImplementedError()

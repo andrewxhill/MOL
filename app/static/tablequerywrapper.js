@@ -54,6 +54,7 @@ var TableQueryWrapper = function(query, container, options, callback) {
   options['sort'] = 'event';
   options['page'] = 'event';
   options['showRowNumber'] = true;
+  options['allowHtml'] = true;
   var buttonConfig = 'pagingButtonsConfiguration';
   options[buttonConfig] = options[buttonConfig] || 'both';
   options['pageSize'] = (options['pageSize'] > 0) ? options['pageSize'] : 10;

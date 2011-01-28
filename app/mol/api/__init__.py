@@ -28,6 +28,8 @@ from google.appengine.api.datastore_errors import BadKeyError
 from gviz import gviz_api
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
+HTTP_STATUS_CODE_FORBIDDEN = 403
+HTTP_STATUS_CODE_BAD_REQUEST = 400
 
 class Taxonomy(webapp.RequestHandler):
 
@@ -89,6 +91,8 @@ class Taxonomy(webapp.RequestHandler):
                  "authority": ent.authority,
                  "names": simplejson.loads(ent.names) #.('\\','')
                 }
+            logging.info('ent.NAMES ' + ent.names)
+            logging.info('e.NAMES ' + str(e['names']))
             results.append(e)
         t = int(1000 * (time.time() - start)) / 1000.0
         out = {"time":t, "items":results, "offset":of, "limit":n}
@@ -112,18 +116,35 @@ class Taxonomy(webapp.RequestHandler):
         elif gql is not None:
             out = self.fromQuery(rank, gql, offset, limit)
         data = out.get('items')
+        #data = simplejson.loads("""[{"authority": "COL", "classification": {"kingdom": "animalia", "superfamily": null, "family": "pomacentridae", "author": "Gill, 1862", "class": "actinopterygii", "infraspecies": null, "phylum": "chordata", "genus": "abudefduf", "order": "perciformes", "species": "concolor"}, "name": "abudefduf concolor", "rank": "species", "names": [{"source": "COL", "type": "common name", "name": "Tono", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca rebozada", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "M\u00f8rk sergentfisk", "language": "Danish", "author": null}, {"source": "COL", "type": "common name", "name": "Night sergeant", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Dusky seargent", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Chauffet de nuit", "language": "French", "author": null}, {"source": "COL", "type": "common name", "name": "Ayangue pardo", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "&#38620;&#33394;&#35910;&#23064;&#39770;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "common name", "name": "&#26434;&#33394;&#35910;&#23064;&#40060;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "accepted name", "name": "Abudefduf concolor", "language": "latin", "author": "Gill, 1862"}, {"source": "COL", "type": "scientific name", "name": "Pomacentrus robustus", "language": "latin", "author": "G\u00fcnther, 1862"}, {"source": "COL", "type": "scientific name", "name": "Euschistodus concolor", "language": "latin", "author": "Gill, 1862"}]}]""", encoding='utf-8')
 
         # TODO: how to handle 'classification' and 'names' in table format?
         # Right now just flattening classification and ignoring names...
         rows = []
         for rec in data:
-            row = {'authority':rec['authority'], 'name':rec['name'], 'rank':rec['rank']}
-            for name in rec['classification'].keys():
-                row[name] = rec['classification'][name]
+            row = {'Accepted Name':rec['name'].capitalize(), 'Author':rec['classification']['author']} #{'authority':rec['authority'], 'name':rec['name'], 'rank':rec['rank']}
+            taxonomy = '%s/%s/%s/%s/%s' % (rec['classification']['kingdom'].capitalize(),
+                                           rec['classification']['phylum'].capitalize(),
+                                           rec['classification']['class'].capitalize(),
+                                           rec['classification']['order'].capitalize(),
+                                           rec['classification']['family'].capitalize())
+            row['Kingdom/Phylum/Class/Order/Family'] = taxonomy
+
+            #for name in rec['classification'].keys():
+            #    row[name] = rec['classification'][name]
+
+            names_csv = ''
+            for name in rec['names']:
+                names_csv += name['name'].capitalize() + ','
+            row['Synonyms CSV'] = names_csv[:-1]
             rows.append(row)
 
         # Builds DataTable for Google Visualization API:
-        description = {}
+        description = {'Accepted Name': ('string', 'accepted name'),
+                       'Author': ('string', 'author'),
+                       'Kingdom/Phylum/Class/Order/Family': ('string', 'Kingdom/Pyhlum/Cass/Family'),
+                       'Synonyms CSV': ('string', 'synonyms csv')}
+
         if len(rows) > 0:
             spec = rows[0]
             logging.info(type(spec))
@@ -205,12 +226,42 @@ class TilePngHandler(webapp.RequestHandler):
 
 class UpdateLayerMetadata(webapp.RequestHandler):
     """RequestHandler for remote server to update layer metadata."""
+    
+    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
+    
     def __init__(self):
         super(UpdateLayerMetadata, self).__init__()
-        self.authIPs = ['128.138.167.165', '127.0.0.1'] #allow localhost testing and the MOL server only
+    
     def post(self):
+        # Ensures client request is coming from an authorized IP address:
+        if os.environ['REMOTE_ADDR'] not in UpdateLayerMetadata.AUTHORIZED_IPS:
+            self.error(HTTP_STATUS_CODE_FORBIDDEN)
+        
+        # Validates id which is the string-encoded entity key:
+        id = self.request.params.get('id')
+        if id is None or len(id.strip()) == 0:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        # Creates the entity key from the id:
+        key = None
+        try:
+            key = db.Key(id)
+        except BadKeyError:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        # Ensures the key is for a TileSetIndex entity:
+        if key.kind() is not 'TileSetIndex':
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        
+        
+        key_name = key.name()
+        if key_name is None:
+            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
+        key = db.Key.from_path('TileSetIndex', key_name)
+        md = TileSetIndex.get(key)
+        
         data = {}
-        if os.environ['REMOTE_ADDR'] in self.authIPs:
+        if os.environ['REMOTE_ADDR'] in UpdateLayerMetadata.AUTHORIZED_IPS:
             id = self.request.params.get('id')
             data['zoom'] = self.request.params.get('zoom')
             data['proj'] = self.request.params.get('proj')
