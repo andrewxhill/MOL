@@ -1,6 +1,5 @@
 def create_key(value):
     return transform.create_deep_key(('Species', value), ('Species', transform.CURRENT_PROPERTY))
-
 def toList(fn):
     def wrapper(value):
         #open('test.log', 'a').write("%s\n" % value.encode('utf-8'))
@@ -19,5 +18,4 @@ def toList(fn):
         else:
             out = None
         return out
-
     return wrapper

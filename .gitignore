@@ -2,6 +2,11 @@
 ##################
 production.ini
 
+# Bulkloader files #
+####################
+colapp/colexport/*.csv
+colapp/bulkloader-log*
+
 # Compiled source #
 ###################
 *.pyc
