@@ -72,6 +72,11 @@ transformers:
       external_name: authority
       import_transform: transform.none_if_empty(str)
       # Type: String Stats: 71856 properties of this type in this kind.
+      
+    - property: authorityIdentifier
+      external_name: record_id
+      import_transform: transform.none_if_empty(str)
+      # Type: String Stats: 71856 properties of this type in this kind.
 
     - property: class_
       external_name: classx

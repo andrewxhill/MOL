@@ -5,7 +5,7 @@ production.ini
 # Bulkloader files #
 ####################
 colapp/colexport/*.csv
-colapp/bulkloader-log*
+colapp/bulkloader-*
 
 # Compiled source #
 ###################

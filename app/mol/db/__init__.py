@@ -56,6 +56,7 @@ class Species(db.Model):
 class SpeciesIndex(db.Model):
     names = db.StringListProperty()
     authorityName = db.StringProperty()
+    authorityIdentifier = db.StringProperty()
     kingdom = db.StringProperty()
     phylum = db.StringProperty()
     class_ = db.StringProperty()
