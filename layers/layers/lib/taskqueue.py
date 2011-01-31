@@ -19,13 +19,11 @@ import Queue
 import logging
 import threading
 
-TILE_DIR = "/ftp/tiles/"
-ASC_DIR = "/ftp/asc/"
-ERR_DIR = "/ftp/errors/"
-SRC_DIR = "/ftp/newraster/"
-DST_DIR = "/ftp/grid/"
-SHP_DIR = "/ftp/shp/"
-MAP_XML = "/ftp/mapfile.xml"
+TILE_DIR = "/ftp/tile/"
+ERR_DIR = "/ftp/error/"
+SRC_DIR = "/ftp/new/"
+DST_DIR = "/ftp/archive/"
+MAP_XML = "/ftp/tile/mapfile.xml"
 
 NEW_RASTER_JOB_TYPE = 'newraster'
 NEW_SHP_JOB_TYPE = 'newshp'
@@ -79,7 +77,7 @@ class LayerProcessingThread(threading.Thread):
         # Executes the job      
         layer = None
         try:            
-            layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
+            layer = Layer(fullpath, TILE_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
             logging.info('Layer created: ' + fullpath)
             layer.totiles()
             logging.info('Layers tiled in ' + TILE_DIR)

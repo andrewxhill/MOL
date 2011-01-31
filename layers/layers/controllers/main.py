@@ -41,7 +41,7 @@ class MainController(BaseController):
     
     def test_task(self):
         id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
-        fullpath = '/ftp/example/%s/%s.shp' % (id, id)
+        fullpath = '/ftp/test/%s/%s.shp' % (id, id)
         logging.info(fullpath)
         if worker_q.empty():
             worker_q.put({'id': id, 'jobtype': NEW_SHP_JOB_TYPE, 'fullpath': fullpath})

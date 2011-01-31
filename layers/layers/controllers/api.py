@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from layers.lib.base import BaseController, render
-from layers.lib.taskqueue import worker_q, NEW_SHP_JOB_TYPE, Q_ITEM_FULL_PATH, Q_ITEM_JOB_TYPE, start_myworker
-from pylons import config, request, response, session, tmpl_context as c, url
-from pylons.controllers.util import abort, redirect
+from layers.lib.base import BaseController
+from layers.lib.taskqueue import worker_q, NEW_SHP_JOB_TYPE, Q_ITEM_FULL_PATH, \
+    Q_ITEM_JOB_TYPE
+from pylons import config, response
 import logging
 import os
 import simplejson
@@ -46,4 +46,3 @@ class ApiController(BaseController):
             newitems.append(shp_full_path)
         response.status = 202
         return simplejson.dumps({'newitems':newitems})
-          
