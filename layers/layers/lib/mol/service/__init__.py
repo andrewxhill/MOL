@@ -45,6 +45,9 @@ class LayerError(Error):
     def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
+        
+    def __str__(self):
+        return self.msg
 
 def _isempty(s):
     return len(s.strip()) == 0
@@ -192,7 +195,7 @@ class Layer(object):
         return root, os.path.split(path)[0]
 
 
-    def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, mapfile,
+    def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile,
                  zoom=1, converted=False, tiled=False):
         """Constructs a new Layer object.
 
@@ -204,9 +207,7 @@ class Layer(object):
         if path is None or _isempty(path):
             raise LayerError('', 'The path was null or empty string')
         if tiledir is None or _isempty(tiledir):
-            raise LayerError('', 'The tiledir was null or empty string')
-        if ascdir is None or _isempty(ascdir):
-            raise LayerError('', 'The ascdir was null or empty string')
+            raise LayerError('', 'The tiledir was null or empty string')       
         if errdir is None or _isempty(errdir):
             raise LayerError('', 'The errdir was null or empty string')
         if srcdir is None or _isempty(srcdir):
@@ -217,7 +218,6 @@ class Layer(object):
         # Validates the layer file path and directories:
         Layer.validatepath(path, dir=False)
         Layer.validatepath(tiledir, write=True)
-        Layer.validatepath(ascdir, write=True)
         Layer.validatepath(errdir, write=True)
         Layer.validatepath(srcdir)
         Layer.validatepath(dstdir, write=True)
@@ -226,7 +226,6 @@ class Layer(object):
         # Sets properties with the argument values:
         self.path = path
         self.tiledir = tiledir
-        self.ascdir = ascdir
         self.errdir = errdir
         self.srcdir = srcdir
         self.dstdir = dstdir
@@ -239,9 +238,10 @@ class Layer(object):
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
 
+        # TODO: This class handles shapefiles now, not asc
         # Sets the asc file path for this layer:
-        filename = '%s.asc' % self.id
-        self.ascfilepath = os.path.join(ascdir, filename)
+        # filename = '%s.asc' % self.id
+        # self.ascfilepath = os.path.join(ascdir, filename)
 
         # Sets the tile directory for this layer:
         dirpath = os.path.join(tiledir, self.id)
@@ -297,9 +297,13 @@ class Layer(object):
         # TODO
         raise NotImplementedError()
 
-
-    def cleanup(self, error=None):
-        '''Cleans up filesystem depending on if there were errors or not.'''
+    def cleanup(self, error=None, delete_test=False):
+        '''Cleans up filesystem depending on if there were errors or not.
+        
+        Arguments:
+            error - an error if one occurred
+            delete_test - deletes test source data if true (for testing only)
+        '''
 
         src_dir, filename = os.path.split(self.path)
 
@@ -316,8 +320,8 @@ class Layer(object):
                 shutil.rmtree(tiles_dir)
             
             # Deletes files from the destination (grid) dir:
-            if os.path.exists(dst_dir):
-                shutil.rmtree(dst_dir)
+            #if os.path.exists(dst_dir):
+            #    shutil.rmtree(dst_dir)
 
         else:
             # Copies files to destination directory for archival:            
@@ -327,7 +331,8 @@ class Layer(object):
             shutil.copytree(src_dir, dst_dir)
 
             # Deletes the watched directory:
-            shutil.rmtree(src_dir)
+            if delete_test:
+                shutil.rmtree(src_dir)
 
 
     def totiles(self):

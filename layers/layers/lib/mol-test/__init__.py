@@ -14,74 +14,80 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from tempfile import NamedTemporaryFile
+from layers.lib.mol.service import Layer, LayerError
+import logging
 import os
+import shutil
 import tempfile
 import time
 import unittest
-from lib.mol.service import RasterLayer, RasterLayerError
-from tempfile import NamedTemporaryFile
+
+EXAMPLE_SHAPEFILE_PATH = '/ftp/test/agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
+EXAMPLE_SHAPEFILE_ID = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
 
 class LayerTest(unittest.TestCase):
-    """Unit tests for LayerService class."""
+    """Unit tests for Layer class."""
+    
+    def test_cleanup(self):
+        # ----------------------------------------------------------------------
+        # Cleanup without errors:
+        
+        # Sets up directories for testing:
+        tiledir = tempfile.mkdtemp()
+        errdir = tempfile.mkdtemp()
+        newdir = tempfile.mkdtemp()
+        archivedir = tempfile.mkdtemp()
+        mapxml = '/ftp/tile/mapfile.xml'                
+        shutil.copytree(EXAMPLE_SHAPEFILE_PATH, os.path.join(newdir, EXAMPLE_SHAPEFILE_ID)) 
+        path = os.path.join(newdir, '%s/%s.shp' % (EXAMPLE_SHAPEFILE_ID, EXAMPLE_SHAPEFILE_ID))
+        
+        # Creates the layer
+        layer = Layer(path, tiledir, errdir, newdir, archivedir, mapxml)
+        self.assertNotEqual(layer, None)
+        
+        # Tiles and cleans up without errors:
+        layer.totiles()
+        layer.cleanup()        
+        self.assertFalse(os.path.exists(os.path.join(newdir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertFalse(os.path.exists(os.path.join(errdir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertTrue(os.path.exists(os.path.join(archivedir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertTrue(os.path.exists(os.path.join(tiledir, EXAMPLE_SHAPEFILE_ID)))
+        
+        # Removes test directories:
+        shutil.rmtree(tiledir)
+        shutil.rmtree(errdir)
+        shutil.rmtree(newdir)
+        shutil.rmtree(archivedir)        
 
-    def test_constructor(self):
-        valid = tempfile.mkdtemp()
-        invalid = [None, '', ' ', '/#@$%#']
-        for dir in invalid:
-            try:
-                RasterLayer(dir, valid, valid, valid)
-                self.fail("Invalid directory")
-            except RasterLayerError as e:
-                print e
-
-        for dir in invalid:
-            try:
-                RasterLayer(valid, dir, valid, valid)
-                self.fail("Invalid directory")
-            except RasterLayerError as e:
-                print e
-
-        for dir in invalid:
-            try:
-                RasterLayer(valid, valid, dir, valid)
-                self.fail("Invalid directory")
-            except RasterLayerError as e:
-                print e
-
-        for dir in invalid:
-            try:
-                RasterLayer(valid, valid, valid, dir)
-                self.fail("Invalid directory")
-            except RasterLayerError as e:
-                print e
-
-        path = '/ftp/newraster/hbw00028'
-        layer = RasterLayer(path, valid, valid, valid)
-        self.assertNotEqual(None)
-
-
-    def test_validatepath(self):
-        pass
-        # TODO
-
-    def test_idfrompath(self):
-        try:
-            RasterLayer.idfrompath(None)
-            self.fail('Invalid path')
-            RasterLayer.idfrompath('')
-            self.fail('Invalid path')
-            RasterLayer.idfrompath(' ')
-            self.fail('Invalid path')
-
-            # TODO: Checks for inaccessible paths
-
-        except RasterLayerError as e:
-            print e
-
-        f = NamedTemporaryFile(suffix='.txt')
-        tail = os.path.split(f.name)[1]
-        root = os.path.splitext(tail)[0]
-        self.assertEqual(root, RasterLayer.idfrompath(f.name))
+        # ----------------------------------------------------------------------
+        # Cleanup with errors:
+        
+        tiledir = tempfile.mkdtemp()
+        errdir = tempfile.mkdtemp()
+        newdir = tempfile.mkdtemp()
+        archivedir = tempfile.mkdtemp()
+        mapxml = '/ftp/tile/mapfile.xml'                
+        shutil.copytree(EXAMPLE_SHAPEFILE_PATH, os.path.join(newdir, EXAMPLE_SHAPEFILE_ID)) 
+        path = os.path.join(newdir, '%s/%s.shp' % (EXAMPLE_SHAPEFILE_ID, EXAMPLE_SHAPEFILE_ID))
+        
+        # Creates the layer
+        layer = Layer(path, tiledir, errdir, newdir, archivedir, mapxml)
+        self.assertNotEqual(layer, None)
+        
+        # Tiles and cleans with errors:
+        layer.totiles()
+        layer.cleanup(error=True)        
+        self.assertTrue(os.path.exists(os.path.join(newdir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertTrue(os.path.exists(os.path.join(errdir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertFalse(os.path.exists(os.path.join(archivedir, EXAMPLE_SHAPEFILE_ID)))
+        self.assertFalse(os.path.exists(os.path.join(tiledir, EXAMPLE_SHAPEFILE_ID)))
+        
+        # Removes test directories:
+        shutil.rmtree(tiledir)
+        shutil.rmtree(errdir)
+        shutil.rmtree(newdir)
+        shutil.rmtree(archivedir)        
 
 suite = unittest.TestLoader().loadTestsFromTestCase(LayerTest)
 unittest.TextTestRunner(verbosity=2).run(suite)
