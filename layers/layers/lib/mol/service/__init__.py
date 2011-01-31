@@ -1,4 +1,3 @@
-
 #
 # Copyright 2010 Map Of Life
 #
@@ -16,6 +15,7 @@
 #
 from osgeo import gdal, ogr
 from urllib2 import HTTPError
+import GenerateTiles
 import datetime
 import logging
 import math
@@ -66,13 +66,13 @@ class _GdalUtil(object):
 
     @staticmethod
     def getboundingbox(geotrans):
-        """Returns a bounding box coordinate dictionary with maxLat, minLat, 
-        maxLon, and minLon keys given the affine transformation coefficients 
+        """Returns a bounding box coordinate dictionary with maxLat, minLat,
+        maxLon, and minLon keys given the affine transformation coefficients
         returned from osgeo.gdal.Dataset.GetGeoTransform().
-        
+
         Arguments:
             geotrans - the affine transformation coefficients tuple.
-        
+
         Returns:
             Dictionary with maxLat, minLat, maxLon, and minLon keys.
         """
@@ -86,18 +86,18 @@ class _GdalUtil(object):
     def getmetadata(filepath):
         """Returns a metadata dictionary for the asc file identified by filepath
         with the following keys:
-            
+
         proj - The projection
         bb - The bounding box coordinates
-        
+
         Arguments:
             filepath - path to an asc file
-        
+
         Returns:
-            Dictionary with proj and bb keys or None if error. 
-        
+            Dictionary with proj and bb keys or None if error.
+
         Raises:
-            LayerError if filepath is invalid.       
+            LayerError if filepath is invalid.
         """
         Layer.validatepath(filepath, dir=False)
         vector = ogr.GetDriverByName('ESRI Shapefile')
@@ -111,12 +111,45 @@ class _GdalUtil(object):
         if ascdata is None:
             return None
         projection = ascdata.GetProjection()
-        geotrans = ascdata.GetGeoTransform()        
+        geotrans = ascdata.GetGeoTransform()
         bb = _GdalUtil.getboundingbox(geotrans)
         """
         return {'proj' : 'EPSG:900913', 'geog': bb}
 
 class Layer(object):
+
+    @staticmethod
+    def validatepath(path, dir=True, read=True, write=False):
+        """Raises a LayerError if the path is invalid.
+
+        Arguments:
+            path - the path to a file or directory
+            dir = True if the path is a directory and False if it's a file
+            read = True if the path must be readable otherwise False
+            write = True if the path must be writable otherwise False
+        """
+        # Checks for a valid path value:
+        if path is None or _isempty(path):
+            raise LayerError('', 'The path was None or empty string')
+
+        # Checks if the path exists:
+        if not os.access(path, os.F_OK):
+            logging.error(path)
+            raise LayerError(path, 'The path does not exist: ' + path)
+
+        # Checks for a valid directory:
+        if dir:
+            if not os.path.isdir(path):
+                raise LayerError('', 'The path is not a directory: %s' % path)
+        else:
+            if not os.path.isfile(path):
+                raise LayerError('', 'The path is not a file: %s' % path)
+
+        # Checks for valid readability and writability:
+        if read and not os.access(path, os.R_OK):
+            raise LayerError('', 'The path is not readable: %s' % path)
+        if write and not os.access(path, os.W_OK):
+            raise LayerError('', 'The path is not writable: %s' % path)
 
     @staticmethod
     def isidvalid(id):
@@ -133,7 +166,7 @@ class Layer(object):
         code = None
         try:
             code = urllib2.urlopen(resource).code
-        except HTTPError as e:
+        except (HTTPError), e:
             code = e.code
 
         if code == 200:
@@ -146,8 +179,8 @@ class Layer(object):
 
     @staticmethod
     def idfrompath(path):
-        """Returns the id for a path which is the root filename of the path 
-        without the extension. For example, 'foo' is the id for path 
+        """Returns the id for a path which is the root filename of the path
+        without the extension. For example, 'foo' is the id for path
         '/bar/baz/foo.txt'.
         """
         # Checks for a valid path value:
@@ -158,43 +191,11 @@ class Layer(object):
         root = os.path.splitext(tail)[0]
         return root, os.path.split(path)[0]
 
-    @staticmethod
-    def validatepath(path, dir=True, read=True, write=False):
-        """Raises a LayerError if the path is invalid.
-    
-        Arguments:
-            path - the path to a file or directory
-            dir = True if the path is a directory and False if it's a file
-            read = True if the path must be readable otherwise False
-            write = True if the path must be writable otherwise False
-        """
-        # Checks for a valid path value:
-        if path is None or _isempty(path):
-            raise LayerError('', 'The path was None or empty string')
 
-        # Checks if the path exists:
-        if not os.access(path, os.F_OK):
-            logging.error(path)
-            raise LayerError(path, 'The path does not exist')
-
-        # Checks for a valid directory:
-        if dir:
-            if not os.path.isdir(path):
-                raise LayerError('', 'The path is not a directory: %s' % path)
-        else:
-            if not os.path.isfile(path):
-                raise LayerError('', 'The path is not a file: %s' % path)
-
-        # Checks for valid readability and writability:
-        if read and not os.access(path, os.R_OK):
-            raise LayerError('', 'The path is not readable: %s' % path)
-        if write and not os.access(path, os.W_OK):
-            raise LayerError('', 'The path is not writable: %s' % path)
-
-    def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, mapfile, zoom=1,
-                 converted=False, tiled=False):
+    def __init__(self, path, tiledir, ascdir, errdir, srcdir, dstdir, mapfile,
+                 zoom=1, converted=False, tiled=False):
         """Constructs a new Layer object.
-        
+
         Arguments:
             path - filesystem path of a directory containing raster layer data
             TODO...
@@ -220,6 +221,7 @@ class Layer(object):
         Layer.validatepath(errdir, write=True)
         Layer.validatepath(srcdir)
         Layer.validatepath(dstdir, write=True)
+        Layer.validatepath(mapfile, dir=False, write=True)
 
         # Sets properties with the argument values:
         self.path = path
@@ -246,18 +248,20 @@ class Layer(object):
         if not os.path.exists(dirpath):
             try:
                 os.mkdir(dirpath)
-            except OSError as e:
+            except (OSError), e:
                 raise LayerError(e.strerror, e.strerror)
         self.mytiledir = dirpath
 
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
         self.errlog = open(dirpath, 'w')
-
+        
+        self.meta = _GdalUtil.getmetadata(self.path)
+        
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
-        
+
         Arguments:
             layer - a Layer object to update
         """
@@ -278,38 +282,53 @@ class Layer(object):
         query = urllib.urlencode(params)
 
         # Builds and sends the request:
-        resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
-        response = urllib2.urlopen(resource)
+        response = None
+        try:
+            resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
+            response = urllib2.urlopen(resource)
+        except (HTTPError), e:
+            if response is not None and response.code != 409 and response.code != 204:
+                return False
         return True
-        # TODO(Aaron): Handling the response is pending a REST API change
-        # return response.code == 204
+
 
     def dbtiles(self):
         """Stores tiles in the database."""
         # TODO
         raise NotImplementedError()
 
-    def cleanup(self):
-        """Cleans up directories."""
-        files = [self.ascfilepath,
-                 self.ascfilepath.replace('.asc', '.prj')]
-        for file in files:
-            try:
-                os.remove(file)
-            except:
-                pass
-        try:
-            shutil.rmtree(self.dstdir + self.id)
-        except:
-            pass
-        try:
-            shutil.copytree(self.path, self.dstdir + self.id)
-        except:
-            pass
-        try:
-            shutil.rmtree(self.srcdir + self.id)
-        except:
-            pass
+
+    def cleanup(self, error=None):
+        '''Cleans up filesystem depending on if there were errors or not.'''
+
+        src_dir, filename = os.path.split(self.path)
+
+        if error is not None:
+            # Copies files to errors directory for additional processing:
+            err_dir = os.path.join(self.errdir, self.id)
+            if os.path.exists(err_dir):
+                shutil.rmtree(err_dir)
+            shutil.copytree(src_dir, err_dir)            
+                                
+            # Deletes files from the tiles dir:
+            tiles_dir = os.path.join(self.tiledir, self.id)
+            if os.path.exists(tiles_dir):
+                shutil.rmtree(tiles_dir)
+            
+            # Deletes files from the destination (grid) dir:
+            if os.path.exists(dst_dir):
+                shutil.rmtree(dst_dir)
+
+        else:
+            # Copies files to destination directory for archival:            
+            dst_dir = os.path.join(self.dstdir, self.id)
+            if os.path.exists(dst_dir):
+                shutil.rmtree(dst_dir)
+            shutil.copytree(src_dir, dst_dir)
+
+            # Deletes the watched directory:
+            shutil.rmtree(src_dir)
+
 
     def totiles(self):
         """Creates tiles for zoom + 1. Note that this method blocks."""
@@ -319,16 +338,26 @@ class Layer(object):
             self.toasc()
         """
         if self.meta is None:
-            self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
+            #self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
+            self.meta = _GdalUtil.getmetadata(self.path)
 
         tmp_xml = open(self.mapfile, 'r').read().replace('layer_name', self.id)
-        print self.srcdir
         mapfile = self.srcdir + '/' + self.id + '.xml'
         open(mapfile, "w+").write(tmp_xml)
-        a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
-        bbox = (int(a + 177) - 180, int(b + 177) - 180, math.ceil(x + 183) - 180, math.ceil(y + 183) - 180)
 
-        GenerateTiles.render_tiles(bbox, mapfile, self.mytiledir.rstrip('/') + "/", 0, 6, "World")
+        a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
+
+        bbox = (int(a + 177) - 180,
+                int(b + 177) - 180,
+                math.ceil(x + 183) - 180,
+                math.ceil(y + 183) - 180)
+
+        GenerateTiles.render_tiles(bbox,
+                                   mapfile,
+                                   self.mytiledir.rstrip('/') + "/",
+                                   0,
+                                   6,
+                                   "World")
 
         """
         self.tiling = subprocess.Popen(
@@ -368,4 +397,3 @@ class Layer(object):
 
         if self.meta is None:
             self.meta = _GdalUtil.getmetadata(self.path)
-

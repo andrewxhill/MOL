@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mol.service import GenerateTiles, Layer, LayerError
+from mol.service import Layer, LayerError
 import Queue
 import logging
 import threading
@@ -57,39 +57,45 @@ class LayerProcessingThread(threading.Thread):
                 raise NotImplementedError()
 
     def newshp(self, task):
-        """Tiles an asc file speicified in the task and registers metadata with
+        """Tiles a shapefile specified in the task and registers metadata with
         GAE.
 
         Arguments:
-            task - an item from the queue expected to have acs path
+            task - an item from the queue expected to have shapfile path
         """
         # Validates task:
         if task is None:
-            # TODO
+            logging.warn('newshp task was None')
             return
         if not task.has_key(Q_ITEM_FULL_PATH):
-            # TODO
+            logging.warn('newshp task does not have %s' % Q_ITEM_FULL_PATH)
             return
         fullpath = task[Q_ITEM_FULL_PATH]
         if fullpath is None or len(fullpath.strip()) == 0:
-            # TODO
+            logging.warn('newshp task has invalid path ' % fullpath)
             return
-
+        
+        logging.info('Starting new task')
         # Executes the job      
-        layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
-        try:
-
+        layer = None
+        try:            
+            layer = Layer(fullpath, TILE_DIR, ASC_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
+            logging.info('Layer created: ' + fullpath)
             layer.totiles()
+            logging.info('Layers tiled in ' + TILE_DIR)
             layer.register()
+            logging.info('Layer metadata registered')
             layer.cleanup()
-        except LayerError as e:
-            # TODO
-            print 'LayerError: ' + e.msg
-        except Exception as e:
-            # TODO
-            print 'Exception: ' + str(e)
+            logging.info('Layer cleaned up')
+        except (Exception), e:
+            logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
+            if layer is not None:
+                layer.cleanup(error=e)
+            logging.error(e.msg)
+            raise e
 
         # Notifies queue that this formerly enqueued task is complete:
+        logging.info('Task complete')
         worker_q.task_done()
 
 def start_myworker():

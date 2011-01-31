@@ -1,9 +1,25 @@
 #!/usr/bin/python
+#
+# Copyright 2010 Map Of Life
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from Queue import Queue
 from math import pi, cos, sin, log, exp, atan
 from subprocess import call
-import sys, os
-from Queue import Queue
 import mapnik
+import sys
+import os
 import threading
 
 DEG_TO_RAD = pi / 180
@@ -32,20 +48,20 @@ class GoogleProjection:
             self.zc.append((e, e))
             self.Ac.append(c)
             c *= 2
-                
+
     def fromLLtoPixel(self, ll, zoom):
-         d = self.zc[zoom]
-         e = round(d[0] + ll[0] * self.Bc[zoom])
-         f = minmax(sin(DEG_TO_RAD * ll[1]), -0.9999, 0.9999)
-         g = round(d[1] + 0.5 * log((1 + f) / (1 - f)) * -self.Cc[zoom])
-         return (e, g)
-     
+        d = self.zc[zoom]
+        e = round(d[0] + ll[0] * self.Bc[zoom])
+        f = minmax(sin(DEG_TO_RAD * ll[1]), -0.9999, 0.9999)
+        g = round(d[1] + 0.5 * log((1 + f) / (1 - f)) * -self.Cc[zoom])
+        return (e, g)
+
     def fromPixelToLL(self, px, zoom):
-         e = self.zc[zoom]
-         f = (px[0] - e[0]) / self.Bc[zoom]
-         g = (px[1] - e[1]) / -self.Cc[zoom]
-         h = RAD_TO_DEG * (2 * atan(exp(g)) - 0.5 * pi)
-         return (f, h)
+        e = self.zc[zoom]
+        f = (px[0] - e[0]) / self.Bc[zoom]
+        g = (px[1] - e[1]) / -self.Cc[zoom]
+        h = RAD_TO_DEG * (2 * atan(exp(g)) - 0.5 * pi)
+        return (f, h)
 
 
 
@@ -133,9 +149,9 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
         renderers[i] = render_thread
 
     if not os.path.isdir(tile_dir):
-         os.mkdir(tile_dir)
+        os.mkdir(tile_dir)
 
-    gprj = GoogleProjection(maxZoom + 1) 
+    gprj = GoogleProjection(maxZoom + 1)
 
     ll0 = (bbox[0], bbox[3])
     ll1 = (bbox[2], bbox[1])
@@ -182,5 +198,3 @@ if __name__ == "__main__":
     mapfile = home + "/mapnik/mapfile.xml"
     tile_dir = home + "/mapnik/tiles/"
     render_tiles(bbox, mapfile, tile_dir, 0, 5, "agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA")
-    
-    
