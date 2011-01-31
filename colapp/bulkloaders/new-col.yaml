@@ -21,7 +21,7 @@ python_preamble:
 - import: google.appengine.ext.db
 - import: google.appengine.api.datastore
 - import: google.appengine.api.users
-- import: util
+- import: foo
 
 transformers:
 
@@ -72,6 +72,11 @@ transformers:
       external_name: authority
       import_transform: transform.none_if_empty(str)
       # Type: String Stats: 71856 properties of this type in this kind.
+      
+    - property: authorityIdentifier
+      external_name: record_id
+      import_transform: transform.none_if_empty(str)
+      # Type: String Stats: 71856 properties of this type in this kind.
 
     - property: class_
       external_name: classx
@@ -101,7 +106,7 @@ transformers:
     - property: names
       external_name: nameslist
       #import_transform: "lambda x: x is not None and len(x) > 0 and eval(x) or ''"
-      import_transform: util.toList(list)
+      import_transform: foo.toList(list)
       # Type: String Stats: 332308 properties of this type in this kind.
 
     - property: order_
@@ -123,5 +128,4 @@ transformers:
       external_name: superfamily
       import_transform: transform.none_if_empty(str)
       # Type: String Stats: 50119 properties of this type in this kind.
-
 
