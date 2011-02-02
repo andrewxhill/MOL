@@ -21,7 +21,7 @@ python_preamble:
 - import: google.appengine.api.datastore
 - import: google.appengine.api.users
 - import: google.appengine.ext.db
-- import: util
+- import: tileutil
 - import: time
 
 transformers:
@@ -37,7 +37,7 @@ transformers:
 
     - property: band
       external_name: file
-      import_transform: util.stdImg(db.Blob)
+      import_transform: tileutil.stdImg(db.Blob)
       
 - kind: TileUpdate
   connector: csv
