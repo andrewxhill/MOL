@@ -25,7 +25,8 @@ import subprocess
 import urllib
 import urllib2
 
-GAE_URL = "http://localhost:8080/"
+#GAE_URL = "http://localhost:8080/"
+GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
 VALID_ID_SERVICE_URL = "%slayers" % GAE_URL
 LAYER_UPDATE_SERVICE_URL = "%slayers" % GAE_URL
 REMOTE_SERVER_TILE_LOCATION = 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png'
