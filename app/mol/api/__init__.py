@@ -16,16 +16,20 @@
 #
 from django.utils import simplejson
 from google.appengine.api import memcache
+from google.appengine.api.datastore_errors import BadKeyError, BadArgumentError
 from google.appengine.ext import webapp, db
+from google.appengine.ext.db import KindError
+from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
+from gviz import gviz_api
 from mol.db import Species, SpeciesIndex, TileSetIndex
 from mol.services import TileService, LayerService
 import logging
-import time, datetime
 import os
 import pickle
-from google.appengine.api.datastore_errors import BadKeyError
-from gviz import gviz_api
+import time
+import datetime
+import wsgiref.util
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
@@ -222,95 +226,7 @@ class TilePngHandler(webapp.RequestHandler):
                 self.redirect("/static/full.png")
             else:
                 self.response.headers['Content-Type'] = "image/png"
-                self.response.out.write(t.band)
-
-class UpdateLayerMetadata(webapp.RequestHandler):
-    """RequestHandler for remote server to update layer metadata."""
-    
-    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
-    
-    def __init__(self):
-        super(UpdateLayerMetadata, self).__init__()
-    
-    def post(self):
-        # Ensures client request is coming from an authorized IP address:
-        if os.environ['REMOTE_ADDR'] not in UpdateLayerMetadata.AUTHORIZED_IPS:
-            self.error(HTTP_STATUS_CODE_FORBIDDEN)
-        
-        # Validates id which is the string-encoded entity key:
-        id = self.request.params.get('id')
-        if id is None or len(id.strip()) == 0:
-            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
-        
-        # Creates the entity key from the id:
-        key = None
-        try:
-            key = db.Key(id)
-        except BadKeyError:
-            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
-        
-        # Ensures the key is for a TileSetIndex entity:
-        if key.kind() is not 'TileSetIndex':
-            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
-        
-        
-        key_name = key.name()
-        if key_name is None:
-            self.error(HTTP_STATUS_CODE_BAD_REQUEST)
-        key = db.Key.from_path('TileSetIndex', key_name)
-        md = TileSetIndex.get(key)
-        
-        data = {}
-        if os.environ['REMOTE_ADDR'] in UpdateLayerMetadata.AUTHORIZED_IPS:
-            id = self.request.params.get('id')
-            data['zoom'] = self.request.params.get('zoom')
-            data['proj'] = self.request.params.get('proj')
-            date = self.request.params.get('date')
-            data['date'] = datetime.datetime.strptime(date.split('.')[0], "%Y-%m-%d %H:%M:%S")
-            data['maxLat'] = self.request.params.get('maxLat')
-            data['minLat'] = self.request.params.get('minLat')
-            data['maxLon'] = self.request.params.get('maxLon')
-            data['minLon'] = self.request.params.get('minLon')
-            data['remoteLocation'] = self.request.params.get('remoteLocation')
-            if id is not None:
-                """this part does not work, i didn't have available Species entities to test with"""
-                key = db.Key(id)
-                key_name = key.name()
-                if key_name:
-                    key = db.Key.from_path('TileSetIndex', key_name)
-                    md = TileSetIndex.get(key)
-                    if md is None:
-                        md = TileSetIndex(key=key)
-                    """store or overwrite the data in the model"""
-                    try:
-                        if md.dateLastModified is not None and md.dateLastModified > data['date']:
-                            """if the metadata shipped is older than the metadata on GAE then don't store"""
-                            #self.response.out.write('{response: {status: "failed", id: %s, error: "newer layer exists"}}' % id)
-                            self.error(409) #Conflict
-                        else:
-                            md.zoom = int(data['zoom'])
-                            md.proj = data['proj']
-                            md.maxLat = float(data['maxLat'])
-                            md.minLat = float(data['minLat'])
-                            md.maxLon = float(data['maxLon'])
-                            md.minLon = float(data['minLon'])
-                            md.remoteLocation = data['remoteLocation']
-                            md.dateLastModified = data['date']
-                            md.put()
-                            """cache the new data"""
-                            mcData = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-                            memcache.set("meta-%s" % id, mcData, 2592000) #cache the layer data for 30 days
-
-                            #self.response.out.write('{response: {status: "updated", id: %s}}' % id)
-                            self.response.out.write(id)
-                    except Exception, e:
-                        #self.response.out.write('{response: {status: "failed", id: %s, error: "%s"}}' % (id, e))
-                        self.error(400)
-            else:
-                self.error(400)
-        else:
-            self.error(403)
-
+                self.response.out.write(self.t.band)
 
 class ValidLayerID(webapp.RequestHandler):
     """RequestHandler for testing MOL id authenticity."""
@@ -325,11 +241,109 @@ class ValidLayerID(webapp.RequestHandler):
         else:
             self.error(404)
 
+class BaseHandler(webapp.RequestHandler):
+    '''Base handler for handling common stuff like template rendering.'''
+    def render_template(self, file, template_args):
+        path = os.path.join(os.path.dirname(__file__), "templates", file)
+        self.response.out.write(template.render(path, template_args))
+
+
+class LayersHandler(BaseHandler):
+
+    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
+
+    def param(self, name, required=True, type=str):
+        val = self.request.get(name, None)
+        if required and val is None:
+            logging.error('%s is required' % name)
+            raise BadArgumentError
+        try:
+            return type(val)
+        except (ValueError), e:
+            logging.error('Invalid %s %s: %s' % (name, val, e))
+            raise BadArgumentError(e)
+
+    def _update(self, metadata):
+        dlm = self.request.params.get('dateCreated', None)
+        dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
+        if metadata.dateLastModified > dlm:
+            self.error(409) # Conflict
+            return
+        enw = db.GeoPt(self.param('maxLat', type=float), self.param('minLon', type=float))
+        ese = db.GeoPt(self.param('minLat', type=float), self.param('maxLon', type=float))
+        metadata.extentNorthWest = enw
+        metadata.extentSouthEast = ese
+        metadata.dateLastModified = datetime.datetime.now()
+        metadata.remoteLocation = db.Link(self.param('remoteLocation'))
+        metadata.zoom = self.param('zoom', type=int)
+        metadata.proj = self.param('proj')
+        db.put(metadata)
+        location = wsgiref.util.request_uri(self.request.environ).split('?')[0]
+        self.response.headers['Location'] = location
+        self.response.headers['Content-Location'] = location
+        self.response.set_status(204) # No Content
+
+    def _create(self, specimen_id):
+        enw = db.GeoPt(self.param('maxLat', type=float), self.param('minLon', type=float))
+        ese = db.GeoPt(self.param('minLat', type=float), self.param('maxLon', type=float))
+        db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
+                            dateLastModified=datetime.datetime.now(),
+                            remoteLocation=db.Link(self.param('remoteLocation')),
+                            zoom=self.param('zoom', type=int),
+                            proj=self.param('proj'),
+                            extentNorthWest=enw,
+                            extentSouthEast=ese))
+        location = wsgiref.util.request_uri(self.request.environ)
+        self.response.headers['Location'] = location
+        self.response.headers['Content-Location'] = location
+        self.response.set_status(201) # Created
+
+    def get(self, specimen_id):
+        remote_addr = os.environ['REMOTE_ADDR']
+        if not remote_addr in LayersHandler.AUTHORIZED_IPS:
+            logging.warning('Unauthorized PUT request from %s' % remote_addr)
+            self.error(401) # Not authorized
+            return
+        try:
+            metadata = TileSetIndex.get_by_key_name(specimen_id)
+            if metadata:
+                self._update(metadata)
+            else:
+                self._create(specimen_id)
+        except (BadArgumentError), e:
+            logging.error('Bad PUT request %s: %s' % (specimen_id, e))
+            self.error(400) # Bad request
+
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+
+    def foo(self, specimen_id=None):
+        if specimen_id is None or len(specimen_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        metadata = TileSetIndex.get_by_key_name(specimen_id)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)))
+        else:
+            self.error(404) # Not found
+
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/validid', ValidLayerID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/api/layer/update', UpdateLayerMetadata)],
+          #('/api/layer/update', UpdateLayerMetadata),
+          ('/layers/([\w]*)', LayersHandler),
+          ('/layers', LayersHandler), ],
          debug=True)
 
 def main():
