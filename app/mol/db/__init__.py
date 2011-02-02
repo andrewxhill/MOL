@@ -24,6 +24,7 @@ class TileSetIndex(db.Model):
     extentSouthEast = db.GeoPtProperty()
     dateLastModified = db.DateTimeProperty(auto_now_add=True)
     dateCreated = db.DateTimeProperty(auto_now_add=True)
+    errors = db.StringListProperty()
 
     def setremotelocation(self, value):
         try:

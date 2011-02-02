@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from mol.service import Layer, LayerError
 import Queue
 import logging
 import threading
+from layers.lib.mol.service import Layer
 
 TILE_DIR = "/ftp/tile/"
 ERR_DIR = "/ftp/error/"
@@ -72,11 +72,11 @@ class LayerProcessingThread(threading.Thread):
         if fullpath is None or len(fullpath.strip()) == 0:
             logging.warn('newshp task has invalid path ' % fullpath)
             return
-        
+
         logging.info('Starting new task')
         # Executes the job      
         layer = None
-        try:            
+        try:
             layer = Layer(fullpath, TILE_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
             logging.info('Layer created: ' + fullpath)
             layer.totiles()
@@ -84,12 +84,14 @@ class LayerProcessingThread(threading.Thread):
             logging.info('Layer metadata getting registered...')
             layer.register()
             logging.info('Layer getting cleaned up...')
-            layer.cleanup()            
+            layer.cleanup()
         except (Exception), e:
             logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
             if layer is not None:
                 layer.cleanup(error=e)
             logging.error(str(e))
+            # Ships error to App Engine:
+            Layer.register_error(Layer.idfrompath(fullpath)[0], 'Exception', e.message)
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:

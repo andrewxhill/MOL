@@ -242,12 +242,17 @@ class BaseHandler(webapp.RequestHandler):
         if len(params) is 0:
             val = self.request.get(name, None)
         else:
-            val = params[name][0]
+            if params.has_key(name):
+                val = params[name][0]
+            else:
+                val = None
 
         # val = self.request.get(name, None)
-        if required and val is None:
-            logging.error('%s is required' % name)
-            raise BadArgumentError
+        if val is None:
+            if required:
+                logging.error('%s is required' % name)
+                raise BadArgumentError
+            return None
         try:
             return type(val)
         except (ValueError), e:
@@ -360,6 +365,13 @@ class LayersHandler(BaseHandler):
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _update(self, metadata):
+        errors = self._param('errors', required=False)
+        if errors is not None:
+            metadata.errors.append(errors)
+            db.put(metadata)
+            logging.info('Updated TileSetIndex with errors only: ' + errors)     
+            return
+            
         dlm = self._param('dateCreated')
         dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
         if metadata.dateLastModified > dlm:
@@ -373,7 +385,8 @@ class LayersHandler(BaseHandler):
         metadata.dateLastModified = datetime.datetime.now()
         metadata.remoteLocation = db.Link(self._param('remoteLocation'))
         metadata.zoom = self._param('zoom', type=int)
-        metadata.proj = self._param('proj')
+        metadata.proj = self._param('proj') 
+        metadata.errors = []      
         db.put(metadata)
         location = wsgiref.util.request_uri(self.request.environ).split('?')[0]
         self.response.headers['Location'] = location
@@ -381,6 +394,13 @@ class LayersHandler(BaseHandler):
         self.response.set_status(204) # No Content
 
     def _create(self, specimen_id):
+        errors = self._param('errors', required=False)
+        if errors is not None:
+            db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
+                                errors=[errors]))
+            logging.info('Created TileSetIndex with errors only')
+            return
+
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
@@ -389,7 +409,8 @@ class LayersHandler(BaseHandler):
                             zoom=self._param('zoom', type=int),
                             proj=self._param('proj'),
                             extentNorthWest=enw,
-                            extentSouthEast=ese))
+                            extentSouthEast=ese),
+                            errors=[self._param('errors', required=False)])
         location = wsgiref.util.request_uri(self.request.environ)
         self.response.headers['Location'] = location
         self.response.headers['Content-Location'] = location
@@ -420,10 +441,11 @@ class LayersHandler(BaseHandler):
             self.response.out.write(simplejson.dumps(self._getprops(metadata)))
         else:
             self.error(404) # Not found
-
+            
     def put(self, specimen_id):
         '''Creates a TileSetIndex entity or updates an existing one if the 
         incoming data is newer than what is stored in GAE.'''
+        
         remote_addr = os.environ['REMOTE_ADDR']
         if not remote_addr in LayersHandler.AUTHORIZED_IPS:
             logging.warning('Unauthorized PUT request from %s' % remote_addr)
