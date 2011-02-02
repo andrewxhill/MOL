@@ -228,19 +228,6 @@ class TilePngHandler(webapp.RequestHandler):
                 self.response.headers['Content-Type'] = "image/png"
                 self.response.out.write(self.t.band)
 
-class ValidLayerID(webapp.RequestHandler):
-    """RequestHandler for testing MOL id authenticity."""
-    def __init__(self):
-        super(ValidLayerID, self).__init__()
-        self.layer_service = LayerService()
-
-    def get(self):
-        id = self.request.params.get('id')
-        if self.layer_service.is_id_valid(id):
-            self.response.out.write(id)
-        else:
-            self.error(404)
-
 class BaseHandler(webapp.RequestHandler):
     '''Base handler for handling common stuff like template rendering.'''
     def render_template(self, file, template_args):
@@ -250,7 +237,7 @@ class BaseHandler(webapp.RequestHandler):
 
 class LayersHandler(BaseHandler):
 
-    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
+    AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _param(self, name, required=True, type=str):
         # Hack (see http://code.google.com/p/googleappengine/issues/detail?id=719)
@@ -352,7 +339,6 @@ application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/validid', ValidLayerID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          #('/api/layer/update', UpdateLayerMetadata),
           ('/layers/([\w]*)', LayersHandler),
           ('/layers', LayersHandler), ],
          debug=True)
