@@ -298,7 +298,35 @@ class LayersHandler(BaseHandler):
         self.response.headers['Content-Location'] = location
         self.response.set_status(201) # Created
 
-    def get(self, specimen_id):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+
+    def get(self, specimen_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id 
+        (/layers/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if specimen_id is None or len(specimen_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        metadata = TileSetIndex.get_by_key_name(specimen_id)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)))
+        else:
+            self.error(404) # Not found
+
+    def put(self, specimen_id):
+        '''Creates a TileSetIndex entity or updates an existing one if the 
+        incoming data is newer than what is stored in GAE.'''
         remote_addr = os.environ['REMOTE_ADDR']
         if not remote_addr in LayersHandler.AUTHORIZED_IPS:
             logging.warning('Unauthorized PUT request from %s' % remote_addr)
@@ -313,29 +341,6 @@ class LayersHandler(BaseHandler):
         except (BadArgumentError), e:
             logging.error('Bad PUT request %s: %s' % (specimen_id, e))
             self.error(400) # Bad request
-
-    def _getprops(self, obj):
-        '''Returns a dictionary of entity properties as strings.'''
-        dict = {}
-        for key in obj.properties().keys():
-            dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
-        dict['mol_species_id'] = str(obj.key().name())
-        return dict
-
-    def foo(self, specimen_id=None):
-        if specimen_id is None or len(specimen_id) is 0:
-            # Sends all metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            all = [self._getprops(x) for x in TileSetIndex.all()]
-            # TODO: This response will get huge so we need a strategy here.
-            self.response.out.write(simplejson.dumps(all))
-            return
-        metadata = TileSetIndex.get_by_key_name(specimen_id)
-        if metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            self.response.out.write(simplejson.dumps(self._getprops(metadata)))
-        else:
-            self.error(404) # Not found
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
