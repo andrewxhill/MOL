@@ -81,15 +81,15 @@ class LayerProcessingThread(threading.Thread):
             logging.info('Layer created: ' + fullpath)
             layer.totiles()
             logging.info('Layers tiled in ' + TILE_DIR)
+            logging.info('Layer metadata getting registered...')
             layer.register()
-            logging.info('Layer metadata registered')
-            layer.cleanup()
-            logging.info('Layer cleaned up')
+            logging.info('Layer getting cleaned up...')
+            layer.cleanup()            
         except (Exception), e:
             logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
             if layer is not None:
                 layer.cleanup(error=e)
-            logging.error(e.msg)
+            logging.error(str(e))
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:

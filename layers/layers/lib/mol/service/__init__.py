@@ -26,8 +26,8 @@ import urllib
 import urllib2
 
 GAE_URL = "http://localhost:8080/"
-VALID_ID_SERVICE_URL = "%sapi/validid" % GAE_URL
-LAYER_UPDATE_SERVICE_URL = "%sapi/layer/update" % GAE_URL
+VALID_ID_SERVICE_URL = "%slayers" % GAE_URL
+LAYER_UPDATE_SERVICE_URL = "%slayers" % GAE_URL
 REMOTE_SERVER_TILE_LOCATION = 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png'
 
 class Error(Exception):
@@ -45,12 +45,25 @@ class LayerError(Error):
     def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
-        
+
     def __str__(self):
         return self.msg
 
 def _isempty(s):
     return len(s.strip()) == 0
+
+class _RequestWithMethod(urllib2.Request):
+    def __init__(self, method, *args, **kwargs):
+        self._method = method
+        urllib2.Request.__init__(self, *args, **kwargs)
+
+    def get_method(self):
+        if self._method:
+            return self._method
+        elif self.has_data():
+            return 'POST'
+        else:
+            return 'GET'
 
 def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
@@ -164,8 +177,8 @@ class Layer(object):
             return False
 
         # Validates id against GAE web service:
-        params = {'id': id}
-        resource = "%s?%s" % (VALID_ID_SERVICE_URL, urllib.urlencode(params))
+        resource = "%s/%s" % (VALID_ID_SERVICE_URL, id)
+        logging.info('Validating %s' % resource)
         code = None
         try:
             code = urllib2.urlopen(resource).code
@@ -207,7 +220,7 @@ class Layer(object):
         if path is None or _isempty(path):
             raise LayerError('', 'The path was null or empty string')
         if tiledir is None or _isempty(tiledir):
-            raise LayerError('', 'The tiledir was null or empty string')       
+            raise LayerError('', 'The tiledir was null or empty string')
         if errdir is None or _isempty(errdir):
             raise LayerError('', 'The errdir was null or empty string')
         if srcdir is None or _isempty(srcdir):
@@ -255,9 +268,9 @@ class Layer(object):
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
         self.errlog = open(dirpath, 'w')
-        
+
         self.meta = _GdalUtil.getmetadata(self.path)
-        
+
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
@@ -268,29 +281,35 @@ class Layer(object):
         if self.meta is None:
             return False
 
+        
         # Builds URL request params:
-        params = {'id': self.id,
-                  'zoom': self.zoom,
+        params = {'zoom': self.zoom,
                   'proj' : self.meta['proj'],
-                  'date' : str(datetime.datetime.now()),
+                  'dateCreated' : str(datetime.datetime.now()),
                   'maxLat' : str(self.meta['geog']['maxLat']),
                   'minLat' : str(self.meta['geog']['minLat']),
                   'maxLon' : str(self.meta['geog']['maxLon']),
                   'minLon' : str(self.meta['geog']['minLon']),
-                  'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id
+                  'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id,
                   }
+        
+        
+        logging.info('params %s' % str(params))
+        
         query = urllib.urlencode(params)
 
         # Builds and sends the request:
         response = None
         try:
-            resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
+            #resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
+            resource = _RequestWithMethod('PUT',
+                                          '%s/%s' % (LAYER_UPDATE_SERVICE_URL, 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'), #self.id),
+                                          query)
             response = urllib2.urlopen(resource)
+            return response is not None and response.code == 201 or response.code == 204
         except (HTTPError), e:
-            if response is not None and response.code != 409 and response.code != 204:
-                return False
-        return True
-
+            logging.error('Unable to register metadata: %s' % str(e))
+            
 
     def dbtiles(self):
         """Stores tiles in the database."""
@@ -312,13 +331,13 @@ class Layer(object):
             err_dir = os.path.join(self.errdir, self.id)
             if os.path.exists(err_dir):
                 shutil.rmtree(err_dir)
-            shutil.copytree(src_dir, err_dir)            
-                                
+            shutil.copytree(src_dir, err_dir)
+
             # Deletes files from the tiles dir:
             tiles_dir = os.path.join(self.tiledir, self.id)
             if os.path.exists(tiles_dir):
                 shutil.rmtree(tiles_dir)
-            
+
             # Deletes files from the destination (grid) dir:
             #if os.path.exists(dst_dir):
             #    shutil.rmtree(dst_dir)

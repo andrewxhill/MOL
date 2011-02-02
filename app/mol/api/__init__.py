@@ -252,8 +252,13 @@ class LayersHandler(BaseHandler):
 
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1']
 
-    def param(self, name, required=True, type=str):
-        val = self.request.get(name, None)
+    def _param(self, name, required=True, type=str):
+        # Hack (see http://code.google.com/p/googleappengine/issues/detail?id=719)
+        import cgi
+        params = cgi.parse_qs(self.request.body)
+        val = params[name][0]
+        
+        # val = self.request.get(name, None)
         if required and val is None:
             logging.error('%s is required' % name)
             raise BadArgumentError
@@ -264,19 +269,20 @@ class LayersHandler(BaseHandler):
             raise BadArgumentError(e)
 
     def _update(self, metadata):
-        dlm = self.request.params.get('dateCreated', None)
+        dlm = self._param('dateCreated')
         dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
         if metadata.dateLastModified > dlm:
+            logging.info('TileSetIndex.dlm=%s, metadata.dlm=%s' % (metadata.dateLastModified, dlm))
             self.error(409) # Conflict
             return
-        enw = db.GeoPt(self.param('maxLat', type=float), self.param('minLon', type=float))
-        ese = db.GeoPt(self.param('minLat', type=float), self.param('maxLon', type=float))
+        enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
+        ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         metadata.extentNorthWest = enw
         metadata.extentSouthEast = ese
         metadata.dateLastModified = datetime.datetime.now()
-        metadata.remoteLocation = db.Link(self.param('remoteLocation'))
-        metadata.zoom = self.param('zoom', type=int)
-        metadata.proj = self.param('proj')
+        metadata.remoteLocation = db.Link(self._param('remoteLocation'))
+        metadata.zoom = self._param('zoom', type=int)
+        metadata.proj = self._param('proj')
         db.put(metadata)
         location = wsgiref.util.request_uri(self.request.environ).split('?')[0]
         self.response.headers['Location'] = location
@@ -284,13 +290,13 @@ class LayersHandler(BaseHandler):
         self.response.set_status(204) # No Content
 
     def _create(self, specimen_id):
-        enw = db.GeoPt(self.param('maxLat', type=float), self.param('minLon', type=float))
-        ese = db.GeoPt(self.param('minLat', type=float), self.param('maxLon', type=float))
+        enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
+        ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
                             dateLastModified=datetime.datetime.now(),
-                            remoteLocation=db.Link(self.param('remoteLocation')),
-                            zoom=self.param('zoom', type=int),
-                            proj=self.param('proj'),
+                            remoteLocation=db.Link(self._param('remoteLocation')),
+                            zoom=self._param('zoom', type=int),
+                            proj=self._param('proj'),
                             extentNorthWest=enw,
                             extentSouthEast=ese))
         location = wsgiref.util.request_uri(self.request.environ)
