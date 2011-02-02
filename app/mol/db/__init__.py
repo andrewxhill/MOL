@@ -16,23 +16,21 @@
 #
 from google.appengine.ext import db
 
-class TileSetIndex(db.Model):                                
-    remoteLocation = db.StringProperty() #remote url constructor for the dataset, for distributed storage
+class TileSetIndex(db.Model):
+    remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
     zoom = db.IntegerProperty() #max zoom available for the layer
     proj = db.StringProperty() #max zoom available for the layer
-    maxLat = db.FloatProperty()
-    minLat = db.FloatProperty()
-    maxLon = db.FloatProperty()
-    minLon = db.FloatProperty()
+    extentNorthWest = db.GeoPtProperty()
+    extentSouthEast = db.GeoPtProperty()
     dateLastModified = db.DateTimeProperty(auto_now_add=True)
     dateCreated = db.DateTimeProperty(auto_now_add=True)
-    
+
     def setremotelocation(self, value):
         try:
             self.remoteLocation = str(value)
         except ValueError:
             self.zoom = None
-    
+
     def setzoom(self, value):
         try:
             self.zoom = int(value)
