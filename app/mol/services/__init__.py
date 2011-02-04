@@ -43,7 +43,7 @@ class TileError(Error):
 
 class AbstractLayerService(object):
     """An abstract base class for the Layer service."""
-    
+
     def is_id_valid(self, id):
         """Returns true if the id is valid, otherwise returns false."""
         raise NotImplementedError()
