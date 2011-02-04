@@ -386,7 +386,9 @@ class LayersHandler(BaseHandler):
         metadata.remoteLocation = db.Link(self._param('remoteLocation'))
         metadata.zoom = self._param('zoom', type=int)
         metadata.proj = self._param('proj') 
-        metadata.errors = []      
+        metadata.errors = []  
+        metadata.status = self._param('status', required=False)
+        metadata.type = self._param('type', required=False)
         db.put(metadata)
         location = wsgiref.util.request_uri(self.request.environ).split('?')[0]
         self.response.headers['Location'] = location
@@ -410,6 +412,8 @@ class LayersHandler(BaseHandler):
                             proj=self._param('proj'),
                             extentNorthWest=enw,
                             extentSouthEast=ese),
+                            status=self._param('status', required=False),
+                            type=self._param('type', required=False),
                             errors=[self._param('errors', required=False)])
         location = wsgiref.util.request_uri(self.request.environ)
         self.response.headers['Location'] = location

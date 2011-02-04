@@ -26,8 +26,8 @@ import urllib
 import urllib2
 import simplejson
 
-#GAE_URL = "http://localhost:8080/"
-GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
+GAE_URL = "http://localhost:8080/"
+#GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
 VALID_ID_SERVICE_URL = "%slayers" % GAE_URL
 LAYER_UPDATE_SERVICE_URL = "%slayers" % GAE_URL
 REMOTE_SERVER_TILE_LOCATION = 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png'
@@ -229,7 +229,8 @@ class Layer(object):
 
 
     def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile,
-                 zoom=1, converted=False, tiled=False):
+                 zoom=1, converted=False, tiled=False, type='expert',
+                 status='accepted'):
         """Constructs a new Layer object.
 
         Arguments:
@@ -267,6 +268,8 @@ class Layer(object):
         self.converted = converted
         self.tiled = tiled
         self.meta = None
+        self.status = status
+        self.type = type
 
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
@@ -304,6 +307,8 @@ class Layer(object):
                   'minLat' : str(self.meta['geog']['minLat']),
                   'maxLon' : str(self.meta['geog']['maxLon']),
                   'minLon' : str(self.meta['geog']['minLon']),
+                  'type' : self.type,
+                  'status' : self.status,
                   'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id,
                   }
         logging.info('params %s' % str(params))
