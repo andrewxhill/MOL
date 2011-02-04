@@ -260,25 +260,6 @@ class BaseHandler(webapp.RequestHandler):
 
 class LayersTileHandler(BaseHandler):
 
-    def _redirect(self, band, tileurl):
-        '''Returns true if redirect to tileurl occurs, otherwise returns false.'''
-        if band is None:
-            logging.info("Band not found for %s - returning full.png" % tileurl)
-            self.redirect("/static/full.png")
-            return False
-        try:
-            data = str(band)
-            if cmp(data, 'f') == 0:
-                logging.info("Empty band found - returning full.png")
-                self.redirect("/static/full.png")
-            else:
-                self.redirect(tileurl)
-                return True
-        except (Exception), e:
-            logging.info("Exception processing band - returning full.png: " + str(e))
-            self.redirect("/static/full.png")
-            return False
-
     def _create(self, species_id):
         '''Helper for testing that creates a Tile and TileSetIndex.'''
         zoom = self._param('z')
