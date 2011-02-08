@@ -7,7 +7,7 @@ class Globals(object):
 
     """
     
-    NEW_SHP_SCAN_DIR = '/ftp/test' 
+    
 
     def __init__(self):
         """One instance of Globals is created during application
@@ -15,3 +15,5 @@ class Globals(object):
         'app_globals' variable
 
         """
+        self.TILE_DIR = '/ftp/tile'
+        self.NEW_SHP_SCAN_DIR = '/ftp/test' 

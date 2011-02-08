@@ -24,7 +24,11 @@ def make_map():
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
 
-    # Cron REST API
-    map.resource('api', 'api')
+    #map.resource('api', 'api')
+
+    # Map tile service route:
+    map.connect('/{controller}/{action}/{species_id}/{zoom}/{x}/{y}',
+                contoller='api',
+                action='tiles')
 
     return map

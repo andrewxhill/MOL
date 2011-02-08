@@ -17,7 +17,7 @@
 from layers.lib.base import BaseController
 from layers.lib.taskqueue import worker_q, NEW_SHP_JOB_TYPE, Q_ITEM_FULL_PATH, \
     Q_ITEM_JOB_TYPE
-from pylons import config, response
+from pylons import response, app_globals
 import logging
 import os
 import simplejson
@@ -25,12 +25,29 @@ import simplejson
 log = logging.getLogger(__name__)
 
 class ApiController(BaseController):
-
+    
+    def tiles(self, species_id, zoom, x, y):
+        '''This action returns PNG data with the response header Content-Type 
+        set to image/png with a 200 status code. It handles URLs of the form:
+        
+        http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
+        
+        If a tile isn't found a 404 status is returned.
+        '''
+        png = os.path.join(app_globals.TILE_DIR, species_id, zoom, x, y + '.png')        
+        if os.path.exists(png):
+            logging.info('Returning tile : ' + png)
+            response.headers['Content-Type'] = 'image/png'
+            response.status = 200
+            return open(png, 'rb').read()
+        logging.info('Tile not found : ' + png)        
+        response.status = 404
+        
     def scan(self):
-        '''Scans the remote server for new shape files and adds them to the
+        '''Scans the local filesystem for new shape files and adds them to the
         worker queue to process. Intended to be invoked by GAE.
         '''        
-        scan_dir = config['pylons.app_globals'].NEW_SHP_SCAN_DIR
+        scan_dir = app_globals.NEW_SHP_SCAN_DIR
         logging.info(scan_dir)
         if not scan_dir:
             response.status = 404
