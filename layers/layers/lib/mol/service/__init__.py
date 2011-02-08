@@ -24,9 +24,10 @@ import shutil
 import subprocess
 import urllib
 import urllib2
+import simplejson
 
-#GAE_URL = "http://localhost:8080/"
-GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
+GAE_URL = "http://localhost:8080/"
+#GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
 VALID_ID_SERVICE_URL = "%slayers" % GAE_URL
 LAYER_UPDATE_SERVICE_URL = "%slayers" % GAE_URL
 REMOTE_SERVER_TILE_LOCATION = 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png'
@@ -53,7 +54,8 @@ class LayerError(Error):
 def _isempty(s):
     return len(s.strip()) == 0
 
-class _RequestWithMethod(urllib2.Request):
+class _RequestWrapper(urllib2.Request):
+    '''Wraps urllib2.Request so that it supports PUT and DELETE.'''
     def __init__(self, method, *args, **kwargs):
         self._method = method
         urllib2.Request.__init__(self, *args, **kwargs)
@@ -66,6 +68,11 @@ class _RequestWithMethod(urllib2.Request):
         else:
             return 'GET'
 
+class _PutRequest(_RequestWrapper):
+    '''Helper class for PUT requests.'''
+    def __init__(self, *args, **kwargs):
+        _RequestWrapper.__init__(self, 'PUT', *args, **kwargs)
+                
 def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
     mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
@@ -134,6 +141,18 @@ class _GdalUtil(object):
         return {'proj' : 'EPSG:900913', 'geog': bb}
 
 class Layer(object):
+
+    @staticmethod
+    def register_error(species_id, kind, msg):
+        '''Registers an error with App Engine.'''
+        params = {'errors': simplejson.dumps({'kind':kind, 'message':msg})}
+        query = urllib.urlencode(params)
+        path = '%s/%s' % (LAYER_UPDATE_SERVICE_URL, species_id)
+        try:
+            resource = _PutRequest(path, query)
+            urllib2.urlopen(resource)
+        except (HTTPError), e:
+            logging.error('Unable to register error on App Engine: %s' % str(e))
 
     @staticmethod
     def validatepath(path, dir=True, read=True, write=False):
@@ -210,7 +229,8 @@ class Layer(object):
 
 
     def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile,
-                 zoom=1, converted=False, tiled=False):
+                 zoom=1, converted=False, tiled=False, type='expert',
+                 status='accepted'):
         """Constructs a new Layer object.
 
         Arguments:
@@ -248,6 +268,8 @@ class Layer(object):
         self.converted = converted
         self.tiled = tiled
         self.meta = None
+        self.status = status
+        self.type = type
 
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
@@ -275,42 +297,31 @@ class Layer(object):
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
-
-        Arguments:
-            layer - a Layer object to update
         """
         if self.meta is None:
             return False
-
-        
-        # Builds URL request params:
         params = {'zoom': self.zoom,
                   'proj' : self.meta['proj'],
-                  'dateCreated' : str(datetime.datetime.now()),
+                  'dateCreated' : str(datetime.datetime.now()), # + datetime.timedelta(days=7)),
                   'maxLat' : str(self.meta['geog']['maxLat']),
                   'minLat' : str(self.meta['geog']['minLat']),
                   'maxLon' : str(self.meta['geog']['maxLon']),
                   'minLon' : str(self.meta['geog']['minLon']),
+                  'type' : self.type,
+                  'status' : self.status,
                   'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id,
                   }
-        
-        
         logging.info('params %s' % str(params))
-        
         query = urllib.urlencode(params)
-
-        # Builds and sends the request:
+        path = '%s/%s' % (LAYER_UPDATE_SERVICE_URL, self.id)
         response = None
         try:
-            #resource = urllib2.Request(LAYER_UPDATE_SERVICE_URL, query)
-            resource = _RequestWithMethod('PUT',
-                                          '%s/%s' % (LAYER_UPDATE_SERVICE_URL, 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'), #self.id),
-                                          query)
+            resource = _PutRequest(path, query)
             response = urllib2.urlopen(resource)
             return response is not None and response.code == 201 or response.code == 204
         except (HTTPError), e:
             logging.error('Unable to register metadata: %s' % str(e))
-            
+            return False
 
     def dbtiles(self):
         """Stores tiles in the database."""

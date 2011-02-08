@@ -35,6 +35,5 @@ handlers:
 - url: /layers
   script: mol/api/__init__.py
 
-  
 - url: /.*
   script: app.py
