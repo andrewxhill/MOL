@@ -35,6 +35,19 @@ HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
+class FindID(webapp.RequestHandler):
+    def get(self, a, id):
+        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
+        d = q.fetch(limit=2)
+        if len(d) == 2:
+            return "multiple matches"
+        elif len(d)==0:
+            return 400
+        else:
+            k = d[0]
+            self.response.out.write(str(k.name()))
+            
+
 class Taxonomy(webapp.RequestHandler):
 
     def methods(self):
@@ -337,7 +350,8 @@ class LayersHandler(BaseHandler):
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
-          ('/api/validid', ValidLayerID),
+          ('/api/findid/([^/]+)/([^/]+)', FindID),
+          #('/api/validid', ValidLayerID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
           ('/layers/([\w]*)', LayersHandler),
           ('/layers', LayersHandler), ],
