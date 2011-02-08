@@ -26,8 +26,8 @@ def make_map():
 
     #map.resource('api', 'api')
 
-    # Map tile service route:
-    map.connect('/{controller}/{action}/{species_id}/{zoom}/{x}/{y}',
+    # Map tile service route.
+    map.connect('/{controller}/{action}/{species_id:\w*}/{zoom:\d+}/{x:\d+}/{y:\d+}',
                 contoller='api',
                 action='tiles')
 
