@@ -4,3 +4,6 @@ app/ GAE files
 colexport/ SQL for exporting COL mysql database to CSVs
 bulkuploaders/ .yaml files for uploading COL data to GAE
 
+To bulkload entities to App Engine datastore:
+appcfg.py upload_data --config_file=bulkloaders/new-col.yaml --filename=specind-0-100.csv --kind=Species --url=http://localhost:8080/remote_api ../app/
+appcfg.py upload_data --config_file=bulkloaders/new-col.yaml --filename=specind-0-100.csv --kind=SpeciesIndex --url=http://localhost:8080/remote_api ../app/
