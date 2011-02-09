@@ -1,0 +1,5 @@
+To bulk upload entities to App Engine for testing:
+
+appcfg.py upload_data --config_file=col.yaml --filename=specind-0-100.csv --kind=Species --url=http://localhost:8080/remote_api ../../app/
+appcfg.py upload_data --config_file=col.yaml --filename=specind-0-100.csv --kind=SpeciesIndex --url=http://localhost:8080/remote_api ../../app/
+
