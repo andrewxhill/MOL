@@ -6,6 +6,8 @@ production.ini
 ####################
 colapp/colexport/*.csv
 colapp/bulkloader-*
+bulkloader-log*
+bulkloader-progress*
 
 # Compiled source #
 ###################
