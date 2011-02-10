@@ -14,16 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from layers.lib.mol.service import Layer
 import Queue
 import logging
+import os
 import threading
-from layers.lib.mol.service import Layer
-
-TILE_DIR = "/ftp/tile/"
-ERR_DIR = "/ftp/error/"
-SRC_DIR = "/ftp/new/"
-DST_DIR = "/ftp/archive/"
-MAP_XML = "/ftp/tile/mapfile.xml"
 
 NEW_RASTER_JOB_TYPE = 'newraster'
 NEW_SHP_JOB_TYPE = 'newshp'
@@ -42,7 +37,11 @@ class BulkLoadTiles():
         raise NotImplementedError()
 
 class LayerProcessingThread(threading.Thread):
-
+    
+    def __init__(self, g):
+        threading.Thread.__init__(self)
+        self.g = g
+        
     def run(self):
         """Pulls tasks from the queue and dispatches based on job type."""
         while True:
@@ -77,10 +76,13 @@ class LayerProcessingThread(threading.Thread):
         # Executes the job      
         layer = None
         try:
-            layer = Layer(fullpath, TILE_DIR, ERR_DIR, SRC_DIR, DST_DIR, MAP_XML)
+            layer = Layer(fullpath, self.g.TILE_DIR, self.g.ERR_DIR,
+                          self.g.SRC_DIR, self.g.DST_DIR, self.g.MAP_XML,
+                          self.g.TILE_URL,
+                          self.g.LAYER_URL)                          
             logging.info('Layer created: ' + fullpath)
             layer.totiles()
-            logging.info('Layers tiled in ' + TILE_DIR)
+            logging.info('Layers tiled in ' + self.g.TILE_DIR)
             logging.info('Layer metadata getting registered...')
             layer.register()
             logging.info('Layer getting cleaned up...')
@@ -91,13 +93,16 @@ class LayerProcessingThread(threading.Thread):
                 layer.cleanup(error=e)
             logging.error(str(e))
             # Ships error to App Engine:
-            Layer.register_error(Layer.idfrompath(fullpath)[0], 'Exception', e.message)
+            species_key_name = os.path.join('animalia/species',
+                                            Layer.idfrompath(fullpath)[0])
+            Layer.register_error(species_key_name, 'Exception', e.message,
+                                 self.g.LAYER_URL)
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:
         logging.info('Task complete')
         worker_q.task_done()
 
-def start_myworker():
-    worker = LayerProcessingThread()
+def start_myworker(app_globals):
+    worker = LayerProcessingThread(app_globals)
     worker.start()

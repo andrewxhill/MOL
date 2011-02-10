@@ -44,5 +44,6 @@ def load_environment(global_conf, app_conf):
 
     # CONFIGURATION OPTIONS HERE (note: all config options will override
     # any Pylons config options)
-    print 'starting worker'
-    start_myworker()
+    print 'Starting worker queue via taskqueue module'
+    g = config['pylons.app_globals']
+    start_myworker(g)

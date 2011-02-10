@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from osgeo import gdal, ogr
+from pylons import config
 from urllib2 import HTTPError
 import GenerateTiles
 import datetime
@@ -21,16 +22,10 @@ import logging
 import math
 import os.path
 import shutil
+import simplejson
 import subprocess
 import urllib
 import urllib2
-import simplejson
-
-GAE_URL = "http://localhost:8080/"
-#GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"
-VALID_ID_SERVICE_URL = "%slayers" % GAE_URL
-LAYER_UPDATE_SERVICE_URL = "%slayers" % GAE_URL
-REMOTE_SERVER_TILE_LOCATION = 'http://mol.colorado.edu/tiles/%s/zoom/x/y.png'
 
 class Error(Exception):
     """Base class for exceptions in this module."""
@@ -143,15 +138,15 @@ class _GdalUtil(object):
 class Layer(object):
 
     @staticmethod
-    def register_error(species_id, kind, msg):
+    def register_error(species_key_name, kind, msg, layerurl):
         '''Registers an error with App Engine.'''
         params = {'errors': simplejson.dumps({'kind':kind, 'message':msg})}
         query = urllib.urlencode(params)
-        path = '%s/%s' % (LAYER_UPDATE_SERVICE_URL, species_id)
+        path = os.path.join(layerurl, species_key_name)
         try:
             resource = _PutRequest(path, query)
             urllib2.urlopen(resource)
-        except (HTTPError), e:
+        except (Exception), e:
             logging.error('Unable to register error on App Engine: %s' % str(e))
 
     @staticmethod
@@ -192,26 +187,27 @@ class Layer(object):
         """Returns True if the id is successfully validated against the GAE
         web service, otherwise returns False.
         """
-        # Validates the id value:
-        if id is None or _isempty(id):
-            return False
-
-        # Validates id against GAE web service:
-        resource = "%s/%s" % (VALID_ID_SERVICE_URL, id)
-        logging.info('Validating %s' % resource)
-        code = None
-        try:
-            code = urllib2.urlopen(resource).code
-        except (HTTPError), e:
-            code = e.code
-
-        if code == 200:
-            return True
-        if code == 404:
-            return False
-
-        return False
-        # TODO: how to handle other response codes?
+        raise NotImplementedError()
+#        # Validates the id value:
+#        if id is None or _isempty(id):
+#            return False
+#
+#        # Validates id against GAE web service:
+#        resource = "%s/%s" % (g.VALID_ID_SERVICE_URL, id)
+#        logging.info('Validating %s' % resource)
+#        code = None
+#        try:
+#            code = urllib2.urlopen(resource).code
+#        except (HTTPError), e:
+#            code = e.code
+#
+#        if code == 200:
+#            return True
+#        if code == 404:
+#            return False
+#
+#        return False
+#        # TODO: how to handle other response codes?
 
     @staticmethod
     def idfrompath(path):
@@ -228,15 +224,11 @@ class Layer(object):
         return root, os.path.split(path)[0]
 
 
-    def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile,
-                 zoom=1, converted=False, tiled=False, type='expert',
+    def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile, tileurl,
+                 layerurl, zoom=1, converted=False, tiled=False, type='expert',
                  status='accepted'):
-        """Constructs a new Layer object.
-
-        Arguments:
-            path - filesystem path of a directory containing raster layer data
-            TODO...
-        """
+        '''Constructs a new Layer object.'''
+        
         # Validates argument values:
         if path is None or _isempty(path):
             raise LayerError('', 'The path was null or empty string')
@@ -257,6 +249,8 @@ class Layer(object):
         Layer.validatepath(dstdir, write=True)
         Layer.validatepath(mapfile, dir=False, write=True)
 
+        logging.info('T ' + tileurl)
+        logging.info('L ' + layerurl)
         # Sets properties with the argument values:
         self.path = path
         self.tiledir = tiledir
@@ -264,6 +258,8 @@ class Layer(object):
         self.srcdir = srcdir
         self.dstdir = dstdir
         self.mapfile = mapfile
+        self.tileurl = tileurl
+        self.layerurl = layerurl
         self.zoom = zoom
         self.converted = converted
         self.tiled = tiled
@@ -302,24 +298,30 @@ class Layer(object):
             return False
         params = {'zoom': self.zoom,
                   'proj' : self.meta['proj'],
-                  'dateCreated' : str(datetime.datetime.now()), # + datetime.timedelta(days=7)),
+                  'dateCreated' : str(datetime.datetime.now()),
                   'maxLat' : str(self.meta['geog']['maxLat']),
                   'minLat' : str(self.meta['geog']['minLat']),
                   'maxLon' : str(self.meta['geog']['maxLon']),
                   'minLon' : str(self.meta['geog']['minLon']),
                   'type' : self.type,
                   'status' : self.status,
-                  'remoteLocation' : REMOTE_SERVER_TILE_LOCATION % self.id,
+                  'remoteLocation' : self.tileurl % self.id,
                   }
-        logging.info('params %s' % str(params))
+        logging.info('Layer params for registration: %s' % str(params))
         query = urllib.urlencode(params)
-        path = '%s/%s' % (LAYER_UPDATE_SERVICE_URL, self.id)
+        path = os.path.join(self.layerurl, 'animalia/species', self.id)
         response = None
         try:
             resource = _PutRequest(path, query)
             response = urllib2.urlopen(resource)
-            return response is not None and response.code == 201 or response.code == 204
+            return response is not None and response.code in [201, 204]
         except (HTTPError), e:
+            if e.code == 409:
+                logging.info('Metadata not updated (newer data exsits on frontend server)')
+                return False
+            else:
+                raise e
+        except (Exception), e:
             logging.error('Unable to register metadata: %s' % str(e))
             return False
 
@@ -337,16 +339,20 @@ class Layer(object):
         '''
 
         src_dir, filename = os.path.split(self.path)
+        
+        logging.info('The src directory for cleanup ' + src_dir)
 
         if error is not None:
             # Copies files to errors directory for additional processing:
-            err_dir = os.path.join(self.errdir, self.id)
+            err_dir = os.path.join(self.errdir, 'animalia/species')
             if os.path.exists(err_dir):
                 shutil.rmtree(err_dir)
-            shutil.copytree(src_dir, err_dir)
+            for file in os.listdir(src_dir):
+                if file.startswith(self.id):
+                    shutil.copy2(os.path.join(src_dir, file), err_dir)
 
             # Deletes files from the tiles dir:
-            tiles_dir = os.path.join(self.tiledir, self.id)
+            tiles_dir = os.path.join(self.tiledir, 'animalia/species', self.id)
             if os.path.exists(tiles_dir):
                 shutil.rmtree(tiles_dir)
 
@@ -356,15 +362,19 @@ class Layer(object):
 
         else:
             # Copies files to destination directory for archival:            
-            dst_dir = os.path.join(self.dstdir, self.id)
-            if os.path.exists(dst_dir):
-                shutil.rmtree(dst_dir)
-            shutil.copytree(src_dir, dst_dir)
+            dst_dir = os.path.join(self.dstdir, 'animalia/species')
+            for file in os.listdir(src_dir):
+                if file.startswith(self.id):
+                    shutil.copy2(os.path.join(src_dir, file), dst_dir)
 
-            # Deletes the watched directory:
+            # Deletes files from the watched directory:
             if delete_test:
-                shutil.rmtree(src_dir)
-
+                logging.info('Deleting files from /ftp/new directory')
+                for file in os.listdir(src_dir):
+                    if file.startswith(self.id):
+                        os.remove(os.path.join(src_dir, file))
+            else:
+                logging.info('Not deleting files from /ftp/new directory')
 
     def totiles(self):
         """Creates tiles for zoom + 1. Note that this method blocks."""
