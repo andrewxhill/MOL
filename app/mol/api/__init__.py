@@ -44,7 +44,7 @@ class FindID(webapp.RequestHandler):
         d = q.fetch(limit=2)
         if len(d) == 2:
             return "multiple matches"
-        elif len(d)==0:
+        elif len(d) == 0:
             return 400
         else:
             k = d[0]
@@ -278,17 +278,7 @@ class BaseHandler(webapp.RequestHandler):
 
 class LayersTileHandler(BaseHandler):
 
-    def _create(self, species_id):
-        '''Helper for testing that creates a Tile and TileSetIndex.'''
-        zoom = self._param('z')
-        x = self._param('x')
-        y = self._param('y')
-        l = self._param('l')
-        db.put(Tile(key_name='%s/%s/%s/%s' % (species_id, zoom, y, x)))
-        db.put(TileSetIndex(key_name='%s' % species_id, remoteLocation=l))
-        self.response.out.write('Created')
-
-    def get(self, png_name):
+    def get(self, class_, rank, png_name):
         '''Handles a PNG map tile request according to the Google XYZ tile 
         addressing scheme described here:
         
@@ -300,17 +290,13 @@ class LayersTileHandler(BaseHandler):
             x - integer longitude pixel coordinate
         '''
         species_id, ext = os.path.splitext(png_name)
-
-        # For testing only:
-        if ext == '.create':
-            self._create(species_id)
-            return
-
+        species_key_name = os.path.join(class_, rank, species_id)
+        logging.info('KEY NAME ' + species_key_name)
         # Returns a 404 if there's no TileSetIndex for the species id since we 
         # need it to calculate bounds and for the remote tile URL:
-        metadata = TileSetIndex.get_by_key_name(species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata is None:
-            logging.error('No metadata for species id: ' + species_id)
+            logging.error('No metadata for species: ' + species_key_name)
             self.error(404) # Not found
             return
 
@@ -334,8 +320,11 @@ class LayersTileHandler(BaseHandler):
         # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
         tileurl = metadata.remoteLocation
         tileurl = tileurl.replace('zoom', zoom).replace('x', x).replace('y', y)
+        
+        logging.info('Tile URL ' + tileurl)
 
         # Starts an async fetch of tile in case we get a memcache/datastore miss: 
+        # TODO: Optimization would be to async fetch the 8 surrounding tiles.
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, tileurl)
 
@@ -349,10 +338,10 @@ class LayersTileHandler(BaseHandler):
             return
 
         # Checks datastore for tile and returns if found:
-        key_name = '%s/%s/%s/%s' % (species_id, zoom, y, x)
-        tile = Tile.get_by_key_name(key_name)
+        tile_key_name = os.path.join(species_key_name, zoom, y, x)
+        tile = Tile.get_by_key_name(tile_key_name)
         if tile is not None:
-            logging.info('Tile datastore hit: ' + key_name)
+            logging.info('Tile datastore hit: ' + tile_key_name)
             memcache.set(memcache_key, tile.band, 60)
             self.response.headers['Content-Type'] = "image/png"
             self.response.out.write(tile.band)
@@ -369,8 +358,9 @@ class LayersTileHandler(BaseHandler):
                 self.response.out.write(band)
             else:
                 raise urlfetch.DownloadError('Bad tile result ' + str(result))
-        except urlfetch.DownloadError:
+        except (urlfetch.DownloadError), e:
             logging.error('%s - %s' % (tileurl, str(e)))
+            logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
             self.error(404) # Not found
 
 class LayersHandler(BaseHandler):
@@ -400,34 +390,33 @@ class LayersHandler(BaseHandler):
         metadata.zoom = self._param('zoom', type=int)
         metadata.proj = self._param('proj') 
         metadata.errors = []  
-        metadata.status = self._param('status', required=False)
-        metadata.type = self._param('type', required=False)
+        metadata.status = db.Category(self._param('status', required=False))
+        metadata.type = db.Category(self._param('type', required=False))
         db.put(metadata)
         location = wsgiref.util.request_uri(self.request.environ).split('?')[0]
         self.response.headers['Location'] = location
         self.response.headers['Content-Location'] = location
         self.response.set_status(204) # No Content
 
-    def _create(self, specimen_id):
+    def _create(self, species_key_name):
         errors = self._param('errors', required=False)
         if errors is not None:
-            db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
+            db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', species_key_name),
                                 errors=[errors]))
             logging.info('Created TileSetIndex with errors only')
             return
 
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
-        db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', specimen_id),
+        db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', species_key_name),
                             dateLastModified=datetime.datetime.now(),
                             remoteLocation=db.Link(self._param('remoteLocation')),
                             zoom=self._param('zoom', type=int),
                             proj=self._param('proj'),
                             extentNorthWest=enw,
-                            extentSouthEast=ese),
-                            status=self._param('status', required=False),
-                            type=self._param('type', required=False),
-                            errors=[self._param('errors', required=False)])
+                            extentSouthEast=ese,
+                            status=db.Category(self._param('status', required=False)),
+                            type=db.Category(self._param('type', required=False))))
         location = wsgiref.util.request_uri(self.request.environ)
         self.response.headers['Location'] = location
         self.response.headers['Content-Location'] = location
@@ -441,25 +430,28 @@ class LayersHandler(BaseHandler):
         dict['mol_species_id'] = str(obj.key().name())
         return dict
 
-    def get(self, specimen_id=None):
+    def get(self, class_, rank, species_id=None):
         '''Gets a TileSetIndex identified by a MOL specimen id 
         (/layers/specimen_id) or all TileSetIndex entities (/layers).
         '''
-        if specimen_id is None or len(specimen_id) is 0:
+        if species_id is None or len(species_id) is 0:
             # Sends all metadata:
             self.response.headers['Content-Type'] = 'application/json'
             all = [self._getprops(x) for x in TileSetIndex.all()]
             # TODO: This response will get huge so we need a strategy here.
             self.response.out.write(simplejson.dumps(all))
             return
-        metadata = TileSetIndex.get_by_key_name(specimen_id)
+        
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata:
             self.response.headers['Content-Type'] = 'application/json'
             self.response.out.write(simplejson.dumps(self._getprops(metadata)))
         else:
+            logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
             
-    def put(self, specimen_id):
+    def put(self, class_, rank, species_id):
         '''Creates a TileSetIndex entity or updates an existing one if the 
         incoming data is newer than what is stored in GAE.'''
         
@@ -469,24 +461,23 @@ class LayersHandler(BaseHandler):
             self.error(401) # Not authorized
             return
         try:
-            metadata = TileSetIndex.get_by_key_name(specimen_id)
+            species_key_name = os.path.join(class_, rank, species_id)
+            metadata = TileSetIndex.get_by_key_name(species_key_name)
             if metadata:
                 self._update(metadata)
             else:
-                self._create(specimen_id)
+                self._create(species_key_name)
         except (BadArgumentError), e:
-            logging.error('Bad PUT request %s: %s' % (specimen_id, e))
+            logging.error('Bad PUT request %s: %s' % (species_key_name, e))
             self.error(400) # Bad request
 
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
-          #('/api/validid', ValidLayerID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/layers/([\w]*)', LayersHandler),
-          ('/layers/([\w]*.png)', LayersTileHandler),
-          ('/layers/([\w]*.create)', LayersTileHandler),
+          ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
+          ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), ],
          debug=True)
 
