@@ -16,4 +16,15 @@ class Globals(object):
 
         """
         self.TILE_DIR = '/ftp/tile'
-        self.NEW_SHP_SCAN_DIR = '/ftp/test' 
+        self.NEW_SHP_SCAN_DIR = '/ftp/new/animalia/species'
+        self.TILE_DIR = "/ftp/tile/animalia/species"
+        self.ERR_DIR = "/ftp/error/"
+        self.SRC_DIR = "/ftp/new/"
+        self.DST_DIR = "/ftp/archive/"
+        self.MAP_XML = "/ftp/tile/mapfile.xml"
+        self.GAE_URL = "http://localhost:8080/"
+        #self.GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"        
+        self.VALID_ID_SERVICE_URL = "%slayers" % self.GAE_URL
+        self.LAYER_URL = "%slayers" % self.GAE_URL
+        #self.TILE_URL = 'http://mol.colorado.edu/api/tiles/animalia/species/%s/zoom/x/y.png'
+        self.TILE_URL = 'http://localhost:5002/api/tiles/animalia/species/%s/zoom/x/y.png'

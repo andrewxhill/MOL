@@ -54,10 +54,13 @@ class ApiController(BaseController):
             return
         newitems = []        
         for item in os.listdir(scan_dir):
-            full_path = os.path.join(scan_dir, item)
-            if not os.path.isdir(full_path):
+            logging.info(item)
+            if os.path.splitext(item)[1] != '.shp':
                 continue
-            shp_full_path = '%s%s%s.shp' % (full_path, os.path.sep, item)
+            #full_path = os.path.join(scan_dir, item)
+            #if not os.path.isdir(full_path):
+            #    continue
+            shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
             worker_q.put({Q_ITEM_JOB_TYPE: NEW_SHP_JOB_TYPE,
                           Q_ITEM_FULL_PATH: shp_full_path})
             newitems.append(shp_full_path)
