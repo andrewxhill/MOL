@@ -104,7 +104,7 @@ class Taxonomy(webapp.RequestHandler):
             ent = db.get(key.parent())
             logging.error(ent.classification)
             p = key.id_or_name().split('/')
-            e = {
+            e = {"key_name" : key.name(),
                  "rank": str(p[-2]),
                  "name": str(p[-1]).replace("_", " "),
                  "classification": simplejson.loads(ent.classification),
@@ -149,21 +149,31 @@ class Taxonomy(webapp.RequestHandler):
                                            rec['classification']['order'].capitalize(),
                                            rec['classification']['family'].capitalize())
             row['Kingdom/Phylum/Class/Order/Family'] = taxonomy
-
-            #for name in rec['classification'].keys():
-            #    row[name] = rec['classification'][name]
-
+                        
             names_csv = ''
             for name in rec['names']:
                 names_csv += name['name'].capitalize() + ','
             row['Synonyms CSV'] = names_csv[:-1]
+            
+            
+            key_name = rec['key_name']
+            logging.info('key_name ' + key_name)
+            if TileSetIndex.get_by_key_name(key_name) is not None:
+                row['Range Map'] = '<a href="/rangemap/%s">map</a>' % key_name
+            else:
+                row['Range Map'] = ''
+
+            
             rows.append(row)
+            
+            
 
         # Builds DataTable for Google Visualization API:
         description = {'Accepted Name': ('string', 'accepted name'),
                        'Author': ('string', 'author'),
-                       'Kingdom/Phylum/Class/Order/Family': ('string', 'Kingdom/Pyhlum/Cass/Family'),
-                       'Synonyms CSV': ('string', 'synonyms csv')}
+                       'Kingdom/Phylum/Class/Order/Family': ('string', 'Kingdom/Pyhlum/Class/Family'),
+                       'Synonyms CSV': ('string', 'synonyms csv'),
+                       'Range Map': ('string', 'range map')}
 
         if len(rows) > 0:
             spec = rows[0]
@@ -273,9 +283,16 @@ class BaseHandler(webapp.RequestHandler):
             raise BadArgumentError(e)
 
     def render_template(self, file, template_args):
-        path = os.path.join(os.path.dirname(__file__), "templates", file)
+        path = os.path.join(os.path.dirname(__file__), "../../templates", file)
+        logging.info(path)
         self.response.out.write(template.render(path, template_args))
 
+class RangeMapHandler(BaseHandler):
+    '''Handler for rendering range maps based on species key_name.'''
+    def get(self, class_, rank, species):
+        key_name = os.path.join(class_, rank, species)
+        self.render_template('rangemap.html', {'key_name':key_name})
+                
 class LayersTileHandler(BaseHandler):
 
     def get(self, class_, rank, png_name):
@@ -319,7 +336,9 @@ class LayersTileHandler(BaseHandler):
         # Builds the tile image URL which is also the memcache key. It's of the
         # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
         tileurl = metadata.remoteLocation
-        tileurl = tileurl.replace('zoom', zoom).replace('x', x).replace('y', y)
+        tileurl = tileurl.replace('zoom', zoom)
+        tileurl = tileurl.replace('/x/', '/%s/' % x)
+        tileurl = tileurl.replace('y.png', '%s.png' % y)
         
         logging.info('Tile URL ' + tileurl)
 
@@ -477,6 +496,7 @@ application = webapp.WSGIApplication(
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
+          ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), ],
          debug=True)
