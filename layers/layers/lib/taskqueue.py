@@ -20,12 +20,6 @@ import logging
 import os
 import threading
 
-NEW_RASTER_JOB_TYPE = 'newraster'
-NEW_SHP_JOB_TYPE = 'newshp'
-BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
-Q_ITEM_FULL_PATH = 'fullpath'
-Q_ITEM_JOB_TYPE = 'jobtype'
-
 worker_q = Queue.Queue()
 
 class BulkLoadTiles():
@@ -46,11 +40,11 @@ class LayerProcessingThread(threading.Thread):
         """Pulls tasks from the queue and dispatches based on job type."""
         while True:
             task = worker_q.get()
-            jobtype = task[Q_ITEM_JOB_TYPE]
+            jobtype = task[self.g.Q_ITEM_JOB_TYPE]
             logging.info('New job: ' + jobtype)
-            if jobtype == NEW_SHP_JOB_TYPE:
+            if jobtype == self.g.NEW_SHP_JOB_TYPE:
                 self.newshp(task)
-            elif jobtype == BULKLOAD_TILES_JOB_TYPE:
+            elif jobtype == self.g.BULKLOAD_TILES_JOB_TYPE:
                 raise NotImplementedError()
 
     def newshp(self, task):
@@ -64,10 +58,10 @@ class LayerProcessingThread(threading.Thread):
         if task is None:
             logging.warn('newshp task was None')
             return
-        if not task.has_key(Q_ITEM_FULL_PATH):
-            logging.warn('newshp task does not have %s' % Q_ITEM_FULL_PATH)
+        if not task.has_key(self.g.Q_ITEM_FULL_PATH):
+            logging.warn('newshp task does not have %s' % self.g.Q_ITEM_FULL_PATH)
             return
-        fullpath = task[Q_ITEM_FULL_PATH]
+        fullpath = task[self.g.Q_ITEM_FULL_PATH]
         if fullpath is None or len(fullpath.strip()) == 0:
             logging.warn('newshp task has invalid path ' % fullpath)
             return

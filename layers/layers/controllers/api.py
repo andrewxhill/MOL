@@ -15,8 +15,7 @@
 # limitations under the License.
 #
 from layers.lib.base import BaseController
-from layers.lib.taskqueue import worker_q, NEW_SHP_JOB_TYPE, Q_ITEM_FULL_PATH, \
-    Q_ITEM_JOB_TYPE
+from layers.lib.taskqueue import worker_q
 from pylons import response, app_globals
 import logging
 import os
@@ -61,8 +60,8 @@ class ApiController(BaseController):
             #if not os.path.isdir(full_path):
             #    continue
             shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-            worker_q.put({Q_ITEM_JOB_TYPE: NEW_SHP_JOB_TYPE,
-                          Q_ITEM_FULL_PATH: shp_full_path})
+            worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
+                          app_globals.Q_ITEM_FULL_PATH: shp_full_path})
             newitems.append(shp_full_path)
         response.status = 202
         return simplejson.dumps({'newitems':newitems})
