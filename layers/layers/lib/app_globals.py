@@ -27,8 +27,6 @@ class Globals(object):
         self.LAYER_URL = "%slayers" % self.GAE_URL
         self.TILE_URL = '/api/tiles/animalia/species/%s/zoom/x/y.png'
         #self.TILE_URL = '/api/tiles/animalia/species/%s/zoom/x/y.png'
-        
-        
         self.NEW_RASTER_JOB_TYPE = 'newraster'
         self.NEW_SHP_JOB_TYPE = 'newshp'
         self.BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
