@@ -26,5 +26,5 @@ class Globals(object):
         #self.GAE_URL = "http://sandbox.latest.mol-lab.appspot.com/"        
         self.VALID_ID_SERVICE_URL = "%slayers" % self.GAE_URL
         self.LAYER_URL = "%slayers" % self.GAE_URL
-        #self.TILE_URL = 'http://mol.colorado.edu/api/tiles/animalia/species/%s/zoom/x/y.png'
-        self.TILE_URL = 'http://localhost:5002/api/tiles/animalia/species/%s/zoom/x/y.png'
+        self.TILE_URL = '/api/tiles/animalia/species/%s/zoom/x/y.png'
+        #self.TILE_URL = '/api/tiles/animalia/species/%s/zoom/x/y.png'
