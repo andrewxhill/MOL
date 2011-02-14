@@ -15,23 +15,17 @@
 # limitations under the License.
 #
 
-from google.appengine.api import images
-from google.appengine.api import taskqueue
-from google.appengine.ext import db, webapp
+from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from mol.db import Tile, TileUpdate
-import cStringIO
-import datetime
-import png
-import time
-
+from mapreduce import control as mr_control
+from mol.db import TileUpdate
 
 class InterpolateTiles(webapp.RequestHandler):
     def get(self):
         self.post()
     def post(self):
         t = TileUpdate.all().fetch(1)
-        if len(t)==1:
+        if len(t) == 1:
             mr_control.start_map(
               "Process queued Tiles stored in TileUpdate",
               "mappers.interpolate",
@@ -46,7 +40,7 @@ class InterpolateTiles(webapp.RequestHandler):
 
 application = webapp.WSGIApplication(
          [
-          ('/cron/interpolate',InterpolateTiles)
+          ('/cron/interpolate', InterpolateTiles)
          ],
          debug=True)
 
