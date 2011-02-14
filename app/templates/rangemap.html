@@ -45,7 +45,8 @@ app.rangMapType = new google.maps.ImageMapType({
         return "/layers/{{key_name}}.png?" +
                "z=" + zoom + 
                "&x=" + normalizedCoord.x + 
-               "&y=" + (bound - normalizedCoord.y - 1);
+               "&y=" + (normalizedCoord.y);
+               //"&y=" + (bound - normalizedCoord.y - 1);
     },
     tileSize: new google.maps.Size(256, 256),
     isPng: true,
