@@ -84,9 +84,17 @@ TableQueryWrapper.prototype.sendAndDraw = function() {
 /** Handles the query response after a send returned by the data source. */
 TableQueryWrapper.prototype.handleResponse = function(response) {
   this.currentDataTable = null;
+  google.visualization.errors.removeAll(this.container);
   if (response.isError()) {
     google.visualization.errors.addError(this.container, response.getMessage(),
         response.getDetailedMessage(), {'showInTooltip': false});
+  } else if (response.getDataTable().getNumberOfRows() == 0) {
+      this.currentDataTable = response.getDataTable();
+      this.table.draw(this.currentDataTable, this.tableOptions);
+      google.visualization.errors.addError(this.container, 'No results',
+              '', {'showInTooltip': false});      
+
+      
   } else {
     this.currentDataTable = response.getDataTable();
     this.table.draw(this.currentDataTable, this.tableOptions);

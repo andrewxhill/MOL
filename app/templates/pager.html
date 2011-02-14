@@ -36,66 +36,90 @@
 <p>
 <div id="table"></div>
 <script>
-  google.load('visualization', '1', {
+google.load('visualization', '1', {
     'packages' : [ 'table' ]
-  });
-  google.setOnLoadCallback(init);
-  var dataSourceUrl = '/api/taxonomy';
-  var query, options, container, submitButton;
+});
 
-  // Some setup:
-  $ = (function() {
+google.setOnLoadCallback(init);
+
+var dataSourceUrl = '/api/taxonomy';
+var query, options, container, submitButton;
+
+$ = (function() {
     var queryPlaceholder = "concolor";
     var $ = function(id) {
-      return document.getElementById(id);
+        return document.getElementById(id);
     }
     $('queryText').setAttribute('placeholder', queryPlaceholder);
     $('queryText').addEventListener('keyup', function(evt) {
-      if (evt.keyCode === 13) {
-        $('submitButton').click();
-      }
+        if (evt.keyCode === 13) {
+            $('submitButton').click();
+        }
     }, false);
     return $;
-  }());
+}());
 
-  function init() {
+function init() {
     query = new google.visualization.Query(dataSourceUrl);
     container = document.getElementById("table");
     options = {
-      'pageSize' : -1,
-      'sort' : 'disable'
+        'pageSize' : -1,
+        'sort' : 'disable'
     };
     submitButton = $('submitButton');
-  }
+}
 
-  function sendAndDraw() {
+function sendAndDraw() {
     query.abort();
     var callback = function(isDone) {
-      if (isDone) {
-        $('submitButton').removeAttribute('disabled', 0);
-      } else {
-        $('submitButton').setAttribute('disabled', 1);
-      }
+        if (isDone) {
+            $('submitButton').removeAttribute('disabled', 0);
+            } else {
+            $('submitButton').setAttribute('disabled', 1);
+        }
     }
-    var tableQueryWrapper =
-        new TableQueryWrapper(query, container, options, callback);
+    var tableQueryWrapper = new TableQueryWrapper(query, container, options, callback);
     tableQueryWrapper.sendAndDraw();
-  }
+}
 
-  function setOption(prop, value) {
+function setOption(prop, value) {
     options[prop] = value;
     sendAndDraw();
+}
+
+var app = app || {};
+
+app.handleOnClick = function(evt) {
+    var gql = $('queryText').value || $('queryText').getAttribute('placeholder');
+    setOption('gql', gql);    
+    app.go(gql);
+}
+
+app.go = function(q) {
+    app.setupPage(q);
+    history.pushState(q, document.title, '?q=' + q);
+}
+
+onpopstate = function(event) {
+    app.setupPage(event.state);
+}
+
+app.setupPage = function(query) {
+    if (query == null) {
+        // Handles intitial page load with or without q param:
+        var q = window.location.search.split('q=')[1];
+        if (q == null) {
+            return;
+        }
+        $('queryText').value = q;
+        setOption('gql', q);
+    } else {
+        $('queryText').value = query;  
+        setOption('gql', query);      
+    }
   }
 
-  var app = app || {};
-  app.handleOnClick =
-      function(evt) {
-        var gql =
-            $('queryText').value || $('queryText').getAttribute('placeholder')
-        setOption('gql', gql)
-      }
-
-  $('submitButton').addEventListener('click', app.handleOnClick, false);
+$('submitButton').addEventListener('click', app.handleOnClick, false);
 </script>
 </body>
 </html>
