@@ -130,7 +130,7 @@ class RenderThread:
                 empty = " Empty Tile "
                 os.remove(tile_uri)
             self.printLock.acquire()
-            print name, ":", z, x, y, exists, empty
+            #print name, ":", z, x, y, exists, empty
             self.printLock.release()
             self.q.task_done()
 
