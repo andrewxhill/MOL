@@ -393,10 +393,10 @@ class Layer(object):
 
         a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
 
-        bbox = (int(a + 177) - 180,
-                math.ceil(y + 183) - 180,
-                math.ceil(x + 183) - 180,
-                int(b + 177) - 180)
+        bbox = (float(a),
+                float(b),
+                float(x),
+                float(y))
 
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
