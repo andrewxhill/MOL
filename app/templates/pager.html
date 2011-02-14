@@ -89,6 +89,10 @@ function setOption(prop, value) {
 
 var app = app || {};
 
+app.urldecode = function (str) { 
+	return decodeURIComponent((str+'').replace(/+/g, '%20')); 
+}
+
 app.handleOnClick = function(evt) {
     var gql = $('queryText').value || $('queryText').getAttribute('placeholder');
     setOption('gql', gql);    

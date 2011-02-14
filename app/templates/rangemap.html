@@ -30,7 +30,31 @@
 <p></p>
 <div id="map_canvas" style="height:100%"></div>
 <script> 
+
 var app = app || {};
+
+app.MetaControl = function(div, map) {    
+    var metaBtn = document.createElement('DIV');    
+    metaBtn.style.backgroundColor = 'white';
+    metaBtn.style.borderStyle = 'solid';
+    metaBtn.style.borderWidth = '1px';
+    metaBtn.style.cursor = 'pointer';
+    metaBtn.style.textAlign = 'center';
+    metaBtn.title = 'Click for range map metadata';
+    div.style.padding = '8px';    
+    div.appendChild(metaBtn);
+    var metaText = document.createElement('DIV');
+    metaText.style.fontFamily = 'Lucida Grande, Trebuchet MS';
+    metaText.style.fontSize = '12px';
+    metaText.style.paddingLeft = '4px';
+    metaText.style.paddingRight = '4px';
+    metaText.innerHTML = '<b>Metadata</b>';
+    metaBtn.appendChild(metaText);
+    google.maps.event.addDomListener(metaBtn, 'click', function() {
+        alert(JSON.stringify(app.metadata));
+    });
+}
+
 /**
  * Get current key_name.
  */
@@ -38,7 +62,9 @@ app.getKeyName = function () {
     var pathArray = window.location.pathname.split( '/' );
     return pathArray[2] + "/" + pathArray[3] + "/" + pathArray[4];
 }
+
 var key_name = app.getKeyName();
+
 /**
  * MapType for range map tiles.
  */
@@ -89,18 +115,19 @@ app.getNormalizedCoord =  function(coord, zoom) {
         y: y
     };
 }
+
 app.zoomLayerExtents = function(kn) {
-  var url = '/api/tile/metadata/'+kn;
-  $.getJSON(url, function(data) {
-    nw = data.extentNorthWest.split(',');
-    se = data.extentSouthEast.split(',');
-    var northW = new google.maps.LatLng(parseFloat(nw[0]),parseFloat(nw[1]));
-    var southE = new google.maps.LatLng(parseFloat(se[0]),parseFloat(se[1]));
-    var bounds = new google.maps.LatLngBounds;
-    bounds.extend(northW);
-    bounds.extend(southE);
-    //app.map.setZoom(app.map.getBoundsZoomLevel(bounds));
-    app.map.fitBounds(bounds);  
+    var url = '/api/tile/metadata/'+kn;
+    $.getJSON(url, function(data) {
+        app.metadata = data;
+        var nw = data.extentNorthWest.split(',');
+        var se = data.extentSouthEast.split(',');
+        var northW = new google.maps.LatLng(parseFloat(nw[0]),parseFloat(nw[1]));
+        var southE = new google.maps.LatLng(parseFloat(se[0]),parseFloat(se[1]));
+        var bounds = new google.maps.LatLngBounds;
+        bounds.extend(northW);
+        bounds.extend(southE);
+        app.map.fitBounds(bounds);  
     });
 }
 
@@ -118,6 +145,10 @@ $ = (function () {
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
     app.map.overlayMapTypes.insertAt(0, app.rangMapType);
     app.zoomLayerExtents(key_name);
+    var metaControlDiv = document.createElement('DIV');
+    var homeControl = new app.MetaControl(metaControlDiv, app.map);   
+    metaControlDiv.index = 1;
+    app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(metaControlDiv);
     return $;
 }());
 </script>
