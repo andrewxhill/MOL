@@ -351,7 +351,6 @@ class Layer(object):
                         os.unlink(os.path.join(root, f))
                     for d in dirs:
                         shutil.rmtree(os.path.join(root, d))
-                shutil.rmtree(err_dir + '/^')
             for file in os.listdir(src_dir):
                 if file.startswith(self.id):
                     shutil.copy2(os.path.join(src_dir, file), err_dir)
