@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 from osgeo import gdal, ogr
-from pylons import config, app_globals
+from pylons import config
 from urllib2 import HTTPError
 import GenerateTiles
 import datetime
@@ -380,7 +380,7 @@ class Layer(object):
             else:
                 logging.info('Not deleting files from /ftp/new directory')
 
-    def totiles(self):
+    def totiles(self,g):
         """Creates tiles for zoom + 1. Note that this method blocks."""
         """
         # Creates the GeoTiff if it doesn't already exist:
@@ -406,9 +406,9 @@ class Layer(object):
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
-                                   app_globals.TILE_MAX_ZOOM + 1,
+                                   g.TILE_MAX_ZOOM + 1,
                                    "MOL-EORM",
-                                   num_threads=app_globals.TILE_QUEUE_THREADS+0)
+                                   num_threads=g.TILE_QUEUE_THREADS+0)
 
         """
         self.tiling = subprocess.Popen(

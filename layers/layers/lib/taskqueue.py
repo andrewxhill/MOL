@@ -75,7 +75,7 @@ class LayerProcessingThread(threading.Thread):
                           self.g.TILE_URL,
                           self.g.LAYER_URL)                          
             logging.info('Layer created: ' + fullpath)
-            layer.totiles()
+            layer.totiles(g)
             logging.info('Layers tiled in ' + self.g.TILE_DIR)
             logging.info('Layer metadata getting registered...')
             layer.register()
