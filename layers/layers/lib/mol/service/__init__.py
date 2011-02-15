@@ -403,7 +403,8 @@ class Layer(object):
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
                                    app_globals.TILE_MAX_ZOOM + 1,
-                                   "MOL-EORM")
+                                   "MOL-EORM",
+                                   num_threads=app_globals.TILE_QUEUE_THREADS)
 
         """
         self.tiling = subprocess.Popen(
