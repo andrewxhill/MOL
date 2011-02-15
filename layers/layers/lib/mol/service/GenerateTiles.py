@@ -16,6 +16,7 @@
 #
 from Queue import Queue
 from math import pi, cos, sin, log, exp, atan
+from pylons import app_globals
 from subprocess import call
 import mapnik
 import shutil
@@ -27,7 +28,7 @@ DEG_TO_RAD = pi / 180
 RAD_TO_DEG = 180 / pi
 
 # Default number of rendering threads to spawn, should be roughly equal to number of CPU cores available
-NUM_THREADS = 4
+NUM_THREADS = app_globals.TILE_QUEUE_THREADS
 
 
 def minmax (a, b, c):

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 from osgeo import gdal, ogr
-from pylons import config
+from pylons import config, app_globals
 from urllib2 import HTTPError
 import GenerateTiles
 import datetime
@@ -402,7 +402,7 @@ class Layer(object):
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
-                                   6,
+                                   app_globals.TILE_MAX_ZOOM + 1,
                                    "World")
 
         """

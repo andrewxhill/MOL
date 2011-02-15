@@ -32,3 +32,5 @@ class Globals(object):
         self.BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
         self.Q_ITEM_FULL_PATH = 'fullpath'
         self.Q_ITEM_JOB_TYPE = 'jobtype'
+        self.TILE_QUEUE_THREADS = 2
+        self.TILE_MAX_ZOOM = 8
