@@ -406,7 +406,7 @@ class Layer(object):
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
-                                   g.TILE_MAX_ZOOM + 1,
+                                   g.TILE_MAX_ZOOM,
                                    "MOL-EORM",
                                    num_threads=g.TILE_QUEUE_THREADS+0)
 

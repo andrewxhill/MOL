@@ -73,7 +73,8 @@ class LayerProcessingThread(threading.Thread):
             layer = Layer(fullpath, self.g.TILE_DIR, self.g.ERR_DIR,
                           self.g.SRC_DIR, self.g.DST_DIR, self.g.MAP_XML,
                           self.g.TILE_URL,
-                          self.g.LAYER_URL)                          
+                          self.g.LAYER_URL,
+                          zoom=self.g.TILE_MAX_ZOOM)                          
             logging.info('Layer created: ' + fullpath)
             layer.totiles(self.g)
             logging.info('Layers tiled in ' + self.g.TILE_DIR)
