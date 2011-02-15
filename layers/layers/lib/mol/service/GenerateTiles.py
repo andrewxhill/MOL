@@ -15,12 +15,10 @@
 # limitations under the License.
 #
 from Queue import Queue
-from math import pi, cos, sin, log, exp, atan
-from subprocess import call
+from math import pi, sin, log, exp, atan
 import mapnik
-import shutil
-import sys
 import os
+import shutil
 import threading
 
 DEG_TO_RAD = pi / 180
