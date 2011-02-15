@@ -33,4 +33,4 @@ class Globals(object):
         self.Q_ITEM_FULL_PATH = 'fullpath'
         self.Q_ITEM_JOB_TYPE = 'jobtype'
         self.TILE_QUEUE_THREADS = 2
-        self.TILE_MAX_ZOOM = 6
+        self.TILE_MAX_ZOOM = 4

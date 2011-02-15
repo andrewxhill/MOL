@@ -23,6 +23,7 @@
 }
 </style>
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 </head> 
 <body style="font: 75% Lucida Grande, Trebuchet MS"> 
 <div id='mol'>Map of Life</div>
@@ -30,7 +31,14 @@
 <div id="map_canvas" style="height:100%"></div>
 <script> 
 var app = app || {};
-
+/**
+ * Get current key_name.
+ */
+app.getKeyName = function () {
+    var pathArray = window.location.pathname.split( '/' );
+    return pathArray[2] + "/" + pathArray[3] + "/" + pathArray[4];
+}
+var key_name = app.getKeyName();
 /**
  * MapType for range map tiles.
  */
@@ -42,7 +50,7 @@ app.rangMapType = new google.maps.ImageMapType({
         }
         var bound = Math.pow(2, zoom);
         
-        return "/layers/{{key_name}}.png?" +
+        return "/layers/" + key_name + ".png?" +
                "z=" + zoom + 
                "&x=" + normalizedCoord.x + 
                "&y=" + (normalizedCoord.y);
@@ -81,6 +89,20 @@ app.getNormalizedCoord =  function(coord, zoom) {
         y: y
     };
 }
+app.zoomLayerExtents = function(kn) {
+  var url = '/api/tile/metadata/'+kn;
+  $.getJSON(url, function(data) {
+    nw = data.extentNorthWest.split(',');
+    se = data.extentSouthEast.split(',');
+    var northW = new google.maps.LatLng(parseFloat(nw[0]),parseFloat(nw[1]));
+    var southE = new google.maps.LatLng(parseFloat(se[0]),parseFloat(se[1]));
+    var bounds = new google.maps.LatLngBounds;
+    bounds.extend(northW);
+    bounds.extend(southE);
+    //app.map.setZoom(app.map.getBoundsZoomLevel(bounds));
+    app.map.fitBounds(bounds);  
+    });
+}
 
 $ = (function () {
     var $ = function(id) {
@@ -89,11 +111,13 @@ $ = (function () {
     var latlng = new google.maps.LatLng(0,0);        
     app.mapOptions = {
         zoom: 2,
+        maxZoom: 6,
         center: latlng,
         mapTypeId: google.maps.MapTypeId.TERRAIN
     };
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
     app.map.overlayMapTypes.insertAt(0, app.rangMapType);
+    app.zoomLayerExtents(key_name);
     return $;
 }());
 </script>

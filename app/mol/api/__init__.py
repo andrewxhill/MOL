@@ -51,6 +51,42 @@ class FindID(webapp.RequestHandler):
             self.response.out.write(str(k.name()))
             
 
+class TileSetMetadata(webapp.RequestHandler):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest','extentSouthEast','status','zoom','dateCreated','dateLastModified','proj','type']:
+                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+            """
+            elif key in []:
+                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
+                d = c.split(',')
+                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
+            """
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+    def get(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id 
+        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if species_id is None or len(species_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + species_key_name)
+            self.error(404) # Not found
+        
 class Taxonomy(webapp.RequestHandler):
 
     def methods(self):
@@ -291,7 +327,7 @@ class RangeMapHandler(BaseHandler):
     '''Handler for rendering range maps based on species key_name.'''
     def get(self, class_, rank, species):
         key_name = os.path.join(class_, rank, species)
-        self.render_template('rangemap.html', {'key_name':key_name})
+        self.render_template('rangemap.html', {})
                 
 class LayersTileHandler(BaseHandler):
 
@@ -495,6 +531,7 @@ application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
+          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
