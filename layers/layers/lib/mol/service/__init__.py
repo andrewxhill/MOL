@@ -346,6 +346,11 @@ class Layer(object):
             # Copies files to errors directory for additional processing:
             err_dir = os.path.join(self.errdir, 'animalia/species')
             if os.path.exists(err_dir):
+                for root, dirs, files in os.walk(err_dir):
+                    for f in files:
+                        os.unlink(os.path.join(root, f))
+                    for d in dirs:
+                        shutil.rmtree(os.path.join(root, d))
                 shutil.rmtree(err_dir + '/^')
             for file in os.listdir(src_dir):
                 if file.startswith(self.id):
