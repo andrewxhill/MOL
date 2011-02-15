@@ -2,3 +2,7 @@ cron:
 - description: update modified tiles
   url: /cron/interpolate
   schedule: every 60 minutes
+  
+- description: kickoff remote server scan for new layers
+  url: /cron/remote/scan
+  schedule: every 3 minutes

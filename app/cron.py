@@ -24,6 +24,7 @@ import cStringIO
 import datetime
 import png
 import time
+import urllib2
 
 
 class InterpolateTiles(webapp.RequestHandler):
@@ -43,10 +44,21 @@ class InterpolateTiles(webapp.RequestHandler):
             )
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.out.write('MR Cron Started')
+            
+class RemoteScan(webapp.RequestHandler):
+    def get(self):
+        self.post()
+    def post(self):
+        url = "http://mol.colorado.edu/layers/api/scan"
+        try:
+          result = urllib2.urlopen(url)
+        except urllib2.URLError, e:
+          handleError(e)
 
 application = webapp.WSGIApplication(
          [
-          ('/cron/interpolate',InterpolateTiles)
+          ('/cron/interpolate',InterpolateTiles),
+          ('/cron/remote/scan',RemoteScan)
          ],
          debug=True)
 
