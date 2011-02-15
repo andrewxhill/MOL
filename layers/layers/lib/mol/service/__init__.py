@@ -346,7 +346,7 @@ class Layer(object):
             # Copies files to errors directory for additional processing:
             err_dir = os.path.join(self.errdir, 'animalia/species')
             if os.path.exists(err_dir):
-                shutil.rmtree(err_dir + '/*')
+                shutil.rmtree(err_dir + '/^')
             for file in os.listdir(src_dir):
                 if file.startswith(self.id):
                     shutil.copy2(os.path.join(src_dir, file), err_dir)
