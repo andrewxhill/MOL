@@ -403,7 +403,7 @@ class Layer(object):
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
                                    app_globals.TILE_MAX_ZOOM + 1,
-                                   "World")
+                                   "MOL-EORM")
 
         """
         self.tiling = subprocess.Popen(
