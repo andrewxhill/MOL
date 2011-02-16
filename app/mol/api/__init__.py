@@ -460,6 +460,11 @@ class LayersHandler(BaseHandler):
             logging.info('Created TileSetIndex with errors only')
             return
 
+        species_index = SpeciesIndex.get_by_key_name(species_key_name)
+        if species_index is not None:
+            species_index.hasRangeMap = True
+            db.put(species_index)
+            
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', species_key_name),
