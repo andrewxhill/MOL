@@ -460,8 +460,10 @@ class LayersHandler(BaseHandler):
             logging.info('Created TileSetIndex with errors only')
             return
 
-        species_index = SpeciesIndex.get_by_key_name(species_key_name)
+        species = Species.get_by_key_name(species_key_name)
+        species_index = SpeciesIndex.get_by_key_name(species_key_name, parent=species)
         if species_index is not None:
+            logging.info('Updating SpeciesIndex.hasRangeMap for %s' % species_key_name)
             species_index.hasRangeMap = True
             db.put(species_index)
             
