@@ -71,13 +71,16 @@ class _PutRequest(_RequestWrapper):
 def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
     sh = 2 * math.pi * 6378137 / 2.0
-    mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
-    lon, lon0 = (mx / sh) * 180.0, (mx0 / sh) * 180.0
-    lat, lat0 = (my / sh) * 180.0, (my0 / sh) * 180.0
-    lat = 180 / math.pi * (2 * math.atan( math.exp( lat * math.pi / 180.0)) - math.pi / 2.0)
+    mx, mx0, my, my0 = bb[0], bb[1], bb[2], bb[3]
+    lon  = (mx  / sh) * 180.0
+    lon0 = (mx0 / sh) * 180.0
+    lat  = (my  / sh) * 180.0
+    lat0 = (my0 / sh) * 180.0
+    lat =  180 / math.pi * (2 * math.atan( math.exp( lat  * math.pi / 180.0)) - math.pi / 2.0)
     lat0 = 180 / math.pi * (2 * math.atan( math.exp( lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
-
+    
+    
 class _GdalUtil(object):
     """GDAL Utility class with static helper methods."""
 
