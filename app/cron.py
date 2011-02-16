@@ -17,7 +17,6 @@
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-<<<<<<< HEAD
 from mol.db import Tile, TileUpdate
 import cStringIO
 import datetime
@@ -31,6 +30,8 @@ class InterpolateTiles(webapp.RequestHandler):
     def get(self):
         self.post()
     def post(self):
+        pass
+        """
         t = TileUpdate.all().fetch(1)
         if len(t) == 1:
             mr_control.start_map(
@@ -44,6 +45,7 @@ class InterpolateTiles(webapp.RequestHandler):
             )
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.out.write('MR Cron Started')
+        """
             
 class RemoteScan(webapp.RequestHandler):
     def get(self):
@@ -53,7 +55,7 @@ class RemoteScan(webapp.RequestHandler):
         try:
           result = urllib2.urlopen(url)
         except urllib2.URLError, e:
-          handleError(e)
+          self.response.out.write(e)
 
 application = webapp.WSGIApplication(
          [
