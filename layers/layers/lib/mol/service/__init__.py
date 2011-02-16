@@ -69,15 +69,13 @@ class _PutRequest(_RequestWrapper):
         _RequestWrapper.__init__(self, 'PUT', *args, **kwargs)
                 
 def MetersToLatLon(bb):
-    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
+    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
+    sh = 2 * math.pi * 6378137 / 2.0
     mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
-    originShift = 2 * math.pi * 6378137 / 2.0
-    lon = (mx / originShift) * 180.0
-    lat = (my / originShift) * 180.0
-    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
-    lon0 = (mx0 / originShift) * 180.0
-    lat0 = (my0 / originShift) * 180.0
-    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    lon, lon0 = (mx / sh) * 180.0, (mx0 / sh) * 180.0
+    lat, lat0 = (my / sh) * 180.0, (my0 / sh) * 180.0
+    lat = 180 / math.pi * (2 * math.atan( math.exp( lat * math.pi / 180.0)) - math.pi / 2.0)
+    lat0 = 180 / math.pi * (2 * math.atan( math.exp( lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
 
 class _GdalUtil(object):
@@ -124,7 +122,7 @@ class _GdalUtil(object):
         src_lyr = src_ds.GetLayer(0)
         src_extent = src_lyr.GetExtent()
         bb = MetersToLatLon(src_extent)
-        bb = {'minLon': min(bb[0], bb[2]), 'minLat': min(bb[1], bb[3]), 'maxLon': max(bb[0], bb[2]), 'maxLat': max(bb[1], bb[3])}
+        bb = {'minLon': bb[0], 'minLat': bb[1], 'maxLon': bb[2], 'maxLat': bb[3]}
         """
         ascdata = gdal.Open(filepath)
         if ascdata is None:
@@ -397,10 +395,10 @@ class Layer(object):
 
         a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
 
-        bbox = (int(a + 177) - 180,
-                int(b + 177) - 180,
-                math.ceil(x + 183) - 180,
-                math.ceil(y + 183) - 180)
+        bbox = (a,
+                b,
+                x,
+                y)
 
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
