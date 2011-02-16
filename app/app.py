@@ -39,14 +39,14 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "templates", file)
         self.response.out.write(template.render(path, template_args))
 
-class ColSearchHandler(BaseHandler):
-    """Handler for the COL search UI."""
+class SearchHandler(BaseHandler):
+    """Handler for the search UI."""
     def get(self):
         self.render_template("pager.html", {})
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
-          ('/col/search', ColSearchHandler),
+          ('/search', SearchHandler),
           ('/playground/col', ColPage),
           ('/playground/map', MapPage)],
          debug=True)
