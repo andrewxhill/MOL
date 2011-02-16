@@ -115,7 +115,7 @@ app.setupPage = function(query) {
         if (q == null) {
             return;
         }
-        $('queryText').value = q;
+        $('queryText').value = decodeURIComponent(q);
         setOption('gql', q);
     } else {
         $('queryText').value = query;  
