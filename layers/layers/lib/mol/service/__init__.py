@@ -388,6 +388,10 @@ class Layer(object):
         if not self.converted:
             self.toasc()
         """
+        tiles_dir = os.path.join(self.tiledir, 'animalia/species', self.id)
+        if os.path.exists(err_dir):
+            shutil.rmtree(tiles_dir)
+            
         if self.meta is None:
             #self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
             self.meta = _GdalUtil.getmetadata(self.path)
