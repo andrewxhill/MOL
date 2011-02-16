@@ -9,6 +9,16 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Species
+  properties:
+  - name: __key__
+    direction: desc
+
+- kind: SpeciesIndex
+  properties:
+  - name: __key__
+    direction: desc
+
 - kind: SpeciesIndex
   properties:
   - name: names

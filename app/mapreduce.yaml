@@ -7,8 +7,16 @@ mapreduce:
     - name: entity_kind
       default: mol.db.Species
 
-- name: Build Tile entities from TmpTile entities
-      default: Tiles.Tile
+      
+- name: Set range map boolean on SpeciesIndex
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.set_range_map
+    params:
+    - name: entity_kind
+      default: mol.db.SpeciesIndex
+    - name: shard_count
+      default: 2
       
 - name: Process queued Tiles stored in TileUpdate
   mapper:
@@ -16,6 +24,6 @@ mapreduce:
     handler: mappers.interpolate
     params:
     - name: entity_kind
-      default: Tiles.TileUpdate
+      default: mol.db.TileUpdate
     - name: shard_count
       default: 2

@@ -67,3 +67,4 @@ class SpeciesIndex(db.Model):
     genus = db.StringProperty()
     species = db.StringProperty()
     infraSpecies = db.StringProperty()
+    hasRangeMap = db.BooleanProperty(default=False)

@@ -18,7 +18,7 @@
 from google.appengine.api import images, memcache
 from google.appengine.ext import db
 from mapreduce import operation as op
-from mol.db import Tile, TileUpdate
+from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import png
 
@@ -27,6 +27,13 @@ def delete(entity):
     #if len(entity.key().name().split('/')[1]) < 6:
     yield op.db.Delete(entity)
 
+def set_range_map(entity):
+    key_name = entity.key().name()
+    if TileSetIndex.get_by_key_name(key_name) is not None:
+        entity.hasRangeMap = True
+    else:
+        entity.hasRangeMap = False
+    yield op.db.Put(entity)
 
 def interpolate(entity):
     """Processes any changed tiles
