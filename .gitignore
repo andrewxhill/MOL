@@ -1,3 +1,14 @@
+# Production ini #
+##################
+production.ini
+
+# Bulkloader files #
+####################
+colapp/colexport/*.csv
+colapp/bulkloader-*
+bulkloader-log*
+bulkloader-progress*
+
 # Compiled source #
 ###################
 *.pyc
@@ -15,3 +26,7 @@
 *.pydevproject
 *.iml
 
+# OS files #
+############
+.DS_Store
+*.*~

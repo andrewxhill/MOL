@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Catalog of Life - Search Interface</title>
+<link href='http://fonts.googleapis.com/css?family=Josefin+Sans'
+    rel='stylesheet' type='text/css'>
+<style>
+#mol {
+	font-family: 'Josefin Sans', arial, serif;
+	font-size: 26px;
+	font-style: normal;
+	font-weight: 400;
+	text-shadow: none;
+	text-decoration: none;
+	text-transform: none;
+	letter-spacing: -0.037em;
+	word-spacing: -0.108em;
+	line-height: 1.17;
+}
+
+#submitButton {
+	position: fixed;
+	top: 53px;
+}
+</style>
+<script src="http://www.google.com/jsapi"></script>
+<script src="../static/tablequerywrapper.js"></script>
+</head>
+<body style="font: 75% Lucida Grande, Trebuchet MS">
+<div id='mol'>Map of Life</div><br>
+<input type='search' id='queryText' style="width: 300px;">        
+<button id='submitButton' value="submit" type="submit">Search Catalog of Life</button>
+        
+
+<p>
+<div id="table"></div>
+<script>
+google.load('visualization', '1', {
+    'packages' : [ 'table' ]
+});
+
+google.setOnLoadCallback(init);
+
+var dataSourceUrl = '/api/taxonomy';
+var query, options, container, submitButton;
+
+$ = (function() {
+    var queryPlaceholder = "concolor";
+    var $ = function(id) {
+        return document.getElementById(id);
+    }
+    $('queryText').setAttribute('placeholder', queryPlaceholder);
+    $('queryText').addEventListener('keyup', function(evt) {
+        if (evt.keyCode === 13) {
+            $('submitButton').click();
+        }
+    }, false);
+    return $;
+}());
+
+function init() {
+    query = new google.visualization.Query(dataSourceUrl);
+    container = document.getElementById("table");
+    options = {
+        'pageSize' : -1,
+        'sort' : 'disable'
+    };
+    submitButton = $('submitButton');
+}
+
+function sendAndDraw() {
+    query.abort();
+    var callback = function(isDone) {
+        if (isDone) {
+            $('submitButton').removeAttribute('disabled', 0);
+            } else {
+            $('submitButton').setAttribute('disabled', 1);
+        }
+    }
+    var tableQueryWrapper = new TableQueryWrapper(query, container, options, callback);
+    tableQueryWrapper.sendAndDraw();
+}
+
+function setOption(prop, value) {
+    options[prop] = value;
+    sendAndDraw();
+}
+
+var app = app || {};
+
+app.urldecode = function (str) { 
+	return decodeURIComponent((str+'').replace(/+/g, '%20')); 
+}
+
+app.handleOnClick = function(evt) {
+    var gql = $('queryText').value || $('queryText').getAttribute('placeholder');
+    setOption('gql', gql);    
+    app.go(gql);
+}
+
+app.go = function(q) {
+    app.setupPage(q);
+    history.pushState(q, document.title, '?q=' + q);
+}
+
+onpopstate = function(event) {
+    app.setupPage(event.state);
+}
+
+app.setupPage = function(query) {
+    if (query == null) {
+        // Handles intitial page load with or without q param:
+        var q = window.location.search.split('q=')[1];
+        if (q == null) {
+            return;
+        }
+        $('queryText').value = q;
+        setOption('gql', q);
+    } else {
+        $('queryText').value = query;  
+        setOption('gql', query);      
+    }
+  }
+
+$('submitButton').addEventListener('click', app.handleOnClick, false);
+</script>
+</body>
+</html>

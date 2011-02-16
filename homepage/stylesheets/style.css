@@ -1,0 +1,132 @@
+body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; 
+    min-width: 860px; margin: 0px; height: 100%; width: 100%; background: #232323; }
+div#header { padding-top: 15px; padding-bottom: 15px; width: 100%; height: 70px; color: #fff; font-size: 60px; font-weight: bold;}
+div#header #title{ padding-left: 30px; font-variant: small-caps; }
+
+div#container { 
+float: left; width: 100%; height: 100%;
+background-color: #b8fd85; color: #111; 
+}
+
+div#content_top{ text-align: center; padding: 10px; font-size: 22px;}
+
+div#map_canvas { float: left; width: 100%; height: 200px; padding: 0px; margin: 0px;}
+
+
+div#content_middle { float: left; width: 95%; text-align: center; margin-left: auto; margin-right: auto; padding: 10px; font-size: 22px;}
+div#main_links { width: 690px ; margin-left: auto ; margin-right: auto ; }
+div#button_link { border: none; }
+
+img.main_link { margin: 20px; float: left; width: 280px; height: 80px; border: none; }
+div#block_title { margin-left: 5px; margin-right: 5px; float: left; text-align: center; padding: 1px; color: #111; font-size: 24px; width: 240px; }
+
+div#text_blocks { width: 780px; margin-left: auto; margin-right: auto;}
+/* div#blog, div#about { overflow: hidden; margin: 10px; float: left; text-align: justify; padding: 1px; color: #333; font-size: 18px; height: 300px; width: 400px; } */
+div#blog, div#about, div#code { overflow: hidden; margin: 5px; float: left; text-align: left; padding: 1px; font-size: 16px; height: 295px; width: 240px; }
+
+div.gfc-resultsHeader{ border: none; }
+
+dif#footer {width: 90%; margin-top: 20px;}
+div#footer_links { float: right; text-align: left; padding-right: 20px; padding-right: 20px; height: auto; color: #fff; }
+div#footer_links a { font-size: 12px; color: #aaa; padding-right: 8px; padding-left: 8px; line-height: 150%; text-decoration: underline;}
+
+
+/* GRITTER STYLES */
+/* ie6 trash */
+* html #gritter-notice-wrapper {
+	position:absolute; 
+}
+* html .gritter-top {
+	margin-bottom:-10px;
+}
+* html .gritter-item {
+	padding-bottom:0;
+}
+* html .gritter-bottom {
+	margin-bottom:0;
+}
+* html .gritter-close {
+	background:url(../images/gritter-close-ie6.gif);
+	width:22px;
+	height:22px;
+	top:7px;
+	left:7px;
+}
+
+/* the norm */
+#gritter-notice-wrapper {
+    background: #1d1d1d;
+    filter: alpha(opacity=85);
+    opacity: 0.85;
+	-moz-opacity:0.85;
+	-khtml-opacity: 0.85;
+	position:fixed;
+	top:140px;
+	left:20px;
+	width:701px;
+	z-index:9999;
+}
+.gritter-item-wrapper {
+	position:relative;
+	margin:0 0 10px 0;
+	background:url('.'); /* ie7/8 fix */ 
+}
+.gritter-top {
+	background:url(../images/gritter.png) no-repeat left -30px;
+	height:10px;
+}
+.hover .gritter-top {
+	background-position:right -30px;
+}
+.gritter-bottom {
+	background:url(../images/gritter.png) no-repeat left bottom;
+	height:8px;
+	margin:0;
+}
+.hover .gritter-bottom {
+	background-position: bottom right;
+}
+.gritter-item {
+	display:block;
+	background:url(../images/gritter.png) no-repeat left -40px;
+	color:#eee;
+	padding:2px 11px 8px 11px;
+	font-size: 24px;
+	font-family:verdana;
+}
+.hover .gritter-item {
+	background-position:right -40px;
+}
+.gritter-item p {
+	padding:0;
+	margin:0;
+}
+.gritter-close {
+	position:absolute;
+	top:5px;
+	left:3px;
+	background:url(../images/gritter.png) no-repeat left top;
+	cursor:pointer;
+	width:30px;
+	height:30px;
+}
+.gritter-title {
+	font-size:34px;
+	font-weight:bold;
+	padding:0 0 7px 0;
+	display:block;
+	text-shadow:1px 1px #000; /* Not supported by IE :( */
+}
+.gritter-image {
+	width:48px;
+	height:48px;
+	float:left;
+}
+.gritter-with-image,
+.gritter-without-image {
+	padding:0 0 5px 0;
+}
+.gritter-with-image {
+	width:220px;
+	float:right;
+}

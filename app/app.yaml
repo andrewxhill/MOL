@@ -1,5 +1,5 @@
-application: mol-apps
-version: 0-1
+application: mol-lab
+version: prototype
 runtime: python
 api_version: 1
 
@@ -27,7 +27,16 @@ handlers:
   static_dir: static
 
 - url: /api/.*
-  script: api.py
-  
+  script: mol/api/__init__.py
+ 
+- url: /rangemap/.*
+  script: mol/api/__init__.py
+
+- url: /layers/.*
+  script: mol/api/__init__.py
+
+- url: /layers
+  script: mol/api/__init__.py
+
 - url: /.*
   script: app.py
