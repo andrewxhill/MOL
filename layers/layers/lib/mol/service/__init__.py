@@ -389,7 +389,7 @@ class Layer(object):
             self.toasc()
         """
         tiles_dir = os.path.join(self.tiledir, 'animalia/species', self.id)
-        if os.path.exists(err_dir):
+        if os.path.exists(tiles_dir):
             shutil.rmtree(tiles_dir)
             
         if self.meta is None:
