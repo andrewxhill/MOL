@@ -56,7 +56,7 @@ class TileSetMetadata(webapp.RequestHandler):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
         for key in obj.properties().keys():
-            if key in ['extentNorthWest','extentSouthEast','status','zoom','dateCreated','dateLastModified','proj','type']:
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateCreated', 'dateLastModified', 'proj', 'type']:
                 dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
             """
             elif key in []:
@@ -172,7 +172,6 @@ class Taxonomy(webapp.RequestHandler):
         elif gql is not None:
             out = self.fromQuery(rank, gql, offset, limit)
         data = out.get('items')
-        #data = simplejson.loads("""[{"authority": "COL", "classification": {"kingdom": "animalia", "superfamily": null, "family": "pomacentridae", "author": "Gill, 1862", "class": "actinopterygii", "infraspecies": null, "phylum": "chordata", "genus": "abudefduf", "order": "perciformes", "species": "concolor"}, "name": "abudefduf concolor", "rank": "species", "names": [{"source": "COL", "type": "common name", "name": "Tono", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca rebozada", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "Petaca", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "M\u00f8rk sergentfisk", "language": "Danish", "author": null}, {"source": "COL", "type": "common name", "name": "Night sergeant", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Dusky seargent", "language": "English", "author": null}, {"source": "COL", "type": "common name", "name": "Chauffet de nuit", "language": "French", "author": null}, {"source": "COL", "type": "common name", "name": "Ayangue pardo", "language": "Spanish", "author": null}, {"source": "COL", "type": "common name", "name": "&#38620;&#33394;&#35910;&#23064;&#39770;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "common name", "name": "&#26434;&#33394;&#35910;&#23064;&#40060;", "language": "Mandarin Chinese", "author": null}, {"source": "COL", "type": "accepted name", "name": "Abudefduf concolor", "language": "latin", "author": "Gill, 1862"}, {"source": "COL", "type": "scientific name", "name": "Pomacentrus robustus", "language": "latin", "author": "G\u00fcnther, 1862"}, {"source": "COL", "type": "scientific name", "name": "Euschistodus concolor", "language": "latin", "author": "Gill, 1862"}]}]""", encoding='utf-8')
 
         # TODO: how to handle 'classification' and 'names' in table format?
         # Right now just flattening classification and ignoring names...
