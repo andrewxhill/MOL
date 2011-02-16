@@ -15,22 +15,22 @@
 # limitations under the License.
 #
 from django.utils import simplejson
+from google.appengine.api import urlfetch
 from google.appengine.api.datastore_errors import BadKeyError, BadArgumentError
+from google.appengine.api.memcache import Client
 from google.appengine.ext import webapp, db
 from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
 from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
-from mol.services import TileService, LayerService
+import datetime
 import logging
 import os
 import pickle
 import time
-import datetime
 import wsgiref.util
-from google.appengine.api.memcache import Client
-from google.appengine.api import urlfetch
+from mol.services import TileService
 
 memcache = Client()
 
@@ -162,7 +162,7 @@ class Taxonomy(webapp.RequestHandler):
         params = simplejson.loads(tq)
         limit = params.get('limit')
         offset = params.get('offset')
-        gql = params.get('gql')
+        gql = params.get('gql').strip()
         rank = params.get('rank', None)
         key = params.get('key', None)
 
