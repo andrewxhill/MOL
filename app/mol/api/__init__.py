@@ -422,12 +422,6 @@ class LayersHandler(BaseHandler):
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _update(self, metadata):
-        errors = self._param('errors', required=False)
-        if errors is not None:
-            metadata.errors.append(errors)
-            db.put(metadata)
-            logging.info('Updated TileSetIndex with errors only: ' + errors)     
-            return
             
         dlm = self._param('dateCreated')
         dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
@@ -435,6 +429,14 @@ class LayersHandler(BaseHandler):
             logging.info('TileSetIndex.dlm=%s, metadata.dlm=%s' % (metadata.dateLastModified, dlm))
             self.error(409) # Conflict
             return
+            
+        errors = self._param('errors', required=False)
+        if errors is not None:
+            metadata.errors.append(errors)
+            db.put(metadata)
+            logging.info('Updated TileSetIndex with errors only: ' + errors)     
+            return
+            
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         metadata.extentNorthWest = enw
