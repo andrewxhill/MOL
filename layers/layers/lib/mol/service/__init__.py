@@ -299,7 +299,7 @@ class Layer(object):
             maxDim = max(x,y)
             zMod = 4+int(6378136.0/maxDim)
             self.zoom = zMod
-            logging.info("zoom %s: %s" (zMod, self.id))
+            logging.info("zoom %s: %s" % (zMod, self.id))
             
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
