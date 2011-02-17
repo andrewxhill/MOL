@@ -296,10 +296,13 @@ class Layer(object):
         if dynamicZoom:
             x = extents[1] - extents[0]
             y = extents[3] - extents[2]
+            z = 0
             maxDim = max(x,y)
             zMod = 4+int(6378136.0/maxDim)
-            self.zoom = zMod
-            logging.info("zoom %s: %s" % (zMod, self.id))
+            while 2**z < zMod:
+                z += 1
+            self.zoom = z
+            logging.info("zoom %s: %s" % (z, self.id))
             
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
