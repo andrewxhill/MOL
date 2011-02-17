@@ -45,10 +45,19 @@ class FindID(webapp.RequestHandler):
         if len(d) == 2:
             return "multiple matches"
         elif len(d) == 0:
-            return 400
+            self.error(404)
         else:
             k = d[0]
             self.response.out.write(str(k.name()))
+            
+class ValidKey(webapp.RequestHandler):
+    def get(self, class_, rank, species_id=None):
+        species_key_name = os.path.join(class_, rank, species_id)
+        q = Species.get_by_key_name(species_key_name)
+        if q:
+            return 200
+        else:
+            self.error(404)
             
 
 class TileSetMetadata(webapp.RequestHandler):
@@ -538,6 +547,7 @@ class LayersHandler(BaseHandler):
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
+          ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
