@@ -55,13 +55,13 @@ class ApiController(BaseController):
         layersAdded = 0       
         for item in os.listdir(scan_dir):
             if layersAdded < app_globals.NEW_JOB_LIMIT:
-                logging.info(item)
                 if os.path.splitext(item)[1] != '.shp':
-                    continue
+                    pass
                     #full_path = os.path.join(scan_dir, item)
                     #if not os.path.isdir(full_path):
                     #    continue
                 else:
+                    logging.info(item)
                     shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
                     worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
                                   app_globals.Q_ITEM_FULL_PATH: shp_full_path})
