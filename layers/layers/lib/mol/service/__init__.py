@@ -134,7 +134,7 @@ class _GdalUtil(object):
         geotrans = ascdata.GetGeoTransform()
         bb = _GdalUtil.getboundingbox(geotrans)
         """
-        return {'proj' : 'EPSG:900913', 'geog': bb}
+        return {'proj' : 'EPSG:900913', 'geog': bb}, src_extent
 
 class Layer(object):
 
@@ -288,9 +288,19 @@ class Layer(object):
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
         self.errlog = open(dirpath, 'w')
-
-        self.meta = _GdalUtil.getmetadata(self.path)
-
+        
+        
+        #a first attempt at dynamic zoom control
+        dynamicZoom = True
+        self.meta, extents = _GdalUtil.getmetadata(self.path), extents
+        if dynamicZoom:
+            x = extents[1] - extents[0]
+            y = extents[3] - extents[2]
+            maxDim = max(x,y)
+            zMod = 4+int(6378136.0/maxDim)
+            self.zoom = zMod
+            
+            
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
@@ -411,7 +421,8 @@ class Layer(object):
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
-                                   g.TILE_MAX_ZOOM,
+                                   #g.TILE_MAX_ZOOM,
+                                   self.zoom,
                                    "MOL-EORM",
                                    num_threads=g.TILE_QUEUE_THREADS+0)
 

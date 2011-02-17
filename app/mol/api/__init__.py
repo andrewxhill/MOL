@@ -55,7 +55,7 @@ class ValidKey(webapp.RequestHandler):
         species_key_name = os.path.join(class_, rank, species_id)
         q = Species.get_by_key_name(species_key_name)
         if q:
-            return 200
+            self.response.set_status(200)
         else:
             self.error(404)
             
