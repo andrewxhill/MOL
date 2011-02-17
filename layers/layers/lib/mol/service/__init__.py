@@ -292,7 +292,7 @@ class Layer(object):
         
         #a first attempt at dynamic zoom control
         dynamicZoom = True
-        self.meta, extents = _GdalUtil.getmetadata(self.path), extents
+        self.meta, extents = _GdalUtil.getmetadata(self.path)
         if dynamicZoom:
             x = extents[1] - extents[0]
             y = extents[3] - extents[2]
