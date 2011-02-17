@@ -68,4 +68,4 @@ class ApiController(BaseController):
                     newitems.append(shp_full_path)
                     layersAdded += 1
         response.status = 202
-        return simplejson.dumps({'newitems':newitems})
+        return simplejson.dumps({'newitems':newitems,'qsize':worker_q.qsize})
