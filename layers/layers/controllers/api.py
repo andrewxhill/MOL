@@ -52,7 +52,7 @@ class ApiController(BaseController):
             response.status = 404
             return
         newitems = []
-        layersAdded = 0        
+        layersAdded = 0       
         for item in os.listdir(scan_dir):
             if layersAdded < app_globals.NEW_JOB_LIMIT:
                 logging.info(item)
