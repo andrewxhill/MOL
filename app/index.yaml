@@ -21,6 +21,12 @@ indexes:
 
 - kind: SpeciesIndex
   properties:
+  - name: hasRangeMap
+  - name: names
+  - name: genus
+
+- kind: SpeciesIndex
+  properties:
   - name: names
   - name: genus
 
