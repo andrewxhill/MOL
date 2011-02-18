@@ -21,6 +21,7 @@ from mapreduce import operation as op
 from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import png
+import logging
 
 memcache = m.Client()
 
@@ -35,6 +36,10 @@ def set_range_map(entity):
         entity.hasRangeMap = True
     else:
         entity.hasRangeMap = False
+    if not entity.names:
+        entity.names = []
+        logging.warn('SpeciesIndex(%s) has no names' % key_name)
+    entity.hasRangeMap = True
     yield op.db.Put(entity)
 
 def interpolate(entity):
