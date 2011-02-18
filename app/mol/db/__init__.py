@@ -28,18 +28,6 @@ class TileSetIndex(db.Model):
     status = db.CategoryProperty()
     type = db.CategoryProperty()
 
-    def setremotelocation(self, value):
-        try:
-            self.remoteLocation = str(value)
-        except ValueError:
-            self.zoom = None
-
-    def setzoom(self, value):
-        try:
-            self.zoom = int(value)
-        except ValueError:
-            self.zoom = None
-
 class Tile(db.Model):
     band = db.BlobProperty()
 
