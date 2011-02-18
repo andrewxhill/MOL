@@ -17,7 +17,9 @@ mapreduce:
       default: mol.db.SpeciesIndex
     - name: shard_count
       default: 2
-      
+    - name: processing_rate
+      default: 800 
+            
 - name: Process queued Tiles stored in TileUpdate
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader

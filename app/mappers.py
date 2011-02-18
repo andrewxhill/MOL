@@ -39,7 +39,6 @@ def set_range_map(entity):
     if not entity.names:
         entity.names = []
         logging.warn('SpeciesIndex(%s) has no names' % key_name)
-    entity.hasRangeMap = True
     yield op.db.Put(entity)
 
 def interpolate(entity):
