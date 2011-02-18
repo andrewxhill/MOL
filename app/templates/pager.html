@@ -23,6 +23,17 @@
 	position: fixed;
 	top: 53px;
 }
+#checkbox {
+    position: fixed;
+    top: 53px;
+    left: 380px;
+}
+#cbtext {
+    position: fixed;
+    top: 56px;
+    left: 400px;
+}
+
 </style>
 <script src="http://www.google.com/jsapi"></script>
 <script src="../static/tablequerywrapper.js"></script>
@@ -30,12 +41,12 @@
 <body style="font: 75% Lucida Grande, Trebuchet MS">
 <div id='mol'>Map of Life</div><br>
 <input type='search' id='queryText' style="width: 300px;">        
-<button id='submitButton' value="submit" type="submit">Search Catalog of Life</button>
-        
+<button id='submitButton' value="submit" type="submit">Search</button>
+<input type='checkbox' id='checkbox'></input><div id='cbtext'>Species with range maps</div>
 
 <p>
 <div id="table"></div>
-<script>
+<script><!--
 google.load('visualization', '1', {
     'packages' : [ 'table' ]
 });
@@ -44,6 +55,22 @@ google.setOnLoadCallback(init);
 
 var dataSourceUrl = '/api/taxonomy';
 var query, options, container, submitButton;
+
+var app = app || {};
+
+app.urlParams = {};
+
+app.parseUrlParams = function() {
+    var e,
+    a = /\+/g,  // Regex for replacing addition symbol with a space
+    r = /([^&=]+)=?([^&]*)/g,
+    d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+    q = window.location.search.substring(1);
+    app.urlParams = {};
+    while (e = r.exec(q)) {
+        app.urlParams[d(e[1])] = d(e[2]);
+    }
+}
 
 $ = (function() {
     var queryPlaceholder = "concolor";
@@ -56,6 +83,7 @@ $ = (function() {
             $('submitButton').click();
         }
     }, false);
+    app.parseUrlParams();
     return $;
 }());
 
@@ -82,49 +110,110 @@ function sendAndDraw() {
     tableQueryWrapper.sendAndDraw();
 }
 
-function setOption(prop, value) {
+function setOption(prop, value, send) {
     options[prop] = value;
+    if (send == null || send == true) {
+        sendAndDraw();
+    }
+}
+
+function setOptions(opts) {
+    for (name in opts) {
+        var value = opts[name];
+        options[name] = value; 
+    }
     sendAndDraw();
 }
 
-var app = app || {};
-
-app.urldecode = function (str) { 
-	return decodeURIComponent((str+'').replace(/+/g, '%20')); 
-}
-
 app.handleOnClick = function(evt) {
-    var gql = $('queryText').value || $('queryText').getAttribute('placeholder');
-    setOption('gql', gql);    
-    app.go(gql);
+    var m = $('checkbox').checked,
+        q = $('queryText').value || $('queryText').getAttribute('placeholder'),
+        opts = {};
+    opts['maps'] = m;
+    if (q) {
+        opts['gql'] = q;
+    }
+    setOptions(opts);    
+    app.go(q, m);
 }
 
-app.go = function(q) {
-    app.setupPage(q);
-    history.pushState(q, document.title, '?q=' + q);
+app.go = function(q, m) {
+    //var m = $('checkbox').checked,
+    //    q = $('queryText').value || $('queryText').getAttribute('placeholder');    
+    //opts['maps'] = m;
+    //if (q) {
+    //    opts['gql'] = q;
+   // }
+    //setOptions(opts);
+    //app.setupPage(q, m);
+    var search = '?';
+    if (q) {
+        search = search + 'q=' + q;
+    }
+    if (m) {
+        search = search + '&maps=' + m;
+    }         
+    history.pushState(q, document.title, search);
 }
 
 onpopstate = function(event) {
-    app.setupPage(event.state);
+    app.parseUrlParams();
+    var q = app.urlParams['q'],
+        maps = app.urlParams['maps'];
+    if (event.state == null) {
+    	app.setupPage(null, null);
+    } else {
+    	app.setupPage(q, maps);
+    }
 }
 
-app.setupPage = function(query) {
-    if (query == null) {
-        // Handles intitial page load with or without q param:
-        var q = window.location.search.split('q=')[1];
-        if (q == null) {
-            return;
-        }
-        q = decodeURIComponent(q);
-        $('queryText').value = q
-        setOption('gql', q);
-    } else {
-        $('queryText').value = query;  
-        setOption('gql', query);      
+app.setupPage = function(q, maps) {
+    var opts = {};
+    if (q == null && maps == null) {
+    	$('queryText').value = '';
+    	$('checkbox').checked = false;
+    	$('table').innerHTML = '';
+        //setOptions({'gql': $('queryText').getAttribute('placeholder'),
+        //             'maps': false});
+        return;
     }
+    if (maps == null) {       
+        $('checkbox').checked = false;
+    } else if (maps == 'false') {
+        $('checkbox').checked = false;
+    } else if (maps == 'true') {
+        $('checkbox').checked = true;
+    } else {
+    	$('checkbox').checked = false;
+    } 
+    $('queryText').value = q;
+    opts['maps'] = $('checkbox').checked;
+    opts['gql'] = q;
+    setOptions(opts);
   }
 
+app.checkboxHandler = function(evt) {
+    app.handleOnClick();
+    //app.parseUrlParams();
+    //var checked = $('checkbox').checked,
+    //    search = window.location.search,
+    //    maps = app.urlParams['maps'],
+    //    q = app.urlParams['q'];
+    //if (maps != null && q != null) {
+    //    history.pushState(q, document.title, '?q=' + q + '&maps=' + checked);
+    //} else if (q == null) {
+    //    history.pushState(q, document.title, '?maps=' + checked);
+    //} else  {
+    //    history.pushState(q, document.title, '?q=' + q);
+    //}            
+    //if ($('checkbox').checked) {        
+        //setOption('maps', 'true', false);
+    //}
+    //return false;
+}
+
+$('checkbox').addEventListener('click', app.checkboxHandler, false);
 $('submitButton').addEventListener('click', app.handleOnClick, false);
-</script>
+--></script>
 </body>
 </html>

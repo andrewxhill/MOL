@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 from django.utils import simplejson
-from google.appengine.api import urlfetch
+from google.appengine.api import urlfetch, memcache
 from google.appengine.api.datastore_errors import BadKeyError, BadArgumentError
 from google.appengine.api.memcache import Client
 from google.appengine.ext import webapp, db
@@ -31,8 +31,6 @@ import pickle
 import time
 import wsgiref.util
 from mol.services import TileService
-
-memcache = Client()
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
@@ -119,26 +117,29 @@ class Taxonomy(webapp.RequestHandler):
         out = {"time":t, "items":results}
         return out
 
-    def fromQuery(self, r, s, of, n):
+    def fromQuery(self, r, s, of, n, maps=False):
         start = time.time()
         results = []
         orderOn = r if r is not None else "genus"
-        memk = "%s/%s/%s/%s" % (r, s, of, n)
+        memk = "%s/%s/%s/%s/%s" % (r, s, of, n, str(maps))
         d = memcache.get(memk)
         if d is None:
+            logging.info('Memcache miss on ' + memk)
             if r is None:
-                #q = SpeciesIndex.gql("WHERE names = :1 ORDER BY %s" % orderOn, s.lower())
                 q = SpeciesIndex.all(keys_only=True).filter("names =", s.lower()).order(orderOn)
             else:
-                q = SpeciesIndex.all(keys_only=True).filter("%s =" % rank, s.lower()).order(orderOn)
+                q = SpeciesIndex.all(keys_only=True).filter("%s =" % r, s.lower()).order(orderOn)
+            if maps:
+                q.filter('hasRangeMap =', maps)
+            logging.info('query ' + str(q.__dict__))
             d = q.fetch(limit=n, offset=of)
+        else:
+            logging.info('Memcache hit on ' + memk)
         memcache.set(memk, d, 3000)
         ct = 0
         for key in d:
             ct += 1
-            #ent = Species.get(key.parent())
             ent = db.get(key.parent())
-            logging.error(ent.classification)
             p = key.id_or_name().split('/')
             e = {"key_name" : key.name(),
                  "rank": str(p[-2]),
@@ -147,8 +148,6 @@ class Taxonomy(webapp.RequestHandler):
                  "authority": ent.authority,
                  "names": simplejson.loads(ent.names) #.('\\','')
                 }
-            logging.info('ent.NAMES ' + ent.names)
-            logging.info('e.NAMES ' + str(e['names']))
             results.append(e)
         t = int(1000 * (time.time() - start)) / 1000.0
         out = {"time":t, "items":results, "offset":of, "limit":n}
@@ -160,17 +159,21 @@ class Taxonomy(webapp.RequestHandler):
     def handle_data_source_request(self):
         tq = self.request.get('tq')
         params = simplejson.loads(tq)
+        logging.info(str(params))
         limit = params.get('limit')
         offset = params.get('offset')
         gql = params.get('gql').strip()
         rank = params.get('rank', None)
         key = params.get('key', None)
+        maps = params.get('maps', False)
+        logging.info('maps ' + str(maps))
 
         # Gets the data for the request:
         if key:
             out = self.fromKey(key)
         elif gql is not None:
-            out = self.fromQuery(rank, gql, offset, limit)
+            out = self.fromQuery(rank, gql, offset, limit, maps=maps)
+            logging.info('GQL ' + gql)
         data = out.get('items')
 
         # TODO: how to handle 'classification' and 'names' in table format?
@@ -192,7 +195,6 @@ class Taxonomy(webapp.RequestHandler):
             
             
             key_name = rec['key_name']
-            logging.info('key_name ' + key_name)
             if TileSetIndex.get_by_key_name(key_name) is not None:
                 row['Range Map'] = '<a href="/rangemap/%s">map</a>' % key_name
             else:
@@ -229,7 +231,7 @@ class Taxonomy(webapp.RequestHandler):
         # Checks for and handles a Google Visualization data source request:
         tqx = self.request.get('tqx', None)
         if tqx is not None:
-            logging.info(type(tqx))
+            logging.info(tqx)
             self.handle_data_source_request()
             return
 
@@ -321,7 +323,7 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "../../templates", file)
         logging.info(path)
         self.response.out.write(template.render(path, template_args))
-
+        
 class RangeMapHandler(BaseHandler):
     '''Handler for rendering range maps based on species key_name.'''
     def get(self, class_, rank, species):

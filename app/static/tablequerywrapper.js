@@ -142,6 +142,7 @@ TableQueryWrapper.prototype.handlePage = function(properties) {
 TableQueryWrapper.prototype.setPageQueryClause = function(pageIndex) {
   var pageSize = this.pageSize;
   var gql = '';
+  var maps = false;
   var q = {};
     
   if (pageIndex < 0) {
@@ -161,11 +162,15 @@ TableQueryWrapper.prototype.setPageQueryClause = function(pageIndex) {
     if (options['gql']) {
         gql = options['gql'];
     }
+    if (options['maps']) {
+        maps = options['maps'];
+    }
   }
   
   q.limit = pageSize + 1;
   q.offset = newStartRow;
   q.gql = options['gql'] || '';
+  q.maps = options['maps'] || '';
   
   this.pageQueryClause = JSON.stringify(q);
   
