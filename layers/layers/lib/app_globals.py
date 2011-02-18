@@ -33,5 +33,5 @@ class Globals(object):
         self.Q_ITEM_FULL_PATH = 'fullpath'
         self.Q_ITEM_JOB_TYPE = 'jobtype'
         self.TILE_QUEUE_THREADS = 2
-        self.TILE_MAX_ZOOM = 4
+        self.TILE_MAX_ZOOM = 6
         self.NEW_JOB_LIMIT = 20 #restricts the number of new layers in /ftp/new that can be added to the queue

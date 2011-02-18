@@ -38,7 +38,8 @@ class LayerProcessingThread(threading.Thread):
         
     def run(self):
         """Pulls tasks from the queue and dispatches based on job type."""
-        while True:
+        ct = 0
+        while True and ct < self.g.NEW_JOB_LIMIT:
             task = worker_q.get()
             jobtype = task[self.g.Q_ITEM_JOB_TYPE]
             logging.info('New job: ' + jobtype)

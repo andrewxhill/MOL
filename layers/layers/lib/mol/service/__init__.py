@@ -69,17 +69,18 @@ class _PutRequest(_RequestWrapper):
         _RequestWrapper.__init__(self, 'PUT', *args, **kwargs)
                 
 def MetersToLatLon(bb):
-    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"
-    mx, my, mx0, my0 = bb[0], bb[1], bb[2], bb[3]
-    originShift = 2 * math.pi * 6378137 / 2.0
-    lon = (mx / originShift) * 180.0
-    lat = (my / originShift) * 180.0
-    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
-    lon0 = (mx0 / originShift) * 180.0
-    lat0 = (my0 / originShift) * 180.0
-    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
+    sh = 2 * math.pi * 6378137 / 2.0
+    mx, mx0, my, my0 = bb[0], bb[1], bb[2], bb[3]
+    lon  = (mx  / sh) * 180.0
+    lon0 = (mx0 / sh) * 180.0
+    lat  = (my  / sh) * 180.0
+    lat0 = (my0 / sh) * 180.0
+    lat =  180 / math.pi * (2 * math.atan( math.exp( lat  * math.pi / 180.0)) - math.pi / 2.0)
+    lat0 = 180 / math.pi * (2 * math.atan( math.exp( lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
-
+    
+    
 class _GdalUtil(object):
     """GDAL Utility class with static helper methods."""
 
@@ -124,7 +125,7 @@ class _GdalUtil(object):
         src_lyr = src_ds.GetLayer(0)
         src_extent = src_lyr.GetExtent()
         bb = MetersToLatLon(src_extent)
-        bb = {'minLon': min(bb[0], bb[2]), 'minLat': min(bb[1], bb[3]), 'maxLon': max(bb[0], bb[2]), 'maxLat': max(bb[1], bb[3])}
+        bb = {'minLon': bb[0], 'minLat': bb[1], 'maxLon': bb[2], 'maxLat': bb[3]}
         """
         ascdata = gdal.Open(filepath)
         if ascdata is None:
@@ -133,7 +134,7 @@ class _GdalUtil(object):
         geotrans = ascdata.GetGeoTransform()
         bb = _GdalUtil.getboundingbox(geotrans)
         """
-        return {'proj' : 'EPSG:900913', 'geog': bb}
+        return {'proj' : 'EPSG:900913', 'geog': bb}, src_extent
 
 class Layer(object):
 
@@ -287,9 +288,22 @@ class Layer(object):
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
         self.errlog = open(dirpath, 'w')
-
-        self.meta = _GdalUtil.getmetadata(self.path)
-
+        
+        
+        #a first attempt at dynamic zoom control
+        dynamicZoom = True
+        self.meta, extents = _GdalUtil.getmetadata(self.path)
+        if dynamicZoom:
+            x = extents[1] - extents[0]
+            y = extents[3] - extents[2]
+            z = 0
+            maxDim = max(x,y)
+            zMod = 4+int(6378136.0/maxDim)
+            while 2**z < zMod:
+                z += 1
+            self.zoom = z+4
+            logging.info("zoom %s: %s" % (z, self.id))
+            
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
         for an update, otherwise returns False.
@@ -387,6 +401,10 @@ class Layer(object):
         if not self.converted:
             self.toasc()
         """
+        tiles_dir = os.path.join(self.tiledir, 'animalia/species', self.id)
+        if os.path.exists(tiles_dir):
+            shutil.rmtree(tiles_dir)
+            
         if self.meta is None:
             #self.meta = _GdalUtil.getmetadata(self.srcdir + '/' + self.id + '.shp')
             self.meta = _GdalUtil.getmetadata(self.path)
@@ -397,16 +415,17 @@ class Layer(object):
 
         a, b, x, y = self.meta['geog']['minLon'], self.meta['geog']['minLat'], self.meta['geog']['maxLon'], self.meta['geog']['maxLat']
 
-        bbox = (int(a + 177) - 180,
-                int(b + 177) - 180,
-                math.ceil(x + 183) - 180,
-                math.ceil(y + 183) - 180)
+        bbox = (a,
+                b,
+                x,
+                y)
 
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",
                                    0,
-                                   g.TILE_MAX_ZOOM,
+                                   #g.TILE_MAX_ZOOM,
+                                   self.zoom,
                                    "MOL-EORM",
                                    num_threads=g.TILE_QUEUE_THREADS+0)
 

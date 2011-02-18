@@ -52,19 +52,21 @@ class ApiController(BaseController):
             response.status = 404
             return
         newitems = []
-        layersAdded = 0        
-        for item in os.listdir(scan_dir):
-            if layersAdded < app_globals.NEW_JOB_LIMIT:
-                logging.info(item)
-                if os.path.splitext(item)[1] != '.shp':
-                    continue
-                #full_path = os.path.join(scan_dir, item)
-                #if not os.path.isdir(full_path):
-                #    continue
-                shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
-                              app_globals.Q_ITEM_FULL_PATH: shp_full_path})
-                newitems.append(shp_full_path)
-            layersAdded += 1
+        layersAdded = 0
+        if worker_q.qsize() < 50:       
+            for item in os.listdir(scan_dir):
+                if layersAdded < app_globals.NEW_JOB_LIMIT:
+                    if os.path.splitext(item)[1] != '.shp':
+                        pass
+                        #full_path = os.path.join(scan_dir, item)
+                        #if not os.path.isdir(full_path):
+                        #    continue
+                    else:
+                        logging.info(item)
+                        shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
+                        worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
+                                      app_globals.Q_ITEM_FULL_PATH: shp_full_path})
+                        newitems.append(shp_full_path)
+                        layersAdded += 1
         response.status = 202
-        return simplejson.dumps({'newitems':newitems})
+        return simplejson.dumps({'newitems':newitems,'qsize':str(worker_q.qsize())})

@@ -43,10 +43,19 @@ class FindID(webapp.RequestHandler):
         if len(d) == 2:
             return "multiple matches"
         elif len(d) == 0:
-            return 400
+            self.error(404)
         else:
             k = d[0]
             self.response.out.write(str(k.name()))
+            
+class ValidKey(webapp.RequestHandler):
+    def get(self, class_, rank, species_id=None):
+        species_key_name = os.path.join(class_, rank, species_id)
+        q = Species.get_by_key_name(species_key_name)
+        if q:
+            self.response.set_status(200)
+        else:
+            self.error(404)
             
 
 class TileSetMetadata(webapp.RequestHandler):
@@ -424,12 +433,6 @@ class LayersHandler(BaseHandler):
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _update(self, metadata):
-        errors = self._param('errors', required=False)
-        if errors is not None:
-            metadata.errors.append(errors)
-            db.put(metadata)
-            logging.info('Updated TileSetIndex with errors only: ' + errors)     
-            return
             
         dlm = self._param('dateCreated')
         dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
@@ -437,6 +440,14 @@ class LayersHandler(BaseHandler):
             logging.info('TileSetIndex.dlm=%s, metadata.dlm=%s' % (metadata.dateLastModified, dlm))
             self.error(409) # Conflict
             return
+            
+        errors = self._param('errors', required=False)
+        if errors is not None:
+            metadata.errors.append(errors)
+            db.put(metadata)
+            logging.info('Updated TileSetIndex with errors only: ' + errors)     
+            return
+            
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         metadata.extentNorthWest = enw
@@ -538,6 +549,7 @@ class LayersHandler(BaseHandler):
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
+          ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
