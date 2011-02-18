@@ -40,13 +40,12 @@
 </head>
 <body style="font: 75% Lucida Grande, Trebuchet MS">
 <div id='mol'>Map of Life</div><br>
-<input type='search' id='queryText' style="width: 300px;">        
+<input type='search' id='queryText' style="width: 300px;">
 <button id='submitButton' value="submit" type="submit">Search</button>
 <input type='checkbox' id='checkbox'></input><div id='cbtext'>Species with range maps</div>
-
 <p>
 <div id="table"></div>
-<script><!--
+<script>
 google.load('visualization', '1', {
     'packages' : [ 'table' ]
 });
@@ -160,7 +159,7 @@ onpopstate = function(event) {
     app.parseUrlParams();
     var q = app.urlParams['q'],
         maps = app.urlParams['maps'];
-    if (event.state == null) {
+    if (event.state == null && q == null && maps == null) {
         app.setupPage(null, null);
     } else {
         app.setupPage(q, maps);
@@ -214,6 +213,6 @@ app.checkboxHandler = function(evt) {
 
 $('checkbox').addEventListener('click', app.checkboxHandler, false);
 $('submitButton').addEventListener('click', app.handleOnClick, false);
---></script>
+</script>
 </body>
 </html>
