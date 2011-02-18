@@ -15,12 +15,14 @@
 # limitations under the License.
 #
 
-from google.appengine.api import images, memcache
+from google.appengine.api import images, memcache as m
 from google.appengine.ext import db
 from mapreduce import operation as op
 from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import png
+
+memcache = m.Client()
 
 def delete(entity):
     """Deletes the entity from the datastore."""
