@@ -64,7 +64,7 @@ app.parseUrlParams = function() {
     a = /\+/g,  // Regex for replacing addition symbol with a space
     r = /([^&=]+)=?([^&]*)/g,
     d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
-    q = window.location.search.substring(1);
+    q = window.location.search.substring(1) || window.location.hash.replace('#', '').replace('?', '');
     app.urlParams = {};
     while (e = r.exec(q)) {
         app.urlParams[d(e[1])] = d(e[2]);
@@ -137,25 +137,25 @@ app.handleOnClick = function(evt) {
 }
 
 app.go = function(q, m) {
-    //var m = $('checkbox').checked,
-    //    q = $('queryText').value || $('queryText').getAttribute('placeholder');    
-    //opts['maps'] = m;
-    //if (q) {
-    //    opts['gql'] = q;
-   // }
-    //setOptions(opts);
-    //app.setupPage(q, m);
     var search = '?';
     if (q) {
         search = search + 'q=' + q;
     }
     if (m) {
         search = search + '&maps=' + m;
-    }         
-    history.pushState(q, document.title, search);
+    }  
+    if (typeof(window.history.pushState) == 'function') {        
+        window.history.pushState(q, document.title, search);
+    } else {
+        window.location.hash = '#' + search;
+    }
 }
 
-onpopstate = function(event) {
+window.onhashchange = function(event) {
+    window.onpopstate(event);	
+}
+
+window.onpopstate = function(event) {
     app.parseUrlParams();
     var q = app.urlParams['q'],
         maps = app.urlParams['maps'];
@@ -172,8 +172,6 @@ app.setupPage = function(q, maps) {
         $('queryText').value = '';
         $('checkbox').checked = false;
         $('table').innerHTML = '';
-        //setOptions({'gql': $('queryText').getAttribute('placeholder'),
-        //             'maps': false});
         return;
     }
     if (maps == null) {       
@@ -193,22 +191,6 @@ app.setupPage = function(q, maps) {
 
 app.checkboxHandler = function(evt) {
     app.handleOnClick();
-    //app.parseUrlParams();
-    //var checked = $('checkbox').checked,
-    //    search = window.location.search,
-    //    maps = app.urlParams['maps'],
-    //    q = app.urlParams['q'];
-    //if (maps != null && q != null) {
-    //    history.pushState(q, document.title, '?q=' + q + '&maps=' + checked);
-    //} else if (q == null) {
-    //    history.pushState(q, document.title, '?maps=' + checked);
-    //} else  {
-    //    history.pushState(q, document.title, '?q=' + q);
-    //}            
-    //if ($('checkbox').checked) {        
-        //setOption('maps', 'true', false);
-    //}
-    //return false;
 }
 
 $('checkbox').addEventListener('click', app.checkboxHandler, false);
