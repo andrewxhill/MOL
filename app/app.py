@@ -19,6 +19,9 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
+from google.appengine.api import memcache as m
+
+memcache = m.Client()
 
 class ColPage(webapp.RequestHandler):
     def get(self):
@@ -39,6 +42,13 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "templates", file)
         self.response.out.write(template.render(path, template_args))
 
+class AdminFlushMemcacheHandler(BaseHandler):
+    def get(self):
+        if not memcache.flush_all():
+            self.response.out.write('Memcache failed to flush')
+        else:
+            self.response.out.write('Memcache flushed')
+            
 class SearchHandler(BaseHandler):
     """Handler for the search UI."""
     def get(self):
@@ -48,7 +58,8 @@ application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/search', SearchHandler),
           ('/playground/col', ColPage),
-          ('/playground/map', MapPage)],
+          ('/playground/map', MapPage),
+          ('/admin/flush-memcache', AdminFlushMemcacheHandler)],
          debug=True)
 
 def main():
