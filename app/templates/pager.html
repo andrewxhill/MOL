@@ -151,6 +151,12 @@ app.go = function(q, m) {
     }
 }
 
+// Required for Firefox when browser forward/back is pressed:
+window.onload = function(event) {
+    window.onpopstate(event);
+}
+
+// Required for Firefox:
 window.onhashchange = function(event) {
     window.onpopstate(event);	
 }
