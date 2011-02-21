@@ -19,6 +19,7 @@ import Queue
 import logging
 import os
 import threading
+import shutil
 
 worker_q = Queue.Queue()
 
@@ -84,9 +85,21 @@ class LayerProcessingThread(threading.Thread):
             layer.register()
             logging.info('Layer getting cleaned up...')
             layer.cleanup()
+            
         except (SpeciesIdError), e:
-            # Invalid species ID
-            pass # TODO
+            id = Layer.idfrompath(fullpath)
+            err_dir = self.g.ERR_DIR
+            src_dir = self.g.SRC_DIR
+            err_dir = os.path.join(err_dir, 'animalia/species')
+            # Copies to errors directory:
+            for file in os.listdir(src_dir):
+                if file.startswith(id):
+                    shutil.copy2(os.path.join(src_dir, file), err_dir)
+            # Removes from source directory:
+            for file in os.listdir(src_dir):
+                if file.startswith(self.id):
+                    os.remove(os.path.join(src_dir, file))
+                
         except (Exception), e:
             logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
             if layer is not None:
