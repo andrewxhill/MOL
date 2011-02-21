@@ -16,14 +16,20 @@
 #
 from layers.lib.base import BaseController
 from layers.lib.taskqueue import worker_q
-from pylons import response, app_globals
+from pylons import response, request, app_globals
 import logging
 import os
 import simplejson
+from layers.lib.mol.service import Layer
 
 log = logging.getLogger(__name__)
 
 class ApiController(BaseController):
+    
+    def testid(self):
+        id = request.params.get('id', None)
+        url = request.params.get('url', None)
+        return simplejson.dumps({'species_id':id, 'valid':Layer.isidvalid(id, url)})        
     
     def tiles(self, species_id, zoom, x, y):
         '''This action returns PNG data with the response header Content-Type 
@@ -69,4 +75,4 @@ class ApiController(BaseController):
                         newitems.append(shp_full_path)
                         layersAdded += 1
         response.status = 202
-        return simplejson.dumps({'newitems':newitems,'qsize':str(worker_q.qsize())})
+        return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})

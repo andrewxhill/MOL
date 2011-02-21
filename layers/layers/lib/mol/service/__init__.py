@@ -31,6 +31,9 @@ class Error(Exception):
     """Base class for exceptions in this module."""
     pass
 
+class SpeciesIdError(Error):
+    pass
+
 class LayerError(Error):
     """Exception raised for errors related to raster layers.
 
@@ -72,12 +75,12 @@ def MetersToLatLon(bb):
     "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
     sh = 2 * math.pi * 6378137 / 2.0
     mx, mx0, my, my0 = bb[0], bb[1], bb[2], bb[3]
-    lon  = (mx  / sh) * 180.0
+    lon = (mx / sh) * 180.0
     lon0 = (mx0 / sh) * 180.0
-    lat  = (my  / sh) * 180.0
+    lat = (my / sh) * 180.0
     lat0 = (my0 / sh) * 180.0
-    lat =  180 / math.pi * (2 * math.atan( math.exp( lat  * math.pi / 180.0)) - math.pi / 2.0)
-    lat0 = 180 / math.pi * (2 * math.atan( math.exp( lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
+    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0
     
     
@@ -184,31 +187,29 @@ class Layer(object):
             raise LayerError('', 'The path is not writable: %s' % path)
 
     @staticmethod
-    def isidvalid(id):
+    def isidvalid(id, url):
         """Returns True if the id is successfully validated against the GAE
         web service, otherwise returns False.
         """
-        raise NotImplementedError()
-#        # Validates the id value:
-#        if id is None or _isempty(id):
-#            return False
-#
-#        # Validates id against GAE web service:
-#        resource = "%s/%s" % (g.VALID_ID_SERVICE_URL, id)
-#        logging.info('Validating %s' % resource)
-#        code = None
-#        try:
-#            code = urllib2.urlopen(resource).code
-#        except (HTTPError), e:
-#            code = e.code
-#
-#        if code == 200:
-#            return True
-#        if code == 404:
-#            return False
-#
-#        return False
-#        # TODO: how to handle other response codes?
+        if id is None or _isempty(id):
+            return False
+
+        # Validates id against GAE web service:
+        resource = "%s/%s" % (url, id)
+        logging.info('Validating %s' % resource)
+        code = None
+        try:
+            code = urllib2.urlopen(resource).code
+        except (HTTPError), e:
+            logging.error(str(e))
+            code = e.code
+        except (Exception), e:
+            logging.error(str(e))
+
+        if code == 200:
+            return True
+        else:
+            return False
 
     @staticmethod
     def idfrompath(path):
@@ -226,7 +227,7 @@ class Layer(object):
 
 
     def __init__(self, path, tiledir, errdir, srcdir, dstdir, mapfile, tileurl,
-                 layerurl, zoom=1, converted=False, tiled=False, type='expert',
+                 layerurl, valididurl, zoom=1, converted=False, tiled=False, type='expert',
                  status='accepted'):
         '''Constructs a new Layer object.'''
         
@@ -267,9 +268,14 @@ class Layer(object):
         self.meta = None
         self.status = status
         self.type = type
+        self.valididurl = valididurl
 
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
+        
+        # Validate id
+        if not Layer.isidvalid(id, valididurl):
+            raise SpeciesIdError()
 
         # TODO: This class handles shapefiles now, not asc
         # Sets the asc file path for this layer:
@@ -297,11 +303,11 @@ class Layer(object):
             x = extents[1] - extents[0]
             y = extents[3] - extents[2]
             z = 0
-            maxDim = max(x,y)
-            zMod = 4+int(6378136.0/maxDim)
-            while 2**z < zMod:
+            maxDim = max(x, y)
+            zMod = 4 + int(6378136.0 / maxDim)
+            while 2 ** z < zMod:
                 z += 1
-            self.zoom = z+4
+            self.zoom = z + 4
             logging.info("zoom %s: %s" % (z, self.id))
             
     def register(self):
@@ -394,7 +400,7 @@ class Layer(object):
             else:
                 logging.info('Not deleting files from /ftp/new directory')
 
-    def totiles(self,g):
+    def totiles(self, g):
         """Creates tiles for zoom + 1. Note that this method blocks."""
         """
         # Creates the GeoTiff if it doesn't already exist:
@@ -427,7 +433,7 @@ class Layer(object):
                                    #g.TILE_MAX_ZOOM,
                                    self.zoom,
                                    "MOL-EORM",
-                                   num_threads=g.TILE_QUEUE_THREADS+0)
+                                   num_threads=g.TILE_QUEUE_THREADS + 0)
 
         """
         self.tiling = subprocess.Popen(

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from layers.lib.mol.service import Layer
+from layers.lib.mol.service import Layer, SpeciesIdError
 import Queue
 import logging
 import os
@@ -75,6 +75,7 @@ class LayerProcessingThread(threading.Thread):
                           self.g.SRC_DIR, self.g.DST_DIR, self.g.MAP_XML,
                           self.g.TILE_URL,
                           self.g.LAYER_URL,
+                          self.g.VALID_ID_SERVICE_URL,
                           zoom=self.g.TILE_MAX_ZOOM)                          
             logging.info('Layer created: ' + fullpath)
             layer.totiles(self.g)
@@ -83,6 +84,9 @@ class LayerProcessingThread(threading.Thread):
             layer.register()
             logging.info('Layer getting cleaned up...')
             layer.cleanup()
+        except (SpeciesIdError), e:
+            # Invalid species ID
+            pass # TODO
         except (Exception), e:
             logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
             if layer is not None:

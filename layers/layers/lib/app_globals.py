@@ -23,7 +23,7 @@ class Globals(object):
         self.MAP_XML = "/ftp/tile/mapfile.xml"
         #self.GAE_URL = "http://localhost:8080/"
         self.GAE_URL = "http://prototype.mol-lab.appspot.com/"        
-        self.VALID_ID_SERVICE_URL = "%slayers" % self.GAE_URL
+        self.VALID_ID_SERVICE_URL = "%sapi/validkey" % self.GAE_URL
         self.LAYER_URL = "%slayers" % self.GAE_URL
         #self.TILE_URL = 'http://localhost:5002/api/tiles/animalia/species/%s/zoom/x/y.png'
         self.TILE_URL = 'http://mol.colorado.edu/layers/api/tiles/animalia/species/%s/zoom/x/y.png'
