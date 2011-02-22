@@ -70,9 +70,10 @@ class ApiController(BaseController):
                     else:
                         logging.info(item)
                         shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                        worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
-                                      app_globals.Q_ITEM_FULL_PATH: shp_full_path})
-                        newitems.append(shp_full_path)
-                        layersAdded += 1
+                        if shp_full_path not in app_globals.QUEUED_LAYERS.keys():
+                            worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
+                                          app_globals.Q_ITEM_FULL_PATH: shp_full_path})
+                            newitems.append(shp_full_path)
+                            layersAdded += 1
         response.status = 202
         return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})

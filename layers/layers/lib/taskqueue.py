@@ -39,9 +39,9 @@ class LayerProcessingThread(threading.Thread):
         
     def run(self):
         """Pulls tasks from the queue and dispatches based on job type."""
-        ct = 0
-        while True and ct < self.g.NEW_JOB_LIMIT:
+        while True and len(self.g.QUEUED_LAYERS.keys()) < self.g.TILE_JOB_LIMIT:
             task = worker_q.get()
+            self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]] = 1
             jobtype = task[self.g.Q_ITEM_JOB_TYPE]
             logging.info('New job: ' + jobtype)
             if jobtype == self.g.NEW_SHP_JOB_TYPE:
@@ -117,6 +117,7 @@ class LayerProcessingThread(threading.Thread):
 
         # Notifies queue that this formerly enqueued task is complete:
         logging.info('Task complete')
+        del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
         worker_q.task_done()
 
 def start_myworker(app_globals):
