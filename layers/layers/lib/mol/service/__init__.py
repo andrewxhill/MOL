@@ -191,12 +191,12 @@ class Layer(object):
         """Returns True if the id is successfully validated against the GAE
         web service, otherwise returns False.
         """
+        
         if id is None or _isempty(id):
             return False
 
         # Validates id against GAE web service:
         resource = "%s/%s" % (url, id)
-        logging.info('Validating %s' % resource)
         code = None
         try:
             code = urllib2.urlopen(resource).code
@@ -251,8 +251,6 @@ class Layer(object):
         Layer.validatepath(dstdir, write=True)
         Layer.validatepath(mapfile, dir=False, write=True)
 
-        logging.info('T ' + tileurl)
-        logging.info('L ' + layerurl)
         # Sets properties with the argument values:
         self.path = path
         self.tiledir = tiledir
@@ -272,10 +270,10 @@ class Layer(object):
 
         # Sets the layer id:
         self.id, self.srcdir = Layer.idfrompath(path)
-        
         # Validate id
-        if not Layer.isidvalid(id, valididurl):
+        if not Layer.isidvalid('animalia/species/%s' % self.id, valididurl):
             raise SpeciesIdError()
+        logging.info('Layer id validated by frontend server')
 
         # TODO: This class handles shapefiles now, not asc
         # Sets the asc file path for this layer:
@@ -425,7 +423,7 @@ class Layer(object):
                 b,
                 x,
                 y)
-
+        
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
                                    self.mytiledir.rstrip('/') + "/",

@@ -85,9 +85,12 @@ class LayerProcessingThread(threading.Thread):
             layer.register()
             logging.info('Layer getting cleaned up...')
             layer.cleanup()
-            
+
+        
         except (SpeciesIdError), e:
-            id = Layer.idfrompath(fullpath)
+            logging.info('SpeciesIdError ' + fullpath)
+            id = Layer.idfrompath(fullpath)[0]
+            logging.warn('id=' + id)
             err_dir = self.g.ERR_DIR
             src_dir = self.g.SRC_DIR
             err_dir = os.path.join(err_dir, 'animalia/species')
@@ -97,7 +100,7 @@ class LayerProcessingThread(threading.Thread):
                     shutil.copy2(os.path.join(src_dir, file), err_dir)
             # Removes from source directory:
             for file in os.listdir(src_dir):
-                if file.startswith(self.id):
+                if file.startswith(id):
                     os.remove(os.path.join(src_dir, file))
                 
         except (Exception), e:
