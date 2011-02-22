@@ -57,22 +57,19 @@ class ApiController(BaseController):
         if not scan_dir:
             response.status = 404
             return
-        newitems = []
-        layersAdded = 0
-        if worker_q.qsize() < 50:       
-            for item in os.listdir(scan_dir):
-                if os.path.splitext(item)[1] != '.shp':
-                    pass
-                    #full_path = os.path.join(scan_dir, item)
-                    #if not os.path.isdir(full_path):
-                    #    continue
-                else:
-                    logging.info(item)
-                    shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                    if shp_full_path not in app_globals.QUEUED_LAYERS.keys():
-                        worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
-                                      app_globals.Q_ITEM_FULL_PATH: shp_full_path})
-                        newitems.append(shp_full_path)
-                        layersAdded += 1
+        newitems = [] 
+        for item in os.listdir(scan_dir):
+            if os.path.splitext(item)[1] != '.shp':
+                pass
+                #full_path = os.path.join(scan_dir, item)
+                #if not os.path.isdir(full_path):
+                #    continue
+            else:
+                logging.info(item)
+                shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
+                if shp_full_path not in app_globals.QUEUED_LAYERS.keys():
+                    worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
+                                  app_globals.Q_ITEM_FULL_PATH: shp_full_path})
+                    newitems.append(shp_full_path)
         response.status = 202
         return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})

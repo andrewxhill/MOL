@@ -59,13 +59,16 @@ class LayerProcessingThread(threading.Thread):
         # Validates task:
         if task is None:
             logging.warn('newshp task was None')
+            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
         if not task.has_key(self.g.Q_ITEM_FULL_PATH):
             logging.warn('newshp task does not have %s' % self.g.Q_ITEM_FULL_PATH)
+            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
         fullpath = task[self.g.Q_ITEM_FULL_PATH]
         if fullpath is None or len(fullpath.strip()) == 0:
             logging.warn('newshp task has invalid path ' % fullpath)
+            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
 
         logging.info('Starting new task')
@@ -113,6 +116,7 @@ class LayerProcessingThread(threading.Thread):
                                             Layer.idfrompath(fullpath)[0])
             Layer.register_error(species_key_name, 'Exception', e.message,
                                  self.g.LAYER_URL)
+            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:
