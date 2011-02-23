@@ -58,6 +58,7 @@ class ApiController(BaseController):
             response.status = 404
             return
         newitems = [] 
+        layerCt = 0
         for item in os.listdir(scan_dir):
             if os.path.splitext(item)[1] != '.shp':
                 pass
@@ -67,9 +68,10 @@ class ApiController(BaseController):
             else:
                 logging.info(item)
                 shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                if shp_full_path not in app_globals.QUEUED_LAYERS.keys():
+                if shp_full_path not in app_globals.QUEUED_LAYERS.keys() and layerCt < 5:
                     worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
                                   app_globals.Q_ITEM_FULL_PATH: shp_full_path})
                     newitems.append(shp_full_path)
+                    layerCt += 1
         response.status = 202
         return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})

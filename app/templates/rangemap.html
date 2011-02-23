@@ -116,10 +116,12 @@ app.getNormalizedCoord =  function(coord, zoom) {
     };
 }
 
+var maxZoom = 5;
 app.zoomLayerExtents = function(kn) {
     var url = '/api/tile/metadata/'+kn;
     $.getJSON(url, function(data) {
         app.metadata = data;
+        maxZoom = data.zoom;
         var nw = data.extentNorthWest.split(',');
         var se = data.extentSouthEast.split(',');
         var northW = new google.maps.LatLng(parseFloat(nw[0]),parseFloat(nw[1]));
@@ -135,16 +137,16 @@ $ = (function () {
     var $ = function(id) {
         return document.getElementById(id);
     }
-    var latlng = new google.maps.LatLng(0,0);        
+    var latlng = new google.maps.LatLng(0,0);   
+    app.zoomLayerExtents(key_name);     
     app.mapOptions = {
         zoom: 2,
-        maxZoom: 8,
+        maxZoom: maxZoom,
         center: latlng,
         mapTypeId: google.maps.MapTypeId.TERRAIN
     };
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
     app.map.overlayMapTypes.insertAt(0, app.rangMapType);
-    app.zoomLayerExtents(key_name);
     var metaControlDiv = document.createElement('DIV');
     var homeControl = new app.MetaControl(metaControlDiv, app.map);   
     metaControlDiv.index = 1;
