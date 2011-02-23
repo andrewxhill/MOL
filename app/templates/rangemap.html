@@ -122,6 +122,8 @@ app.zoomLayerExtents = function(kn) {
     $.getJSON(url, function(data) {
         app.metadata = data;
         maxZoom = data.zoom;
+        app.map.mapTypes[app.map.getMapTypeId()].maxZoom = parseInt(maxZoom) - 1; 
+        app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(metaControlDiv);
         var nw = data.extentNorthWest.split(',');
         var se = data.extentSouthEast.split(',');
         var northW = new google.maps.LatLng(parseFloat(nw[0]),parseFloat(nw[1]));
@@ -133,24 +135,25 @@ app.zoomLayerExtents = function(kn) {
     });
 }
 
+var metaControlDiv; 
 $ = (function () {
     var $ = function(id) {
         return document.getElementById(id);
     }
-    var latlng = new google.maps.LatLng(0,0);   
-    app.zoomLayerExtents(key_name);     
+    var latlng = new google.maps.LatLng(0,0);  
     app.mapOptions = {
         zoom: 2,
-        maxZoom: maxZoom,
+        maxZoom: 20,
         center: latlng,
         mapTypeId: google.maps.MapTypeId.TERRAIN
     };
-    app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
+    app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions); 
+    app.zoomLayerExtents(key_name);     
     app.map.overlayMapTypes.insertAt(0, app.rangMapType);
-    var metaControlDiv = document.createElement('DIV');
+    metaControlDiv = document.createElement('DIV');
     var homeControl = new app.MetaControl(metaControlDiv, app.map);   
     metaControlDiv.index = 1;
-    app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(metaControlDiv);
+    
     return $;
 }());
 </script>
