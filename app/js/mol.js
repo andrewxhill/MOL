@@ -8,10 +8,10 @@ $(function() {
     };
  
     /**
-     * Search view.
+     * Search view. Dispatches browser events to activity. 
      */
-    MOL.SearchWidget = Backbone.View.extend({
-        el: $('#SearchWidget'),        
+    MOL.SearchView = Backbone.View.extend({
+        el: $('#SearchView'),        
 
         events: {
             "keyup #searchBox": "searchBoxKeyUp",
@@ -29,19 +29,19 @@ $(function() {
             return this.box.val() || this.box.attr('placeholder');
         },
         
-        // Handles keyup event on the #searchBox and dispatches to presenter.
+        // Handles keyup event on the #searchBox and dispatches to activity.
         searchBoxKeyUp: function(evt) {
-            this.presenter.searchBoxKeyUp(evt);
+            this.activity.searchBoxKeyUp(evt);
         },
 
-        // Handles click event on the #searchButton and dispatches to presenter.
+        // Handles click event on the #searchButton and dispatches to activity.
         searchButtonClick: function(evt) {
-            this.presenter.searchButtonClick(evt);
+            this.activity.searchButtonClick(evt);
         },
 
-        // Sets the presenter:
-        setPresenter: function(presenter) {
-            this.presenter = presenter;
+        // Sets the activity:
+        setActivity: function(activity) {
+            this.activity = activity;
         },
 
         // Sets the #searchBox text:
@@ -51,57 +51,104 @@ $(function() {
     });
 
     /**
-     * Search presenter.
+     * Search activity.
      */
-    MOL.SearchPresenter = Backbone.Model.extend({
+    MOL.SearchActivity = function(view) {
+        if (!(this instanceof MOL.SearchActivity)) {
+            return new MOL.SearchActivity(view);
+        }
+        this.view = view;
+        this.view.setActivity(this);
+
         // Goes to the place by updating the view:
-        go: function(place) {
+        this.go = function(place) {
             var q = place.q;
             this.view.setSearchText(q);
-        },
+        }
         
         // Clicks the search button if the enter key was pressed:
-        searchBoxKeyUp: function(evt) {
+        this.searchBoxKeyUp = function(evt) {
             if (evt.keyCode === 13) {
-                this.searchButtonClick();
+                this.searchButtonClick(evt);
             }
-        },
+        }
         
         // Saves a location and submits query to the server:
-        searchButtonClick: function() {
-            var q = this.view.getSearchText();
-            MOL.Controller.saveLocation('q=' + q);
-        },
-
-        // Sets the view:
-        setView: function(view) {
-            this.view  = view;
+        this.searchButtonClick = function(evt) {
+            var q = this.view.getSearchText();           
+            var onSuccess = function(json) {
+                alert('Success: ' + json);
+            }
+            var onFailure = function(error) {
+                alert('Failure: ' + error);
+            }
+            var cb = new MOL.AsyncCallback(onSuccess, onFailure);
+            MOL.rpc.execute('search', cb);
+            MOL.controller.saveLocation('q=' + q);
         }
-    });
+    };
        
     /**
      * The controller.
      */
-    MOL.AppController = Backbone.Controller.extend({
-        routes: {
-          ":query": "search"
-        },
+    MOL.Controller = function() {
+        var controller = Backbone.Controller.extend({
+            initialize: function() {
+                var view = new MOL.SearchView();
+                this.searchActivity = new MOL.SearchActivity(view);
+            },
+
+            routes: {
+                ":query": "search"
+            },
         
-        // Sets up the views and presenters:
-        initialize: function() {
-            var view = new MOL.SearchWidget();
-            this.searchPresenter = new MOL.SearchPresenter();
-            this.searchPresenter.setView(view);
-            view.setPresenter(this.searchPresenter);
-        },
+            // Handles the search request route:
+            search: function(query) {
+                this.searchActivity.go({q:query});
+            }
+        });
+        return new controller();
+    };
         
-        // Handles the search request route:
-        search: function(query) {
-            this.searchPresenter.go({q:query});
+    /**
+     * Asynchronous callback that handles success and failure callbacks.
+     */
+    MOL.AsyncCallback = function(onSuccess, onFailure) {
+        if (!(this instanceof MOL.AsyncCallback)) {
+            return new MOL.AsyncCallback(onSuccess, onFailure);
         }
-      });
+        this.onSuccess = onSuccess;
+        this.onFailure = onFailure;
+    };
+
+
+    /**
+     * RPC proxy.
+     */
+    MOL.RpcProxy = function() {
+        if (!(this instanceof MOL.RpcProxy)) {
+            return new MOL.RpcProxy();
+        }
+        this.execute = function(action, asyncCallback) {
+            alert(action);
+            asyncCallback.onSuccess('Yay!');
+        }
+    };
+    
+    
+    /**
+     * Event bus.
+     */
+    MOL.EventBus = function() {
+        if (!(this instanceof MOL.EventBus)) {
+            return new MOL.EventBus();
+        }
+        _.extend(this, Backbone.Events);
+    };
 
     // Starts the app:
-    MOL.Controller = new MOL.AppController();
+    MOL.rpc = new MOL.RpcProxy();
+    MOL.bus = new MOL.EventBus();
+    MOL.controller = new MOL.Controller();
     Backbone.history.start();
 });
