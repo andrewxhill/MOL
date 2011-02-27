@@ -236,6 +236,8 @@ class Taxonomy(webapp.RequestHandler):
         self.response.out.write(data_table.ToResponse(tqx=tqx))
 
     def post(self):
+        
+        logging.info('hi');
 
         # Checks for and handles a Google Visualization data source request:
         tqx = self.request.get('tqx', None)
@@ -249,7 +251,7 @@ class Taxonomy(webapp.RequestHandler):
         if cb is not None:
             self.response.out.write("%s(" % cb)
         k = self.request.params.get('key', None)
-        s = self.request.params.get('search', None)
+        s = self.request.params.get('q', None)
         r = self.request.params.get('rank', None)
         n = int(self.request.params.get('limit', 10))
         of = int(self.request.params.get('offset', 0))

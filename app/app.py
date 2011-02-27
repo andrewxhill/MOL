@@ -41,7 +41,7 @@ class MainPage(webapp.RequestHandler):
 
 class BaseHandler(webapp.RequestHandler):
     def render_template(self, file, template_args):
-        path = os.path.join(os.path.dirname(__file__), "templates", file)
+        path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(template.render(path, template_args))
 
 class AdminFlushMemcacheHandler(BaseHandler):
@@ -75,7 +75,7 @@ class GitHubPostReceiveHooksHandler(BaseHandler):
 class SearchHandler(BaseHandler):
     """Handler for the search UI."""
     def get(self):
-        self.render_template("pager.html", {})
+        self.render_template("search.html", {})
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
