@@ -72,6 +72,12 @@ $(function() {
             return this.box.val() || this.box.attr('placeholder');
         },
         
+        renderResults: function(json) {
+            var template = $('#foo').html();
+            var html = Mustache.to_html(template, json).replace(/^\s*/mg, '');
+            $('#searchResults').html(html);
+        },
+
         // Handles keyup event on the #searchBox and dispatches to activity.
         searchBoxKeyUp: function(evt) {
             this.activity.searchBoxKeyUp(evt);
@@ -125,8 +131,12 @@ $(function() {
                     offset: this.offset};
         };
         
-        this.onSuccess = function(json) {
-            alert('Success: ' + JSON.stringify(json));
+        this.onSuccess = function() {
+            var self = this;
+            return function(json) {
+                alert('Success: ' + JSON.stringify(json));
+                self.view.renderResults(json);
+            }
         };
 
         this.onFailure = function(error) {
@@ -135,8 +145,10 @@ $(function() {
 
         // Saves a location and submits query to the server:
         this.searchButtonClick = function(evt) {
-            var cb = new MOL.AsyncCallback(this.onSuccess, this.onFailure);
-            var params = this.getSearchParams();
+            var cb = new MOL.AsyncCallback(this.onSuccess(), this.onFailure);            
+            var params = null;
+            this.offset = 0;
+            params = this.getSearchParams();
             MOL.api.execute({action: 'search', params: params}, cb);
             MOL.controller.saveLocation(MOL.util.serialize(params));
         }
@@ -185,7 +197,9 @@ $(function() {
         }
         this.execute = function(request, cb) {
             if (request.action === 'search') {
-                $.post('/api/taxonomy', request.params, function(){alert('cool');}).success(cb.onSuccess).error(cb.onError);
+                var xhr = $.post('/api/taxonomy', request.params, 'json');
+                xhr.success(cb.onSuccess);
+                xhr.error(cb.onError);
             }
         }
     };
