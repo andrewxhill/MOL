@@ -18,6 +18,7 @@ from celery.task import Task, PeriodicTask
 from celery.registry import tasks
 from service import Layer, SpeciesIdError
 from app_globals import Globals
+from datetime import date, timedelta
 import Queue
 import logging
 import os
@@ -34,9 +35,11 @@ class BulkLoadTiles():
         raise NotImplementedError()
 
 class Test(Task):
-	def run(self, a, b):
-		logging.info(a+b)
-		return a+b
+    def run(self):
+        a = 1
+        b = 4
+        logging.info(a+b)
+        return a+b
 
 class ScanNewLayers(Task):
     def run(self):
