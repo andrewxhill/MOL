@@ -304,7 +304,7 @@ class Layer(object):
             zMod = 4 + int(6378136.0 / maxDim)
             while 2 ** z < zMod:
                 z += 1
-            self.zoom = z + 4
+            self.zoom = z + 6
             logging.info("zoom %s: %s" % (z, self.id))
             
     def register(self):

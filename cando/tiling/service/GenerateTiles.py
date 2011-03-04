@@ -102,7 +102,7 @@ class RenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(render_size, render_size)
         mapnik.render(self.m, im)
-        im.save(tile_uri, 'png256')
+        im.save(tile_uri, 'png')
 
 
     def loop(self):
