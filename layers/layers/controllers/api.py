@@ -47,7 +47,7 @@ class ApiController(BaseController):
             return open(png, 'rb').read()
         logging.info('Tile not found : ' + png)        
         response.status = 404
-        
+    """
     def scan(self):
         '''Scans the local filesystem for new shape files and adds them to the
         worker queue to process. Intended to be invoked by GAE.
@@ -75,3 +75,4 @@ class ApiController(BaseController):
                     layerCt += 1
         response.status = 202
         return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})
+    """
