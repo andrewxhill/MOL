@@ -19,8 +19,10 @@ mol.init = function() {
         return parent;
     };
     
-    // Creates a namespace for utilities:
+    // Creates MOL specific namespaces:
     mol.ns('mol.util');
+    mol.ns('mol.activity');
+    mol.ns('mol.view');
 
     // Serializes an object into a URL encoded GET query string.
     mol.util.serialize = function(obj) {
@@ -66,7 +68,7 @@ mol.init = function() {
     /**
      * Search view. Dispatches browser events to activity. 
      */
-    mol.SearchView = Backbone.View.extend({
+    mol.view.SearchView = Backbone.View.extend({
         el: $('#SearchView'),        
 
         events: {
@@ -117,9 +119,9 @@ mol.init = function() {
     /**
      * Search activity.
      */
-    mol.SearchActivity = function(view) {
-        if (!(this instanceof mol.SearchActivity)) {
-            return new mol.SearchActivity(view);
+    mol.activity.SearchActivity = function(view) {
+        if (!(this instanceof mol.activity.SearchActivity)) {
+            return new mol.activity.SearchActivity(view);
         }
         this.view = view;
         this.view.setActivity(this);
@@ -151,7 +153,7 @@ mol.init = function() {
      * Updates the paging state.
      * 
      */
-    mol.SearchActivity.prototype.updatePagingState = function(pageIndex) {
+    mol.activity.SearchActivity.prototype.updatePagingState = function(pageIndex) {
         var pageSize = this.pageSize;
         
         if (pageIndex < 0) {
@@ -178,7 +180,7 @@ mol.init = function() {
      * Sends a query and draws the results.
      * 
      */
-    mol.SearchActivity.prototype.sendAndDraw = function(saveLoc) {
+    mol.activity.SearchActivity.prototype.sendAndDraw = function(saveLoc) {
         var cb = new mol.AsyncCallback(this.onSuccess(), this.onFailure),
             params = this.getSearchParams(),
             historyState = this.getHistoryState();
@@ -193,7 +195,7 @@ mol.init = function() {
      * Handles a paging request from the table.
      * 
      */
-    mol.SearchActivity.prototype.handlePage = function(properties) {
+    mol.activity.SearchActivity.prototype.handlePage = function(properties) {
         var localTableNewPage = properties['page']; // 1, -1 or 0
         var newPage = 0;
         if (localTableNewPage != 0) {
@@ -208,7 +210,7 @@ mol.init = function() {
      * Goes to a place (provided by controller) by updating the view.
      * 
      */
-    mol.SearchActivity.prototype.go = function(place) {
+    mol.activity.SearchActivity.prototype.go = function(place) {
         var params = place.params,
             offset = params.offset;        
         this.offset = offset == null ? this.offset : Number(offset);
@@ -221,7 +223,7 @@ mol.init = function() {
     };
         
     // Clicks the search button if the enter key was pressed:
-    mol.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
+    mol.activity.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
         if (evt.keyCode === 13) {
             this.searchButtonClick(evt);
         }
@@ -231,7 +233,7 @@ mol.init = function() {
     /**
      * Gets the search params for the request.
      */
-    mol.SearchActivity.prototype.getSearchParams = function() {
+    mol.activity.SearchActivity.prototype.getSearchParams = function() {
         return {q: this.view.getSearchText(),
                 limit: this.limit + 1,
                 offset: this.offset,
@@ -241,14 +243,14 @@ mol.init = function() {
     /**
      * Gets the search params for the request.
      */
-    mol.SearchActivity.prototype.getHistoryState = function() {
+    mol.activity.SearchActivity.prototype.getHistoryState = function() {
         return {q: this.view.getSearchText(),
                 limit: this.limit,
                 offset: this.offset,
                 tqx: true};
     };
     
-    mol.SearchActivity.prototype.onSuccess = function() {
+    mol.activity.SearchActivity.prototype.onSuccess = function() {
         var self = this;
         return function(json) {
             var data = null;
@@ -260,12 +262,12 @@ mol.init = function() {
         };
     };
     
-    mol.SearchActivity.prototype.onFailure = function(error) {
+    mol.activity.SearchActivity.prototype.onFailure = function(error) {
         alert('Failure: ' + error);
     };
     
     // Saves a location and submits query to the server:
-    mol.SearchActivity.prototype.searchButtonClick = function(evt) {
+    mol.activity.SearchActivity.prototype.searchButtonClick = function(evt) {
         this.offset = 0;
         this.currentPageIndex = 0;
         this.sendAndDraw(true);
@@ -277,8 +279,8 @@ mol.init = function() {
     mol.Controller = function() {
         var controller = Backbone.Controller.extend({
             initialize: function() {
-                var view = new mol.SearchView();
-                this.searchActivity = new mol.SearchActivity(view);
+                var view = new mol.view.SearchView();
+                this.searchActivity = new mol.activity.SearchActivity(view);
             },
 
             routes: {
