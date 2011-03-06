@@ -1,8 +1,8 @@
 var MOL = MOL || {};    
 
-$(function() {
-    
-    // Builds a namespace.
+MOL.init = function() {
+        
+    // Function for building namespaces:
     MOL.ns = function(namespace) {
         var parts = namespace.split('.');
         var parent = MOL;
@@ -17,17 +17,31 @@ $(function() {
             parent = parent[parts[i]];
         }
         return parent;
-    }
+    };
     
+    // Creates a namespace for utilities:
     MOL.ns('MOL.util');
 
-    // Serializes an object into a GET query string.
+    // Serializes an object into a URL encoded GET query string.
     MOL.util.serialize = function(obj) {
         var str = [];
         for(var p in obj)
             str.push(p + "=" + encodeURIComponent(obj[p]));
         return str.join("&");
-    }
+    };
+
+    MOL.util.parse = function(query) {
+        var e,
+            a = /\+/g,  
+            r = /([^&=]+)=?([^&]*)/g,
+            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+            q = query.replace('#', '').replace('?', '');
+        var urlParams = {};
+        while ((e = r.exec(q))) {
+            urlParams[d(e[1])] = d(e[2]);
+        }
+        return urlParams;
+    };
     
     // Changes Underscore.js settings to perform Mustache.js style templating:
     _.templateSettings = {
@@ -65,6 +79,8 @@ $(function() {
             this.box = $('#searchBox');
             this.button = $('#searchButton');
             this.results = $('#searchResults');
+            this.tableContainer = $('#searchTable')[0];
+            this.table = new google.visualization.Table(this.tableContainer);
         },
         
         // Returns the text in the #searchBox:
@@ -95,7 +111,7 @@ $(function() {
 
         // Sets the #searchBox text:
         setSearchText: function(t) {            
-            this.box.val(t.split('=')[1]);
+            this.box.val(t);
         }
     });
 
@@ -108,50 +124,117 @@ $(function() {
         }
         this.view = view;
         this.view.setActivity(this);
-        this.pageSize = 10;
-        this.limit = this.pageSize + 1;
+        this.pageSize = 2;
+        this.limit = 2;
         this.offset = 0;
+        this.currentDataTable = null;
+        this.table = this.view.table;
+        this.currentPageIndex = 0;
 
-        // Goes to the place by updating the view:
-        this.go = function(place) {
-            var q = place.q;
-            this.view.setSearchText(q);
-        };
+        // Wire the up callback for paging:
+        var self = this;
+        var addListener = google.visualization.events.addListener;
+        addListener(this.view.table, 'page', function(e) {
+            self.handlePage(e);
+        });
+
+        // Configure query options:
+        this.tableOptions = {page: 'event', 
+                        showRowNumber: true,
+                        allowHtml: true, 
+                        pagingButtonsConfiguration: 'both',
+                        pageSize: this.pageSize};
+        this.updatePagingState(0);
+    };
+    
+    MOL.SearchActivity.prototype.updatePagingState = function(pageIndex) {
+        var pageSize = this.pageSize;
         
-        // Clicks the search button if the enter key was pressed:
-        this.searchBoxKeyUp = function(evt) {
-            if (evt.keyCode === 13) {
-                this.searchButtonClick(evt);
+        if (pageIndex < 0) {
+            return false;
+        }
+        var dataTable = this.currentDataTable;
+        if ((pageIndex == this.currentPageIndex + 1) && dataTable) {
+            if (dataTable.getNumberOfRows() <= pageSize) {
+                return false;
             }
-        };
+        }
+        this.currentPageIndex = pageIndex;
+        var newStartRow = this.currentPageIndex * pageSize;
+        // Get the pageSize + 1 so that we can know when the last page is reached.
+        this.limit = pageSize + 1;
+        this.offset = newStartRow;
+        // Note: row numbers are 1-based yet dataTable rows are 0-based.
+        this.tableOptions['firstRowNumber'] = newStartRow + 1;
+        return true;
+    };
 
-        this.getSearchParams = function() {
-            return {q: this.view.getSearchText(),
-                    limit: this.limit,
-                    offset: this.offset};
-        };
+    MOL.SearchActivity.prototype.sendAndDraw = function() {
+        var cb = new MOL.AsyncCallback(this.onSuccess(), this.onFailure);
+        var params = this.getSearchParams();
+        this.table.setSelection([]);
+        MOL.api.execute({action: 'search', params: params}, cb);
+        MOL.controller.saveLocation(MOL.util.serialize(params));
+    };
+
+    MOL.SearchActivity.prototype.handlePage = function(properties) {
+        var localTableNewPage = properties['page']; // 1, -1 or 0
+        var newPage = 0;
+        if (localTableNewPage != 0) {
+            newPage = this.currentPageIndex + localTableNewPage;
+        }
+        if (this.updatePagingState(newPage)) {
+            this.sendAndDraw();
+        }
+    };
+
+    // Goes to the place by updating the view:
+    MOL.SearchActivity.prototype.go = function(place) {
+        var params = place.params;
+        this.limit = params.limit || this.limit;
+        this.offset = params.offset || this.offset;
+        this.currentPageIndex = this.offset;
+        this.view.setSearchText(params.q);
+        var newStartRow = this.currentPageIndex * this.pageSize;
+        this.tableOptions['firstRowNumber'] = newStartRow + 1;
+        this.sendAndDraw();            
+    };
         
-        this.onSuccess = function() {
-            var self = this;
-            return function(json) {
-                alert('Success: ' + JSON.stringify(json));
-                self.view.renderResults(json);
-            }
+    // Clicks the search button if the enter key was pressed:
+    MOL.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
+        if (evt.keyCode === 13) {
+            this.searchButtonClick(evt);
+        }
+    };
+    
+    MOL.SearchActivity.prototype.getSearchParams = function() {
+        return {q: this.view.getSearchText(),
+                limit: this.limit,
+                offset: this.offset,
+                tqx: true};
+    };
+    
+    MOL.SearchActivity.prototype.onSuccess = function() {
+        var self = this;
+        return function(json) {
+            var data = null;
+            self.currentDataTable = null;
+            google.visualization.errors.removeAll(self.view.tableContainer);            
+            eval("data = " + json);
+            self.currentDataTable = new google.visualization.DataTable(data);
+            self.table.draw(self.currentDataTable, self.tableOptions);
         };
-
-        this.onFailure = function(error) {
-            alert('Failure: ' + error);
-        }
-
-        // Saves a location and submits query to the server:
-        this.searchButtonClick = function(evt) {
-            var cb = new MOL.AsyncCallback(this.onSuccess(), this.onFailure);            
-            var params = null;
-            this.offset = 0;
-            params = this.getSearchParams();
-            MOL.api.execute({action: 'search', params: params}, cb);
-            MOL.controller.saveLocation(MOL.util.serialize(params));
-        }
+    };
+    
+    MOL.SearchActivity.prototype.onFailure = function(error) {
+        alert('Failure: ' + error);
+    };
+    
+    // Saves a location and submits query to the server:
+    MOL.SearchActivity.prototype.searchButtonClick = function(evt) {
+        this.offset = 0;
+        this.currentPageIndex = 0;
+        this.sendAndDraw();
     };
        
     /**
@@ -170,7 +253,7 @@ $(function() {
         
             // Handles the search request route:
             search: function(query) {
-                this.searchActivity.go({q:query});
+                this.searchActivity.go({params:MOL.util.parse(query)});
             }
         });
         return new controller();
@@ -201,7 +284,7 @@ $(function() {
                 xhr.success(cb.onSuccess);
                 xhr.error(cb.onError);
             }
-        }
+        };
     };
     
     
@@ -220,4 +303,4 @@ $(function() {
     MOL.bus = new MOL.EventBus();
     MOL.controller = new MOL.Controller();
     Backbone.history.start();
-});
+};

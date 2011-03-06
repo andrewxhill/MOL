@@ -165,16 +165,16 @@ class Taxonomy(webapp.RequestHandler):
     def get(self):
         self.post()
 
-    def handle_data_source_request(self):
-        tq = self.request.get('tq')
-        params = simplejson.loads(tq)
-        logging.info(str(params))
-        limit = params.get('limit')
-        offset = params.get('offset')
-        gql = params.get('gql').strip()
-        rank = params.get('rank', None)
-        key = params.get('key', None)
-        maps = params.get('maps', False)
+    def handle_data_source_request(self, returnJson=True):
+        #tq = self.request.get('tq')
+        #params = simplejson.loads(tq)
+        #logging.info(str(params))
+        limit = int(self.request.get('limit'))
+        offset = int(self.request.get('offset'))
+        gql = self.request.get('q').strip()
+        rank = self.request.get('rank', None)
+        key = self.request.get('key', None)
+        maps = self.request.get('maps', False)
         logging.info('maps ' + str(maps))
 
         # Gets the data for the request:
@@ -189,70 +189,75 @@ class Taxonomy(webapp.RequestHandler):
         # Right now just flattening classification and ignoring names...
         rows = []
         for rec in data:
-            row = {'Accepted Name':rec['name'].capitalize(), 'Author':rec['classification']['author']} 
-            taxonomy = '%s/%s/%s/%s/%s' % (rec['classification']['kingdom'].capitalize(),
-                                           rec['classification']['phylum'].capitalize(),
-                                           rec['classification']['class'].capitalize(),
-                                           rec['classification']['order'].capitalize(),
-                                           rec['classification']['family'].capitalize())
-            row['Kingdom/Phylum/Class/Order/Family'] = taxonomy
+            row = {"Accepted Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]} 
+            taxonomy = "%s/%s/%s/%s/%s" % (rec["classification"]["kingdom"].capitalize(),
+                                           rec["classification"]["phylum"].capitalize(),
+                                           rec["classification"]["class"].capitalize(),
+                                           rec["classification"]["order"].capitalize(),
+                                           rec["classification"]["family"].capitalize())
+            row["Kingdom/Phylum/Class/Order/Family"] = taxonomy
                         
-            names_csv = ''
-            for name in rec['names']:
-                names_csv += name['name'].capitalize() + ','
-            row['Synonyms CSV'] = names_csv[:-1]
+            names_csv = ""
+            for name in rec["names"]:
+                names_csv += name["name"].capitalize() + ","
+            row["Synonyms CSV"] = names_csv[:-1]
             
             
-            key_name = rec['key_name']
+            key_name = rec["key_name"]
             if TileSetIndex.get_by_key_name(key_name) is not None:
-                row['Range Map'] = '<a href="/rangemap/%s">map</a>' % key_name
+                row["Range Map"] = "<a href='/rangemap/%s'>map</a>" % key_name
             else:
-                row['Range Map'] = ''
+                row["Range Map"] = ""
 
             
             rows.append(row)
             
         # Builds DataTable for Google Visualization API:
-        description = {'Accepted Name': ('string', 'accepted name'),
-                       'Author': ('string', 'author'),
-                       'Kingdom/Phylum/Class/Order/Family': ('string', 'Kingdom/Pyhlum/Class/Family'),
-                       'Synonyms CSV': ('string', 'synonyms csv'),
-                       'Range Map': ('string', 'range map')}
+        description = {"Accepted Name": ("string", "accepted name"),
+                       "Author": ("string", "author"),
+                       "Kingdom/Phylum/Class/Order/Family": ("string", "Kingdom/Pyhlum/Class/Family"),
+                       "Synonyms CSV": ("string", "synonyms csv"),
+                       "Range Map": ("string", "range map")}
 
         if len(rows) > 0:
             spec = rows[0]
             logging.info(type(spec))
             for key in spec.keys():
-                description[key] = ('string', key)
+                description[key] = ("string", key)
             data_table = gviz_api.DataTable(description)
             data_table.LoadData(rows)
         else:
-            data_table = gviz_api.DataTable({'GUID':('string', '')})
+            data_table = gviz_api.DataTable({"GUID":("string", "")})
 
         # Sends the DataTable response:
-        tqx = self.request.get('tqx')
+        if returnJson:
+            json = data_table.ToJSon()
+            logging.info(json)
+            self.response.out.write(json)
+            return
+        tqx = self.request.get("tqx")
         self.response.out.write(data_table.ToResponse(tqx=tqx))
 
     def simpleview(self, out):
-        data = out.get('items')
+        data = out.get("items")
         rows = []
         for rec in data:
-            row = {'Name':rec['name'].capitalize(), 'Author':rec['classification']['author']} 
-            taxonomy = '%s/%s/%s/%s/%s' % (rec['classification']['kingdom'].capitalize(),
-                                           rec['classification']['phylum'].capitalize(),
-                                           rec['classification']['class'].capitalize(),
-                                           rec['classification']['order'].capitalize(),
-                                           rec['classification']['family'].capitalize())
-            row['Taxonomy'] = taxonomy
-            names_csv = ''
-            for name in rec['names']:
-                names_csv += name['name'].capitalize() + ','
-            row['Synonyms'] = names_csv[:-1]
-            key_name = rec['key_name']
+            row = {"Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]} 
+            taxonomy = "%s/%s/%s/%s/%s" % (rec["classification"]["kingdom"].capitalize(),
+                                           rec["classification"]["phylum"].capitalize(),
+                                           rec["classification"]["class"].capitalize(),
+                                           rec["classification"]["order"].capitalize(),
+                                           rec["classification"]["family"].capitalize())
+            row["Taxonomy"] = taxonomy
+            names_csv = ""
+            for name in rec["names"]:
+                names_csv += name["name"].capitalize() + ","
+            row["Synonyms"] = names_csv[:-1]
+            key_name = rec["key_name"]
             if TileSetIndex.get_by_key_name(key_name) is not None:
-                row['Map'] = '<a href="/rangemap/%s">map</a>' % key_name
+                row["Map"] = "<a href='/rangemap/%s'>map</a>" % key_name
             else:
-                row['Map'] = ''
+                row["Map"] = ""
             rows.append(row)
         return rows
 
@@ -261,7 +266,7 @@ class Taxonomy(webapp.RequestHandler):
         tqx = self.request.get('tqx', None)
         if tqx is not None:
             logging.info(tqx)
-            self.handle_data_source_request()
+            self.handle_data_source_request(returnJson=True)
             return
         
         # Handle a normal API request:

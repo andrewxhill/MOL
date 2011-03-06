@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://github.com/douglascrockford/JSON-js/raw/master/json2.js"></script>
-    <script src="http://code.jquery.com/jquery-1.5.js"></script>
-    <script src="http://documentcloud.github.com/underscore/underscore.js"></script>
-    <script src="http://documentcloud.github.com/backbone/backbone.js"></script>
-    <script src="https://github.com/janl/mustache.js/raw/master/mustache.js"></script>
-    <script src="../js/mol.js"></script>
+  <head>    
+    <script
+       src="https://www.google.com/jsapi">
+    </script>
+    <script 
+       src="https://github.com/douglascrockford/JSON-js/raw/master/json2.js">
+    </script>    
+    <script 
+       src="http://code.jquery.com/jquery-1.5.js">
+    </script>
+    <script 
+       src="http://documentcloud.github.com/underscore/underscore.js">
+    </script>    
+    <script 
+       src="http://documentcloud.github.com/backbone/backbone.js">
+    </script>    
+    <script 
+       src="https://github.com/janl/mustache.js/raw/master/mustache.js">
+    </script>    
+    <script 
+       src="../js/mol.js">
+    </script>
   </head>
   <body>
     <div id='molapp'>
       <div id='content'>
         <div id='SearchView'>
           <input type='search' id='searchBox' placeholder='concolor'>
-          <button id='searchButton' value="submit" type="submit">Search</button>            
-          <div id='searchResults'></div>
+          <button id='searchButton' value="submit" type="submit">Search</button>          <div id='searchResults'></div>
+          <div id='searchTable'></div>
         </div>
       </div>
     </div>
@@ -29,11 +44,10 @@
       {{/items}}
     </script>
 
-    <script type="text/template" id="searchResults-template"> 
-      <div class="results"> {{#items}} {{.}} {{/items}} </div>
-    </script> 
-    <script type="text/template" id="species-template"> 
-      <div class="name">{{name}}</div>
-    </script> 
+    <script>
+      google.load('visualization', '1', {'packages': ['table']});
+      google.setOnLoadCallback(MOL.init);
+    </script>
+
   </body>  
 </html>
