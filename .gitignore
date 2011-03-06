@@ -30,3 +30,4 @@ bulkloader-progress*
 ############
 .DS_Store
 *.*~
+.#*
