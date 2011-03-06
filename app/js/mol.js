@@ -1,343 +1,425 @@
+// Copyright 2011 Map Of Life All Rights Reserved.
+
+/**
+ * @fileoverview This file contains MOL specific app code. It depends on 
+ * backbone.js, JQuery, json2.js, underscore.js, and mustache.js libraries.
+ * It generally follows the Model-View-Presenter architecture via backbone.js
+ * support for models, views, controllers, and browser history support.
+ * 
+ * @author eightysteele@gmail.com (Aaron Steele) 
+ * @author andrewxhill@gmail.com (Andrew Hill)
+ */
+
+// The global MOL namespace that encapsulates everything.
 var mol = mol || {};    
 
-mol.init = function() {
-        
-    // Function for building namespaces:
-    mol.ns = function(namespace) {
-        var parts = namespace.split('.');
-        var parent = mol;
-        var i;
-        if (parts[0] === 'mol') {
-            parts = parts.slice(1);
+/*
+ * Helper for building namespaces.
+ * 
+ * @param namespace The namespace to build within mol global namespace
+ */
+mol.ns = function(namespace) {
+    var parts = namespace.split('.');
+    var parent = mol;
+    var i;
+    if (parts[0] === 'mol') {
+        parts = parts.slice(1);
+    }
+    for (i = 0; i < parts.length; i += 1) {
+        if (typeof parent[parts[i]] === 'undefined') {
+            parent[parts[i]] = {};
         }
-        for (i = 0; i < parts.length; i += 1) {
-            if (typeof parent[parts[i]] === 'undefined') {
-                parent[parts[i]] = {};
-            }
-            parent = parent[parts[i]];
+        parent = parent[parts[i]];
+    }
+    return parent;
+};
+
+// =============================================================================
+// mol.util
+
+mol.ns('mol.util');
+
+/**
+ * Helper that serializes an object into a URL encoded GET query string.
+ * 
+ * @param obj The object to serialize
+ */
+mol.util.serializeQuery = function(obj) {
+    var str = [];
+    for(var p in obj)
+        str.push(p + "=" + encodeURIComponent(obj[p]));
+    return str.join("&");
+};
+
+/**
+ * Helper that parses a URL encoded GET query string into an object.
+ * 
+ * @param query The query string
+ */
+mol.util.parseQuery = function(query) {
+    var e,
+    a = /\+/g,  
+    r = /([^&=]+)=?([^&]*)/g,
+    d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+    q = query.replace('#', '').replace('?', '');
+    var urlParams = {};
+    while ((e = r.exec(q))) {
+        urlParams[d(e[1])] = d(e[2]);
         }
-        return parent;
-    };
-    
-    // Creates MOL specific namespaces:
-    mol.ns('mol.util');
-    mol.ns('mol.activity');
-    mol.ns('mol.view');
+    return urlParams;
+};
 
-    // Serializes an object into a URL encoded GET query string.
-    mol.util.serialize = function(obj) {
-        var str = [];
-        for(var p in obj)
-            str.push(p + "=" + encodeURIComponent(obj[p]));
-        return str.join("&");
-    };
+// =============================================================================
+// mol.api
 
-    mol.util.getUrlQueryParams = function(query) {
-        var e,
-            a = /\+/g,  
-            r = /([^&=]+)=?([^&]*)/g,
-            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
-            q = query.replace('#', '').replace('?', '');
-        var urlParams = {};
-        while ((e = r.exec(q))) {
-            urlParams[d(e[1])] = d(e[2]);
-        }
-        return urlParams;
-    };
-    
-    // Changes Underscore.js settings to perform Mustache.js style templating:
-    _.templateSettings = {
-        interpolate : /\{\{(.+?)\}\}/g
-    };
-    
-    mol.SpeciesModel = Backbone.Model.extend({});
+mol.ns('mol.api');
 
-    mol.SearchResults = Backbone.Collection.extend({
-        model: mol.SpeciesModel,
+/**
+ * Asynchronous callback that handles success and failure callbacks.
+ */
+mol.api.AsyncCallback = function(onSuccess, onFailure) {
+    if (!(this instanceof mol.api.AsyncCallback)) {
+        return new mol.api.AsyncCallback(onSuccess, onFailure);
+    }
+    this.onSuccess = onSuccess;
+    this.onFailure = onFailure;
+    return this;
+};
 
-        url: function() {
-            return '/api/taxonomy?' + this.query;
-        },
-
-        setQuery: function(query) {
-            this.query = query;
-        }
-    });
-    
-
-    /**
-     * Search view. Dispatches browser events to activity. 
-     */
-    mol.view.SearchView = Backbone.View.extend({
-        el: $('#SearchView'),        
-
-        events: {
-            "keyup #searchBox": "searchBoxKeyUp",
-            "click #searchButton": "searchButtonClick"
-        },
-
-        // Initializes the view:
-        initialize: function() {
-            this.box = $('#searchBox');
-            this.button = $('#searchButton');
-            this.tableContainer = $('#searchTable')[0];
-            this.table = new google.visualization.Table(this.tableContainer);
-        },
-        
-        // Returns the text in the #searchBox:
-        getSearchText: function() {
-            return this.box.val() || this.box.attr('placeholder');
-        },
-        
-        renderResults: function(json) {
-            var template = $('#foo').html();
-            var html = Mustache.to_html(template, json).replace(/^\s*/mg, '');
-            $('#searchResults').html(html);
-        },
-
-        // Handles keyup event on the #searchBox and dispatches to activity.
-        searchBoxKeyUp: function(evt) {
-            this.activity.searchBoxKeyUp(evt);
-        },
-
-        // Handles click event on the #searchButton and dispatches to activity.
-        searchButtonClick: function(evt) {
-            this.activity.searchButtonClick(evt);
-        },
-
-        // Sets the activity:
-        setActivity: function(activity) {
-            this.activity = activity;
-        },
-
-        // Sets the #searchBox text:
-        setSearchText: function(t) {            
-            this.box.val(t);
-        }
-    });
-
-    /**
-     * Search activity.
-     */
-    mol.activity.SearchActivity = function(view) {
-        if (!(this instanceof mol.activity.SearchActivity)) {
-            return new mol.activity.SearchActivity(view);
-        }
-        this.view = view;
-        this.view.setActivity(this);
-        this.pageSize = 2;
-        this.limit = 2;
-        this.offset = 0;
-        this.currentDataTable = null;
-        this.table = this.view.table;
-        this.currentPageIndex = 0;
-
-        // Wire the up callback for paging:
-        var self = this;
-        var addListener = google.visualization.events.addListener;
-        addListener(this.view.table, 'page', function(e) {
-            self.handlePage(e);
-        });
-
-        // Configure query options:
-        this.tableOptions = {page: 'event', 
-                             showRowNumber: true,
-                             allowHtml: true, 
-                             pagingButtonsConfiguration: 'both',
-                             pageSize: this.pageSize};
-        this.updatePagingState(0);
-        return true;
-    };
-
-    /**
-     * Updates the paging state.
-     * 
-     */
-    mol.activity.SearchActivity.prototype.updatePagingState = function(pageIndex) {
-        var pageSize = this.pageSize;
-        
-        if (pageIndex < 0) {
-            return false;
-        }
-        var dataTable = this.currentDataTable;
-        if ((pageIndex == this.currentPageIndex + 1) && dataTable) {
-            if (dataTable.getNumberOfRows() <= pageSize) {
-                return false;
-            }
-        }
-        this.currentPageIndex = pageIndex;
-        var newStartRow = this.currentPageIndex * pageSize;
-        // Get the pageSize + 1 so that we can know when the last page is reached.
-        //this.limit = pageSize + 1;
-        this.offset = newStartRow;
-        // Note: row numbers are 1-based yet dataTable rows are 0-based.
-        this.tableOptions['firstRowNumber'] = newStartRow + 1;
-        return true;
-    };
-
-    
-    /**
-     * Sends a query and draws the results.
-     * 
-     */
-    mol.activity.SearchActivity.prototype.sendAndDraw = function(saveLoc) {
-        var cb = new mol.AsyncCallback(this.onSuccess(), this.onFailure),
-            params = this.getSearchParams(),
-            historyState = this.getHistoryState();
-        this.table.setSelection([]);
-        mol.api.execute({action: 'search', params: params}, cb);
-        if (saveLoc) {
-            mol.controller.saveLocation(mol.util.serialize(historyState));            
+/**
+ * The API proxy used to execute requests.
+ */
+mol.api.ApiProxy = function() {
+    if (!(this instanceof mol.api.ApiProxy)) {
+        return new mol.api.ApiProxy();
+    }
+    this.execute = function(request, cb) {
+        if (request.action === 'search') {
+            var xhr = $.post('/api/taxonomy', request.params, 'json');
+            xhr.success(cb.onSuccess);
+            xhr.error(cb.onError);
         }
     };
+    return this;
+};
 
-    /**
-     * Handles a paging request from the table.
-     * 
-     */
-    mol.activity.SearchActivity.prototype.handlePage = function(properties) {
-        var localTableNewPage = properties['page']; // 1, -1 or 0
-        var newPage = 0;
-        if (localTableNewPage != 0) {
-            newPage = this.currentPageIndex + localTableNewPage;
-        }
-        if (this.updatePagingState(newPage)) {
-            this.sendAndDraw(true);
-        }
-    };
+// =============================================================================
+// mol.control
 
-    /**
-     * Goes to a place (provided by controller) by updating the view.
-     * 
-     */
-    mol.activity.SearchActivity.prototype.go = function(place) {
-        var params = place.params,
-            offset = params.offset;        
-        this.offset = offset == null ? this.offset : Number(offset);
-        this.limit = Number(params.limit) || this.limit;
-        this.currentPageIndex = this.offset / this.pageSize;
-        this.view.setSearchText(params.q);
-        var newStartRow = this.currentPageIndex * this.pageSize;
-        this.tableOptions['firstRowNumber'] = newStartRow + 1;
-        this.sendAndDraw(false);            
-    };
-        
-    // Clicks the search button if the enter key was pressed:
-    mol.activity.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
-        if (evt.keyCode === 13) {
-            this.searchButtonClick(evt);
-        }
-    };
-    
-    
-    /**
-     * Gets the search params for the request.
-     */
-    mol.activity.SearchActivity.prototype.getSearchParams = function() {
-        return {q: this.view.getSearchText(),
-                limit: this.limit + 1,
-                offset: this.offset,
-                tqx: true};
-    };
+mol.ns('mol.control');
 
-    /**
-     * Gets the search params for the request.
-     */
-    mol.activity.SearchActivity.prototype.getHistoryState = function() {
-        return {q: this.view.getSearchText(),
-                limit: this.limit,
-                offset: this.offset,
-                tqx: true};
-    };
-    
-    mol.activity.SearchActivity.prototype.onSuccess = function() {
-        var self = this;
-        return function(json) {
-            var data = null;
-            self.currentDataTable = null;
-            google.visualization.errors.removeAll(self.view.tableContainer);            
-            eval("data = " + json);
-            self.currentDataTable = new google.visualization.DataTable(data);
-            self.table.draw(self.currentDataTable, self.tableOptions);
-        };
-    };
-    
-    mol.activity.SearchActivity.prototype.onFailure = function(error) {
-        alert('Failure: ' + error);
-    };
-    
-    // Saves a location and submits query to the server:
-    mol.activity.SearchActivity.prototype.searchButtonClick = function(evt) {
-        this.offset = 0;
-        this.currentPageIndex = 0;
-        this.sendAndDraw(true);
-    };
-       
-    /**
-     * The controller.
-     */
-    mol.Controller = function() {
-        var controller = Backbone.Controller.extend({
+/**
+ * The controller for handling routing and history.
+ * 
+ * @constructor
+ */
+mol.control.Controller = function() {
+    var controller = Backbone.Controller.extend(
+        {
             initialize: function() {
                 var view = new mol.view.SearchView();
                 this.searchActivity = new mol.activity.SearchActivity(view);
             },
-
+            
             routes: {
                 ":query": "search"
             },
-        
+            
             // Handles the search request route:
             search: function(query) {
-                this.searchActivity.go({params: mol.util.getUrlQueryParams(query)});                    
+                this.searchActivity.go({params: mol.util.parseQuery(query)});                    
             }
         });
-        return new controller();
-    };
+    return new controller();
+};
+
+// =============================================================================
+// mol.event
+
+mol.ns('mol.event');
+
+/**
+ * The event bus.
+ *
+ * @constructor
+ */
+mol.event.EventBus = function() {
+    if (!(this instanceof mol.event.EventBus)) {
+        return new mol.event.EventBus();
+    }
+    _.extend(this, Backbone.Events);
+    return this;
+};
+
+// =============================================================================
+// mol.view
+
+mol.ns('mol.view');
+
+/**
+ * Search view that dispatches user events to an activity.
+ * 
+ * @constructor
+ */
+mol.view.SearchView = Backbone.View.extend(
+    {
+        el: $('#SearchView'), 
         
-    /**
-     * Asynchronous callback that handles success and failure callbacks.
-     */
-    mol.AsyncCallback = function(onSuccess, onFailure) {
-        if (!(this instanceof mol.AsyncCallback)) {
-            return new mol.AsyncCallback(onSuccess, onFailure);
-        }
-        this.onSuccess = onSuccess;
-        this.onFailure = onFailure;
-    };
+        // TODO: This is not working... workaround is manual JQuery in initialize():        
+        events: {
+            "keyup #searchBox": "searchBoxKeyUp",
+            "click #searchButton": "searchButtonClick"
+        },
+        
+        /**
+         * Initializes the view.
+         */
+        initialize: function() {
+            this.box = $('#searchBox');
+            this.box.keyup(this.searchBoxKeyUp());
+            this.button = $('#searchButton');
+            this.button.click(this.searchButtonClick());
+            this.tableContainer = $('#searchTable')[0];
+            this.table = new google.visualization.Table(this.tableContainer);
+        },
 
-
-    /**
-     * API proxy.
-     */
-    mol.ApiProxy = function() {
-        if (!(this instanceof mol.ApiProxy)) {
-            return new mol.ApiProxy();
+        setActivity: function(activity) {
+           this.activity = activity;
+        },
+        
+        /**
+         * Returns the text in the search box.
+         */
+        getSearchText: function() {
+            return this.box.val() || this.box.attr('placeholder');
+        },
+        
+        /**
+         * Handles keyup event on the #searchBox and dispatches to activity.
+         */
+        searchBoxKeyUp: function(evt) {
+            var self = this;
+            return function(evt) {
+                self.activity.searchBoxKeyUp(evt);                
+            };
+        },
+        
+        /**
+         * Handles click event on the #searchButton and dispatches to activity.
+         */
+        searchButtonClick: function(evt) {
+            var self = this;
+            return function(evt) {
+                self.activity.searchButtonClick(evt);
+            };
+        },
+        
+        /**
+         * Sets the #searchBox text.
+         */
+        setSearchText: function(t) {            
+            this.box.val(t);
         }
-        this.execute = function(request, cb) {
-            if (request.action === 'search') {
-                var xhr = $.post('/api/taxonomy', request.params, 'json');
-                xhr.success(cb.onSuccess);
-                xhr.error(cb.onError);
-            }
-        };
+    }
+);
+
+// =============================================================================
+// mol.activiy
+
+mol.ns('mol.activity');
+
+/**
+ * The search activity.
+ * 
+ * @constructor
+ */
+mol.activity.SearchActivity = function(view) {
+    if (!(this instanceof mol.activity.SearchActivity)) {
+        return new mol.activity.SearchActivity(view);
+    }
+    var self = this,
+        addListener = google.visualization.events.addListener;
+    this.view = view;
+    this.view.setActivity(this);
+    this.table = this.view.table;
+    this.pageSize = 2;
+    this.limit = 2;
+    this.offset = 0;
+    this.currentDataTable = null;
+    this.currentPageIndex = 0;
+    
+    // Wires the up callback for table paging:
+    addListener(this.view.table, 'page', 
+                function(e) {
+                    self.handlePage(e);
+                });
+                   
+    // Configures query options:
+    this.tableOptions = {
+        page: 'event', 
+        showRowNumber: true,
+        allowHtml: true, 
+        pagingButtonsConfiguration: 'both',
+        pageSize: this.pageSize
     };
     
-    
-    /**
-     * Event bus.
-     * @constructor
-     */
-    mol.EventBus = function() {
-        if (!(this instanceof mol.EventBus)) {
-            return new mol.EventBus();
-        }
-        _.extend(this, Backbone.Events);
-    };
+    this.updatePagingState(0);
+    return this;
+};
 
-    // Starts the app:
-    mol.api = new mol.ApiProxy();
-    mol.bus = new mol.EventBus();
-    mol.controller = new mol.Controller();
+/**
+ * Updates the paging state based on a page index.
+ * 
+ * @param pageIndex The page index
+ */
+mol.activity.SearchActivity.prototype.updatePagingState = function(pageIndex) {
+    var pageSize = this.pageSize,
+        dataTable = this.currentDataTable,
+        newStartRow = -1;        
+    if (pageIndex < 0) {
+        return false;
+    }
+    if ((pageIndex == this.currentPageIndex + 1) && dataTable) {
+        if (dataTable.getNumberOfRows() <= pageSize) {
+            return false;
+        }
+    }
+    this.currentPageIndex = pageIndex;
+    newStartRow = this.currentPageIndex * pageSize;
+    this.offset = newStartRow;
+    // Note: row numbers are 1-based yet dataTable rows are 0-based.
+    this.tableOptions['firstRowNumber'] = newStartRow + 1;
+    return true;
+};
+
+/**
+ * Sends an API request for data and draws the results via async callback.
+ * 
+ * @param saveLoc True to save a history location in the browser
+ */
+mol.activity.SearchActivity.prototype.sendAndDraw = function(saveLoc) {
+    var cb = new mol.api.AsyncCallback(this.onSuccess(), this.onFailure),
+    params = this.getSearchParams(),
+    historyState = this.getHistoryState();
+    this.table.setSelection([]);
+    mol.apiProxy.execute({action: 'search', params: params}, cb);
+    if (saveLoc) {
+        mol.controller.saveLocation(mol.util.serializeQuery(historyState));            
+    }
+};
+
+/**
+ * Handles a paging request from the table.
+ * 
+ * @param properties Contains the page (1, -1, or 0)
+ */
+mol.activity.SearchActivity.prototype.handlePage = function(properties) {
+    var localTableNewPage = properties['page'], // 1, -1 or 0
+        newPage = 0;
+    if (localTableNewPage != 0) {
+        newPage = this.currentPageIndex + localTableNewPage;
+    }
+    if (this.updatePagingState(newPage)) {
+        this.sendAndDraw(true);
+    }
+};
+
+/**
+ * Goes to a place that is provided by the controller.
+ * 
+ * @param place The place object to go to
+ */
+mol.activity.SearchActivity.prototype.go = function(place) {
+    var params = place.params,
+        offset = params.offset,
+        newStartRow = -1;
+    this.offset = offset == null ? this.offset : Number(offset);
+    this.limit = Number(params.limit) || this.limit;
+    this.currentPageIndex = this.offset / this.pageSize;
+    this.view.setSearchText(params.q);
+    newStartRow = this.currentPageIndex * this.pageSize;
+    this.tableOptions['firstRowNumber'] = newStartRow + 1;
+    this.sendAndDraw(false);            
+};
+
+/**
+ * Clicks the search button if the enter key was pressed.
+ * 
+ * @param evt The click event
+ */
+mol.activity.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
+    if (evt.keyCode === 13) {
+        this.searchButtonClick(evt);
+    }
+};
+
+/**
+ * Gets the search params to be sent with an API request.
+ */
+mol.activity.SearchActivity.prototype.getSearchParams = function() {
+    return {
+        q: this.view.getSearchText(),
+        limit: this.limit + 1,
+        offset: this.offset,
+        tqx: true
+    };
+};
+
+/**
+ * Gets the history token for saving the current location.
+ */
+mol.activity.SearchActivity.prototype.getHistoryState = function() {
+    return {
+        q: this.view.getSearchText(),
+        limit: this.limit,
+        offset: this.offset,
+        tqx: true
+    };
+};
+
+/**
+ * Async callback for successful API requests.
+ */
+mol.activity.SearchActivity.prototype.onSuccess = function() {
+    var self = this;
+    return function(json) {
+        var data = null;
+        self.currentDataTable = null;
+        google.visualization.errors.removeAll(self.view.tableContainer);            
+        eval("data = " + json);
+        self.currentDataTable = new google.visualization.DataTable(data);
+        self.table.draw(self.currentDataTable, self.tableOptions);
+    };
+};
+
+/**
+ * Async callback for problematic API requests.
+ */
+mol.activity.SearchActivity.prototype.onFailure = function(error) {
+    alert('Failure: ' + error);
+};
+
+/**
+ * Handles a user search button click and also saves a browser location.
+ * 
+ * @param evt The button click event
+ */
+mol.activity.SearchActivity.prototype.searchButtonClick = function(evt) {
+    this.offset = 0;
+    this.currentPageIndex = 0;
+    this.sendAndDraw(true);
+};
+
+/**
+ * Initializes the MOL app and should be called after the DOM is ready.
+ */
+mol.init = function() {        
+    // Changes Underscore.js settings to perform Mustache.js style templating.
+    _.templateSettings = {
+        interpolate : /\{\{(.+?)\}\}/g
+    };
+    mol.apiProxy = new mol.api.ApiProxy();
+    mol.eventBus = new mol.event.EventBus();
+    mol.controller = new mol.control.Controller();
     Backbone.history.start();
 };
