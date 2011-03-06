@@ -140,7 +140,7 @@ MOL.init = function() {
 
         // Configure query options:
         this.tableOptions = {page: 'event', 
-                        showRowNumber: true,
+                        showRowNumber: false,
                         allowHtml: true, 
                         pagingButtonsConfiguration: 'both',
                         pageSize: this.pageSize};
