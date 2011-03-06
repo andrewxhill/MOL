@@ -1,13 +1,13 @@
-var MOL = MOL || {};    
+var mol = mol || {};    
 
-MOL.init = function() {
+mol.init = function() {
         
     // Function for building namespaces:
-    MOL.ns = function(namespace) {
+    mol.ns = function(namespace) {
         var parts = namespace.split('.');
-        var parent = MOL;
+        var parent = mol;
         var i;
-        if (parts[0] === 'MOL') {
+        if (parts[0] === 'mol') {
             parts = parts.slice(1);
         }
         for (i = 0; i < parts.length; i += 1) {
@@ -20,17 +20,17 @@ MOL.init = function() {
     };
     
     // Creates a namespace for utilities:
-    MOL.ns('MOL.util');
+    mol.ns('mol.util');
 
     // Serializes an object into a URL encoded GET query string.
-    MOL.util.serialize = function(obj) {
+    mol.util.serialize = function(obj) {
         var str = [];
         for(var p in obj)
             str.push(p + "=" + encodeURIComponent(obj[p]));
         return str.join("&");
     };
 
-    MOL.util.parse = function(query) {
+    mol.util.getUrlQueryParams = function(query) {
         var e,
             a = /\+/g,  
             r = /([^&=]+)=?([^&]*)/g,
@@ -48,10 +48,10 @@ MOL.init = function() {
         interpolate : /\{\{(.+?)\}\}/g
     };
     
-    MOL.SpeciesModel = Backbone.Model.extend({});
+    mol.SpeciesModel = Backbone.Model.extend({});
 
-    MOL.SearchResults = Backbone.Collection.extend({
-        model: MOL.SpeciesModel,
+    mol.SearchResults = Backbone.Collection.extend({
+        model: mol.SpeciesModel,
 
         url: function() {
             return '/api/taxonomy?' + this.query;
@@ -66,7 +66,7 @@ MOL.init = function() {
     /**
      * Search view. Dispatches browser events to activity. 
      */
-    MOL.SearchView = Backbone.View.extend({
+    mol.SearchView = Backbone.View.extend({
         el: $('#SearchView'),        
 
         events: {
@@ -78,7 +78,6 @@ MOL.init = function() {
         initialize: function() {
             this.box = $('#searchBox');
             this.button = $('#searchButton');
-            this.results = $('#searchResults');
             this.tableContainer = $('#searchTable')[0];
             this.table = new google.visualization.Table(this.tableContainer);
         },
@@ -118,9 +117,9 @@ MOL.init = function() {
     /**
      * Search activity.
      */
-    MOL.SearchActivity = function(view) {
-        if (!(this instanceof MOL.SearchActivity)) {
-            return new MOL.SearchActivity(view);
+    mol.SearchActivity = function(view) {
+        if (!(this instanceof mol.SearchActivity)) {
+            return new mol.SearchActivity(view);
         }
         this.view = view;
         this.view.setActivity(this);
@@ -140,14 +139,19 @@ MOL.init = function() {
 
         // Configure query options:
         this.tableOptions = {page: 'event', 
-                        showRowNumber: false,
-                        allowHtml: true, 
-                        pagingButtonsConfiguration: 'both',
-                        pageSize: this.pageSize};
+                             showRowNumber: true,
+                             allowHtml: true, 
+                             pagingButtonsConfiguration: 'both',
+                             pageSize: this.pageSize};
         this.updatePagingState(0);
+        return true;
     };
-    
-    MOL.SearchActivity.prototype.updatePagingState = function(pageIndex) {
+
+    /**
+     * Updates the paging state.
+     * 
+     */
+    mol.SearchActivity.prototype.updatePagingState = function(pageIndex) {
         var pageSize = this.pageSize;
         
         if (pageIndex < 0) {
@@ -162,59 +166,89 @@ MOL.init = function() {
         this.currentPageIndex = pageIndex;
         var newStartRow = this.currentPageIndex * pageSize;
         // Get the pageSize + 1 so that we can know when the last page is reached.
-        this.limit = pageSize + 1;
+        //this.limit = pageSize + 1;
         this.offset = newStartRow;
         // Note: row numbers are 1-based yet dataTable rows are 0-based.
         this.tableOptions['firstRowNumber'] = newStartRow + 1;
         return true;
     };
 
-    MOL.SearchActivity.prototype.sendAndDraw = function() {
-        var cb = new MOL.AsyncCallback(this.onSuccess(), this.onFailure);
-        var params = this.getSearchParams();
+    
+    /**
+     * Sends a query and draws the results.
+     * 
+     */
+    mol.SearchActivity.prototype.sendAndDraw = function(saveLoc) {
+        var cb = new mol.AsyncCallback(this.onSuccess(), this.onFailure),
+            params = this.getSearchParams(),
+            historyState = this.getHistoryState();
         this.table.setSelection([]);
-        MOL.api.execute({action: 'search', params: params}, cb);
-        MOL.controller.saveLocation(MOL.util.serialize(params));
+        mol.api.execute({action: 'search', params: params}, cb);
+        if (saveLoc) {
+            mol.controller.saveLocation(mol.util.serialize(historyState));            
+        }
     };
 
-    MOL.SearchActivity.prototype.handlePage = function(properties) {
+    /**
+     * Handles a paging request from the table.
+     * 
+     */
+    mol.SearchActivity.prototype.handlePage = function(properties) {
         var localTableNewPage = properties['page']; // 1, -1 or 0
         var newPage = 0;
         if (localTableNewPage != 0) {
             newPage = this.currentPageIndex + localTableNewPage;
         }
         if (this.updatePagingState(newPage)) {
-            this.sendAndDraw();
+            this.sendAndDraw(true);
         }
     };
 
-    // Goes to the place by updating the view:
-    MOL.SearchActivity.prototype.go = function(place) {
-        var params = place.params;
-        this.limit = params.limit || this.limit;
-        this.offset = params.offset || this.offset;
-        this.currentPageIndex = this.offset;
+    /**
+     * Goes to a place (provided by controller) by updating the view.
+     * 
+     */
+    mol.SearchActivity.prototype.go = function(place) {
+        var params = place.params,
+            offset = params.offset;        
+        this.offset = offset == null ? this.offset : Number(offset);
+        this.limit = Number(params.limit) || this.limit;
+        this.currentPageIndex = this.offset / this.pageSize;
         this.view.setSearchText(params.q);
         var newStartRow = this.currentPageIndex * this.pageSize;
         this.tableOptions['firstRowNumber'] = newStartRow + 1;
-        this.sendAndDraw();            
+        this.sendAndDraw(false);            
     };
         
     // Clicks the search button if the enter key was pressed:
-    MOL.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
+    mol.SearchActivity.prototype.searchBoxKeyUp = function(evt) {
         if (evt.keyCode === 13) {
             this.searchButtonClick(evt);
         }
     };
     
-    MOL.SearchActivity.prototype.getSearchParams = function() {
+    
+    /**
+     * Gets the search params for the request.
+     */
+    mol.SearchActivity.prototype.getSearchParams = function() {
+        return {q: this.view.getSearchText(),
+                limit: this.limit + 1,
+                offset: this.offset,
+                tqx: true};
+    };
+
+    /**
+     * Gets the search params for the request.
+     */
+    mol.SearchActivity.prototype.getHistoryState = function() {
         return {q: this.view.getSearchText(),
                 limit: this.limit,
                 offset: this.offset,
                 tqx: true};
     };
     
-    MOL.SearchActivity.prototype.onSuccess = function() {
+    mol.SearchActivity.prototype.onSuccess = function() {
         var self = this;
         return function(json) {
             var data = null;
@@ -226,25 +260,25 @@ MOL.init = function() {
         };
     };
     
-    MOL.SearchActivity.prototype.onFailure = function(error) {
+    mol.SearchActivity.prototype.onFailure = function(error) {
         alert('Failure: ' + error);
     };
     
     // Saves a location and submits query to the server:
-    MOL.SearchActivity.prototype.searchButtonClick = function(evt) {
+    mol.SearchActivity.prototype.searchButtonClick = function(evt) {
         this.offset = 0;
         this.currentPageIndex = 0;
-        this.sendAndDraw();
+        this.sendAndDraw(true);
     };
        
     /**
      * The controller.
      */
-    MOL.Controller = function() {
+    mol.Controller = function() {
         var controller = Backbone.Controller.extend({
             initialize: function() {
-                var view = new MOL.SearchView();
-                this.searchActivity = new MOL.SearchActivity(view);
+                var view = new mol.SearchView();
+                this.searchActivity = new mol.SearchActivity(view);
             },
 
             routes: {
@@ -253,7 +287,7 @@ MOL.init = function() {
         
             // Handles the search request route:
             search: function(query) {
-                this.searchActivity.go({params:MOL.util.parse(query)});
+                this.searchActivity.go({params: mol.util.getUrlQueryParams(query)});                    
             }
         });
         return new controller();
@@ -262,9 +296,9 @@ MOL.init = function() {
     /**
      * Asynchronous callback that handles success and failure callbacks.
      */
-    MOL.AsyncCallback = function(onSuccess, onFailure) {
-        if (!(this instanceof MOL.AsyncCallback)) {
-            return new MOL.AsyncCallback(onSuccess, onFailure);
+    mol.AsyncCallback = function(onSuccess, onFailure) {
+        if (!(this instanceof mol.AsyncCallback)) {
+            return new mol.AsyncCallback(onSuccess, onFailure);
         }
         this.onSuccess = onSuccess;
         this.onFailure = onFailure;
@@ -274,9 +308,9 @@ MOL.init = function() {
     /**
      * API proxy.
      */
-    MOL.ApiProxy = function() {
-        if (!(this instanceof MOL.ApiProxy)) {
-            return new MOL.ApiProxy();
+    mol.ApiProxy = function() {
+        if (!(this instanceof mol.ApiProxy)) {
+            return new mol.ApiProxy();
         }
         this.execute = function(request, cb) {
             if (request.action === 'search') {
@@ -290,17 +324,18 @@ MOL.init = function() {
     
     /**
      * Event bus.
+     * @constructor
      */
-    MOL.EventBus = function() {
-        if (!(this instanceof MOL.EventBus)) {
-            return new MOL.EventBus();
+    mol.EventBus = function() {
+        if (!(this instanceof mol.EventBus)) {
+            return new mol.EventBus();
         }
         _.extend(this, Backbone.Events);
     };
 
     // Starts the app:
-    MOL.api = new MOL.ApiProxy();
-    MOL.bus = new MOL.EventBus();
-    MOL.controller = new MOL.Controller();
+    mol.api = new mol.ApiProxy();
+    mol.bus = new mol.EventBus();
+    mol.controller = new mol.Controller();
     Backbone.history.start();
 };
