@@ -122,7 +122,7 @@ app.zoomLayerExtents = function(kn) {
     $.getJSON(url, function(data) {
         app.metadata = data;
         maxZoom = data.zoom;
-        app.map.mapTypes[app.map.getMapTypeId()].maxZoom = parseInt(maxZoom) - 1; 
+        app.map.mapTypes[app.map.getMapTypeId()].maxZoom = parseInt(maxZoom); 
         app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(metaControlDiv);
         var nw = data.extentNorthWest.split(',');
         var se = data.extentSouthEast.split(',');
