@@ -1,3 +1,7 @@
+# Celery Schedule #
+###################
+celerybeat-schedule
+
 # Production ini #
 ##################
 production.ini
