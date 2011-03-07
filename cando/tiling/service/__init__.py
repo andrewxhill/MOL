@@ -315,7 +315,6 @@ class Layer(object):
             return False
         params = {'zoom': self.zoom,
                   'proj' : self.meta['proj'],
-                  'dateCreated' : str(datetime.datetime.now()),
                   'maxLat' : str(self.meta['geog']['maxLat']),
                   'minLat' : str(self.meta['geog']['minLat']),
                   'maxLon' : str(self.meta['geog']['maxLon']),

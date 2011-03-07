@@ -63,7 +63,7 @@ class TileSetMetadata(webapp.RequestHandler):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
         for key in obj.properties().keys():
-            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateCreated', 'dateLastModified', 'proj', 'type']:
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
                 dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
             """
             elif key in []:
@@ -433,14 +433,7 @@ class LayersHandler(BaseHandler):
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _update(self, metadata):
-            
-        dlm = self._param('dateCreated')
-        dlm = datetime.datetime.strptime(dlm.split('.')[0], "%Y-%m-%d %H:%M:%S")
-        if metadata.dateLastModified > dlm:
-            logging.info('TileSetIndex.dlm=%s, metadata.dlm=%s' % (metadata.dateLastModified, dlm))
-            self.error(409) # Conflict
-            return
-            
+        
         errors = self._param('errors', required=False)
         if errors is not None:
             metadata.errors.append(errors)
