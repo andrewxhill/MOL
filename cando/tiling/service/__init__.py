@@ -347,7 +347,7 @@ class Layer(object):
         # TODO
         raise NotImplementedError()
 
-    def cleanup(self, error=None, delete_test=False):
+    def cleanup(self, error=None, delete_test=True):
         '''Cleans up filesystem depending on if there were errors or not.
         
         Arguments:
@@ -430,7 +430,7 @@ class Layer(object):
                                    #g.TILE_MAX_ZOOM,
                                    self.zoom,
                                    "MOL-EORM",
-                                   num_threads=g.TILE_QUEUE_THREADS + 0)
+                                   num_threads=g.TILE_QUEUE_THREADS )
 
         """
         self.tiling = subprocess.Popen(
