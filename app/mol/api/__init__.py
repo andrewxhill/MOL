@@ -518,7 +518,6 @@ class LayersHandler(BaseHandler):
                             proj=self._param('proj'),
                             extentNorthWest=enw,
                             extentSouthEast=ese,
-                            dateLastModified = datetime.datetime.now(),
                             status=db.Category(self._param('status', required=False)),
                             type=db.Category(self._param('type', required=False))))
         location = wsgiref.util.request_uri(self.request.environ)
