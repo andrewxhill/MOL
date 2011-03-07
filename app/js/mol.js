@@ -18,23 +18,24 @@
  * @fileoverview This file contains MOL specific app code. It depends on 
  * backbone.js, JQuery, json2.js, underscore.js, and mustache.js libraries.
  * It generally follows the Model-View-Presenter architecture via backbone.js
- * support for models, views, controllers, and browser history support.
+ * support for models, views, controllers, and browser history support. All
+ * presenters are named "Activity".
  * 
  * @author eightysteele@gmail.com (Aaron Steele) 
  * @author andrewxhill@gmail.com (Andrew Hill)
  */
 
-// The global MOL namespace that encapsulates everything.
+// The global MOL namespace that encapsulates all the sweet stuff:
 var mol = mol || {};    
 
-/*
+/**
  * Helper for building namespaces.
  * 
  * @param namespace The namespace to build within mol global namespace
  */
 mol.ns = function(namespace) {
-    var parts = namespace.split('.');
-    var parent = mol;
+    var parts = namespace.split('.'),
+        parent = mol;
     var i;
     if (parts[0] === 'mol') {
         parts = parts.slice(1);
@@ -52,6 +53,16 @@ mol.ns = function(namespace) {
 // mol.util
 
 mol.ns('mol.util');
+
+/**
+ * Helper that returns a boolean based on a string. Returns true if string is
+ * 'true', returns false if string is 'false', otherwise returns false.
+ * 
+ * @param s The s to test 
+ */
+mol.util.isBool = function (s) {
+    return (/^true$/i).test(s);
+};
 
 /**
  * Helper that serializes an object into a URL encoded GET query string.
@@ -179,7 +190,7 @@ mol.view.SearchView = Backbone.View.extend(
     {
         el: $('#SearchView'), 
         
-        // TODO: This is not working... workaround is manual JQuery in initialize():        
+        // TODO: This is not working... workaround via JQuery in initialize():
         events: {
             "keyup #searchBox": "searchBoxKeyUp",
             "click #searchButton": "searchButtonClick"
@@ -193,8 +204,22 @@ mol.view.SearchView = Backbone.View.extend(
             this.box.keyup(this.searchBoxKeyUp());
             this.button = $('#searchButton');
             this.button.click(this.searchButtonClick());
+            this.checkbox = $('#cb');
+            this.checkbox.change(this.searchButtonClick());
             this.tableContainer = $('#searchTable')[0];
             this.table = new google.visualization.Table(this.tableContainer);
+        },
+
+        clearTable: function() {
+            this.tableContainer.innerHTML = '';
+        },
+
+        isMapsChecked: function() {
+            return this.checkbox.is(':checked');
+        },
+
+        setMapsCheckbox: function(isChecked) {
+            this.checkbox.attr('checked', isChecked);
         },
 
         setActivity: function(activity) {
@@ -256,8 +281,8 @@ mol.activity.SearchActivity = function(view) {
     this.view = view;
     this.view.setActivity(this);
     this.table = this.view.table;
-    this.pageSize = 2;
-    this.limit = 2;
+    this.pageSize = 10;
+    this.limit = 10;
     this.offset = 0;
     this.currentDataTable = null;
     this.currentPageIndex = 0;
@@ -346,13 +371,35 @@ mol.activity.SearchActivity.prototype.handlePage = function(properties) {
 mol.activity.SearchActivity.prototype.go = function(place) {
     var params = place.params,
         offset = params.offset,
-        newStartRow = -1;
+        newStartRow = -1, 
+        newPageSize = false;
+    if (!params.q && !mol.util.isBool(params.maps)) {
+        this.view.setSearchText('');
+        this.view.setMapsCheckbox(false);
+        this.view.clearTable();
+        return;
+    }
     this.offset = offset == null ? this.offset : Number(offset);
+    
+    if (Number(params.limit) != this.limit) {
+        this.tableOptions['firstRowNumber'] = 1;
+        this.offset = 0;
+        this.currentPageIndex = 0;
+        newPageSize = true;
+        mol.controller.saveLocation(mol.util.serializeQuery(this.getHistoryState()));
+    }
     this.limit = Number(params.limit) || this.limit;
-    this.currentPageIndex = this.offset / this.pageSize;
+    this.pageSize = this.limit;
+    this.tableOptions['pageSize'] = this.pageSize;
+    if (!newPageSize) {
+        this.currentPageIndex = this.offset / this.pageSize;        
+    }
     this.view.setSearchText(params.q);
+    this.view.setMapsCheckbox(mol.util.isBool(params.maps));
     newStartRow = this.currentPageIndex * this.pageSize;
-    this.tableOptions['firstRowNumber'] = newStartRow + 1;
+    if (!newPageSize) {
+        this.tableOptions['firstRowNumber'] = newStartRow + 1;   
+    }
     this.sendAndDraw(false);            
 };
 
@@ -375,6 +422,7 @@ mol.activity.SearchActivity.prototype.getSearchParams = function() {
         q: this.view.getSearchText(),
         limit: this.limit + 1,
         offset: this.offset,
+        maps: this.view.isMapsChecked(),
         tqx: true
     };
 };
@@ -387,6 +435,7 @@ mol.activity.SearchActivity.prototype.getHistoryState = function() {
         q: this.view.getSearchText(),
         limit: this.limit,
         offset: this.offset,
+        maps: this.view.isMapsChecked(),
         tqx: true
     };
 };
@@ -399,10 +448,16 @@ mol.activity.SearchActivity.prototype.onSuccess = function() {
     return function(json) {
         var data = null;
         self.currentDataTable = null;
-        google.visualization.errors.removeAll(self.view.tableContainer);            
+        google.visualization.errors.removeAll(self.view.tableContainer);        
         eval("data = " + json);
         self.currentDataTable = new google.visualization.DataTable(data);
         self.table.draw(self.currentDataTable, self.tableOptions);
+        if (self.currentDataTable.getNumberOfRows() == 0) {
+            google.visualization.errors.addError(self.view.tableContainer, 
+                                                 'No results',
+                                                 '', 
+                                                 {'showInTooltip': false});      
+        }
     };
 };
 
@@ -421,6 +476,7 @@ mol.activity.SearchActivity.prototype.onFailure = function(error) {
 mol.activity.SearchActivity.prototype.searchButtonClick = function(evt) {
     this.offset = 0;
     this.currentPageIndex = 0;
+    this.tableOptions['firstRowNumber'] = 1;
     this.sendAndDraw(true);
 };
 

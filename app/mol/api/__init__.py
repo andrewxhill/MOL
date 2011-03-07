@@ -175,6 +175,12 @@ class Taxonomy(webapp.RequestHandler):
         rank = self.request.get('rank', None)
         key = self.request.get('key', None)
         maps = self.request.get('maps', False)
+        if maps == 'false':
+            maps = False
+        if maps == 'true':
+            maps = True
+        else:
+            maps = None
         logging.info('maps ' + str(maps))
 
         # Gets the data for the request:
