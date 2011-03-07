@@ -17,14 +17,7 @@
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from mol.db import Tile, TileUpdate
-import cStringIO
-import datetime
-import png
-import time
 import urllib2
-from mapreduce import control as mr_control
-from mol.db import TileUpdate
 
 class InterpolateTiles(webapp.RequestHandler):
     def get(self):
@@ -53,7 +46,7 @@ class RemoteScan(webapp.RequestHandler):
     def post(self):
         url = "http://mol.colorado.edu/layers/api/scan"
         try:
-          result = urllib2.urlopen(url)
+            result = urllib2.urlopen(url)
         except urllib2.URLError, e:
           self.response.out.write(e)
 """

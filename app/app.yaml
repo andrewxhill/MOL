@@ -25,6 +25,9 @@ handlers:
 - url: /cron/.*
   script: cron.py
   login: admin
+
+- url: /js
+  static_dir: js
   
 - url: /static
   static_dir: static
