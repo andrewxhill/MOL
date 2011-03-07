@@ -325,6 +325,7 @@ class Layer(object):
                   'status' : self.status,
                   'remoteLocation' : self.tileurl % self.id,
                   }
+
         logging.info('Layer params for registration: %s' % str(params))
         query = urllib.urlencode(params)
         path = os.path.join(self.layerurl, 'animalia/species', self.id)
