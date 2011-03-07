@@ -48,15 +48,16 @@
       #searchBox {
         width: 300px;
       }
-      #checkbox {
-        position: fixed;
-        top: 53px;
-        left: 380px;
-      }
       #checkBox {
+        cursor: pointer;
         position: fixed;
         top: 48px;
         left: 390px;
+      }
+      #cbtext {
+        position: fixed;
+        top: 51px;
+        left: 410px;
       }
       #searchTable {
         padding-top: 10px;
@@ -64,21 +65,22 @@
     </style>
   </head>
   <body style="font: 75% Lucida Grande, Trebuchet MS">
-    <div id='molapp'>
-      <div id='content'>
-        <div id='mol'>Map of Life</div>
-        <div id='SearchView'>
-          <input type='search' id='searchBox' placeholder='concolor'>
-          <button id='searchButton' value="submit" type="submit">Search</button>          
+    <div id="molapp">
+      <div id="content">
+        <div id="mol">Map of Life</div>
+        <div id="SearchView">
+          <input type="search" id="searchBox" placeholder="concolor">
+          <button id="searchButton" value="submit" type="submit">Search</button>          
           <div id="checkBox">
-            <input type='checkbox' id='cb'></input>Species with range maps
+            <input type="checkbox" id="cb"></input>
+            <div id="cbtext">Species with range maps</div>
           </div>
-          <div id='searchTable'></div>
+          <div id="searchTable"></div>
         </div>
       </div>
     </div>
     <script>
-      google.load('visualization', '1', {'packages': ['table']});
+      google.load("visualization", "1", {"packages": ["table"]});
       google.setOnLoadCallback(mol.init);
     </script>
   </body>  

@@ -206,8 +206,17 @@ mol.view.SearchView = Backbone.View.extend(
             this.button.click(this.searchButtonClick());
             this.checkbox = $('#cb');
             this.checkbox.change(this.searchButtonClick());
+            $('#cbtext').click(this.checkBoxTextClick());
             this.tableContainer = $('#searchTable')[0];
             this.table = new google.visualization.Table(this.tableContainer);
+        },
+
+        checkBoxTextClick: function() {
+            var self = this;
+            return function(evt) {
+                self.setMapsCheckbox(!self.isMapsChecked());
+                self.searchButtonClick()();
+            };
         },
 
         clearTable: function() {
@@ -369,42 +378,39 @@ mol.activity.SearchActivity.prototype.handlePage = function(properties) {
  * @param place The place object to go to
  */
 mol.activity.SearchActivity.prototype.go = function(place) {
-    if (this.currentDataTable == null) {
-        
-    } else {
-        
-        
-    }
     var params = place.params,
-        offset = params.offset,
-        newStartRow = -1;
-    if (!params.q && !mol.util.isBool(params.maps)) {
+        q = params.q,
+        offset = Number(params.offset),
+        limit = Number(params.limit),
+        maps = mol.util.isBool(params.maps),
+        newStartRow = -1,
+        initialLoad = this.currentDataTable == null,
+        pageIndex = -1,
+        currentMapsValue = this.view.isMapsChecked();
+    
+    // Handles an initial load without params:
+    if (!q && !maps) {
         this.view.setSearchText('');
         this.view.setMapsCheckbox(false);
         this.view.clearTable();
         return;
     }
-    this.offset = (offset == null) ? this.offset : Number(offset);
-    // Handles a change in limit (page size):
-    if (Number(params.limit) != this.limit && this.currentDataTable != null) {
-        this.limit = Number(params.limit);
-        this.pageSize = this.limit;
-        this.tableOptions['pageSize'] = this.pageSize;
-        this.currentPageIndex = 0;
-        if (this.updatePagingState(0)) {            
-            this.sendAndDraw(true);
-        }
-        return;
-    }
-    this.limit = Number(params.limit) || this.limit;
+    // Updates state:
+    this.offset = ((offset != null) && offset >= 0) ? offset : this.offset;
+    this.limit = ((limit != null) && limit >= 0) ? limit : this.limit;
     this.pageSize = this.limit;
-    //this.tableOptions['pageSize'] = this.pageSize;
-    this.currentPageIndex = this.offset / this.pageSize;        
-    this.view.setSearchText(params.q);
-    this.view.setMapsCheckbox(mol.util.isBool(params.maps));
-    newStartRow = this.currentPageIndex * this.pageSize;
-    this.tableOptions['firstRowNumber'] = newStartRow + 1;       
-    this.sendAndDraw(this.currentDataTable == null);            
+    this.tableOptions['pageSize'] = this.pageSize;
+    if (currentMapsValue != maps) {
+        pageIndex = 0;
+    } else {
+        pageIndex = this.offset / this.pageSize;           
+    }
+    // Updates view:
+    this.view.setSearchText(q);
+    this.view.setMapsCheckbox(maps);   
+    if (this.updatePagingState(pageIndex)) {
+        this.sendAndDraw(true);        
+    }
 };
 
 /**
