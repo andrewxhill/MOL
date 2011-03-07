@@ -47,7 +47,7 @@ class ApiController(BaseController):
             return open(png, 'rb').read()
         logging.info('Tile not found : ' + png)        
         response.status = 404
-        
+    """
     def scan(self):
         '''Scans the local filesystem for new shape files and adds them to the
         worker queue to process. Intended to be invoked by GAE.
@@ -57,22 +57,22 @@ class ApiController(BaseController):
         if not scan_dir:
             response.status = 404
             return
-        newitems = []
-        layersAdded = 0
-        if worker_q.qsize() < 50:       
-            for item in os.listdir(scan_dir):
-                if os.path.splitext(item)[1] != '.shp':
-                    pass
-                    #full_path = os.path.join(scan_dir, item)
-                    #if not os.path.isdir(full_path):
-                    #    continue
-                else:
-                    logging.info(item)
-                    shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                    if shp_full_path not in app_globals.QUEUED_LAYERS.keys():
-                        worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
-                                      app_globals.Q_ITEM_FULL_PATH: shp_full_path})
-                        newitems.append(shp_full_path)
-                        layersAdded += 1
+        newitems = [] 
+        layerCt = 0
+        for item in os.listdir(scan_dir):
+            if os.path.splitext(item)[1] != '.shp':
+                pass
+                #full_path = os.path.join(scan_dir, item)
+                #if not os.path.isdir(full_path):
+                #    continue
+            else:
+                logging.info(item)
+                shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
+                if shp_full_path not in app_globals.QUEUED_LAYERS.keys() and layerCt < 5:
+                    worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
+                                  app_globals.Q_ITEM_FULL_PATH: shp_full_path})
+                    newitems.append(shp_full_path)
+                    layerCt += 1
         response.status = 202
         return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})
+    """

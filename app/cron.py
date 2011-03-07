@@ -39,7 +39,7 @@ class InterpolateTiles(webapp.RequestHandler):
             self.response.headers['Content-Type'] = 'text/plain'
             self.response.out.write('MR Cron Started')
         """
-            
+"""
 class RemoteScan(webapp.RequestHandler):
     def get(self):
         self.post()
@@ -48,12 +48,12 @@ class RemoteScan(webapp.RequestHandler):
         try:
             result = urllib2.urlopen(url)
         except urllib2.URLError, e:
-            self.response.out.write(e)
-
+          self.response.out.write(e)
+"""
 application = webapp.WSGIApplication(
          [
-          ('/cron/interpolate', InterpolateTiles),
-          ('/cron/remote/scan', RemoteScan)
+          ('/cron/interpolate',InterpolateTiles),
+          #('/cron/remote/scan',RemoteScan)
          ],
          debug=True)
 

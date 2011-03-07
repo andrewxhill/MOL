@@ -14,14 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from layers.lib.mol.service import Layer, SpeciesIdError
+from celery.task import Task, PeriodicTask
+from celery.registry import tasks
+from service import Layer, SpeciesIdError
+from app_globals import Globals
+from datetime import date, timedelta
 import Queue
 import logging
 import os
 import threading
 import shutil
 
-worker_q = Queue.Queue()
 
 class BulkLoadTiles():
     """class for running the bulkloader to upload tilesets to GAE"""
@@ -31,44 +34,65 @@ class BulkLoadTiles():
     def uploadTiles(self):
         raise NotImplementedError()
 
-class LayerProcessingThread(threading.Thread):
-    
-    def __init__(self, g):
-        threading.Thread.__init__(self)
-        self.g = g
-        
+class Test(Task):
     def run(self):
-        """Pulls tasks from the queue and dispatches based on job type."""
-        while True and len(self.g.QUEUED_LAYERS.keys()) < self.g.TILE_JOB_LIMIT:
-            task = worker_q.get()
-            self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]] = 1
-            jobtype = task[self.g.Q_ITEM_JOB_TYPE]
-            logging.info('New job: ' + jobtype)
-            if jobtype == self.g.NEW_SHP_JOB_TYPE:
-                self.newshp(task)
-            elif jobtype == self.g.BULKLOAD_TILES_JOB_TYPE:
-                raise NotImplementedError()
+        a = 1
+        b = 4
+        logging.info(a+b)
+        return a+b
 
-    def newshp(self, task):
+class ScanNewLayers(Task):
+    def run(self):
+        """
+        Scans the local filesystem for new shape files and adds them to the
+        worker queue to process. Intended to be invoked by GAE.
+        """     
+        self.g = Globals()
+        scan_dir = self.g.NEW_SHP_SCAN_DIR
+        tmp_dir = self.g.TMP_SHP_SCAN_DIR
+        logging.info(scan_dir)
+        if not scan_dir:
+            response.status = 404
+            return
+        for item in os.listdir(scan_dir):
+            if os.path.splitext(item)[1] != '.shp':
+                pass
+                #full_path = os.path.join(scan_dir, item)
+                #if not os.path.isdir(full_path):
+                #    continue
+            else:
+                logging.info(item)
+                shp_full_path = os.path.join(tmp_dir, item)
+                logging.error(shp_full_path)
+                for file in os.listdir(scan_dir):
+                    if file.startswith(item.replace('.shp','')):
+                        shutil.move(os.path.join(scan_dir, file), os.path.join(tmp_dir, file))    
+                task = {self.g.Q_ITEM_JOB_TYPE: self.g.NEW_SHP_JOB_TYPE,
+                    self.g.Q_ITEM_FULL_PATH: shp_full_path}
+                LayerProcessingThread.delay(self.g, task)
+        return True
+        
+        
+class LayerProcessingThread(Task):
+    def run(self, g, task):
         """Tiles a shapefile specified in the task and registers metadata with
         GAE.
 
         Arguments:
             task - an item from the queue expected to have shapfile path
         """
+        self.g = g
+        logging.info(task)
         # Validates task:
         if task is None:
             logging.warn('newshp task was None')
-            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
         if not task.has_key(self.g.Q_ITEM_FULL_PATH):
             logging.warn('newshp task does not have %s' % self.g.Q_ITEM_FULL_PATH)
-            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
         fullpath = task[self.g.Q_ITEM_FULL_PATH]
         if fullpath is None or len(fullpath.strip()) == 0:
             logging.warn('newshp task has invalid path ' % fullpath)
-            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             return
 
         logging.info('Starting new task')
@@ -116,14 +140,8 @@ class LayerProcessingThread(threading.Thread):
                                             Layer.idfrompath(fullpath)[0])
             Layer.register_error(species_key_name, 'Exception', e.message,
                                  self.g.LAYER_URL)
-            del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:
         logging.info('Task complete')
-        del self.g.QUEUED_LAYERS[task[self.g.Q_ITEM_FULL_PATH]]
-        worker_q.task_done()
 
-def start_myworker(app_globals):
-    worker = LayerProcessingThread(app_globals)
-    worker.start()
