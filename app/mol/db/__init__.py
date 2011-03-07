@@ -22,7 +22,7 @@ class TileSetIndex(db.Model):
     proj = db.StringProperty() #max zoom available for the layer
     extentNorthWest = db.GeoPtProperty()
     extentSouthEast = db.GeoPtProperty()
-    dateLastModified = db.DateTimeProperty(auto_now_add=True)
+    dateLastModified = db.DateTimeProperty()
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     errors = db.StringListProperty()
     status = db.CategoryProperty()
