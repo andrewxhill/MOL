@@ -10,7 +10,7 @@ CELERYD_CONCURRENCY = 4
 CELERY_RESULT_BACKEND = "amqp"
 #CELERYD_LOG_FILE = "celery.log"
 CELERYBEAT_SCHEDULE = {
-    "runs-every-30-minutes": {
+    "runs-every-5-minutes": {
         "task": "tiling.tasks.ScanNewLayers",
         "schedule": timedelta(minutes=30)
     },
