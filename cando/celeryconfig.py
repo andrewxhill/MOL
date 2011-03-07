@@ -12,6 +12,6 @@ CELERY_RESULT_BACKEND = "amqp"
 CELERYBEAT_SCHEDULE = {
     "runs-every-5-minutes": {
         "task": "tiling.tasks.ScanNewLayers",
-        "schedule": timedelta(minutes=30)
+        "schedule": timedelta(minutes=5)
     },
 }
