@@ -369,38 +369,42 @@ mol.activity.SearchActivity.prototype.handlePage = function(properties) {
  * @param place The place object to go to
  */
 mol.activity.SearchActivity.prototype.go = function(place) {
+    if (this.currentDataTable == null) {
+        
+    } else {
+        
+        
+    }
     var params = place.params,
         offset = params.offset,
-        newStartRow = -1, 
-        newPageSize = false;
+        newStartRow = -1;
     if (!params.q && !mol.util.isBool(params.maps)) {
         this.view.setSearchText('');
         this.view.setMapsCheckbox(false);
         this.view.clearTable();
         return;
     }
-    this.offset = offset == null ? this.offset : Number(offset);
-    
-    if (Number(params.limit) != this.limit) {
-        this.tableOptions['firstRowNumber'] = 1;
-        this.offset = 0;
+    this.offset = (offset == null) ? this.offset : Number(offset);
+    // Handles a change in limit (page size):
+    if (Number(params.limit) != this.limit && this.currentDataTable != null) {
+        this.limit = Number(params.limit);
+        this.pageSize = this.limit;
+        this.tableOptions['pageSize'] = this.pageSize;
         this.currentPageIndex = 0;
-        newPageSize = true;
-        mol.controller.saveLocation(mol.util.serializeQuery(this.getHistoryState()));
+        if (this.updatePagingState(0)) {            
+            this.sendAndDraw(true);
+        }
+        return;
     }
     this.limit = Number(params.limit) || this.limit;
     this.pageSize = this.limit;
-    this.tableOptions['pageSize'] = this.pageSize;
-    if (!newPageSize) {
-        this.currentPageIndex = this.offset / this.pageSize;        
-    }
+    //this.tableOptions['pageSize'] = this.pageSize;
+    this.currentPageIndex = this.offset / this.pageSize;        
     this.view.setSearchText(params.q);
     this.view.setMapsCheckbox(mol.util.isBool(params.maps));
     newStartRow = this.currentPageIndex * this.pageSize;
-    if (!newPageSize) {
-        this.tableOptions['firstRowNumber'] = newStartRow + 1;   
-    }
-    this.sendAndDraw(false);            
+    this.tableOptions['firstRowNumber'] = newStartRow + 1;       
+    this.sendAndDraw(this.currentDataTable == null);            
 };
 
 /**
