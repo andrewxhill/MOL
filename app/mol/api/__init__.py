@@ -58,7 +58,7 @@ class ValidKey(webapp.RequestHandler):
             self.error(404)
             
 
-class TileSetMetadata(webapp.RequestHandler):
+class DatasetMetadata(webapp.RequestHandler):
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
@@ -580,7 +580,7 @@ application = webapp.WSGIApplication(
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
+          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),

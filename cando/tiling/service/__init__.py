@@ -305,7 +305,7 @@ class Layer(object):
             while 2 ** z < zMod:
                 z += 1
             self.zoom = z + 6
-            logging.info("zoom %s: %s" % (z, self.id))
+            logging.info("zoom %s: %s" % (self.zoom, self.id))
             
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
