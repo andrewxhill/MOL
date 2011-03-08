@@ -247,13 +247,20 @@ class Taxonomy(webapp.RequestHandler):
             self.response.out.write(")")
 
 class GbifDataHandler(webapp.RequestHandler):
-    """RequestHandler for map tile PNGs."""
+    """RequestHandler for GBIF occurrence point datasets"""
     def __init__(self):
         super(GbifDataHandler, self).__init__()
         self.ts = TileService()
     def get(self,keyA,keyB,keyC):
         species_key_name = os.path.join(keyA,keyB,keyC)
         
+        """make sure that the keyname exists in MOL"""
+        q = Species.get_by_key_name(species_key_name)
+        if not q:
+            self.error(404)
+            return
+            
+        """if dataset exists in memcache, return it to client"""
         data = memcache.get("gbif-%s" % species_key_name)
         if data is not None:
             """
@@ -263,14 +270,11 @@ class GbifDataHandler(webapp.RequestHandler):
             self.response.headers['Content-Type'] = "application/json"
             self.response.out.write(simplejson.dumps(data))
             return
-            
-        q = Species.get_by_key_name(species_key_name)
         
-        if not q:
-            self.error(404)
-            return
-        nms = simplejson.loads(q.names)
+        """create query URL for GBIF occurrence point url"""
+        names = simplejson.loads(q.names)
         """
+        #for testing on localhost
         names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
         """
         nms = [i for i in names if i['type']=="accepted name"]
@@ -281,7 +285,7 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
         
-        gbifUrl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s&%s" % (nms["name"].replace(" ","+"),cb)
+        gbifUrl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
         self.response.headers['Content-Type'] = "application/json"
         self.response.out.write(simplejson.dumps(
             {"status":404,
