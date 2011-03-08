@@ -36,64 +36,7 @@ HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
-class FindID(webapp.RequestHandler):
-    def get(self, a, id):
-        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
-        d = q.fetch(limit=2)
-        if len(d) == 2:
-            return "multiple matches"
-        elif len(d) == 0:
-            self.error(404)
-        else:
-            k = d[0]
-            self.response.out.write(str(k.name()))
-            
-class ValidKey(webapp.RequestHandler):
-    def get(self, class_, rank, species_id=None):
-        species_key_name = os.path.join(class_, rank, species_id)
-        q = Species.get_by_key_name(species_key_name)
-        if q:
-            self.response.set_status(200)
-        else:
-            self.error(404)
-            
 
-class DatasetMetadata(webapp.RequestHandler):
-    def _getprops(self, obj):
-        '''Returns a dictionary of entity properties as strings.'''
-        dict = {}
-        for key in obj.properties().keys():
-            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
-                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
-            """
-            elif key in []:
-                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
-                d = c.split(',')
-                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
-            """
-        dict['mol_species_id'] = str(obj.key().name())
-        return dict
-    def get(self, class_, rank, species_id=None):
-        '''Gets a TileSetIndex identified by a MOL specimen id 
-        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
-        '''
-        if species_id is None or len(species_id) is 0:
-            # Sends all metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            all = [self._getprops(x) for x in TileSetIndex.all()]
-            # TODO: This response will get huge so we need a strategy here.
-            self.response.out.write(simplejson.dumps(all))
-            return
-        
-        species_key_name = os.path.join(class_, rank, species_id)
-        metadata = TileSetIndex.get_by_key_name(species_key_name)
-        if metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
-        else:
-            logging.error('No TileSetIndex for ' + species_key_name)
-            self.error(404) # Not found
-        
 class Taxonomy(webapp.RequestHandler):
 
     def methods(self):
@@ -303,6 +246,48 @@ class Taxonomy(webapp.RequestHandler):
         if cb is not None:
             self.response.out.write(")")
 
+class GbifDataHandler(webapp.RequestHandler):
+    """RequestHandler for map tile PNGs."""
+    def __init__(self):
+        super(GbifDataHandler, self).__init__()
+        self.ts = TileService()
+    def get(self,keyA,keyB,keyC):
+        species_key_name = os.path.join(keyA,keyB,keyC)
+        
+        data = memcache.get("gbif-%s" % species_key_name)
+        if data is not None:
+            """
+            cb = self.request.params.get('callback', None)
+            cb = "" if cb is None else "callback=%s" % cb
+            """
+            self.response.headers['Content-Type'] = "application/json"
+            self.response.out.write(simplejson.dumps(data))
+            return
+            
+        q = Species.get_by_key_name(species_key_name)
+        
+        if not q:
+            self.error(404)
+            return
+        nms = simplejson.loads(q.names)
+        """
+        names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
+        """
+        nms = [i for i in names if i['type']=="accepted name"]
+        nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
+        nms = nms[0]
+        if len(nms)==0:
+            nms = [i for i in names if i['type']=="scientific name"]
+            nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
+            nms = nms[0]
+        
+        gbifUrl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s&%s" % (nms["name"].replace(" ","+"),cb)
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write(simplejson.dumps(
+            {"status":404,
+             "redirct": gbifUrl,
+             "type": "kml"}))
+        
 class TilePngHandler(webapp.RequestHandler):
     """RequestHandler for map tile PNGs."""
     def __init__(self):
@@ -335,6 +320,65 @@ class TilePngHandler(webapp.RequestHandler):
             else:
                 self.response.headers['Content-Type'] = "image/png"
                 self.response.out.write(self.t.band)
+
+class FindID(webapp.RequestHandler):
+    def get(self, a, id):
+        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
+        d = q.fetch(limit=2)
+        if len(d) == 2:
+            return "multiple matches"
+        elif len(d) == 0:
+            self.error(404)
+        else:
+            k = d[0]
+            self.response.out.write(str(k.name()))
+            
+class ValidKey(webapp.RequestHandler):
+    def get(self, class_, rank, species_id=None):
+        species_key_name = os.path.join(class_, rank, species_id)
+        q = Species.get_by_key_name(species_key_name)
+        if q:
+            self.response.set_status(200)
+        else:
+            self.error(404)
+            
+
+class DatasetMetadata(webapp.RequestHandler):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
+                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+            """
+            elif key in []:
+                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
+                d = c.split(',')
+                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
+            """
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+    def get(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id 
+        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if species_id is None or len(species_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + species_key_name)
+            self.error(404) # Not found
+        
 
 
 class BaseHandler(webapp.RequestHandler):
@@ -580,6 +624,7 @@ application = webapp.WSGIApplication(
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
+          ('/api/points/gbif/([^/]+)/([^/]+)/([\w]+)', GbifDataHandler),
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
