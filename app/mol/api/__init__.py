@@ -39,6 +39,46 @@ HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
 
+class TileSetMetadata(webapp.RequestHandler):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
+                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+            """
+            elif key in []:
+                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
+                d = c.split(',')
+                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
+            """
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+
+    def get(self, class_, rank, sepecies_id=None):
+        self.post(class_, rank, species_id)
+
+    def post(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id 
+        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if species_id is None or len(species_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + species_key_name)
+            self.error(404) # Not found
+        
 class Taxonomy(webapp.RequestHandler):
 
     def methods(self):
@@ -156,7 +196,7 @@ class Taxonomy(webapp.RequestHandler):
             
             key_name = rec["key_name"]
             if TileSetIndex.get_by_key_name(key_name) is not None:
-                row["Range Map"] = "<a href='/rangemap/%s'>map</a>" % key_name
+                row["Range Map"] = "<a href='/map/%s'>map</a>" % key_name
             else:
                 row["Range Map"] = ""
 
@@ -479,14 +519,16 @@ class BaseHandler(webapp.RequestHandler):
 
     def render_template(self, file, template_args):
         path = os.path.join(os.path.dirname(__file__), "../../templates", file)
-        logging.info(path)
         self.response.out.write(template.render(path, template_args))
+
+    def push_html(self, file):
+        path = os.path.join(os.path.dirname(__file__), "../../html", file)
+        self.response.out.write(open(path, 'r').read())
         
 class RangeMapHandler(BaseHandler):
     '''Handler for rendering range maps based on species key_name.'''
-    def get(self, class_, rank, species):
-        key_name = os.path.join(class_, rank, species)
-        self.render_template('rangemap.html', {})
+    def get(self):
+        self.push_html('range_maps.html')
                 
 class LayersTileHandler(BaseHandler):
 
@@ -695,9 +737,9 @@ application = webapp.WSGIApplication(
           ('/api/points/gbif/([^/]+)/([^/]+)/([\w]+)', GbifDataHandler),
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
-          ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), ],
+
          debug=True)
 
 def main():
