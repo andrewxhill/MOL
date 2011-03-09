@@ -127,6 +127,10 @@ mol.api.ApiProxy = function() {
             var xhr = $.post('/api/tile/metadata/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
+         } else if (request.action === 'points') {
+            var xhr = $.post('/api/points/gbif'+ request.params.speciesKey);
+            xhr.success(cb.onSuccess);
+            xhr.error(cb.onError);
         }
     };
     return this;
@@ -240,6 +244,25 @@ mol.view.RangeMapView = Backbone.View.extend(
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
         this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType());
+        this.overlays = [];
+    },
+
+    renderPoints: function(json) {
+        results = JSON.parse(json);
+        var center = null,
+            marker = null,
+            infowin = null,
+            lat = 0,
+            lng = 0,
+            radius = 0;
+        for (x in results.records) {
+            r = results.records[x];
+            lat = parseFloat(r.coordinates.latitude);
+            lng = parseFloat(r.coordinates.longitude);
+            center = new google.maps.LatLng(lat, lng);
+            marker = new google.maps.Marker({position: center, map: this.map});
+            this.overlays.push(marker);                
+        }
     },
 
     initMetadata: function(metadata) {
@@ -408,7 +431,7 @@ mol.view.SearchView = Backbone.View.extend(
         var self = this;
         return function(evt) {
             self.activity.searchBoxKeyUp(evt);                
-            };
+        };
     },
     
     /**
@@ -470,8 +493,16 @@ mol.activity.RangeMapActivity.prototype.go = function(place) {
             function(error) { // Failure
                 alert('Error: ' + error);            
             }),
+        pointsCb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                self.view.renderPoints(json);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
         params = {speciesKey: speciesKey};
     mol.apiProxy.execute({action: 'rangemap', params: params}, cb);
+    mol.apiProxy.execute({action: 'points', params: params}, pointsCb);
 };
 
 /**
