@@ -257,12 +257,11 @@ class GbifDataHandler(webapp.RequestHandler):
         species_key_name = os.path.join(keyA,keyB,keyC)
         
         """make sure that the keyname exists in MOL"""
-        """
         q = Species.get_by_key_name(species_key_name)
         if not q:
             self.error(404)
             return
-        """
+        
         """if dataset exists in memcache, return it to client"""
         data = memcache.get("gbif-%s" % species_key_name)
         if data is not None:
@@ -271,7 +270,7 @@ class GbifDataHandler(webapp.RequestHandler):
             cb = "" if cb is None else "callback=%s" % cb
             """
             self.response.headers['Content-Type'] = "application/json"
-            self.response.out.write(simplejson.dumps(data))
+            self.response.out.write(data))
             return
         
         """create query URL for GBIF occurrence point url"""
