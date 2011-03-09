@@ -298,7 +298,10 @@ class GbifDataHandler(webapp.RequestHandler):
                 """need to add a pager here!"""
                 NS_KML = "http://earth.google.com/kml/2.1"
                 logging.info('KML downloaded: ' + gbifurl)
-                kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
+                try:
+                    kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
+                except:
+                    self.error(404) # Not found
                 output = []
                 for pm in kml.findall('{%s}Placemark' % NS_KML):
                     out = {}
