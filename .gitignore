@@ -16,6 +16,7 @@ bulkloader-progress*
 # Compiled source #
 ###################
 *.pyc
+*.bak
 
 # Logs and databases #
 ######################

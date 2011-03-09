@@ -59,7 +59,7 @@ class TileSetMetadata(webapp.RequestHandler):
         self.post(class_, rank, species_id)
 
     def post(self, class_, rank, species_id=None):
-        '''Gets a TileSetIndex identified by a MOL specimen id 
+        '''Gets a TileSetIndex identified by a MOL specimen id
         (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
         '''
         if species_id is None or len(species_id) is 0:
@@ -69,7 +69,7 @@ class TileSetMetadata(webapp.RequestHandler):
             # TODO: This response will get huge so we need a strategy here.
             self.response.out.write(simplejson.dumps(all))
             return
-        
+
         species_key_name = os.path.join(class_, rank, species_id)
         metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata:
@@ -78,7 +78,7 @@ class TileSetMetadata(webapp.RequestHandler):
         else:
             logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
-        
+
 class Taxonomy(webapp.RequestHandler):
 
     def methods(self):
@@ -180,29 +180,29 @@ class Taxonomy(webapp.RequestHandler):
         # Right now just flattening classification and ignoring names...
         rows = []
         for rec in data:
-            row = {"Accepted Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]} 
+            row = {"Accepted Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]}
             taxonomy = "%s/%s/%s/%s/%s" % (rec["classification"]["kingdom"].capitalize(),
                                            rec["classification"]["phylum"].capitalize(),
                                            rec["classification"]["class"].capitalize(),
                                            rec["classification"]["order"].capitalize(),
                                            rec["classification"]["family"].capitalize())
             row["Kingdom/Phylum/Class/Order/Family"] = taxonomy
-                        
+
             names_csv = ""
             for name in rec["names"]:
                 names_csv += name["name"].capitalize() + ","
             row["Synonyms CSV"] = names_csv[:-1]
-            
-            
+
+
             key_name = rec["key_name"]
             if TileSetIndex.get_by_key_name(key_name) is not None:
                 row["Range Map"] = "<a href='/map/%s'>map</a>" % key_name
             else:
                 row["Range Map"] = ""
 
-            
+
             rows.append(row)
-            
+
         # Builds DataTable for Google Visualization API:
         description = {"Accepted Name": ("string", "accepted name"),
                        "Author": ("string", "author"),
@@ -233,7 +233,7 @@ class Taxonomy(webapp.RequestHandler):
         data = out.get("items")
         rows = []
         for rec in data:
-            row = {"Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]} 
+            row = {"Name":rec["name"].capitalize(), "Author":rec["classification"]["author"]}
             taxonomy = "%s/%s/%s/%s/%s" % (rec["classification"]["kingdom"].capitalize(),
                                            rec["classification"]["phylum"].capitalize(),
                                            rec["classification"]["class"].capitalize(),
@@ -259,7 +259,7 @@ class Taxonomy(webapp.RequestHandler):
             logging.info(tqx)
             self.handle_data_source_request(returnJson=True)
             return
-        
+
         # Handle a normal API request:
         cb = self.request.params.get('callback', None)
         if cb is not None:
@@ -293,11 +293,15 @@ class GbifDataHandler(webapp.RequestHandler):
     def __init__(self):
         super(GbifDataHandler, self).__init__()
         self.ts = TileService()
-    def get(self,keyA,keyB,keyC):
+
+    def get(self, keyA, keyB, keyC):
+        self.post(keyA, keyB, keyC)
+
+    def post(self,keyA,keyB,keyC):
         species_key_name = os.path.join(keyA,keyB,keyC)
         cb = self.request.params.get('callback', None)
         sc = self.request.params.get('skipcache', None)
-        
+
         """if dataset exists in memcache, return it to client"""
         if sc is None:
             data = memcache.get("gbif-small-%s" % species_key_name)
@@ -306,18 +310,18 @@ class GbifDataHandler(webapp.RequestHandler):
                 data = "%s ( %s ) " % (cb, data) if cb is not None else data
                 self.response.out.write(data)
                 return
-                
+
         """make sure that the keyname exists in MOL"""
         q = Species.get_by_key_name(species_key_name)
         if not q:
             self.error(404)
             return
-        
+
         """create query URL for GBIF occurrence point url"""
         #for testing on localhost
         #names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
         names = simplejson.loads(q.names)
-        
+
         nms = [i for i in names if i['type']=="accepted name"]
         nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
         nms = nms[0]
@@ -325,12 +329,12 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in names if i['type']=="scientific name"]
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
-        
+
         gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=200&coordinatestatus=true&format=darwin&scientificname=%s" % nms["name"].replace(" ","+")
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, gbifurl)
-        
-        # Gets downloaded kml from async rpc request and returns it or a 404: 
+
+        # Gets downloaded kml from async rpc request and returns it or a 404:
         try:
             result = rpc.get_result() # This call blocks.
             if result.status_code == 200:
@@ -344,15 +348,16 @@ class GbifDataHandler(webapp.RequestHandler):
                 p, r, o = True, False, False
                 pct, rct, oct = 0, 0, 0
                 for action, element in xml:
+                    logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
                     if "{%s}TaxonOccurrence" % TOXML == element.tag:
                         if action=="start":
                             p, r, o = False, False, True
-                            logging.error(o)
+                            #logging.error(o)
                         elif action=="end":
                             oct+=1
                             resource['occurrences'].append(occurrence)
                             occurrence = {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
-                    
+
                     elif "{%s}dataResource" % NSXML == element.tag:
                         if action=="start":
                             p, r, o = False, True, False
@@ -360,7 +365,7 @@ class GbifDataHandler(webapp.RequestHandler):
                             rct+=1
                             provider['resources'].append(resource)
                             resource = {'occurrences':[]}
-                            
+
                     elif "{%s}dataProvider" % NSXML == element.tag:
                         if action=="start":
                             p, r, o = True, False, False
@@ -368,13 +373,13 @@ class GbifDataHandler(webapp.RequestHandler):
                             pct+=1
                             out["providers"].append(provider)
                             provider = {"resources": []}
-                            
+
                     elif p or r:
                         if "{%s}name" % NSXML == element.tag:
                             if p:
-                                provider['name'] = str(element.text)
+                                provider['name'] = element.text
                             elif r:
-                                resource['name'] = str(element.text)
+                                resource['name'] = element.text
                     elif o:
                         if element.tag in ["{%s}decimalLatitude" % TOXML, "{%s}decimalLongitude" % TOXML]:
                             try:
@@ -387,19 +392,19 @@ class GbifDataHandler(webapp.RequestHandler):
                                 assert occurrence["coordinates"]["coordinateUncertaintyInMeters"] > 0
                             except:
                                 occurrence["coordinates"]["coordinateUncertaintyInMeters"] = None
-                
+
                 output = simplejson.dumps({"source": "GBIF", "sourceUrl": gbifurl, "accessDate": str(datetime.datetime.now()), "totalProviders": pct, "totalResources": rct, "totalRecords": oct, "records": out}).replace('\\/','/')
                 memcache.set("gbif-small-%s" % species_key_name, output, 120000)
                 self.response.headers['Content-Type'] = "application/json"
                 output = "%s ( %s ) " % (cb, output) if cb is not None else output
                 self.response.out.write(output)
-                
+
             else:
                 raise urlfetch.DownloadError('Bad urlfetch result ' + str(gbifurl))
         except (urlfetch.DownloadError), e:
             logging.error('%s - %s' % (gbifurl, str(e)))
             self.error(404) # Not found
-        
+
 class TilePngHandler(webapp.RequestHandler):
     """RequestHandler for map tile PNGs."""
     def __init__(self):
@@ -444,7 +449,7 @@ class FindID(webapp.RequestHandler):
         else:
             k = d[0]
             self.response.out.write(str(k.name()))
-            
+
 class ValidKey(webapp.RequestHandler):
     def get(self, class_, rank, species_id=None):
         species_key_name = os.path.join(class_, rank, species_id)
@@ -453,7 +458,7 @@ class ValidKey(webapp.RequestHandler):
             self.response.set_status(200)
         else:
             self.error(404)
-            
+
 class DatasetMetadata(webapp.RequestHandler):
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
@@ -469,8 +474,12 @@ class DatasetMetadata(webapp.RequestHandler):
             """
         dict['mol_species_id'] = str(obj.key().name())
         return dict
+
     def get(self, class_, rank, species_id=None):
-        '''Gets a TileSetIndex identified by a MOL specimen id 
+        self.post(class_, rank, species_id=None)
+
+    def post(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id
         (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
         '''
         if species_id is None or len(species_id) is 0:
@@ -480,7 +489,7 @@ class DatasetMetadata(webapp.RequestHandler):
             # TODO: This response will get huge so we need a strategy here.
             self.response.out.write(simplejson.dumps(all))
             return
-        
+
         species_key_name = os.path.join(class_, rank, species_id)
         metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata:
@@ -489,7 +498,7 @@ class DatasetMetadata(webapp.RequestHandler):
         else:
             logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
-        
+
 class BaseHandler(webapp.RequestHandler):
     '''Base handler for handling common stuff like template rendering.'''
 
@@ -524,20 +533,20 @@ class BaseHandler(webapp.RequestHandler):
     def push_html(self, file):
         path = os.path.join(os.path.dirname(__file__), "../../html", file)
         self.response.out.write(open(path, 'r').read())
-        
+
 class RangeMapHandler(BaseHandler):
     '''Handler for rendering range maps based on species key_name.'''
     def get(self):
         self.push_html('range_maps.html')
-                
+
 class LayersTileHandler(BaseHandler):
 
     def get(self, class_, rank, png_name):
-        '''Handles a PNG map tile request according to the Google XYZ tile 
+        '''Handles a PNG map tile request according to the Google XYZ tile
         addressing scheme described here:
-        
+
         http://code.google.com/apis/maps/documentation/javascript/v2/overlays.html#Google_Maps_Coordinates
-        
+
         Required query string parameters:
             z - integer zoom level
             y - integer latitude pixel coordinate
@@ -546,7 +555,7 @@ class LayersTileHandler(BaseHandler):
         species_id, ext = os.path.splitext(png_name)
         species_key_name = os.path.join(class_, rank, species_id)
         logging.info('KEY NAME ' + species_key_name)
-        # Returns a 404 if there's no TileSetIndex for the species id since we 
+        # Returns a 404 if there's no TileSetIndex for the species id since we
         # need it to calculate bounds and for the remote tile URL:
         metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata is None:
@@ -576,10 +585,10 @@ class LayersTileHandler(BaseHandler):
         tileurl = tileurl.replace('zoom', zoom)
         tileurl = tileurl.replace('/x/', '/%s/' % x)
         tileurl = tileurl.replace('y.png', '%s.png' % y)
-        
+
         logging.info('Tile URL ' + tileurl)
 
-        # Starts an async fetch of tile in case we get a memcache/datastore miss: 
+        # Starts an async fetch of tile in case we get a memcache/datastore miss:
         # TODO: Optimization would be to async fetch the 8 surrounding tiles.
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, tileurl)
@@ -603,7 +612,7 @@ class LayersTileHandler(BaseHandler):
             self.response.out.write(tile.band)
             return
 
-        # Gets downloaded tile from async rpc request and returns it or a 404: 
+        # Gets downloaded tile from async rpc request and returns it or a 404:
         try:
             result = rpc.get_result() # This call blocks.
             if result.status_code == 200:
@@ -624,14 +633,14 @@ class LayersHandler(BaseHandler):
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
     def _update(self, metadata):
-        
+
         errors = self._param('errors', required=False)
         if errors is not None:
             metadata.errors.append(errors)
             db.put(metadata)
-            logging.info('Updated TileSetIndex with errors only: ' + errors)     
+            logging.info('Updated TileSetIndex with errors only: ' + errors)
             return
-            
+
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         metadata.extentNorthWest = enw
@@ -639,8 +648,8 @@ class LayersHandler(BaseHandler):
         metadata.dateLastModified = datetime.datetime.now()
         metadata.remoteLocation = db.Link(self._param('remoteLocation'))
         metadata.zoom = self._param('zoom', type=int)
-        metadata.proj = self._param('proj') 
-        metadata.errors = []  
+        metadata.proj = self._param('proj')
+        metadata.errors = []
         metadata.status = db.Category(self._param('status', required=False))
         metadata.type = db.Category(self._param('type', required=False))
         db.put(metadata)
@@ -663,7 +672,7 @@ class LayersHandler(BaseHandler):
             logging.info('Updating SpeciesIndex.hasRangeMap for %s' % species_key_name)
             species_index.hasRangeMap = True
             db.put(species_index)
-            
+
         enw = db.GeoPt(self._param('maxLat', type=float), self._param('minLon', type=float))
         ese = db.GeoPt(self._param('minLat', type=float), self._param('maxLon', type=float))
         db.put(TileSetIndex(key=db.Key.from_path('TileSetIndex', species_key_name),
@@ -689,7 +698,7 @@ class LayersHandler(BaseHandler):
         return dict
 
     def get(self, class_, rank, species_id=None):
-        '''Gets a TileSetIndex identified by a MOL specimen id 
+        '''Gets a TileSetIndex identified by a MOL specimen id
         (/layers/specimen_id) or all TileSetIndex entities (/layers).
         '''
         if species_id is None or len(species_id) is 0:
@@ -699,7 +708,7 @@ class LayersHandler(BaseHandler):
             # TODO: This response will get huge so we need a strategy here.
             self.response.out.write(simplejson.dumps(all))
             return
-        
+
         species_key_name = os.path.join(class_, rank, species_id)
         metadata = TileSetIndex.get_by_key_name(species_key_name)
         if metadata:
@@ -708,11 +717,11 @@ class LayersHandler(BaseHandler):
         else:
             logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
-            
+
     def put(self, class_, rank, species_id):
-        '''Creates a TileSetIndex entity or updates an existing one if the 
+        '''Creates a TileSetIndex entity or updates an existing one if the
         incoming data is newer than what is stored in GAE.'''
-        
+
         remote_addr = os.environ['REMOTE_ADDR']
         if not remote_addr in LayersHandler.AUTHORIZED_IPS:
             logging.warning('Unauthorized PUT request from %s' % remote_addr)

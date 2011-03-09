@@ -128,7 +128,7 @@ mol.api.ApiProxy = function() {
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
          } else if (request.action === 'points') {
-            var xhr = $.post('/api/points/gbif'+ request.params.speciesKey);
+            var xhr = $.post('/api/points/gbif/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
         }
@@ -243,25 +243,33 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.metaControlDiv = document.createElement('div');
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
-        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType());
         this.overlays = [];
     },
 
-    renderPoints: function(json) {
-        results = JSON.parse(json);
-        var center = null,
+    renderPoints: function(json) {        
+        var results = json,
+            center = null,
             marker = null,
             infowin = null,
             lat = 0,
             lng = 0,
-            radius = 0;
-        for (x in results.records) {
-            r = results.records[x];
-            lat = parseFloat(r.coordinates.latitude);
-            lng = parseFloat(r.coordinates.longitude);
-            center = new google.maps.LatLng(lat, lng);
-            marker = new google.maps.Marker({position: center, map: this.map});
-            this.overlays.push(marker);                
+            radius = 0, 
+            resources = [],
+            occurrences = [],
+            coordinate = null;
+        for (provider in results.records.providers) {
+            resources = results.records.providers[provider].resources;
+            for (resource in resources) {
+                occurrences = resources[resource].occurrences;
+                for (coordinate in occurrences) {
+                    coordinate = occurrences[coordinate].coordinates;
+                    lat = parseFloat(coordinate.decimalLatitude);
+                    lng = parseFloat(coordinate.decimalLongitude);
+                    center = new google.maps.LatLng(lat, lng);
+                    marker = new google.maps.Marker({position: center, map: this.map});
+                    this.overlays.push(marker);                                                               
+                }
+            }
         }
     },
 
@@ -271,6 +279,7 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
         this.zoomToLayerExtent();
         this.attachMetadataControl(this.metaControlDiv, this.map);
+        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType());
     },
 
     zoomToLayerExtent: function() {
