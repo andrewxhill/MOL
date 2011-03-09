@@ -305,7 +305,7 @@ class Layer(object):
             while 2 ** z < zMod:
                 z += 1
             self.zoom = z + 6
-            logging.info("zoom %s: %s" % (z, self.id))
+            logging.info("zoom %s: %s" % (self.zoom, self.id))
             
     def register(self):
         """Returns True if the layer metadata was successfully sent to App Engine
@@ -360,19 +360,19 @@ class Layer(object):
 
         if error is not None:
             # Copies files to errors directory for additional processing:
-            err_dir = os.path.join(self.errdir, 'animalia/species')
+            err_dir = os.path.join(self.errdir, 'animalia', 'species')
             if os.path.exists(err_dir):
                 for root, dirs, files in os.walk(err_dir):
                     for f in files:
                         os.unlink(os.path.join(root, f))
-                    for d in dirs:
-                        shutil.rmtree(os.path.join(root, d))
+                    #for d in dirs:
+                    #    shutil.rmtree(os.path.join(root, d))
             for file in os.listdir(src_dir):
                 if file.startswith(self.id):
                     shutil.copy2(os.path.join(src_dir, file), err_dir)
 
             # Deletes files from the tiles dir:
-            tiles_dir = os.path.join(self.tiledir, 'animalia/species', self.id)
+            tiles_dir = os.path.join(self.tiledir, 'animalia', 'species', self.id)
             if os.path.exists(tiles_dir):
                 shutil.rmtree(tiles_dir)
 

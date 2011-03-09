@@ -24,39 +24,20 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
 from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
+from xml.etree import ElementTree as etree
 import datetime
 import logging
 import os
 import pickle
 import time
 import wsgiref.util
+import StringIO
 from mol.services import TileService
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
-class FindID(webapp.RequestHandler):
-    def get(self, a, id):
-        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
-        d = q.fetch(limit=2)
-        if len(d) == 2:
-            return "multiple matches"
-        elif len(d) == 0:
-            self.error(404)
-        else:
-            k = d[0]
-            self.response.out.write(str(k.name()))
-            
-class ValidKey(webapp.RequestHandler):
-    def get(self, class_, rank, species_id=None):
-        species_key_name = os.path.join(class_, rank, species_id)
-        q = Species.get_by_key_name(species_key_name)
-        if q:
-            self.response.set_status(200)
-        else:
-            self.error(404)
-            
 
 class TileSetMetadata(webapp.RequestHandler):
     def _getprops(self, obj):
@@ -307,6 +288,99 @@ class Taxonomy(webapp.RequestHandler):
         if cb is not None:
             self.response.out.write(")")
 
+class GbifDataHandler(webapp.RequestHandler):
+    """RequestHandler for GBIF occurrence point datasets"""
+    def __init__(self):
+        super(GbifDataHandler, self).__init__()
+        self.ts = TileService()
+    def get(self,keyA,keyB,keyC):
+        species_key_name = os.path.join(keyA,keyB,keyC)
+        cb = self.request.params.get('callback', None)
+        sc = self.request.params.get('skipcache', None)
+        
+        """make sure that the keyname exists in MOL"""
+        q = Species.get_by_key_name(species_key_name)
+        if not q:
+            self.error(404)
+            return
+        
+        """if dataset exists in memcache, return it to client"""
+        if sc is None:
+            data = memcache.get("gbif-small-%s" % species_key_name)
+            if data is not None:
+                """
+                cb = self.request.params.get('callback', None)
+                cb = "" if cb is None else "callback=%s" % cb
+                """
+                self.response.headers['Content-Type'] = "application/json"
+                self.response.out.write(data)
+                return
+        
+        """create query URL for GBIF occurrence point url"""
+        #for testing on localhost
+        #names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
+        names = simplejson.loads(q.names)
+        
+        nms = [i for i in names if i['type']=="accepted name"]
+        nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
+        nms = nms[0]
+        if len(nms)==0:
+            nms = [i for i in names if i['type']=="scientific name"]
+            nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
+            nms = nms[0]
+        
+        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=1000&coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
+        
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, gbifurl)
+        
+        # Gets downloaded kml from async rpc request and returns it or a 404: 
+        try:
+            result = rpc.get_result() # This call blocks.
+            if result.status_code == 200:
+                """need to add a pager here!"""
+                NS_KML = "http://earth.google.com/kml/2.1"
+                logging.info('KML downloaded: ' + gbifurl)
+                logging.info('Header: ' + simplejson.dumps(result.headers))
+                try:
+                    kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
+                except:
+                    self.error(404) # Not found
+                    return
+                output = []
+                for pm in kml.findall('{%s}Placemark' % NS_KML):
+                    out = {}
+                    tmp = pm.find('{%s}name' % NS_KML)
+                    out['name'] = str(tmp.text) if tmp is not None else None
+                    tmp = pm.find('{%s}description' % NS_KML)
+                    out['info'] = tmp.text if tmp is not None else None
+                    out['coordinates'] = {}
+                    tmp = pm.find('{%s}Point' % NS_KML)
+                    if tmp is not None:
+                        crds = tmp.find('{%s}coordinates' % NS_KML)
+                        if crds is not None:
+                            crds= str(crds.text).split(',')
+                            out['coordinates']['longitude'] = float(crds[0])
+                            out['coordinates']['latitude'] = float(crds[1])
+                            try:
+                                out['coordinates']['uncertainty'] = float(crds[2])
+                                assert out['coordinates']['uncertainty'] > 0.0
+                            except:
+                                out['coordinates']['uncertainty'] = None
+                    output.append(out)
+                output = simplejson.dumps("source": "GBIF", "sourceUrl": gbifurl.replace("format=kml&",""), "accessDate": str(datetime.datetime.now()), "totalReturned": len(output), "records": output}).replace('\\/','/')
+                
+                memcache.set("gbif-small-%s" % species_key_name, output, 120000)
+                self.response.headers['Content-Type'] = "application/json"
+                self.response.out.write(output)
+                
+            else:
+                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+        except (urlfetch.DownloadError), e:
+            logging.error('%s - %s' % (gbifurl, str(e)))
+            logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+            self.error(404) # Not found
+            
 class TilePngHandler(webapp.RequestHandler):
     """RequestHandler for map tile PNGs."""
     def __init__(self):
@@ -340,7 +414,63 @@ class TilePngHandler(webapp.RequestHandler):
                 self.response.headers['Content-Type'] = "image/png"
                 self.response.out.write(self.t.band)
 
-
+class FindID(webapp.RequestHandler):
+    def get(self, a, id):
+        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
+        d = q.fetch(limit=2)
+        if len(d) == 2:
+            return "multiple matches"
+        elif len(d) == 0:
+            self.error(404)
+        else:
+            k = d[0]
+            self.response.out.write(str(k.name()))
+            
+class ValidKey(webapp.RequestHandler):
+    def get(self, class_, rank, species_id=None):
+        species_key_name = os.path.join(class_, rank, species_id)
+        q = Species.get_by_key_name(species_key_name)
+        if q:
+            self.response.set_status(200)
+        else:
+            self.error(404)
+            
+class DatasetMetadata(webapp.RequestHandler):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
+                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+            """
+            elif key in []:
+                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
+                d = c.split(',')
+                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
+            """
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+    def get(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id 
+        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if species_id is None or len(species_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+        
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + species_key_name)
+            self.error(404) # Not found
+        
 class BaseHandler(webapp.RequestHandler):
     '''Base handler for handling common stuff like template rendering.'''
 
@@ -524,7 +654,6 @@ class LayersHandler(BaseHandler):
                             proj=self._param('proj'),
                             extentNorthWest=enw,
                             extentSouthEast=ese,
-                            #dateLastModified = datetime.datetime.now(),
                             status=db.Category(self._param('status', required=False)),
                             type=db.Category(self._param('type', required=False))))
         location = wsgiref.util.request_uri(self.request.environ)
@@ -581,13 +710,13 @@ class LayersHandler(BaseHandler):
             logging.error('Bad PUT request %s: %s' % (species_key_name, e))
             self.error(400) # Bad request
 
-
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
+          ('/api/points/gbif/([^/]+)/([^/]+)/([\w]+)', GbifDataHandler),
+          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), ],
