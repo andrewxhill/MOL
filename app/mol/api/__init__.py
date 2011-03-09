@@ -258,23 +258,20 @@ class GbifDataHandler(webapp.RequestHandler):
         cb = self.request.params.get('callback', None)
         sc = self.request.params.get('skipcache', None)
         
+        """if dataset exists in memcache, return it to client"""
+        if sc is None:
+            data = memcache.get("gbif-small-%s" % species_key_name)
+            if data is not None:
+                self.response.headers['Content-Type'] = "application/json"
+                data = "%s ( %s ) " % (cb, data) if cb is not None else data
+                self.response.out.write(data)
+                return
+                
         """make sure that the keyname exists in MOL"""
         q = Species.get_by_key_name(species_key_name)
         if not q:
             self.error(404)
             return
-        
-        """if dataset exists in memcache, return it to client"""
-        if sc is None:
-            data = memcache.get("gbif-small-%s" % species_key_name)
-            if data is not None:
-                """
-                cb = self.request.params.get('callback', None)
-                cb = "" if cb is None else "callback=%s" % cb
-                """
-                self.response.headers['Content-Type'] = "application/json"
-                self.response.out.write(data)
-                return
         
         """create query URL for GBIF occurrence point url"""
         #for testing on localhost
@@ -289,8 +286,7 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
         
-        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=1000&coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
-        
+        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=200&coordinatestatus=true&format=brief&scientificname=%s" % nms["name"].replace(" ","+")
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, gbifurl)
         
@@ -299,48 +295,71 @@ class GbifDataHandler(webapp.RequestHandler):
             result = rpc.get_result() # This call blocks.
             if result.status_code == 200:
                 """need to add a pager here!"""
-                NS_KML = "http://earth.google.com/kml/2.1"
-                logging.info('KML downloaded: ' + gbifurl)
-                logging.info('Header: ' + simplejson.dumps(result.headers))
-                try:
-                    kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
-                except:
-                    self.error(404) # Not found
-                    return
-                output = []
-                for pm in kml.findall('{%s}Placemark' % NS_KML):
-                    out = {}
-                    tmp = pm.find('{%s}name' % NS_KML)
-                    out['name'] = str(tmp.text) if tmp is not None else None
-                    tmp = pm.find('{%s}description' % NS_KML)
-                    out['info'] = tmp.text if tmp is not None else None
-                    out['coordinates'] = {}
-                    tmp = pm.find('{%s}Point' % NS_KML)
-                    if tmp is not None:
-                        crds = tmp.find('{%s}coordinates' % NS_KML)
-                        if crds is not None:
-                            crds= str(crds.text).split(',')
-                            out['coordinates']['longitude'] = float(crds[0])
-                            out['coordinates']['latitude'] = float(crds[1])
+                NSXML = "http://portal.gbif.org/ws/response/gbif"
+                TOXML = "http://rs.tdwg.org/ontology/voc/TaxonOccurrence#"
+                logging.info('XML downloaded: ' + gbifurl)
+                xml = etree.iterparse(StringIO.StringIO(result.content), ("start", "end"))
+                out = {"providers":[]}
+                provider, resource, occurrence = {"resources": []}, {"occurrences": []}, {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
+                p, r, o = True, False, False
+                pct, rct, oct = 0, 0, 0
+                for action, element in xml:
+                    if "{%s}TaxonOccurrence" % TOXML == element.tag:
+                        if action=="start":
+                            p, r, o = False, False, True
+                            logging.error(o)
+                        elif action=="end":
+                            oct+=1
+                            resource['occurrences'].append(occurrence)
+                            occurrence = {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
+                    
+                    elif "{%s}dataResource" % NSXML == element.tag:
+                        if action=="start":
+                            p, r, o = False, True, False
+                        elif action=="end":
+                            rct+=1
+                            provider['resources'].append(resource)
+                            resource = {'occurrences':[]}
+                            
+                    elif "{%s}dataProvider" % NSXML == element.tag:
+                        if action=="start":
+                            p, r, o = True, False, False
+                        elif action=="end":
+                            pct+=1
+                            out["providers"].append(provider)
+                            provider = {"resources": []}
+                            
+                    elif p or r:
+                        if "{%s}name" % NSXML == element.tag:
+                            if p:
+                                provider['name'] = str(element.text)
+                            elif r:
+                                resource['name'] = str(element.text)
+                    elif o:
+                        if element.tag in ["{%s}decimalLatitude" % TOXML, "{%s}decimalLongitude" % TOXML]:
                             try:
-                                out['coordinates']['uncertainty'] = float(crds[2])
-                                assert out['coordinates']['uncertainty'] > 0.0
+                                occurrence["coordinates"][str(element.tag).split("}")[1]] = float(element.text)
                             except:
-                                out['coordinates']['uncertainty'] = None
-                    output.append(out)
-                output = simplejson.dumps("source": "GBIF", "sourceUrl": gbifurl.replace("format=kml&",""), "accessDate": str(datetime.datetime.now()), "totalReturned": len(output), "records": output}).replace('\\/','/')
+                                occurrence["coordinates"][str(element.tag).split("}")[1]] = None
+                        elif "{%s}coordinateUncertaintyInMeters" % TOXML == element.tag:
+                            try:
+                                occurrence["coordinates"]["coordinateUncertaintyInMeters"] = float(element.text)
+                                assert occurrence["coordinates"]["coordinateUncertaintyInMeters"] > 0
+                            except:
+                                occurrence["coordinates"]["coordinateUncertaintyInMeters"] = None
                 
+                output = simplejson.dumps({"source": "GBIF", "sourceUrl": gbifurl, "accessDate": str(datetime.datetime.now()), "totalProviders": pct, "totalResources": rct, "totalRecords": oct, "records": out}).replace('\\/','/')
                 memcache.set("gbif-small-%s" % species_key_name, output, 120000)
                 self.response.headers['Content-Type'] = "application/json"
+                output = "%s ( %s ) " % (cb, output) if cb is not None else output
                 self.response.out.write(output)
                 
             else:
-                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+                raise urlfetch.DownloadError('Bad urlfetch result ' + str(gbifurl))
         except (urlfetch.DownloadError), e:
             logging.error('%s - %s' % (gbifurl, str(e)))
-            logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
             self.error(404) # Not found
-            
+        
 class TilePngHandler(webapp.RequestHandler):
     """RequestHandler for map tile PNGs."""
     def __init__(self):
