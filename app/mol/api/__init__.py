@@ -326,7 +326,7 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
         
-        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=200&coordinatestatus=true&format=brief&scientificname=%s" % nms["name"].replace(" ","+")
+        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=200&coordinatestatus=true&format=darwin&scientificname=%s" % nms["name"].replace(" ","+")
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, gbifurl)
         
