@@ -35,9 +35,6 @@ handlers:
 - url: /api/.*
   script: mol/api/__init__.py
  
-- url: /rangemap/.*
-  script: mol/api/__init__.py
-
 - url: /layers/.*
   script: mol/api/__init__.py
 

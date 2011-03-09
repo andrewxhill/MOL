@@ -82,9 +82,16 @@ class SearchHandler(BaseHandler):
     def get(self):
         self.push_html("search.html")
 
+class RangeMapHandler(BaseHandler):
+    """Handler for the search UI."""
+    def get(self):
+        self.push_html("range_maps.html")
+
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/search', SearchHandler),
+          ('/map/.*', RangeMapHandler),
+          ('/map', RangeMapHandler),
           ('/playground/col', ColPage),
           ('/playground/map', MapPage),
           ('/admin/flush-memcache', AdminFlushMemcacheHandler),

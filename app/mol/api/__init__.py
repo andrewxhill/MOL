@@ -73,7 +73,11 @@ class TileSetMetadata(webapp.RequestHandler):
             """
         dict['mol_species_id'] = str(obj.key().name())
         return dict
-    def get(self, class_, rank, species_id=None):
+
+    def get(self, class_, rank, sepecies_id=None):
+        self.post(class_, rank, species_id)
+
+    def post(self, class_, rank, species_id=None):
         '''Gets a TileSetIndex identified by a MOL specimen id 
         (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
         '''
@@ -211,7 +215,7 @@ class Taxonomy(webapp.RequestHandler):
             
             key_name = rec["key_name"]
             if TileSetIndex.get_by_key_name(key_name) is not None:
-                row["Range Map"] = "<a href='/rangemap/%s'>map</a>" % key_name
+                row["Range Map"] = "<a href='/map/%s'>map</a>" % key_name
             else:
                 row["Range Map"] = ""
 
@@ -366,14 +370,16 @@ class BaseHandler(webapp.RequestHandler):
 
     def render_template(self, file, template_args):
         path = os.path.join(os.path.dirname(__file__), "../../templates", file)
-        logging.info(path)
         self.response.out.write(template.render(path, template_args))
+
+    def push_html(self, file):
+        path = os.path.join(os.path.dirname(__file__), "../../html", file)
+        self.response.out.write(open(path, 'r').read())
         
 class RangeMapHandler(BaseHandler):
     '''Handler for rendering range maps based on species key_name.'''
-    def get(self, class_, rank, species):
-        key_name = os.path.join(class_, rank, species)
-        self.render_template('rangemap.html', {})
+    def get(self):
+        self.push_html('range_maps.html')
                 
 class LayersTileHandler(BaseHandler):
 
@@ -518,7 +524,7 @@ class LayersHandler(BaseHandler):
                             proj=self._param('proj'),
                             extentNorthWest=enw,
                             extentSouthEast=ese,
-                            dateLastModified = datetime.datetime.now(),
+                            #dateLastModified = datetime.datetime.now(),
                             status=db.Category(self._param('status', required=False)),
                             type=db.Category(self._param('type', required=False))))
         location = wsgiref.util.request_uri(self.request.environ)
@@ -583,9 +589,9 @@ application = webapp.WSGIApplication(
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', TileSetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
-          ('/rangemap/([^/]+)/([^/]+)/([\w]+)', RangeMapHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), ],
+
          debug=True)
 
 def main():
