@@ -270,15 +270,13 @@ class GbifDataHandler(webapp.RequestHandler):
             cb = "" if cb is None else "callback=%s" % cb
             """
             self.response.headers['Content-Type'] = "application/json"
-            self.response.out.write(data))
+            self.response.out.write(data)
             return
         
         """create query URL for GBIF occurrence point url"""
-        """
         names = simplejson.loads(q.names)
-        """
         #for testing on localhost
-        names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
+        #names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
         
         nms = [i for i in names if i['type']=="accepted name"]
         nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
