@@ -24,12 +24,14 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
 from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
+from xml.etree import ElementTree as etree
 import datetime
 import logging
 import os
 import pickle
 import time
 import wsgiref.util
+import StringIO
 from mol.services import TileService
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
@@ -255,11 +257,12 @@ class GbifDataHandler(webapp.RequestHandler):
         species_key_name = os.path.join(keyA,keyB,keyC)
         
         """make sure that the keyname exists in MOL"""
+        """
         q = Species.get_by_key_name(species_key_name)
         if not q:
             self.error(404)
             return
-            
+        """
         """if dataset exists in memcache, return it to client"""
         data = memcache.get("gbif-%s" % species_key_name)
         if data is not None:
@@ -272,11 +275,12 @@ class GbifDataHandler(webapp.RequestHandler):
             return
         
         """create query URL for GBIF occurrence point url"""
+        """
         names = simplejson.loads(q.names)
         """
         #for testing on localhost
         names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
-        """
+        
         nms = [i for i in names if i['type']=="accepted name"]
         nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
         nms = nms[0]
@@ -285,13 +289,52 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
         
-        gbifUrl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
-        self.response.headers['Content-Type'] = "application/json"
-        self.response.out.write(simplejson.dumps(
-            {"status":404,
-             "redirct": gbifUrl,
-             "type": "kml"}))
+        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
         
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, gbifurl)
+        
+        # Gets downloaded kml from async rpc request and returns it or a 404: 
+        try:
+            result = rpc.get_result() # This call blocks.
+            if result.status_code == 200:
+                """need to add a pager here!"""
+                NS_KML = "http://earth.google.com/kml/2.1"
+                logging.info('KML downloaded: ' + gbifurl)
+                kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
+                output = []
+                for pm in kml.findall('{%s}Placemark' % NS_KML):
+                    out = {}
+                    tmp = pm.find('{%s}name' % NS_KML)
+                    out['name'] = str(tmp.text) if tmp is not None else None
+                    tmp = pm.find('{%s}description' % NS_KML)
+                    out['info'] = tmp.text if tmp is not None else None
+                    out['coordinates'] = {}
+                    tmp = pm.find('{%s}Point' % NS_KML)
+                    if tmp is not None:
+                        crds = tmp.find('{%s}coordinates' % NS_KML)
+                        if crds is not None:
+                            crds= str(crds.text).split(',')
+                            out['coordinates']['longitude'] = float(crds[0])
+                            out['coordinates']['latitude'] = float(crds[1])
+                            try:
+                                out['coordinates']['uncertainty'] = float(crds[2])
+                                assert out['coordinates']['uncertainty'] > 0.0
+                            except:
+                                out['coordinates']['uncertainty'] = None
+                    output.append(out)
+                output = simplejson.dumps(output)
+                memcache.set("gbif-%s" % species_key_name, output, 240000)
+                self.response.headers['Content-Type'] = "application/json"
+                self.response.out.write(output)
+                
+            else:
+                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+        except (urlfetch.DownloadError), e:
+            logging.error('%s - %s' % (gbifurl, str(e)))
+            logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+            self.error(404) # Not found
+            
 class TilePngHandler(webapp.RequestHandler):
     """RequestHandler for map tile PNGs."""
     def __init__(self):
@@ -346,7 +389,6 @@ class ValidKey(webapp.RequestHandler):
         else:
             self.error(404)
             
-
 class DatasetMetadata(webapp.RequestHandler):
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
@@ -383,8 +425,6 @@ class DatasetMetadata(webapp.RequestHandler):
             logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
         
-
-
 class BaseHandler(webapp.RequestHandler):
     '''Base handler for handling common stuff like template rendering.'''
 
@@ -621,7 +661,6 @@ class LayersHandler(BaseHandler):
         except (BadArgumentError), e:
             logging.error('Bad PUT request %s: %s' % (species_key_name, e))
             self.error(400) # Bad request
-
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
