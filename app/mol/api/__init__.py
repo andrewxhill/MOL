@@ -302,6 +302,7 @@ class GbifDataHandler(webapp.RequestHandler):
                     kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
                 except:
                     self.error(404) # Not found
+                    return
                 output = []
                 for pm in kml.findall('{%s}Placemark' % NS_KML):
                     out = {}
