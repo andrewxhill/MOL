@@ -320,7 +320,7 @@ class GbifDataHandler(webapp.RequestHandler):
                             except:
                                 out['coordinates']['uncertainty'] = None
                     output.append(out)
-                output = simplejson.dumps(output)
+                output = simplejson.dumps({"source": "GBIF", "sourceUrl": gbifurl.replace("format=kml&",""), "accessDate": str(datetime.datetime.now()), "records": output}).replace('\\/','/')
                 memcache.set("gbif-%s" % species_key_name, output, 240000)
                 self.response.headers['Content-Type'] = "application/json"
                 self.response.out.write(output)
