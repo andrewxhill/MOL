@@ -255,6 +255,8 @@ class GbifDataHandler(webapp.RequestHandler):
         self.ts = TileService()
     def get(self,keyA,keyB,keyC):
         species_key_name = os.path.join(keyA,keyB,keyC)
+        cb = self.request.params.get('callback', None)
+        sc = self.request.params.get('skipcache', None)
         
         """make sure that the keyname exists in MOL"""
         q = Species.get_by_key_name(species_key_name)
@@ -263,20 +265,21 @@ class GbifDataHandler(webapp.RequestHandler):
             return
         
         """if dataset exists in memcache, return it to client"""
-        data = memcache.get("gbif-%s" % species_key_name)
-        if data is not None:
-            """
-            cb = self.request.params.get('callback', None)
-            cb = "" if cb is None else "callback=%s" % cb
-            """
-            self.response.headers['Content-Type'] = "application/json"
-            self.response.out.write(data)
-            return
+        if sc is None:
+            data = memcache.get("gbif-small-%s" % species_key_name)
+            if data is not None:
+                """
+                cb = self.request.params.get('callback', None)
+                cb = "" if cb is None else "callback=%s" % cb
+                """
+                self.response.headers['Content-Type'] = "application/json"
+                self.response.out.write(data)
+                return
         
         """create query URL for GBIF occurrence point url"""
-        names = simplejson.loads(q.names)
         #for testing on localhost
         #names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
+        names = simplejson.loads(q.names)
         
         nms = [i for i in names if i['type']=="accepted name"]
         nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
@@ -286,7 +289,7 @@ class GbifDataHandler(webapp.RequestHandler):
             nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
             nms = nms[0]
         
-        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
+        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=1000&coordinatestatus=true&format=kml&scientificname=%s" % nms["name"].replace(" ","+")
         
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, gbifurl)
@@ -298,6 +301,7 @@ class GbifDataHandler(webapp.RequestHandler):
                 """need to add a pager here!"""
                 NS_KML = "http://earth.google.com/kml/2.1"
                 logging.info('KML downloaded: ' + gbifurl)
+                logging.info('Header: ' + simplejson.dumps(result.headers))
                 try:
                     kml = etree.parse(StringIO.StringIO(result.content)).findall('{%s}Folder' % NS_KML)[0]
                 except:
@@ -324,8 +328,9 @@ class GbifDataHandler(webapp.RequestHandler):
                             except:
                                 out['coordinates']['uncertainty'] = None
                     output.append(out)
-                output = simplejson.dumps({"source": "GBIF", "sourceUrl": gbifurl.replace("format=kml&",""), "accessDate": str(datetime.datetime.now()), "records": output}).replace('\\/','/')
-                memcache.set("gbif-%s" % species_key_name, output, 240000)
+                output = simplejson.dumps("source": "GBIF", "sourceUrl": gbifurl.replace("format=kml&",""), "accessDate": str(datetime.datetime.now()), "totalReturned": len(output), "records": output}).replace('\\/','/')
+                
+                memcache.set("gbif-small-%s" % species_key_name, output, 120000)
                 self.response.headers['Content-Type'] = "application/json"
                 self.response.out.write(output)
                 
