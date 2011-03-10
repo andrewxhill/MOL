@@ -69,7 +69,7 @@ class ScanNewLayers(Task):
                         shutil.move(os.path.join(scan_dir, file), os.path.join(tmp_dir, file))    
                 task = {self.g.Q_ITEM_JOB_TYPE: self.g.NEW_SHP_JOB_TYPE,
                     self.g.Q_ITEM_FULL_PATH: shp_full_path}
-                LayerProcessingThread.apply_async(args=[self.g, task],countdown=240)
+                LayerProcessingThread.apply_async(args=[self.g, task],countdown=480)
         return True
         
         
