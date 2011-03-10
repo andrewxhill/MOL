@@ -266,8 +266,36 @@ mol.view.RangeMapView = Backbone.View.extend(
                     lat = parseFloat(coordinate.decimalLatitude);
                     lng = parseFloat(coordinate.decimalLongitude);
                     center = new google.maps.LatLng(lat, lng);
-                    marker = new google.maps.Marker({position: center, map: this.map});
-                    this.overlays.push(marker);                                                               
+                    var donut = new google.maps.Circle({
+                        map:this.map,
+                        center: center,
+                        radius: 50000,
+                        strokeColor: "#414141",
+                        strokeOpacity: 0.55,
+                        strokeWeight: 1,
+                        fillColor: "#0078ec",
+                        fillOpacity: 0.5,
+                        zIndex: 3
+                      });   
+                    this.overlays.push(donut);  
+                    if (coordinate.coordinateUncertaintyInMeters != null) {
+                        var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                        var opacity = 0.85;
+                        if (cuim > 10000) { opacity = 0.4 };
+                        var marker = new google.maps.Circle({
+                            map:this.map,
+                            center: center,
+                            radius: cuim,
+                            strokeColor: "#414141",
+                            strokeWeight: 1,
+                            strokeOpacity: opacity,
+                            fillColor: "#ff5858",
+                            fillOpacity: opacity,
+                            zIndex: 5
+                          });
+                        //marker = new google.maps.Marker({position: center, map: this.map});
+                        this.overlays.push(marker);   
+                    }                                                      
                 }
             }
         }
