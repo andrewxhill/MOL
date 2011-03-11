@@ -55,7 +55,6 @@ class LayerWidget(BaseHandler):
         self.push_html('layer.widget.html')
 """stop"""
 
-
 class AdminFlushMemcacheHandler(BaseHandler):
     def get(self):
         if not memcache.flush_all():

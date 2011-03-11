@@ -28,52 +28,16 @@
       --> 
     <meta name="description" content="Map of Life - Range Map." /> 
     <meta name="keywords" content="map, map of life, biology, range map, expert map" /> 
-    <link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
+    <link href="http://fonts.googleapis.com/css?family=Josefin+Sans" rel='stylesheet' type='text/css'>
     <link href="http://code.google.com/apis/maps/documentation/javascript/examples/standard.css" 
           rel="stylesheet" type="text/css" /> 
-    <style>
-      #mol {
-        font-family: 'Josefin Sans', arial, serif;
-        font-size: 26px;
-        font-style: normal;
-        font-weight: 400;
-        text-shadow: none;
-        text-decoration: none;
-        text-transform: none;
-        letter-spacing: -0.037em;
-        word-spacing: -0.108em;
-        line-height: 1.17;
-        padding-bottom: 8px;
-      }
-      #searchButton {
-        position: fixed;
-        top: 46px;
-      }
-      #searchBox {
-        width: 300px;
-      }
-      #checkBox {
-        cursor: pointer;
-        position: fixed;
-        top: 48px;
-        left: 390px;
-      }
-      #cbtext {
-        position: fixed;
-        top: 51px;
-        left: 410px;
-      }
-      #searchTable {
-        padding-top: 10px;
-      }
-    </style>
+    <link rel="stylesheet" href="./css/layer.widget.css">
   </head>
   <body style="font: 75% Lucida Grande, Trebuchet MS">
     <div id="mol">Map of Life</div>
     <div id="map_canvas" style="height:100%"></div>
     <script>
-      mol.initRangeMap()
-;
+      mol.initRangeMap();
     </script>
   </body>  
 </html>
