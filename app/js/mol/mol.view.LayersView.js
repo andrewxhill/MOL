@@ -90,7 +90,11 @@ mol.view.LayersView = Backbone.View.extend(
         $("#"+id+" .loading").remove();
         $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
     },
-    
+
+    addRangeMapControl: function(speciesKey) {
+        // TODO: Add range map item to layer list.
+    },
+
     stackOrder: function(){
         var order = {},
             n = 0;

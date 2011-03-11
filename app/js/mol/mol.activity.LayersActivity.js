@@ -36,5 +36,17 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
 };
 
 mol.activity.LayersActivity.prototype.go = function(place) {
-    // NOOP
+    var speciesKey = place.params.speciesKey,
+        self = this,
+        pointsCb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                self.view.renderPoints(json, speciesKey);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
+        params = {speciesKey: speciesKey};
+    this.view.addRangeMapControl(speciesKey);
+    mol.apiProxy.execute({action: 'points', params: params}, pointsCb);
+    
 };
