@@ -1,0 +1,184 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
+<meta charset="utf-8" />
+<title>Map of Life - Layer Widget</title>
+<link rel="stylesheet" type="text/css" href="/static/loadingbar.css" />
+<style>
+body {
+    font: bold 16px Helvetica, Arial, sans-serif !important;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    text-shadow: none;
+    text-decoration: none;
+    text-transform: none;
+    text-align: center;
+    letter-spacing: -0.037em;
+    word-spacing: -0.108em;
+    background: #fefefe;
+    margin: 0;
+    padding: 0;
+}
+#content {
+    width: 100%;
+}
+#widget-container {
+    text-align: left;
+    margin-top: 100px;
+    margin-left: auto;
+	margin-right: auto;
+    background: #fefefe;
+    height: auto;
+	width: 300px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+}
+#layers {
+    padding-top: 5px;
+    width: 100%;
+    background: #fefefe;
+    color: #252525;
+}
+#layers #list {
+    width: 100%;
+    background: #fefefe;
+}
+#layers .list {
+    color: #141414;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(120,120,120,0.5)),
+        color-stop(0.69, rgba(219,219,219,0.5))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(120,120,120,0.5) 37%,
+        rgba(219,219,219,0.5) 69%
+    );
+    margin: 2px 2px 2px 2px;
+    padding: 1px 0px 1px 2px;
+    border: 1px solid #333333;
+    -moz-box-shadow: 2px 2px 5px #222;
+    -webkit-box-shadow: 2px 2px 5px #222;
+    box-shadow: 2px 2px 5px #222;
+}
+#layers .layer {
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    cursor: move;
+}
+#layers .layer.source {
+    font-size: 0.7em;
+    float: right;
+    padding: 2px;
+}
+#layers .list.options{
+    font-size: 0.85em;
+    height: 50px;
+    background: none;
+    border: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    margin: 0px;
+    padding: 0px;
+}
+#layers ul.list li {
+  list-style-type: none;
+  display: block;
+  width: 22%;
+  margin-right: 1%;
+  float: left;
+  text-align: center;
+}
+#layers ul.list li:hover {
+  background-color: #eee;
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#eee), to(#888), color-stop(0.6, #aaa));
+}
+#layers ul.list li a {
+  display: block;
+  padding: .8em .5em .5em .4em;
+  text-decoration: none;
+  color: #000;
+}
+#modal{
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(120,120,120,0.5)),
+        color-stop(0.69, rgba(219,219,219,0.5))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(120,120,120,0.5) 37%,
+        rgba(219,219,219,0.5) 69%
+    );
+    padding: 20px;
+    position: absolute;
+    top: 50px;
+    left: 100px;
+    -moz-box-shadow: 2px 2px 5px #222;
+    -webkit-box-shadow: 2px 2px 5px #222;
+    box-shadow: 2px 2px 5px #222;
+    zIndex: 5000;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+<script >
+    
+    $(function() {
+        $( "#layers #list" ).sortable({ 
+                                items: '.layer',
+                                containment: '#layers #list',
+                                cursor: 'move'
+        });
+        $( "#list" ).disableSelection();
+        
+        $( "#layers .option a#add_layer" ).click(function(){
+            $('#modal').show()
+        });
+        $("#modal").hide();
+
+    });
+    
+
+    
+</script>
+<body>
+<div id="content">
+    <div id="widget-container">
+        <div id="layers">
+            <div id="list">
+                <div class="layer list"><input type="radio" name="layer-toggle" value="range" CHECKED><span class="layer source">MOL</span> Artibeus concolor</div>
+                <div class="layer list"><input type="radio" name="layer-toggle" value="gbif"><span class="layer source">GBIF</span> Artibeus concolor</div>
+                <div class="layer list"><input type="radio" name="layer-toggle" value="enm"><span class="layer source">LifeMapper</span> Artibeus concolor</div>
+                <div class="layer list">
+                    <img src="/static/loading-small.gif" />
+                </div>
+                <ul class="options list">
+                    <li class="option list"><a id="add_layer" href="javascript:">Add</a></li>
+                    <li class="option list"><a href="">Upload</a></li>
+                    <li class="option list"><a href="">Info</a></li>
+                    <li class="option list"><a href="">Trash</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal">
+    <form>
+        <select name="add_new_map_layer">
+            <option value='{"name":"Artibeus concolor","source":"GBIF","type":"point"}'>GBIF point data for Artibeus concolor</option>
+            <option value='{"name":"Artibeus concolor","source":"Model","type":"raster"}'>MOL ENM for Artibeus concolor</option>
+            <option value='{"name":"Artibeus concolor","source":"Range","type":"raster"}'>MOL range map for Artibeus concolor</option>
+        </select>
+        <a href="javascript:$('#modal').hide()">cancel</a>
+    </form>
+</div>
+</body>
