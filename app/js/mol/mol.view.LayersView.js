@@ -93,8 +93,8 @@ mol.view.LayersView = Backbone.View.extend(
     },
     
     stackOrder: function(){
-        var order = new Object();
-        var n = 0;
+        var order = {},
+            n = 0;
         $(".layer list").each(function(){
             order[n] = $(this).attr("id");
             n++;
