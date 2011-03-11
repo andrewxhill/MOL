@@ -27,6 +27,8 @@
           <div class="layer list">
             <img src="/static/loading-small.gif" />
           </div>
+          <div class="layer list" id="add_new_layer_dialog">
+          </div>
           <ul class="options list">
             <li class="option list"><a id="add_layer" href="javascript:">Add</a></li>
             <li class="option list"><a href="">Upload</a></li>
@@ -36,22 +38,6 @@
         </div>
       </div>
     </div>
-</div>
-<div id="modal">
-  <form>
-    <select name="add_new_map_layer">
-      <option value='{"name":"Artibeus concolor","source":"GBIF","type":"point"}'>
-        GBIF point data for Artibeus concolor
-      </option>
-      <option value='{"name":"Artibeus concolor","source":"Model","type":"raster"}'>
-        MOL ENM for Artibeus concolor
-      </option>
-      <option value='{"name":"Artibeus concolor","source":"Range","type":"raster"}'>
-        MOL range map for Artibeus concolor
-      </option>
-    </select>
-    <a href="javascript:$('#modal').hide()">cancel</a>
-  </form>
 </div>
 <script >
   google.load("jquery", "1.5.1");

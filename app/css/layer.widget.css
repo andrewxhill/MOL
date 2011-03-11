@@ -1,4 +1,11 @@
 body {
+
+  display: box;
+  box-orient: horizontal;
+  /* The content of the body is horizontally centered */
+  box-pack: center;
+  /* and vertically as well ... \o/ */
+  box-align: center;
     font: bold 16px Helvetica, Arial, sans-serif !important;
     font-size: 20px;
     font-style: normal;
@@ -70,6 +77,15 @@ body {
     cursor: move;
 }
 
+#layers #add_new_layer_dialog {
+    height: 0px;
+}
+
+#layers #add_new_layer_dialog button{
+    width: 99%;
+    font-size: 1.1em;
+    color: #121212;
+}
 #layers .layer.source {
     font-size: 0.7em;
     float: right;
@@ -107,27 +123,4 @@ body {
   padding: .8em .5em .5em .4em;
   text-decoration: none;
   color: #000;
-}
-
-#modal{
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.37, rgba(120,120,120,0.5)),
-        color-stop(0.69, rgba(219,219,219,0.5))
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        rgba(120,120,120,0.5) 37%,
-        rgba(219,219,219,0.5) 69%
-    );
-    padding: 20px;
-    position: absolute;
-    top: 50px;
-    left: 100px;
-    -moz-box-shadow: 2px 2px 5px #222;
-    -webkit-box-shadow: 2px 2px 5px #222;
-    box-shadow: 2px 2px 5px #222;
-    zIndex: 5000;
 }
