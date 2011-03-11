@@ -16,6 +16,24 @@ mol.activity.LayersActivity.prototype.addLayerClick = function(evt) {
     this.view.showAddLayerDialog(true);  
 };
 
+mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, value) {
+    var self = this,
+        cb = null,
+        speciesKey = "animalia/species/" + value.replace(' ', '_');
+    if (source=== 'GBIF' && type === 'points') {
+        cb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                mol.eventBus.trigger('gbif-points-event', json);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
+        params = {speciesKey: speciesKey};
+        mol.apiProxy.execute({action: 'points', params: params}, cb);
+    }
+    
+};
+
 mol.activity.LayersActivity.prototype.go = function(place) {
     // NOOP
 };

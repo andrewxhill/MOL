@@ -7,7 +7,12 @@ mol.activity.RangeMapActivity = function(view) {
     if (!(this instanceof mol.activity.RangeMapActivity)) {
         return new mol.activity.RangeMapActivity(view);
     }
+    var self = this;
     this.view = view;
+    mol.eventBus.bind('gbif-points-event', 
+                      function(json) {
+                          self.view.renderPoints(json); 
+                      });                     
     return this;
 };
 

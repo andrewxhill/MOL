@@ -36,8 +36,51 @@
   <body style="font: 75% Lucida Grande, Trebuchet MS">
     <div id="mol">Map of Life</div>
     <div id="map_canvas" style="height:100%"></div>
+    
+    <!-- Layer widget stuff-->
+    <div id="content">
+      <div id="widget-container">
+        <div id="layers">
+          <div id="list">
+            <!--
+            <div class="layer list" id="MOL_range_artibeus_concolor">
+              <input type="radio" name="layer-toggle" value="range" CHECKED>
+              <span class="source">MOL</span> Artibeus concolor</div>
+            <div class="layer list" id="GBIF_points_artibeus_concolor">
+              <input type="radio" name="layer-toggle" value="gbif">
+              <span class="source">GBIF</span> Artibeus concolor</div>
+            <div class="layer list" id="LifeMapper_model_artibeus_concolor">
+              <input type="radio" name="layer-toggle" value="enm">
+              <span class="source">LifeMapper</span> Artibeus concolor</div>
+            -->
+            <div class="dialog list" id="add_new_layer_dialog">
+              <button id="add_points_button" class="dialog_buttons">Add Points</button>
+              <div id="add_points_dialog" class="dialog_button output">
+                Get GBIF Points
+                <input type="search" id="gbif_points_search_box">
+                <a href="javascript:" id="gbif_points_search">Go</a>
+              </div>
+              <button id="add_range_button" class="dialog_buttons">Add Range Map</button>
+              <div id="add_range_dialog" class="dialog_button output">
+                Get MOL Range Map
+                <input type="search" id="mol_range_search_box">
+                <a href="javascript:" id="mol_range_search">Go</a>
+              </div>
+            </div>
+            <ul class="options list">
+              <li class="option list"><a id="add_layer" href="javascript:">Add</a></li>
+              <li class="option list"><a href="">Upload</a></li>
+              <li class="option list"><a href="">Info</a></li>
+              <li class="option list"><a id="delete_layer" href="javascript:">Delete</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
-      mol.initRangeMap();
+      google.load("jquery", "1.5.1");
+      google.load("jqueryui", "1.8.10")
+      google.setOnLoadCallback(mol.initRangeMap);
     </script>
   </body>  
 </html>

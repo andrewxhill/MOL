@@ -55,31 +55,31 @@
 /* } */
 
 #content {
-    width: 100%;
+    /* width: 100%; */
 }
 
 #widget-container {
-    text-align: left;
-    margin-top: 100px;
-    margin-left: auto;
-	margin-right: auto;
-    background: #fefefe;
-    height: auto;
-	width: 300px;
-    padding-right: 2px;
-    padding-bottom: 2px;
+	width: 260px;
+    /* text-align: left; */
+    /* margin-top: 100px; */
+    /* margin-left: auto; */
+	/* margin-right: auto; */
+    /* background: #fefefe; */
+    /* height: auto; */
+    /* padding-right: 2px; */
+    /* padding-bottom: 2px; */
 }
 
 #layers {
-    padding-top: 5px;
-    width: 100%;
-    background: #fefefe;
-    color: #252525;
+    padding-top: 2px;
+    /* width: 100%; */
+    /* background: #fefefe; */
+    /* color: #252525; */
 }
 
 #layers #list {
-    width: 100%;
-    background: #fefefe;
+    /* width: 100%; */
+    /* background: #fefefe; */
 }
 
 #layers .list {

@@ -22,6 +22,9 @@ mol.view.RangeMapView = Backbone.View.extend(
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
         this.overlays = [];
+        //$("#content").hide();
+        this.layersDiv = document.getElementById('content');
+        this.attachLayersControl(this.layersDiv, this.map);
     },
 
     renderPoints: function(json) {        
@@ -79,7 +82,7 @@ mol.view.RangeMapView = Backbone.View.extend(
         }
     },
 
-    initMetadata: function(metadata) {
+    initMetadata: function(metadata) {        
         this.metadata = metadata;        
         this.maxZoom = this.metadata.zoom;
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
@@ -123,6 +126,11 @@ mol.view.RangeMapView = Backbone.View.extend(
             metaBtn, 'click', function() {
                 alert(JSON.stringify(self.metadata));
             });
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
+        div.index = 1;
+    },
+
+    attachLayersControl: function(div, map) {    
         map.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
         div.index = 1;
     },

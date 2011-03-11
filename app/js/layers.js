@@ -7,11 +7,13 @@ layer.loading = function(source,type,value){
         .append($('<img src="/static/loading-small.gif" />').height("16px"))
         .append('<span class="layer source">' + source + '</span>' + value);
     $("#list").prepend(layerstack);
-}
+};
+
 layer.remove = function(id){
     /* should add a safety check here */
     $(".layer.list").remove("#"+id);
-}
+};
+
 layer.init = function() {
     /* Add Layer Setup*/
     $("#add_new_layer_dialog").css({'visibility':'visible'});
