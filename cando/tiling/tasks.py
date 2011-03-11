@@ -118,6 +118,7 @@ class LayerProcessingThread(Task):
             layer.register()
             logging.info('Layer getting cleaned up...')
             layer.cleanup()
+            os.remove(errpath)
 
         
         except (SpeciesIdError), e:
