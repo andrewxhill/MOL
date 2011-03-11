@@ -25,6 +25,14 @@ import logging
 
 memcache = m.Client()
 
+"""remove this after layer widget is developed"""
+class LayerWidget(webapp.RequestHandler):
+    def get(self):
+        path = os.path.join(os.path.dirname(__file__), 'templates/layer.widget.html')
+        self.response.out.write(template.render(path, {}))
+"""stop"""
+
+
 class ColPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
@@ -90,6 +98,7 @@ class RangeMapHandler(BaseHandler):
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/search', SearchHandler),
+          ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/playground/col', ColPage),
