@@ -16,7 +16,7 @@ mol.activity.LayersActivity.prototype.addLayerClick = function(evt) {
     this.view.showAddLayerDialog(true);  
 };
 
-mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, value) {
+mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, value, id) {
     var self = this,
         cb = null,
         speciesKey = "animalia/species/" + value.replace(' ', '_');
@@ -24,6 +24,7 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
         cb = new mol.api.AsyncCallback(
             function(json) { // Success
                 mol.eventBus.trigger('gbif-points-event', json);
+                self.view.doneLoading(id);
             },
             function(error) { // Failure
                 alert('Error: ' + error);            
