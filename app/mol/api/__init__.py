@@ -622,10 +622,10 @@ class LayersTileHandler(BaseHandler):
                 self.response.headers['Content-Type'] = "image/png"
                 self.response.out.write(band)
             else:
+                logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
                 raise urlfetch.DownloadError('Bad tile result ' + str(result))
         except (urlfetch.DownloadError), e:
-            logging.error('%s - %s' % (tileurl, str(e)))
-            logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+            logging.error('%s - %s' % (tileurl, str(e)))            
             self.error(404) # Not found
 
 class LayersHandler(BaseHandler):
