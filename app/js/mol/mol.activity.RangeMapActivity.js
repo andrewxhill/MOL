@@ -10,8 +10,8 @@ mol.activity.RangeMapActivity = function(view) {
     var self = this;
     this.view = view;
     mol.eventBus.bind('gbif-points-event', 
-                      function(json) {
-                          self.view.renderPoints(json); 
+                      function(json, id) {
+                          self.view.renderPoints(json, id); 
                       });                     
     return this;
 };
@@ -33,7 +33,7 @@ mol.activity.RangeMapActivity.prototype.go = function(place) {
             }),
         pointsCb = new mol.api.AsyncCallback(
             function(json) { // Success
-                self.view.renderPoints(json);
+                self.view.renderPoints(json, speciesKey);
             },
             function(error) { // Failure
                 alert('Error: ' + error);            
