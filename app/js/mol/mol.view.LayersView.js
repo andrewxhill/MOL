@@ -89,7 +89,6 @@ mol.view.LayersView = Backbone.View.extend(
     doneLoading: function(id) {
         $("#"+id+" .loading").remove();
         $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
-        // TODO(andrew): update the element! shiz done loading!
     },
     
     stackOrder: function(){
