@@ -101,7 +101,7 @@ class LayerProcessingThread(Task):
         # Sets the error log file:
         tail = os.path.split(fullpath)[1]
         root = os.path.splitext(tail)[0]
-        errpath = os.path.join(self.g.ERR_DIR, '%s.log' % self.id)
+        errpath = os.path.join(self.g.ERR_DIR, '%s.log' % root)
         self.errlog = open(errpath, 'a+')
         
         try:
