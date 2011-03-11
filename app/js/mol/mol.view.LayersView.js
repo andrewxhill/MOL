@@ -10,6 +10,11 @@ mol.view.LayersView = Backbone.View.extend(
      */
     initialize: function() {   
         var self = this;
+        
+        var pathArray = window.location.pathname.split( '/' );
+        var speciesName = pathArray[4].charAt(0).toUpperCase() + pathArray[4].slice(1);
+        speciesName = speciesName.split('_').join(' ');
+        
         /* Add Layer Setup*/
         $("#add_new_layer_dialog").css({'visibility':'visible'});
         $("#add_new_layer_dialog").children().hide();
@@ -25,11 +30,24 @@ mol.view.LayersView = Backbone.View.extend(
                     $("#add_new_layer_dialog").css({"height":"auto"});
                 }
         });
+        /* add mouseover and mouseexit for hiding the overlay */
+        $("#widget-container").mouseover(function(){
+            self.menuFocus(true);
+        });
+        /* add mouseover and mouseexit for hiding the overlay */
+        $("#widget-container").mouseleave(function(){
+            self.menuFocus(false);
+        });
+        $("#widget-container .option.list").each(function(){
+            if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+        });
+        
+        
         /*add click function to the add points button*/
         $('#add_points_button').click(
             function(){
                 $("#add_new_layer_dialog .dialog_buttons").hide();
-                $("#add_points_dialog input").attr({'value': "Artibeus concolor"});
+                $("#add_points_dialog input").attr({'value': speciesName});
                 $("#add_points_dialog").show();
             }
         );
@@ -37,7 +55,7 @@ mol.view.LayersView = Backbone.View.extend(
         $('#add_range_button').click(
             function(){
                 $("#add_new_layer_dialog .dialog_buttons").hide();
-                $("#add_range_dialog input").attr({'value': "Artibeus concolor"});
+                $("#add_range_dialog input").attr({'value': speciesName});
                 $("#add_range_dialog").show();
             }
         );
@@ -80,7 +98,30 @@ mol.view.LayersView = Backbone.View.extend(
         );
         $("#list").disableSelection();
     },
-
+    
+    menuFocus: function(focus) {
+        var self = this;
+        if (focus) {
+            self.timeout = 1;
+            /* show */
+            $("#widget-container .option.list").show('slow');
+            $("#widget-container #list").show('slow');
+        } else {
+            if (self.timeout == 1){
+                self.timeout = 0;
+                setTimeout(function(){
+                    self.menuFocus(false);
+                 }, 4500);
+            } else {
+                /* hide */
+                $("#widget-container #list").hide('slow');
+                $("#widget-container .option.list").each(function(){
+                    if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+                });
+            }
+        }
+    },
+    
     remove: function(speciesKey) {
         /* should add a safety check here */
         $(".layer.list").remove("#"+speciesKey);
@@ -104,14 +145,16 @@ mol.view.LayersView = Backbone.View.extend(
         });
         return order;
     },
-    
-    loading: function(source, type, value, self) {
-        var id = source+"_"+type+"_"+value;
-        id = id.toUpperCase().split(' ').join('_');
+    addLayerControl: function(id, source, name){
         var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
             .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
-            .append('<span class="layer source">' + source + '</span>' + value);
+            .append('<span class="source">' + source + '</span>' + name);
         $("#list").prepend(layerstack);
+    }
+    loading: function(source, type, value, self) {
+        var id = source+"_"+type+"_"+value;
+        id = id.toLowerCase().split(' ').join('_');
+        self.addLayerContorl(id, source, value);
         self.activity.handleAddPoints(source, type, value, id);
     },
     
