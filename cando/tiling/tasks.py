@@ -98,6 +98,12 @@ class LayerProcessingThread(Task):
         logging.info('Starting new task')
         # Executes the job      
         layer = None
+        # Sets the error log file:
+        tail = os.path.split(fullpath)[1]
+        root = os.path.splitext(tail)[0]
+        errpath = os.path.join(self.g.ERR_DIR, '%s.log' % self.id)
+        self.errlog = open(errpath, 'a+')
+        
         try:
             layer = Layer(fullpath, self.g.TILE_DIR, self.g.ERR_DIR,
                           self.g.SRC_DIR, self.g.DST_DIR, self.g.MAP_XML,
@@ -116,6 +122,7 @@ class LayerProcessingThread(Task):
         
         except (SpeciesIdError), e:
             logging.info('SpeciesIdError ' + fullpath)
+            self.errlog.write('SpeciesIdError ' + fullpath)
             id = Layer.idfrompath(fullpath)[0]
             logging.warn('id=' + id)
             err_dir = self.g.ERR_DIR
@@ -132,6 +139,7 @@ class LayerProcessingThread(Task):
                 
         except (Exception), e:
             logging.error('Error while processing shapefile %s: %s' % (fullpath, str(e)))
+            self.errlog.write('Error while processing shapefile %s: %s' % (fullpath, str(e)))
             if layer is not None:
                 layer.cleanup(error=e)
             logging.error(str(e))

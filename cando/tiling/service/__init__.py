@@ -290,7 +290,7 @@ class Layer(object):
 
         # Sets the error log file:
         dirpath = os.path.join(errdir, '%s.log' % self.id)
-        self.errlog = open(dirpath, 'w')
+        self.errlog = open(dirpath, 'a+')
         
         
         #a first attempt at dynamic zoom control
