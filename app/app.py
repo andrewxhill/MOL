@@ -25,14 +25,6 @@ import logging
 
 memcache = m.Client()
 
-"""remove this after layer widget is developed"""
-class LayerWidget(webapp.RequestHandler):
-    def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'templates/layer.widget.html')
-        self.response.out.write(template.render(path, {}))
-"""stop"""
-
-
 class ColPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
@@ -55,6 +47,13 @@ class BaseHandler(webapp.RequestHandler):
     def push_html(self, file):
         path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(open(path, 'r').read())
+
+
+"""remove this after layer widget is developed"""
+class LayerWidget(BaseHandler):
+    def get(self):
+        self.push_html('layer.widget.html')
+"""stop"""
 
 
 class AdminFlushMemcacheHandler(BaseHandler):
