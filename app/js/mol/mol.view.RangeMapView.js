@@ -131,7 +131,7 @@ mol.view.RangeMapView = Backbone.View.extend(
     },
 
     attachLayersControl: function(div, map) {    
-        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
+        map.controls[google.maps.ControlPosition.RIGHT_TOP].push(div);
         div.index = 1;
     },
 

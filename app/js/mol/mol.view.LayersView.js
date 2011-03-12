@@ -87,15 +87,16 @@ mol.view.LayersView = Backbone.View.extend(
     },
 
     doneLoading: function(id) {
-        alert(id + ' is done loading');
+        $("#"+id+" .loading").remove();
+        $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
         // TODO(andrew): update the element! shiz done loading!
     },
 
     loading: function(source, type, value, self) {
-        var speciesKey = source+"_"+type+"_"+value;
-        speciesKey = speciesKey.toUpperCase().split(' ').join('_');
-        var layerstack = $("<div>").attr({"id":speciesKey,"class":"layer list"})
-            .append($('<img src="/static/loading-small.gif" />').height("16px"))
+        var id = source+"_"+type+"_"+value;
+        id = id.toUpperCase().split(' ').join('_');
+        var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
+            .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
             .append('<span class="layer source">' + source + '</span>' + value);
         $("#list").prepend(layerstack);
         self.activity.handleAddPoints(source, type, value, id);
