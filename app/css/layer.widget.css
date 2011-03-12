@@ -93,7 +93,7 @@ body {
     font-size: 1.1em;
     color: #121212;
 }
-#layers .layer.source {
+#layers .layer .source {
     font-size: 0.7em;
     float: right;
     padding: 2px;

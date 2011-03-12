@@ -4,7 +4,7 @@ layer.loading = function(source,type,value){
     var id = source+"_"+type+"_"+value;
     id = id.toUpperCase().split(' ').join('_');
     var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
-        .append($('<img src="/static/loading-small.gif" />').height("20px"))
+        .append($('<img src="/static/loading-small.gif" />').height("16px"))
         .append('<span class="layer source">' + source + '</span>' + value);
     $("#list").prepend(layerstack);
 }
