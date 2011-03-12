@@ -1,11 +1,22 @@
 var layer = layer || {};
 
+layer.loading = function(source,type,value){
+    var id = source+"_"+type+"_"+value;
+    id = id.toUpperCase().split(' ').join('_');
+    var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
+        .append($('<img src="/static/loading-small.gif" />').height("20px"))
+        .append('<span class="layer source">' + source + '</span>' + value);
+    $("#list").prepend(layerstack);
+}
+layer.remove = function(id){
+    console.log(id);
+    $(".layer.list").remove("#"+id);
+}
 layer.init = function() {
-    /* UI SETUP */
+    /* Add Layer Setup*/
     $("#add_new_layer_dialog").css({'visibility':'visible'});
     $("#add_new_layer_dialog").children().hide();
     $("#add_new_layer_dialog").hide();
-    
     $("#layers .option a#add_layer").click(
         function() {
             if ($("#add_new_layer_dialog").is(":visible")){
@@ -29,10 +40,22 @@ layer.init = function() {
             $("#add_range_dialog input").attr({'value': "Artibeus concolor"});
             $("#add_range_dialog").show();
         });
-            
-        
+        $("#gbif_points_search").click(function(){
+            $("#add_points_dialog").hide();
+            $("#add_new_layer_dialog").hide();
+            var val = $("#gbif_points_search_box").val();
+            console.log(val);
+            layer.loading("GBIF","points",val);
+        });
+    /* Delete Layer Setup */
+    $("#layers .option a#delete_layer").click(function(){
+        var id = $("#layers .layer.list input:checked").parent().attr('id');
+        console.log(id);
+        layer.remove(id);
+    });
+    
+    
     /* SETUP SORTABLE LAYER STACK */
-
     $("#layers #list").sortable(
         { 
             items: '.layer',
