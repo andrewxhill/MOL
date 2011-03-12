@@ -86,6 +86,11 @@ mol.view.LayersView = Backbone.View.extend(
         $(".layer.list").remove("#"+speciesKey);
     },
 
+    doneLoading: function(id) {
+        alert(id + ' is done loading');
+        // TODO(andrew): update the element! shiz done loading!
+    },
+
     loading: function(source, type, value, self) {
         var speciesKey = source+"_"+type+"_"+value;
         speciesKey = speciesKey.toUpperCase().split(' ').join('_');
@@ -93,7 +98,7 @@ mol.view.LayersView = Backbone.View.extend(
             .append($('<img src="/static/loading-small.gif" />').height("16px"))
             .append('<span class="layer source">' + source + '</span>' + value);
         $("#list").prepend(layerstack);
-        self.activity.handleAddPoints(source, type, value);
+        self.activity.handleAddPoints(source, type, value, id);
     },
     
     setActivity: function(activity) {
