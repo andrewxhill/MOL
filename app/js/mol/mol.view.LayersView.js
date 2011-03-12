@@ -81,15 +81,15 @@ mol.view.LayersView = Backbone.View.extend(
         $("#list").disableSelection();
     },
 
-    remove: function(id) {
+    remove: function(speciesKey) {
         /* should add a safety check here */
-        $(".layer.list").remove("#"+id);
+        $(".layer.list").remove("#"+speciesKey);
     },
 
     loading: function(source, type, value, self) {
-        var id = source+"_"+type+"_"+value;
-        id = id.toUpperCase().split(' ').join('_');
-        var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
+        var speciesKey = source+"_"+type+"_"+value;
+        speciesKey = speciesKey.toUpperCase().split(' ').join('_');
+        var layerstack = $("<div>").attr({"id":speciesKey,"class":"layer list"})
             .append($('<img src="/static/loading-small.gif" />').height("16px"))
             .append('<span class="layer source">' + source + '</span>' + value);
         $("#list").prepend(layerstack);
