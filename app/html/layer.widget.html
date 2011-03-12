@@ -27,7 +27,19 @@
           <div class="layer list">
             <img src="/static/loading-small.gif" />
           </div>
-          <div class="layer list" id="add_new_layer_dialog">
+          <div class="dialog list" id="add_new_layer_dialog">
+            <button id="add_points_button" class="dialog_buttons">Add Points</button>
+                <div id="add_points_dialog" class="dialog_button output">
+                    Get GBIF Points
+                    <input type="search" id="gbif_points_search_box">
+                    <a href="javascript:" id="gbif_points_search">Go</a>
+                </div>
+            <button id="add_range_button" class="dialog_buttons">Add Range Map</button>
+                <div id="add_range_dialog" class="dialog_button output">
+                    Get MOL Range Map
+                    <input type="search" id="mol_range_search_box">
+                    <a href="javascript:" id="mol_range_search">Go</a>
+                </div>
           </div>
           <ul class="options list">
             <li class="option list"><a id="add_layer" href="javascript:">Add</a></li>
