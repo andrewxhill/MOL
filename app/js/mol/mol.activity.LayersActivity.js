@@ -19,7 +19,7 @@ mol.activity.LayersActivity.prototype.addLayerClick = function(evt) {
 mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, value, id) {
     var self = this,
         cb = null,
-        speciesKey = "animalia/species/" + value.replace(' ', '_');
+        speciesKey = "animalia/species/" + value.replace(' ', '_').toLowerCase();
     if (source=== 'GBIF' && type === 'points') {
         cb = new mol.api.AsyncCallback(
             function(json) { // Success

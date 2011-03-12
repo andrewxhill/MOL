@@ -10,6 +10,12 @@ mol.view.LayersView = Backbone.View.extend(
      */
     initialize: function() {   
         var self = this;
+        
+        var pathArray = window.location.pathname.split( '/' );
+        var speciesName = pathArray[4].charAt(0).toUpperCase() + pathArray[4].slice(1);
+        speciesName = speciesName.split('_').join(' ');
+        console.log(speciesName);
+        
         /* Add Layer Setup*/
         $("#add_new_layer_dialog").css({'visibility':'visible'});
         $("#add_new_layer_dialog").children().hide();
@@ -29,7 +35,7 @@ mol.view.LayersView = Backbone.View.extend(
         $('#add_points_button').click(
             function(){
                 $("#add_new_layer_dialog .dialog_buttons").hide();
-                $("#add_points_dialog input").attr({'value': "Artibeus concolor"});
+                $("#add_points_dialog input").attr({'value': speciesName});
                 $("#add_points_dialog").show();
             }
         );
@@ -37,7 +43,7 @@ mol.view.LayersView = Backbone.View.extend(
         $('#add_range_button').click(
             function(){
                 $("#add_new_layer_dialog .dialog_buttons").hide();
-                $("#add_range_dialog input").attr({'value': "Artibeus concolor"});
+                $("#add_range_dialog input").attr({'value': speciesName});
                 $("#add_range_dialog").show();
             }
         );
@@ -104,7 +110,7 @@ mol.view.LayersView = Backbone.View.extend(
     
     loading: function(source, type, value, self) {
         var id = source+"_"+type+"_"+value;
-        id = id.toUpperCase().split(' ').join('_');
+        id = id.toLowerCase().split(' ').join('_');
         var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
             .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
             .append('<span class="layer source">' + source + '</span>' + value);
