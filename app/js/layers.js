@@ -9,7 +9,7 @@ layer.loading = function(source,type,value){
     $("#list").prepend(layerstack);
 }
 layer.remove = function(id){
-    console.log(id);
+    /* should add a safety check here */
     $(".layer.list").remove("#"+id);
 }
 layer.init = function() {
@@ -40,13 +40,21 @@ layer.init = function() {
             $("#add_range_dialog input").attr({'value': "Artibeus concolor"});
             $("#add_range_dialog").show();
         });
+        
+        /* start the add layer method from the search bar */
         $("#gbif_points_search").click(function(){
             $("#add_points_dialog").hide();
             $("#add_new_layer_dialog").hide();
             var val = $("#gbif_points_search_box").val();
-            console.log(val);
             layer.loading("GBIF","points",val);
         });
+        $("#mol_range_search").click(function(){
+            $("#add_range_dialog").hide();
+            $("#add_new_layer_dialog").hide();
+            var val = $("#mol_range_search_box").val();
+            layer.loading("MOL","range",val);
+        });
+        
     /* Delete Layer Setup */
     $("#layers .option a#delete_layer").click(function(){
         var id = $("#layers .layer.list input:checked").parent().attr('id');
