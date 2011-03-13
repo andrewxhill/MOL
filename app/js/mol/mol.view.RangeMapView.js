@@ -86,18 +86,21 @@ mol.view.RangeMapView = Backbone.View.extend(
     },
     
     deleteMapLayer: function(id){
-        console.log(this.overlays[id]);
-        this.overlays[id].setMap(null);
+        for (var i in this.overlays[id]){
+            this.overlays[id][i].setMap(null);
+        }
+        
     },
     
-    addRangeMap: function(metadata) {
+    addRangeMap: function(metadata,id) {
+        console.log(id);
         var speciesKey = metadata.mol_species_id;
         this.metadata = metadata;        
         this.maxZoom = this.metadata.zoom;
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
         this.zoomToLayerExtent();
         this.attachMetadataControl(this.metaControlDiv, this.map);        
-        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType(speciesKey));
+        /* this.map.overlayMapTypes.insertAt(0, id); */
     },
 
     zoomToLayerExtent: function() {
