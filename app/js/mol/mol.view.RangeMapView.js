@@ -22,7 +22,6 @@ mol.view.RangeMapView = Backbone.View.extend(
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
         this.overlays = {};
-        //$("#content").hide();
         this.layersDiv = document.getElementById('content');
         this.attachLayersControl(this.layersDiv, this.map);
     },
@@ -86,13 +85,14 @@ mol.view.RangeMapView = Backbone.View.extend(
         }
     },
 
-    initMetadata: function(metadata) {        
+    addRangeMap: function(metadata) {
+        var speciesKey = metadata.mol_species_id;
         this.metadata = metadata;        
         this.maxZoom = this.metadata.zoom;
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
         this.zoomToLayerExtent();
-        this.attachMetadataControl(this.metaControlDiv, this.map);
-        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType());
+        this.attachMetadataControl(this.metaControlDiv, this.map);        
+        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType(speciesKey));
     },
 
     zoomToLayerExtent: function() {
@@ -167,13 +167,12 @@ mol.view.RangeMapView = Backbone.View.extend(
     /**
      * The Google Maps ImageMapType for range map tiles.
      */
-    rangeImageMapType: function() {   
+    rangeImageMapType: function(speciesKey) {   
         var self = this;
         return new google.maps.ImageMapType(
             {
                 getTileUrl: function(coord, zoom) {
-                    var normalizedCoord = self.getNormalizedCoord(coord, zoom),
-                        speciesKey = self.metadata.mol_species_id;
+                    var normalizedCoord = self.getNormalizedCoord(coord, zoom);
                     if (!normalizedCoord) {
                         return null;
                     }

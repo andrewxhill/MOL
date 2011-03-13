@@ -31,22 +31,34 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
             }),
         params = {speciesKey: speciesKey};
         mol.apiProxy.execute({action: 'points', params: params}, cb);
-    }
-    
+    }    
 };
 
 mol.activity.LayersActivity.prototype.go = function(place) {
     var speciesKey = place.params.speciesKey,
+        layerId = speciesKey.replace('/', '_'),
+        layerSource = 'GBIF',
+        layerName = speciesKey.split('/')[2].replace('_', ' '),
         self = this,
-        pointsCb = new mol.api.AsyncCallback(
+        pointCb = new mol.api.AsyncCallback(
             function(json) { // Success
-                self.view.renderPoints(json, speciesKey);
+                mol.eventBus.trigger('gbif-points-event', json, layerId);
+                self.view.addLayerControl(layerId, layerSource, layerName);
+                self.view.doneLoading(layerId);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
+        metaCb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                mol.eventBus.trigger('rangemap-metadata-event', json, layerId);
+                self.view.addLayerControl(layerId, 'MOL', layerName);
+                self.view.doneLoading(layerId);
             },
             function(error) { // Failure
                 alert('Error: ' + error);            
             }),
         params = {speciesKey: speciesKey};
-    this.view.addRangeMapControl(speciesKey);
-    mol.apiProxy.execute({action: 'points', params: params}, pointsCb);
-    
+    mol.apiProxy.execute({action: 'points', params: params}, pointCb);    
+    mol.apiProxy.execute({action: 'rangemap_metadata', params: params}, metaCb); 
 };
