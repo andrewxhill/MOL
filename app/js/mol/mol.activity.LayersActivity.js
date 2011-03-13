@@ -31,10 +31,36 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
             }),
         params = {speciesKey: speciesKey};
         mol.apiProxy.execute({action: 'points', params: params}, cb);
-    }
-    
+    }    
 };
 
 mol.activity.LayersActivity.prototype.go = function(place) {
-    // NOOP
+    var speciesKey = place.params.speciesKey,
+        layerId = speciesKey.split('/').join('_'),
+        layerSource = 'GBIF',
+        layerName = speciesKey.split('/')[2].replace('_', ' '),
+        self = this,
+        pointCb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                var id = "points_"+layerId;
+                mol.eventBus.trigger('gbif-points-event', json, id);
+                self.view.addLayerControl(id, layerSource, layerName);
+                self.view.doneLoading(id);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
+        metaCb = new mol.api.AsyncCallback(
+            function(json) { // Success
+                var id = "range_"+layerId;
+                mol.eventBus.trigger('rangemap-metadata-event', json, id);
+                self.view.addLayerControl(id, 'MOL', layerName);
+                self.view.doneLoading(id);
+            },
+            function(error) { // Failure
+                alert('Error: ' + error);            
+            }),
+        params = {speciesKey: speciesKey};
+    mol.apiProxy.execute({action: 'points', params: params}, pointCb);    
+    mol.apiProxy.execute({action: 'rangemap_metadata', params: params}, metaCb); 
 };

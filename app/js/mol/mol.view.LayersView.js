@@ -111,7 +111,7 @@ mol.view.LayersView = Backbone.View.extend(
                 self.timeout = 0;
                 setTimeout(function(){
                     self.menuFocus(false);
-                 }, 4500);
+                 }, 6500);
             } else {
                 /* hide */
                 $("#widget-container #list").hide('slow');
@@ -127,11 +127,10 @@ mol.view.LayersView = Backbone.View.extend(
         $(".layer.list").remove("#"+speciesKey);
     },
 
-    doneLoading: function(id) {
-        $("#"+id+" .loading").remove();
-        $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
+    addRangeMapControl: function(speciesKey) {
+        // TODO: Add range map item to layer list.
     },
-    
+
     stackOrder: function(){
         var order = {},
             n = 0;
@@ -142,12 +141,17 @@ mol.view.LayersView = Backbone.View.extend(
         return order;
     },
     
-    addLayerControl: function(id, source, value){
+    addLayerControl: function(id, source, title){
         var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
             .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
-            .append('<span class="source">' + source + '</span>' + value);
+            .append('<span class="source">' + source + '</span>' + title);
         $("#list").prepend(layerstack);
-    }
+    },
+    
+    doneLoading: function(id) {
+        $("#"+id+" .loading").remove();
+        $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
+    },
     
     loading: function(source, type, value, self) {
         var id = source+"_"+type+"_"+value;

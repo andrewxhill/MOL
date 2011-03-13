@@ -12,7 +12,11 @@ mol.activity.RangeMapActivity = function(view) {
     mol.eventBus.bind('gbif-points-event', 
                       function(json, id) {
                           self.view.renderPoints(json, id); 
-                      });                     
+                      });
+    mol.eventBus.bind('rangemap-metadata-event', 
+                      function(json, id) {
+                          self.view.addRangeMap(json);
+                      });                                          
     return this;
 };
 
@@ -22,23 +26,5 @@ mol.activity.RangeMapActivity = function(view) {
  * @param place The place object to go to
  */
 mol.activity.RangeMapActivity.prototype.go = function(place) {
-    var speciesKey = place.params.speciesKey,
-        self = this,
-        cb = new mol.api.AsyncCallback(
-            function(json) { // Success
-                self.view.initMetadata(json);
-            },
-            function(error) { // Failure
-                alert('Error: ' + error);            
-            }),
-        pointsCb = new mol.api.AsyncCallback(
-            function(json) { // Success
-                self.view.renderPoints(json, speciesKey);
-            },
-            function(error) { // Failure
-                alert('Error: ' + error);            
-            }),
-        params = {speciesKey: speciesKey};
-    mol.apiProxy.execute({action: 'rangemap', params: params}, cb);
-    mol.apiProxy.execute({action: 'points', params: params}, pointsCb);
+    // NOOP
 };
