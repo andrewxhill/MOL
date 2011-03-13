@@ -141,12 +141,14 @@ mol.view.LayersView = Backbone.View.extend(
         });
         return order;
     },
-    addLayerControl: function(id, source, name){
+    
+    addLayerControl: function(id, source, value){
         var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
             .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
-            .append('<span class="source">' + source + '</span>' + name);
+            .append('<span class="source">' + source + '</span>' + value);
         $("#list").prepend(layerstack);
     }
+    
     loading: function(source, type, value, self) {
         var id = source+"_"+type+"_"+value;
         id = id.toLowerCase().split(' ').join('_');
