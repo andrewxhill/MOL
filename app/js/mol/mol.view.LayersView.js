@@ -36,7 +36,7 @@ mol.view.LayersView = Backbone.View.extend(
         });
         /* add mouseover and mouseexit for hiding the overlay */
         $("#widget-container").mouseleave(function(){
-            self.menuFocus(false);
+            self.menuFocus(false,true);
         });
         $("#widget-container .option.list").each(function(){
             if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
@@ -82,7 +82,6 @@ mol.view.LayersView = Backbone.View.extend(
         $("#layers .option a#delete_layer").click(
             function(){
                 var id = $("#layers .layer.list input:checked").parent().attr('id');
-                console.log(id);
                 self.remove(id);
             }
         );
@@ -99,7 +98,7 @@ mol.view.LayersView = Backbone.View.extend(
         $("#list").disableSelection();
     },
     
-    menuFocus: function(focus) {
+    menuFocus: function(focus, fromUI) {
         var self = this;
         if (focus) {
             self.timeout = 1;
@@ -107,7 +106,7 @@ mol.view.LayersView = Backbone.View.extend(
             $("#widget-container .option.list").show('slow');
             $("#widget-container #list").show('slow');
         } else {
-            if (self.timeout == 1){
+            if (self.timeout == 1 || fromUI){
                 self.timeout = 0;
                 setTimeout(function(){
                     self.menuFocus(false);
@@ -122,9 +121,11 @@ mol.view.LayersView = Backbone.View.extend(
         }
     },
     
-    remove: function(speciesKey) {
+    remove: function(id) {
         /* should add a safety check here */
-        $(".layer.list").remove("#"+speciesKey);
+        var self = this;
+        $(".layer.list").remove("#"+id);
+        self.activity.handleDeleteLayer(id);
     },
 
     addRangeMapControl: function(speciesKey) {

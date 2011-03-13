@@ -34,6 +34,10 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
     }    
 };
 
+mol.activity.LayersActivity.prototype.handleDeleteLayer = function (layerId) {
+    mol.eventBus.trigger('delete-layer-event', layerId);
+};
+
 mol.activity.LayersActivity.prototype.go = function(place) {
     var speciesKey = place.params.speciesKey,
         layerId = speciesKey.split('/').join('_'),

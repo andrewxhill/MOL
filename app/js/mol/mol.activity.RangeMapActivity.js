@@ -16,6 +16,10 @@ mol.activity.RangeMapActivity = function(view) {
     mol.eventBus.bind('rangemap-metadata-event', 
                       function(json, id) {
                           self.view.addRangeMap(json);
+                      });       
+    mol.eventBus.bind('delete-layer-event', 
+                      function(id) {
+                          self.view.deleteMapLayer(id);
                       });                                          
     return this;
 };

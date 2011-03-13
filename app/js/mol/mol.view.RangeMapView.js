@@ -84,7 +84,12 @@ mol.view.RangeMapView = Backbone.View.extend(
             }
         }
     },
-
+    
+    deleteMapLayer: function(id){
+        console.log(this.overlays[id]);
+        this.overlays[id].setMap(null);
+    },
+    
     addRangeMap: function(metadata) {
         var speciesKey = metadata.mol_species_id;
         this.metadata = metadata;        

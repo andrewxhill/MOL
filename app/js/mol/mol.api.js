@@ -30,7 +30,7 @@ mol.api.ApiProxy = function() {
             var xhr = $.post('/api/points/gbif/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
-        }
+        } 
     };
     return this;
 };
