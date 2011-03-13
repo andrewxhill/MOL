@@ -14,7 +14,6 @@ mol.view.LayersView = Backbone.View.extend(
         var pathArray = window.location.pathname.split( '/' );
         var speciesName = pathArray[4].charAt(0).toUpperCase() + pathArray[4].slice(1);
         speciesName = speciesName.split('_').join(' ');
-        console.log(speciesName);
         
         /* Add Layer Setup*/
         $("#add_new_layer_dialog").css({'visibility':'visible'});
@@ -31,6 +30,19 @@ mol.view.LayersView = Backbone.View.extend(
                     $("#add_new_layer_dialog").css({"height":"auto"});
                 }
         });
+        /* add mouseover and mouseexit for hiding the overlay */
+        $("#widget-container").mouseover(function(){
+            self.menuFocus(true);
+        });
+        /* add mouseover and mouseexit for hiding the overlay */
+        $("#widget-container").mouseleave(function(){
+            self.menuFocus(false);
+        });
+        $("#widget-container .option.list").each(function(){
+            if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+        });
+        
+        
         /*add click function to the add points button*/
         $('#add_points_button').click(
             function(){
@@ -86,7 +98,30 @@ mol.view.LayersView = Backbone.View.extend(
         );
         $("#list").disableSelection();
     },
-
+    
+    menuFocus: function(focus) {
+        var self = this;
+        if (focus) {
+            self.timeout = 1;
+            /* show */
+            $("#widget-container .option.list").show('slow');
+            $("#widget-container #list").show('slow');
+        } else {
+            if (self.timeout == 1){
+                self.timeout = 0;
+                setTimeout(function(){
+                    self.menuFocus(false);
+                 }, 2500);
+            } else {
+                /* hide */
+                $("#widget-container #list").hide('slow');
+                $("#widget-container .option.list").each(function(){
+                    if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+                });
+            }
+        }
+    },
+    
     remove: function(speciesKey) {
         /* should add a safety check here */
         $(".layer.list").remove("#"+speciesKey);
