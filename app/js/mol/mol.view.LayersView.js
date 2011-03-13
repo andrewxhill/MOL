@@ -111,7 +111,7 @@ mol.view.LayersView = Backbone.View.extend(
                 self.timeout = 0;
                 setTimeout(function(){
                     self.menuFocus(false);
-                 }, 2500);
+                 }, 4500);
             } else {
                 /* hide */
                 $("#widget-container #list").hide('slow');
@@ -141,14 +141,16 @@ mol.view.LayersView = Backbone.View.extend(
         });
         return order;
     },
-    
+    addLayerControl: function(id, source, name){
+        var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
+            .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
+            .append('<span class="source">' + source + '</span>' + name);
+        $("#list").prepend(layerstack);
+    }
     loading: function(source, type, value, self) {
         var id = source+"_"+type+"_"+value;
         id = id.toLowerCase().split(' ').join('_');
-        var layerstack = $("<div>").attr({"id":id,"class":"layer list"})
-            .append($('<img src="/static/loading-small.gif" class="loading"/>').height("16px"))
-            .append('<span class="layer source">' + source + '</span>' + value);
-        $("#list").prepend(layerstack);
+        self.addLayerContorl(id, source, value);
         self.activity.handleAddPoints(source, type, value, id);
     },
     

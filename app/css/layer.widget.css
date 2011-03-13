@@ -60,7 +60,8 @@
 
 #widget-container {
 	width: 260px;
-    font-weight:bold;
+    font-weight:700;
+    font-size: 20px;
     /* text-align: left; */
     /* margin-top: 100px; */
     /* margin-left: auto; */
@@ -127,7 +128,7 @@
     font-size: 1.1em;
     color: #121212;
 }
-#layers .layer .source {
+#layers .source {
     font-size: 0.7em;
     float: right;
     padding: 2px;
