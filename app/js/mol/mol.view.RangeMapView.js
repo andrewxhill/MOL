@@ -100,6 +100,7 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
         this.zoomToLayerExtent();
         this.attachMetadataControl(this.metaControlDiv, this.map);        
+        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType(speciesKey));
         /* this.map.overlayMapTypes.insertAt(0, id); */
     },
 
