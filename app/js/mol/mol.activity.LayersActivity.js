@@ -23,7 +23,7 @@ mol.activity.LayersActivity.prototype.handleAddPoints = function (source, type, 
     if (source=== 'GBIF' && type === 'points') {
         cb = new mol.api.AsyncCallback(
             function(json) { // Success
-                mol.eventBus.trigger('gbif-points-event', json);
+                mol.eventBus.trigger('gbif-points-event', json, id);
                 self.view.doneLoading(id);
             },
             function(error) { // Failure

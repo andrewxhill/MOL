@@ -21,13 +21,13 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.metaControlDiv = document.createElement('div');
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
-        this.overlays = [];
+        this.overlays = {};
         //$("#content").hide();
         this.layersDiv = document.getElementById('content');
         this.attachLayersControl(this.layersDiv, this.map);
     },
 
-    renderPoints: function(json) {        
+    renderPoints: function(json, id) {        
         var results = json,
             center = null,
             marker = null,
@@ -38,6 +38,9 @@ mol.view.RangeMapView = Backbone.View.extend(
             resources = [],
             occurrences = [],
             coordinate = null;
+        if (!this.overlays.hasOwnProperty(id)) {
+            this.overlays[id] = [];            
+        }
         for (provider in results.records.providers) {
             resources = results.records.providers[provider].resources;
             for (resource in resources) {
@@ -58,7 +61,8 @@ mol.view.RangeMapView = Backbone.View.extend(
                         fillOpacity: 0.5,
                         zIndex: 3
                       });   
-                    this.overlays.push(donut);  
+                    
+                    this.overlays[id].push(donut);  
                     if (coordinate.coordinateUncertaintyInMeters != null) {
                         var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
                         var opacity = 0.85;
@@ -75,7 +79,7 @@ mol.view.RangeMapView = Backbone.View.extend(
                             zIndex: 5
                           });
                         //marker = new google.maps.Marker({position: center, map: this.map});
-                        this.overlays.push(marker);   
+                        this.overlays[id].push(marker);
                     }                                                      
                 }
             }
