@@ -1,22 +1,24 @@
 MOL = (function ( $ ) {  
-    self = this;
+    var self = this;
     self.map = null;
     
     var Map = function( ) {
-        _self = this;
+        var _self = this;
+            var context,center,options,map;
+            
         return {
             init: function( context ){
                 console.log($(context).attr('id'));
-                
-                var center = new google.maps.LatLng(0,0);            
-                var Options = {
+                _self.context = context;
+                _self.center = new google.maps.LatLng(0,0);            
+                _self.options = {
                     zoom: 2,
                     maxZoom: 20,
-                    center: center,
+                    center: _self.center,
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
                 var layersDiv = document.getElementById($(context).attr('id'));
-                var map = new google.maps.Map(layersDiv, Options);
+                _self.map = new google.maps.Map(layersDiv, _self.options);
             }
         }
     }
@@ -43,16 +45,17 @@ MOL = (function ( $ ) {
         }
     }
     var Interface = function( context ) {
-        self.rangemap = $("<div>")
+        var _self = this;
+        _self.rangemap = $("<div>")
                             .attr({"id":"map"})
                             .css({"width":"800px",
                                   "height": "400px",
                                   "background-color":"black",
                                  });
         $(context).append("<div>hello header</div>");
-        $(context).append(self.rangemap);
-        self.map = new Map();
-        self.map.init(self.rangemap);
+        $(context).append(_self.rangemap);
+        _self.map = new Map();
+        _self.map.init(_self.rangemap);
         
         //self.layerstackui = new LayerStackUI();
         //self.layerstackui.init(self.rangemap);
@@ -62,7 +65,7 @@ MOL = (function ( $ ) {
     return {
 		// constructor
 		Viz: function( context ){
-            _self = this;
+            var _self = this;
             _self.context = context;
             var _interface = new Interface(context);
         },
