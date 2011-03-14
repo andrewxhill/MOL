@@ -36,7 +36,8 @@ mol.view.RangeMapView = Backbone.View.extend(
             radius = 0, 
             resources = [],
             occurrences = [],
-            coordinate = null;
+            coordinate = null,
+            iconUrl = 'http://labs.google.com/ridefinder/images/mm_20_red.png';
         if (!this.overlays.hasOwnProperty(id)) {
             this.overlays[id] = [];            
         }
@@ -49,42 +50,83 @@ mol.view.RangeMapView = Backbone.View.extend(
                     lat = parseFloat(coordinate.decimalLatitude);
                     lng = parseFloat(coordinate.decimalLongitude);
                     center = new google.maps.LatLng(lat, lng);
-                    var donut = new google.maps.Circle({
-                        map:this.map,
-                        center: center,
-                        radius: 50000,
-                        strokeColor: "#414141",
-                        strokeOpacity: 0.55,
-                        strokeWeight: 1,
-                        fillColor: "#0078ec",
-                        fillOpacity: 0.5,
-                        zIndex: 3
-                      });   
+                    marker = new google.maps.Marker(
+                        {
+                            position: center,
+                            map: this.map,
+                            icon: iconUrl
+                        }
+                    );
+                    // var donut = new google.maps.Circle({
+                    //     map:this.map,
+                    //     center: center,
+                    //     radius: 50000,
+                    //     strokeColor: "#414141",
+                    //     strokeOpacity: 0.55,
+                    //     strokeWeight: 1,
+                    //     fillColor: "#0078ec",
+                    //     fillOpacity: 0.5,
+                    //     zIndex: 3
+                    //   });   
                     
-                    this.overlays[id].push(donut);  
+                    this.overlays[id].push(marker);                      
                     if (coordinate.coordinateUncertaintyInMeters != null) {
                         var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                        radius = cuim;
                         var opacity = 0.85;
                         if (cuim > 10000) { 
                             opacity = 0.4; 
                         }
-                        var marker = new google.maps.Circle({
-                            map:this.map,
-                            center: center,
-                            radius: cuim,
-                            strokeColor: "#414141",
-                            strokeWeight: 1,
-                            strokeOpacity: opacity,
-                            fillColor: "#ff5858",
-                            fillOpacity: opacity,
-                            zIndex: 5
+                        var circle = new google.maps.Circle(
+                            {
+                                map: this.map,
+                                center: center,
+                                radius: cuim,
+                                fillColor: '#CEE3F6',
+                                strokeWeight: 1,                                
+                                zIndex: 5
                           });
                         //marker = new google.maps.Marker({position: center, map: this.map});
-                        this.overlays[id].push(marker);
+                        this.overlays[id].push(circle);
                     }                                                      
+                    var providerName = results.records.providers[provider].name;
+                    var resourceName = resources[resource].name;
+                    var sourceUrl = results.sourceUrl;
+                    google.maps.event.addListener(
+                        marker, 
+                        'click', 
+                        this.markerClickHandler(marker, radius, providerName, resourceName, sourceUrl)
+                    );                                
                 }
             }
         }
+    },
+
+    markerClickHandler: function(marker, radius, provider, resource, url) {
+        var self = this;
+        return function() {
+            var content = '<div id="content">' +
+                '<h3>' + provider + ': ' + resource + '</h3>' +
+                'Point: ' + marker.getPosition().lat() + ', ' + marker.getPosition().lng() +
+                '<br>Radius: ' + radius + 
+                '<br><a target="_blank" href="' + url + '">Source URL</a>' +
+                '<br><a href="javascript::" class="zoom">zoom here</a>' +
+                '</div>';
+            var e = document.createElement('div');
+            e.innerHTML = content;
+            e.getElementsByClassName('zoom')[0].addEventListener(
+                'click', function() {
+                    self.map.setZoom(12);
+                    self.map.panTo(marker.getPosition());
+                }, false);        
+            var infowin = new google.maps.InfoWindow(
+                {
+                    content: e
+                }
+            );
+            infowin.setPosition(marker.getPosition());
+            infowin.open(self.map, marker);
+        };
     },
     
     deleteMapLayer: function(id){

@@ -163,15 +163,15 @@ mol.view.LayersView = Backbone.View.extend(
         $("#list").prepend(layerstack);
     },
     
-    doneLoading: function(id) {        
+    doneLoading: function(layerId) {        
         var self = this;
-        $("#"+id+" .loading").remove();
-        $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
-        $("#"+id).append('<input type="checkbox" id="'+id+'-checkbox" name="layer-vis-toggle" value="range" CHECKED>');
-        $('#' + id + '-checkbox').click(
+        $("#" + layerId + " .loading").remove();
+        $("#"+layerId).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
+        $("#"+layerId).append('<input type="checkbox" id="'+layerId+'-checkbox" name="layer-vis-toggle" value="range" CHECKED>');
+        $('#' + layerId + '-checkbox').click(
             function(evt) {
                 var isVisible = evt.srcElement.checked;
-                self.activity.showLayer(id, isVisible);
+                self.activity.showLayer(layerId, isVisible);
             }
         );
     },
@@ -179,7 +179,7 @@ mol.view.LayersView = Backbone.View.extend(
     loading: function(source, type, value, self) {
         var id = source+"_"+type+"_"+value;
         id = id.toLowerCase().split(' ').join('_');
-        self.addLayerContorl(id, source, value);
+        self.addLayerControl(id, source, value);
         self.activity.handleAddPoints(source, type, value, id);
     },
     
