@@ -38,8 +38,10 @@ mol.view.LayersView = Backbone.View.extend(
         $("#widget-container").mouseleave(function(){
             self.menuFocus(false,true);
         });
-        $("#widget-container .option.list").each(function(){
-            if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+        $("#widget-container .option.list").each(function() {
+            if ($(this).attr('id') != 'add') { 
+                $(this).hide('slow');
+            };
         });
         
         
@@ -77,7 +79,17 @@ mol.view.LayersView = Backbone.View.extend(
                 self.loading("MOL", "range", val, self);
             }
         );
+
+        // Hide layer
+        $("#layers .option a#hide").click(
+            function() {
+                var id = $("#layers .layer.list input:checked").parent().attr('id');
+                self.activity.hideLayer(id);
+            }
+        );
         
+        
+
         /* Delete Layer Setup */       
         $("#layers .option a#delete_layer").click(
             function(){
@@ -115,7 +127,9 @@ mol.view.LayersView = Backbone.View.extend(
                 /* hide */
                 $("#widget-container #list").hide('slow');
                 $("#widget-container .option.list").each(function(){
-                    if ($(this).attr('id') != 'add'){ $(this).hide('slow') };
+                    if ($(this).attr('id') != 'add') { 
+                        $(this).hide('slow'); 
+                    };
                 });
             }
         }
@@ -149,9 +163,17 @@ mol.view.LayersView = Backbone.View.extend(
         $("#list").prepend(layerstack);
     },
     
-    doneLoading: function(id) {
+    doneLoading: function(id) {        
+        var self = this;
         $("#"+id+" .loading").remove();
         $("#"+id).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
+        $("#"+id).append('<input type="checkbox" id="'+id+'-checkbox" name="layer-vis-toggle" value="range" CHECKED>');
+        $('#' + id + '-checkbox').click(
+            function(evt) {
+                var isVisible = evt.srcElement.checked;
+                self.activity.showLayer(id, isVisible);
+            }
+        );
     },
     
     loading: function(source, type, value, self) {

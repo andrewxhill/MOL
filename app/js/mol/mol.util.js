@@ -29,6 +29,18 @@ mol.ns('mol.view');
 mol.ns('mol.activity');
 
 /**
+ * Logging via Speed Tracer Logging API.
+ * 
+ * @param msg the message to log
+ */
+mol.util.log = function log(msg) {
+    var logger = window.console;
+    if (logger && logger.markTimeline) {
+        logger.markTimeline(msg);
+    }
+};
+
+/**
  * Helper that returns a boolean based on a string. Returns true if string is
  * 'true', returns false if string is 'false', otherwise returns false.
  * 

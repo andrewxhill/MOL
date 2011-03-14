@@ -65,7 +65,9 @@ mol.view.RangeMapView = Backbone.View.extend(
                     if (coordinate.coordinateUncertaintyInMeters != null) {
                         var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
                         var opacity = 0.85;
-                        if (cuim > 10000) { opacity = 0.4 };
+                        if (cuim > 10000) { 
+                            opacity = 0.4; 
+                        }
                         var marker = new google.maps.Circle({
                             map:this.map,
                             center: center,
@@ -89,11 +91,17 @@ mol.view.RangeMapView = Backbone.View.extend(
         for (var i in this.overlays[id]){
             this.overlays[id][i].setMap(null);
         }
-        
+        delete this.overlays[id];
+    },
+
+    showLayer: function(layerId, isVisible){
+        var map = isVisible ? this.map : null;
+        for (var i in this.overlays[layerId]){
+            this.overlays[layerId][i].setMap(map);
+        }
     },
     
-    addRangeMap: function(metadata,id) {
-        console.log(id);
+    addRangeMap: function(metadata, id) {
         var speciesKey = metadata.mol_species_id;
         this.metadata = metadata;        
         this.maxZoom = this.metadata.zoom;
@@ -101,7 +109,6 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.zoomToLayerExtent();
         this.attachMetadataControl(this.metaControlDiv, this.map);        
         this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType(speciesKey));
-        /* this.map.overlayMapTypes.insertAt(0, id); */
     },
 
     zoomToLayerExtent: function() {

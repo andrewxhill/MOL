@@ -38,6 +38,10 @@ mol.activity.LayersActivity.prototype.handleDeleteLayer = function (layerId) {
     mol.eventBus.trigger('delete-layer-event', layerId);
 };
 
+mol.activity.LayersActivity.prototype.showLayer = function(layerId, isVisible) {
+    mol.eventBus.trigger('hide-layer-event', layerId, isVisible);
+};
+
 mol.activity.LayersActivity.prototype.go = function(place) {
     var speciesKey = place.params.speciesKey,
         layerId = speciesKey.split('/').join('_'),
