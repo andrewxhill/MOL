@@ -3,7 +3,7 @@ MOL = (function ( $ ) {
     self.map = null;
     
     var Map = function( ) {
-        _self = this;
+        var _self = this;
         return {
             init: function( context ){
                 console.log($(context).attr('id'));
@@ -18,15 +18,17 @@ MOL = (function ( $ ) {
                 var layersDiv = document.getElementById($(context).attr('id'));
                 var map = new google.maps.Map(layersDiv, Options);
             }
-        }
-    }
+        };
+    };
+
     var LayerStackUI = function(){
         return {
             init: function(context){
                 /* create widget ui framework here */
-            },
-        }
-    }
+            }
+        };
+    };
+
     var Layer = function(){
         var Engine = null;
         
@@ -40,14 +42,15 @@ MOL = (function ( $ ) {
                 /* Layer type is set here from ui element */
                 /* Pulls in one of the known engines for handling the type */
             }
-        }
-    }
+        };
+    };
+
     var Interface = function( context ) {
         self.rangemap = $("<div>")
                             .attr({"id":"map"})
                             .css({"width":"800px",
                                   "height": "400px",
-                                  "background-color":"black",
+                                  "background-color":"black"
                                  });
         $(context).append("<div>hello header</div>");
         $(context).append(self.rangemap);
@@ -57,17 +60,17 @@ MOL = (function ( $ ) {
         //self.layerstackui = new LayerStackUI();
         //self.layerstackui.init(self.rangemap);
         
-    }
+    };
     
     return {
 		// constructor
 		Viz: function( context ){
-            _self = this;
-            _self.context = context;
+            this.context = context;
             var _interface = new Interface(context);
         },
         Widget: function(){
             /*build stuff different here */
-        },
-    }
+        }
+    };
+
 })(jQuery);
