@@ -9,14 +9,14 @@ MOL = (function ( $ ) {
                 console.log($(context).attr('id'));
                 
                 var center = new google.maps.LatLng(0,0);            
-                _self.Options = {
+                var Options = {
                     zoom: 2,
                     maxZoom: 20,
                     center: center,
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
-                 _self.layersDiv = document.getElementById($(context).attr('id'));
-                _self.map = new google.maps.Map(this.layersDiv, _self.Options);
+                var layersDiv = document.getElementById($(context).attr('id'));
+                var map = new google.maps.Map(layersDiv, Options);
             }
         }
     }
@@ -45,27 +45,29 @@ MOL = (function ( $ ) {
     var Interface = function( context ) {
         self.rangemap = $("<div>")
                             .attr({"id":"map"})
-                            .css({"width":"100%",
-                                  "height": "75%",
+                            .css({"width":"300px",
+                                  "height": "200px",
                                   "background-color":"black",
                                  });
-        $(context).append("<div>hello header</div");
+        $(context).append("<div>hello header</div>");
         $(context).append(self.rangemap);
         self.map = new Map();
         self.map.init(self.rangemap);
         
-        self.layerstackui = new LayerStackUI();
-        self.layerstackui.init(self.rangemap);
+        //self.layerstackui = new LayerStackUI();
+        //self.layerstackui.init(self.rangemap);
         
     }
     
     return {
 		// constructor
-		Viz: function(context ){
+		Viz: function( context ){
             _self = this;
             _self.context = context;
-            console.log($(context).attr('id'));
             var _interface = new Interface(context);
+        },
+        Widget: function(){
+            /*build stuff different here */
         },
     }
 })(jQuery);
