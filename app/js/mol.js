@@ -1,7 +1,6 @@
 MOL = (function ( $ ) {  
-    var self = this;
-    self.map = null;
-    
+    var mol = this;
+    var map;
     var Map = function( ) {
         var _self = this;
             var context,center,options,map;
@@ -17,21 +16,45 @@ MOL = (function ( $ ) {
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
                 var layersDiv = document.getElementById($(context).attr('id'));
-                _self.map = new google.maps.Map(layersDiv, _self.options);
-            }
+                MOL.map = new google.maps.Map(layersDiv, _self.options);
+            },
         };
     };
 
     var LayerStackUI = function(){
+        var _self = this;
+            var layers,position,addController;
+            
+        _self.addController = function(div,position){   
+                var overlayDiv = document.getElementById($(div).attr('id'));
+                MOL.map.controls[position].push(overlayDiv);
+            }
         return {
             init: function(context){
                 /* create widget ui framework here */
+                /*
+                var options_list =  $('<li>').attr({'class':'option list','id':'add'})
+                                        .append($('<a>').attr({'id': 'add_layer', 'href':'javascript:'}))
+                var options = $('<ul>').attr({'class': 'options list'});
+                $(options).append(options_list);
+                
+                var menu = $('div').attr({'id':'menu'});
+                $(menu).append(options);
+                */
+                //var stack = $('div').attr({'id':'layers'});
+                //layers.append(menu);
+                _self.container = $('div').attr({'id':'widget-container'});
+                //$(container).append(stack);
+                console.log(MOL);
+                _self.position = google.maps.ControlPosition.RIGHT_TOP;
+                _self.addController($(_self.container).attr('id'),_self.position);
             }
         };
     };
 
     var Layer = function(){
-        var Engine = null;
+        var _self = this;
+        var Engine, type;
         
         return {
             init: function(){
@@ -59,8 +82,8 @@ MOL = (function ( $ ) {
         _self.map = new Map();
         _self.map.init(_self.rangemap);
         
-        //self.layerstackui = new LayerStackUI();
-        //self.layerstackui.init(self.rangemap);
+        self.layerstackui = new LayerStackUI();
+        self.layerstackui.init(context);
         
     };
     
