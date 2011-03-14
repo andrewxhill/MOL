@@ -13,8 +13,8 @@ MOL = (function ( $ ) {
                     center: _self.center,
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
-                var layersDiv = document.getElementById($(context).attr('id'));
-                MOL.map = new google.maps.Map(layersDiv, _self.options);
+                var contextDoc = document.getElementById($(context).attr('id'));
+                MOL.map = new google.maps.Map(contextDoc, _self.options);
             },
         };
     };
@@ -23,8 +23,8 @@ MOL = (function ( $ ) {
         var _self = this;
             var layers,position,addController;
             
-        _self.addController = function(div,position){   
-                var overlayDiv = document.getElementById($(div).attr('id'));
+        _self.addController = function(divId,position){   
+                var overlayDiv = document.getElementById(divId);
                 MOL.map.controls[position].push(overlayDiv);
             }
         return {
@@ -47,7 +47,7 @@ MOL = (function ( $ ) {
                 //$(container).append(stack);
                 console.log(MOL);
                 _self.position = google.maps.ControlPosition.RIGHT_TOP;
-                _self.addController($(_self.container).attr('id'),_self.position);
+                _self.addController('widget-container',_self.position);
             }
         };
     };
@@ -71,12 +71,12 @@ MOL = (function ( $ ) {
 
     var Interface = function(context) {
         var _self = this;
-        _self.rangemap = $("#map");
-        _self.map = new Map();
-        _self.map.init(_self.rangemap);
+        _self.mapdiv = $("#map");
+        _self.rangemap = new Map();
+        _self.rangemap.init(_self.mapdiv);
         
-        self.layerstackui = new LayerStackUI();
-        self.layerstackui.init(context);
+        //self.layerstackui = new LayerStackUI();
+        //self.layerstackui.init(context);
         
     };
     
