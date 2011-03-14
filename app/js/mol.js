@@ -41,7 +41,9 @@ MOL = (function ( $ ) {
                 */
                 //var stack = $('div').attr({'id':'layers'});
                 //layers.append(menu);
-                _self.container = $('div').attr({'id':'widget-container'});
+                _self.container = $('div')
+                                    .attr({'id':'widget-container'})
+                                    .css({'width':'50px','height':'50px','background-color':'red'});
                 //$(container).append(stack);
                 console.log(MOL);
                 _self.position = google.maps.ControlPosition.RIGHT_TOP;
