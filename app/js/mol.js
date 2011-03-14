@@ -5,7 +5,6 @@ MOL = (function ( $ ) {
     var Map = function( ) {
         var _self = this;
             var context,center,options,map;
-            
         return {
             init: function( context ){
                 console.log($(context).attr('id'));
@@ -20,15 +19,17 @@ MOL = (function ( $ ) {
                 var layersDiv = document.getElementById($(context).attr('id'));
                 _self.map = new google.maps.Map(layersDiv, _self.options);
             }
-        }
-    }
+        };
+    };
+
     var LayerStackUI = function(){
         return {
             init: function(context){
                 /* create widget ui framework here */
-            },
-        }
-    }
+            }
+        };
+    };
+
     var Layer = function(){
         var Engine = null;
         
@@ -42,15 +43,16 @@ MOL = (function ( $ ) {
                 /* Layer type is set here from ui element */
                 /* Pulls in one of the known engines for handling the type */
             }
-        }
-    }
+        };
+    };
+
     var Interface = function( context ) {
         var _self = this;
         _self.rangemap = $("<div>")
                             .attr({"id":"map"})
                             .css({"width":"800px",
                                   "height": "400px",
-                                  "background-color":"black",
+                                  "background-color":"black"
                                  });
         $(context).append("<div>hello header</div>");
         $(context).append(_self.rangemap);
@@ -60,7 +62,7 @@ MOL = (function ( $ ) {
         //self.layerstackui = new LayerStackUI();
         //self.layerstackui.init(self.rangemap);
         
-    }
+    };
     
     return {
 		// constructor
@@ -71,6 +73,7 @@ MOL = (function ( $ ) {
         },
         Widget: function(){
             /*build stuff different here */
-        },
-    }
+        }
+    };
+
 })(jQuery);
