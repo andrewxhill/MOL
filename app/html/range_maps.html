@@ -12,6 +12,7 @@
     <script src="../../../js/lib/underscore-min.js"></script>    
     <script src="../../../js/lib/backbone-min.js"></script>    
     <script src="../../../js/lib/mustache.js"></script>    
+    <script src="../../../js/class.js"></script>
     <script src="../../../js/mol.js"></script>
     <meta charset="utf-8" /> 
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
@@ -32,46 +33,19 @@
       --> 
     <meta name="description" content="Map of Life - Range Map." /> 
     <meta name="keywords" content="map, map of life, biology, range map, expert map" /> 
+	<script type="text/javascript">
+        var mol;
+        $(document).ready(function(){
+            var context = $("#content");
+            mol = new MOL.Viz(context);
+        });
+    </script>
   </head>
-  <body style="font: 75% Lucida Grande, Trebuchet MS">
-    <div id="mol">Map of Life</div>
-    <div id="map_canvas" style="height:94%"></div>
-    
-    <!-- Layer widget stuff-->
-    <div id="content">
-      <div id="widget-container">
-        <div id="layers">
-          <div id="menu">
-            <ul class="options list">
-              <li class="option list" id="add"><a id="add_layer" href="javascript:">Add</a></li>
-              <li class="option list"><a href="javascript:">Info</a></li>
-              <li class="option list"><a id="hide" href="javascript:">Hide</a></li>
-              <li class="option list"><a id="delete_layer" href="javascript:">Delete</a></li>
-            </ul>
-          </div>
-          <div id="list">
-            <div class="dialog list" id="add_new_layer_dialog">
-              <button id="add_points_button" class="dialog_buttons">Add Points</button>
-              <div id="add_points_dialog" class="dialog_button output">
-                Get GBIF Points
-                <input type="search" id="gbif_points_search_box">
-                <a href="javascript:" id="gbif_points_search">Go</a>
-              </div>
-              <button id="add_range_button" class="dialog_buttons">Add Range Map</button>
-              <div id="add_range_dialog" class="dialog_button output">
-                Get MOL Range Map
-                <input type="search" id="mol_range_search_box">
-                <a href="javascript:" id="mol_range_search">Go</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <body>
+    <div id="content"></div>
     <script>
       google.load("jquery", "1.5.1");
       google.load("jqueryui", "1.8.10")
-      google.setOnLoadCallback(mol.initRangeMap);
     </script>
   </body>  
 </html>
