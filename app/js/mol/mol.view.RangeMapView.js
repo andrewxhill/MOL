@@ -19,6 +19,8 @@ mol.view.RangeMapView = Backbone.View.extend(
             mapTypeId: google.maps.MapTypeId.TERRAIN
         };
         this.metaControlDiv = document.createElement('div');
+        this.currentRangeIndex = 0;
+        this.rangeMaps = {};
         var e = document.getElementById("map_canvas");
         this.map = new google.maps.Map(e, this.mapOptions);
         this.overlays = {};
@@ -136,10 +138,21 @@ mol.view.RangeMapView = Backbone.View.extend(
         delete this.overlays[id];
     },
 
-    showLayer: function(layerId, isVisible){
-        var map = isVisible ? this.map : null;
-        for (var i in this.overlays[layerId]){
-            this.overlays[layerId][i].setMap(map);
+    showLayer: function(layerId, isVisible, layerType){
+        var map = isVisible ? this.map : null,
+            index = 0,
+            speciesKey = 'animalia/species/' + layerId.split('species_')[1];
+        if (layerType === 'points') {
+            for (var i in this.overlays[layerId]){
+                this.overlays[layerId][i].setMap(map);
+            }
+        } else {
+            index = this.rangeMaps[layerId];
+            if (isVisible) {
+                this.map.overlayMapTypes.insertAt(index, this.rangeImageMapType(speciesKey));
+            } else {
+                this.map.overlayMapTypes.removeAt(index);
+            }
         }
     },
     
@@ -150,7 +163,9 @@ mol.view.RangeMapView = Backbone.View.extend(
         this.map.mapTypes[this.map.getMapTypeId()].maxZoom = parseInt(this.maxZoom);
         this.zoomToLayerExtent();
         this.attachMetadataControl(this.metaControlDiv, this.map);        
-        this.map.overlayMapTypes.insertAt(0, this.rangeImageMapType(speciesKey));
+        this.map.overlayMapTypes.insertAt(this.currentRangeIndex, this.rangeImageMapType(speciesKey));
+        this.rangeMaps[id] = this.currentRangeIndex;
+        this.currentRangeIndex = this.currentRangeIndex + 1;
     },
 
     zoomToLayerExtent: function() {

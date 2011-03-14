@@ -164,14 +164,15 @@ mol.view.LayersView = Backbone.View.extend(
     },
     
     doneLoading: function(layerId) {        
-        var self = this;
+        var self = this,
+            layerType = layerId.split('_')[0];
         $("#" + layerId + " .loading").remove();
         $("#"+layerId).prepend('<input type="radio" name="layer-toggle" value="range" CHECKED>');
         $("#"+layerId).append('<input type="checkbox" id="'+layerId+'-checkbox" name="layer-vis-toggle" value="range" CHECKED>');
         $('#' + layerId + '-checkbox').click(
             function(evt) {
                 var isVisible = evt.srcElement.checked;
-                self.activity.showLayer(layerId, isVisible);
+                self.activity.showLayer(layerId, isVisible, layerType);
             }
         );
     },

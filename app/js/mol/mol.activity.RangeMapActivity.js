@@ -10,8 +10,8 @@ mol.activity.RangeMapActivity = function(view) {
     var self = this;
     this.view = view;
     mol.eventBus.bind('hide-layer-event', 
-                      function(layerId, isVisible) {
-                          self.view.showLayer(layerId, isVisible); 
+                      function(layerId, isVisible, layerType) {
+                          self.view.showLayer(layerId, isVisible, layerType); 
                       });
     mol.eventBus.bind('gbif-points-event', 
                       function(json, id) {

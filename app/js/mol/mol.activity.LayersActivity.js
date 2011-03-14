@@ -38,8 +38,8 @@ mol.activity.LayersActivity.prototype.handleDeleteLayer = function (layerId) {
     mol.eventBus.trigger('delete-layer-event', layerId);
 };
 
-mol.activity.LayersActivity.prototype.showLayer = function(layerId, isVisible) {
-    mol.eventBus.trigger('hide-layer-event', layerId, isVisible);
+mol.activity.LayersActivity.prototype.showLayer = function(layerId, isVisible, layerType) {
+    mol.eventBus.trigger('hide-layer-event', layerId, isVisible, layerType);
 };
 
 mol.activity.LayersActivity.prototype.go = function(place) {
