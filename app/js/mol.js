@@ -45,8 +45,8 @@ MOL = (function ( $ ) {
     var Interface = function( context ) {
         self.rangemap = $("<div>")
                             .attr({"id":"map"})
-                            .css({"width":"300px",
-                                  "height": "200px",
+                            .css({"width":"100%",
+                                  "height": "90%",
                                   "background-color":"black",
                                  });
         $(context).append("<div>hello header</div>");
