@@ -15,7 +15,7 @@ MOL = (function ( $ ) {
                 };
                 var layersDiv = document.getElementById($(context).attr('id'));
                 MOL.map = new google.maps.Map(layersDiv, _self.options);
-            },
+            }
         };
     };
 
@@ -26,7 +26,7 @@ MOL = (function ( $ ) {
         _self.addController = function(div,position){   
                 var overlayDiv = document.getElementById($(div).attr('id'));
                 MOL.map.controls[position].push(overlayDiv);
-            }
+            };
         return {
             init: function(context){
                 /* create widget ui framework here */
