@@ -2,12 +2,10 @@ MOL = (function ( $ ) {
     var self = this;
     self.map = null;
     
-    var Map = function( ) {
+    var Map = function() {
         var _self = this;
-            var context,center,options,map;
         return {
-            init: function( context ){
-                console.log($(context).attr('id'));
+            init: function(context) {
                 _self.context = context;
                 _self.center = new google.maps.LatLng(0,0);            
                 _self.options = {
@@ -16,8 +14,7 @@ MOL = (function ( $ ) {
                     center: _self.center,
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
-                var layersDiv = document.getElementById($(context).attr('id'));
-                _self.map = new google.maps.Map(layersDiv, _self.options);
+                _self.map = new google.maps.Map(context[0], _self.options);
             }
         };
     };
@@ -46,16 +43,9 @@ MOL = (function ( $ ) {
         };
     };
 
-    var Interface = function( context ) {
+    var Interface = function(context) {
         var _self = this;
-        _self.rangemap = $("<div>")
-                            .attr({"id":"map"})
-                            .css({"width":"800px",
-                                  "height": "400px",
-                                  "background-color":"black"
-                                 });
-        $(context).append("<div>hello header</div>");
-        $(context).append(_self.rangemap);
+        _self.rangemap = $("#map");
         _self.map = new Map();
         _self.map.init(_self.rangemap);
         
