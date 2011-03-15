@@ -31,12 +31,14 @@ mol.maps.Map.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL, 
         function(divId, position) {
+            mol.util.log('Map handling event: ' + mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
             self.addController(divId, position);
         }
     );
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_MAP_LAYER,
         function(layer, id) {
+            mol.util.log('Map handling event: ' + mol.event.Types.ADD_NEW_MAP_LAYER);
             var tmp = self.layers.reverse;
             tmp.push({'id': id, 'layer': layer});
             self.layers = tmp.reverse;
@@ -45,6 +47,7 @@ mol.maps.Map.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.REORDER_MAP_LAYERS,
         function(layerOrder) {
+            mol.util.log('Map handling event: ' + mol.event.Types.REORDER_MAP_LAYERS);
             var tmp = new Array(self.layers.length),
                 ct = 0;
             for (var i in layerOrder) {
@@ -105,6 +108,7 @@ mol.maps.Layer.prototype.build = function() {
         }
         break;
     }
+    mol.util.log('Layer built with engine for ' + this.type);
 };
 
 /**
@@ -124,16 +128,20 @@ mol.maps.Layer.prototype.showTypesUi = function() {
     $(dialog).append(buttonRange);    
     $(buttonPoints).click(
         function() {
+            mol.util.log('Layer.buttonPoints.click');
             self.type = 'points';
             self.build();
         }
     );
     $(buttonRange).click(
         function() {
+            mol.util.log('Layer.buttonRange.click');
             self.type = 'range';
             self.build();
         }
     );        
-   mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);                                         
+    
+    mol.util.log('Layer triggering event: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
+    mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);                                         
 };
 

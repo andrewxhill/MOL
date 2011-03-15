@@ -10,6 +10,7 @@ mol.ui.LayerStack = function(context) {
     this.context = context;
     this.buildUi();
     this.wireEvents();        
+    mol.util.log('LayerStack triggering event: ' + mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
     mol.eventBus.trigger(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL,
         this.container, 
@@ -53,6 +54,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     // Wires event for clicking the delete layer button:
     $(this.deleteLayer).click(
         function() {
+            mol.util.log('LayerStack.deleteLayer.click');
             var id = $("#layers .layer.list input:checked");
             mol.eventBus.trigger(mol.event.Types.DELETE_STACK_LAYER, id);
         }
@@ -60,6 +62,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     // Wires the event for clicking the add layer button:
     $(this.addLayer).click(
         function() {
+            mol.util.log('LayerStack.addLayer.click');
             var layer = new mol.maps.Layer({});
             // TODO: Trigger event?
         }
@@ -68,6 +71,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
+            mol.util.log('LayerStack handling event: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
             $(self.container).append($(layerUI));
         }
     );    

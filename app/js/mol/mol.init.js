@@ -2,6 +2,7 @@
  * Initializes the MOL app and should be called after the DOM is ready.
  */
 mol.initRangeMap = function(context) {        
+    mol.isLogging = true;
     mol.apiProxy = mol.apiProxy || new mol.api.ApiProxy();
     mol.eventBus = mol.eventBus || new mol.event.EventBus();
     mol.context = context;
