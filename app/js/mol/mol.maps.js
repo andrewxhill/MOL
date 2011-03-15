@@ -13,6 +13,7 @@ mol.maps.Map = function(context) {
     var contextDoc = document.getElementById($(context).attr('id')),
         mapDiv = $("#map"),
         self = this;
+    this.layers = [];
     this.context = context;
     this.options = {
         zoom: 2,

@@ -47,6 +47,7 @@ mol.ui.LayerStack.prototype.buildUi = function() {
  * Wires UI events and EventBus events for a LayerStack.
  */
 mol.ui.LayerStack.prototype.wireEvents = function() {    
+    var self = this;
     // Wires event for clicking the delete layer button:
     $(this.deleteLayer).click(
         function() {
@@ -65,7 +66,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
-            $(this.list).prepend($(layerUI));
+            $(self.list).prepend($(layerUI));
         }
     );    
 };
