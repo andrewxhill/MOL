@@ -78,7 +78,7 @@ MOL.init = function () {
                 _self.container = $('<div>').attr({'id':'widget-container'});
                 
                 // Triggers 'add-custom-map-controller' event on the bus:
-                MOL.eventBus.trigger('add-custom-map-controller', 
+                MOL.EventBus.trigger('add-custom-map-controller', 
                                      _self.container, 
                                      google.maps.ControlPosition.TOP_RIGHT);
 
@@ -94,7 +94,7 @@ MOL.init = function () {
                 });
                 
                 //TODO: remove #tester and next line
-                $('#tester').append(_self.container);
+                //$('#tester').append(_self.container);
                 
                 //TODO: add Evenbus call that tells Map to add this new Controller via addController(divId,position)
             }
@@ -160,6 +160,7 @@ MOL.init = function () {
             Points: function(){
                 //populate all methods of the Points engine
                 var _self = this;
+                var type='points';
                 var source, name;
                 return {
                     setSource: function(source){
@@ -180,6 +181,7 @@ MOL.init = function () {
             Range: function(){
                 //populate all methods of the Range engine
                 var _self = this;
+                var type='range';
                 var source, name;
                 return {
                     setSource: function(source){
