@@ -78,7 +78,7 @@ MOL = (function ( $ ) {
             _self.type = type;
             switch ( type ) {
                 case "points":
-                    _self.Engine = new Engine().Points();
+                    _self.Engine = new Engines().Points();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('gbif');
@@ -87,7 +87,7 @@ MOL = (function ( $ ) {
                     }
                     break;
                 case "range":
-                    _self.Engine = new Engine().Range();
+                    _self.Engine = new Engines().Range();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('mol');
@@ -124,26 +124,13 @@ MOL = (function ( $ ) {
             },
         };
     };
-
-    var Interface = function(context) {
-        var _self = this;
-        _self.mapdiv = $("#map");
-        _self.rangemap = new Map();
-        _self.rangemap.init(_self.mapdiv);
-        
-        _self.layerstackui = new LayerStackUI();
-        _self.layerstackui.init(context);
-        
-    };
     
-    var Engine = function(){
+    var Engines = function(){
         return {
             Points: function(){
                 //populate all methods of the Points engine
                 _self = this;
                     var source, name;
-                
-                
                 return {
                     setSource: function(source){
                         switch ( source ) {
@@ -188,7 +175,11 @@ MOL = (function ( $ ) {
 		Viz: function( context ){
             var _self = this;
             _self.context = context;
-            var _interface = new Interface(context);
+            _self.mapdiv = $(_self.context);
+            _self.rangemap = new Map();
+            _self.rangemap.init(_self.mapdiv);
+            _self.layerstackui = new LayerStackUI();
+            _self.layerstackui.init(context);
         },
         Widget: function(){
             /*build stuff different here */
