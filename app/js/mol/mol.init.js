@@ -1,5 +1,6 @@
 /**
  * Initializes the MOL app and should be called after the DOM is ready.
+ * 
  */
 mol.initRangeMap = function(context) {        
     mol.isLogging = true;

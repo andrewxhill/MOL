@@ -2,6 +2,7 @@
  * The event bus.
  *
  * @constructor
+ * 
  */
 mol.event.EventBus = function() {
     if (!(this instanceof mol.event.EventBus)) {
@@ -11,6 +12,9 @@ mol.event.EventBus = function() {
     return this;
 };
 
+/**
+ * Event types.
+ */
 mol.event.Types = {
     ADD_CUSTOM_MAP_CONTROL: 'add-custom-map-controller',
     ADD_NEW_MAP_LAYER: 'add-new-map-layer',

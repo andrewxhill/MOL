@@ -5,13 +5,15 @@
  * The Map.
  * 
  * @constructor
+ * @param context A div element
+ * 
  */
 mol.maps.Map = function(context) {
     if (!(this instanceof mol.maps.Map)) {
         return new mol.maps.Map();
     }
     var contextDoc = document.getElementById($(context).attr('id')),
-        mapDiv = $("#map"),
+        mapDiv = $("#map"), // This is a hack... couldn't get contextDoc working
         self = this;
     this.layers = [];
     this.context = context;
@@ -25,20 +27,26 @@ mol.maps.Map = function(context) {
     this.wireEvents();
     return this;
 };
-    
+
+/**
+ * Wires event handlers to the EventBus for the Map.
+ * 
+ */
 mol.maps.Map.prototype.wireEvents = function() {
     var self = this;
     mol.eventBus.bind(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL, 
         function(divId, position) {
-            mol.util.log('Map handling event: ' + mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
+            mol.util.log('Map handling event: ' + 
+                         mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
             self.addController(divId, position);
         }
     );
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_MAP_LAYER,
         function(layer, id) {
-            mol.util.log('Map handling event: ' + mol.event.Types.ADD_NEW_MAP_LAYER);
+            mol.util.log('Map handling event: ' + 
+                         mol.event.Types.ADD_NEW_MAP_LAYER);
             var tmp = self.layers.reverse;
             tmp.push({'id': id, 'layer': layer});
             self.layers = tmp.reverse;
@@ -47,7 +55,8 @@ mol.maps.Map.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.REORDER_MAP_LAYERS,
         function(layerOrder) {
-            mol.util.log('Map handling event: ' + mol.event.Types.REORDER_MAP_LAYERS);
+            mol.util.log('Map handling event: ' + 
+                         mol.event.Types.REORDER_MAP_LAYERS);
             var tmp = new Array(self.layers.length),
                 ct = 0;
             for (var i in layerOrder) {
@@ -59,9 +68,17 @@ mol.maps.Map.prototype.wireEvents = function() {
     );    
 };
 
+/**
+ * Adds a widget to the map at a given position.
+ * 
+ * @param divId The div of the widget to add
+ * @param position The position on the map to place the widget
+ * 
+ */
 mol.maps.Map.prototype.addController = function(divId, position) {   
     this.map.controls[position].push(divId[0]);
 };
+
 
 // =============================================================================
 // Layer object
@@ -69,14 +86,17 @@ mol.maps.Map.prototype.addController = function(divId, position) {
 /**
  * Constructor for the Layer object.
  * 
- * @param options An object that contains options for type, source, name, data
  * @constructor
+ * @param options An object that contains options for type, source, name, data
+ * 
  */
 mol.maps.Layer = function(options) {  
-    this.type = options.type;
-    this.source = options.source;
-    this.name = options.name;
-    this.data = options.data;
+    if (options) {        
+        this.type = options.type;
+        this.source = options.source;
+        this.name = options.name;
+        this.data = options.data;
+    }
     if (this.type) {        
         this.build();
         return;
@@ -86,6 +106,7 @@ mol.maps.Layer = function(options) {
 
 /**
  * Builds the layer by selecting an engine and source.
+ * 
  */
 mol.maps.Layer.prototype.build = function() {
     switch (this.type) {
@@ -112,7 +133,8 @@ mol.maps.Layer.prototype.build = function() {
 };
 
 /**
- * Shows the types UI.
+ * Shows the types UI and wires UI event handlers and EventBus handlers.
+ * 
  */
 mol.maps.Layer.prototype.showTypesUi = function() {
   var dialog = null,
@@ -139,9 +161,7 @@ mol.maps.Layer.prototype.showTypesUi = function() {
             self.type = 'range';
             self.build();
         }
-    );        
-    
+    );            
     mol.util.log('Layer triggering event: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
     mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);                                         
 };
-

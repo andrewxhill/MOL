@@ -5,12 +5,14 @@
  * Constructor for a LayerStack.
  * 
  * @constructor
+ * 
  */
 mol.ui.LayerStack = function(context) {
     this.context = context;
     this.buildUi();
     this.wireEvents();        
-    mol.util.log('LayerStack triggering event: ' + mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
+    mol.util.log('LayerStack triggering event: ' + 
+                 mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
     mol.eventBus.trigger(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL,
         this.container, 
@@ -20,6 +22,7 @@ mol.ui.LayerStack = function(context) {
 
 /**
  * Builds the UI for a LayerStack.
+ * 
  */
 mol.ui.LayerStack.prototype.buildUi = function() {
     this.options = $('<ul>').attr({'class': 'options list'});
@@ -48,6 +51,7 @@ mol.ui.LayerStack.prototype.buildUi = function() {
 
 /**
  * Wires UI events and EventBus events for a LayerStack.
+ * 
  */
 mol.ui.LayerStack.prototype.wireEvents = function() {    
     var self = this;
@@ -63,7 +67,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     $(this.addLayer).click(
         function() {
             mol.util.log('LayerStack.addLayer.click');
-            var layer = new mol.maps.Layer({});
+            var layer = new mol.maps.Layer();
             // TODO: Trigger event?
         }
     );
@@ -71,7 +75,8 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
-            mol.util.log('LayerStack handling event: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
+            mol.util.log('LayerStack handling event: ' + 
+                         mol.event.Types.ADD_NEW_STACK_LAYER);
             $(self.container).append($(layerUI));
         }
     );    

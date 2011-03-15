@@ -4,6 +4,7 @@ var mol = mol || {};
  * Helper for building namespaces.
  * 
  * @param namespace The namespace to build within mol global namespace
+ * 
  */
 mol.ns = function(namespace) {
     var parts = namespace.split('.'),
@@ -32,6 +33,7 @@ mol.ns('mol.util');
  * Logging via Speed Tracer Logging API and Chrome console.
  * 
  * @param msg the message to log
+ * 
  */
 mol.util.log = function log(msg) {
     if (!mol.isLogging) {
@@ -49,6 +51,7 @@ mol.util.log = function log(msg) {
  * 'true', returns false if string is 'false', otherwise returns false.
  * 
  * @param s The s to test 
+ * 
  */
 mol.util.isBool = function (s) {
     return (/^true$/i).test(s);
@@ -58,6 +61,7 @@ mol.util.isBool = function (s) {
  * Helper that serializes an object into a URL encoded GET query string.
  * 
  * @param obj The object to serialize
+ * 
  */
 mol.util.serializeQuery = function(obj) {
     var str = [];
@@ -70,6 +74,7 @@ mol.util.serializeQuery = function(obj) {
  * Helper that parses a URL encoded GET query string into an object.
  * 
  * @param query The query string
+ * 
  */
 mol.util.parseQuery = function(query) {
     var e,
