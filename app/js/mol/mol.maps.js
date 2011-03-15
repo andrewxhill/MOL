@@ -34,6 +34,7 @@ mol.maps.Map = function(context) {
  */
 mol.maps.Map.prototype.wireEvents = function() {
     var self = this;
+    
     mol.eventBus.bind(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL, 
         function(divId, position) {
@@ -65,7 +66,7 @@ mol.maps.Map.prototype.wireEvents = function() {
             }
             self.layers = tmp;
         }
-    );    
+    );       
 };
 
 /**
@@ -114,18 +115,18 @@ mol.maps.Layer.prototype.build = function() {
         this.engine = new mol.engines.PointsEngine();
         if (!this.source) {
             //for the future when more soruces are available
-            this.engine.source = 'gbif';
+            this.engine.source('GBIF');
         } else {
-            this.engine.source = this.source;
+            this.engine.source(this.source);
         }
         break;
     case "range":
         this.engine = new mol.engines.RangeEngine();
         if (!this.source){
             //for the future when more soruces are available
-            this.engine.source = 'mol';
+            this.engine.source('MOL');
         } else {
-            this.engine.source = this.source;
+            this.engine.source(this.source);
         }
         break;
     }
@@ -141,15 +142,15 @@ mol.maps.Layer.prototype.showTypesUi = function() {
       buttonPoints = null,
       buttonRange = null,
       self = this;
-    dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
-    buttonPoints = $('<button>').attr(
-        {"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
-    $(dialog).append(buttonPoints);
+    dialog = $('<li class="dialog list" id="add_new_layer_dialog">');
     buttonRange = $('<button>').attr(
         {"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
-    $(dialog).append(buttonRange);    
+    $(dialog).append(buttonRange);   
+    buttonPoints = $('<button>').attr(
+        {"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
+    $(dialog).append(buttonPoints); 
     $(buttonPoints).click(
-        function() {
+        function() {       
             mol.util.log('Layer.buttonPoints.click');
             self.type = 'points';
             self.build();

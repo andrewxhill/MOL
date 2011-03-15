@@ -20,5 +20,7 @@ mol.event.Types = {
     ADD_NEW_MAP_LAYER: 'add-new-map-layer',
     REORDER_MAP_LAYERS: 'reorder-map-layers',
     ADD_NEW_STACK_LAYER: 'add-new-stack-layer',
-    DELETE_STACK_LAYER: 'delete-stack-layer'
+    DELETE_STACK_LAYER: 'delete-stack-layer',
+    UPDATE_LAYER_STATUS: 'update-layer-status',
+    SHOW_LAYER_STACK: 'show-layer-stack'
 };
