@@ -71,14 +71,31 @@ MOL.init = function () {
             init: function(context){
                 /* create widget ui framework here */
                 var options = $('<ul>').attr({'class': 'options list'});
+                
+                var addLayer = $('<a>').attr({'id': 'add_layer', 'href':'javascript:'}).html('Add');
+                var deleteLayer = $('<a>').attr({'id': 'delete_layer', 'href':'javascript:'}).html('Delete')
+                             
+                $(deleteLayer).click(function(){
+                    console.log('delete');
+                    var id = $("#layers .layer.list input:checked");
+                    //TODO: Send event bus a delete for this id
+                });
+                $(addLayer).click(function(){
+                    var layer = new Layer();
+                    layer.init();
+                    //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
+                });
+                
                 $(options).append(
                     $('<li>').attr({'class':'option list','id':'add'})
-                        .append($('<a>').attr({'id': 'add_layer', 'href':'javascript:'}).html('Add'))
+                        .append(addLayer)
                 );
                 $(options).append(
                     $('<li>').attr({'class':'option list','id':'delete'})
-                        .append($('<a>').attr({'id': 'delete_layer', 'href':'javascript:'}).html('Delete'))
+                        .append(deleteLayer)
                 );
+                
+                
                 _self.menu = $('<div>').attr({'id':'menu'});
                 $(_self.menu).append(options);
                 
@@ -93,23 +110,16 @@ MOL.init = function () {
                 $(_self.container).append(_self.layers);
                 
                 _self.id = "widget-container";
+                
+                MOL.eventBus.bind('add-new-stackui-layer', 
+                                  function(layerUI) {
+                                      $(_self.list).prepend($(layerUI));
+                                  });
+                                  
                 // Triggers 'add-custom-map-controller' event on the bus:
                 MOL.eventBus.trigger('add-custom-map-controller', 
                                      _self.container, 
-                                     google.maps.ControlPosition.TOP_RIGHT);
-                                     
-                $('#layers #delete_layer').click(function(){
-                    console.log('delete');
-                    var id = $("#layers .layer.list input:checked");
-                    //TODO: Send event bus a delete for this id
-                });
-                $('#layers #add_layer').click(function(){
-                    console.log('add');
-                    var layer = new Layer();
-                    layer.init();
-                    //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
-                });
-                
+                                     google.maps.ControlPosition.TOP_RIGHT);               
                 
             }
         };
@@ -162,6 +172,9 @@ MOL.init = function () {
                     $(buttonRange).click(function(){
                         _self.setType('range');
                     });
+                    
+                    MOL.eventBus.trigger('add-new-stackui-layer', 
+                                         dialog); 
                     
                 } else {
                     _self.setType(_self.type);
