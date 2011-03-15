@@ -1,11 +1,32 @@
-MOL = (function ( $ ) {  
-    var self = this;
+var MOL = MOL || {};
+
+MOL.init = function () {  
+
+    /**
+     * Event bus.
+     */
+    MOL.EventBus = function() {
+        if (!(this instanceof MOL.EventBus)) {
+            return new MOL.EventBus();
+        }
+        _.extend(this, Backbone.Events);
+        return this;
+    };
+    
+    
+
     var layer = {}; //layers has form layer[0] = {'id'=someide,'layer':Layer()} etc. that way we can use this to also reflect changes in the LayerStackUI
     //var bus = new EventBus();
     
     var Map = function( ) {
         var _self = this;
         //TODO: Event bus listener to call _self.addController for new controllers
+
+        _self.addController = function(divId,position){   
+            //var overlayDiv = document.getElementById(divId);
+            _self.map.controls[position].push(divId[0]);
+        };
+
         return {
             init: function(context) {
                 _self.context = context;
@@ -18,10 +39,12 @@ MOL = (function ( $ ) {
                 };
                 var contextDoc = document.getElementById($(context).attr('id'));
                 _self.map = new google.maps.Map(contextDoc, _self.options);
-            },
-            addController: function(divId,position){   
-                var overlayDiv = document.getElementById(divId);
-                _self.map.controls[position].push(overlayDiv);
+
+                // Wires up an event handler for 'add-custom-map-controller' events:
+                MOL.eventBus.bind('add-custom-map-controller', 
+                                  function(divId, position) {
+                                      _self.addController(divId, position);
+                                  });
             }
         };
     };
@@ -51,7 +74,14 @@ MOL = (function ( $ ) {
                 $(_self.layers).append(_self.menu);
                 $(_self.layers).append(_self.list);
                 
+                
                 _self.container = $('<div>').attr({'id':'widget-container'});
+                
+                // Triggers 'add-custom-map-controller' event on the bus:
+                MOL.eventBus.trigger('add-custom-map-controller', 
+                                     _self.container, 
+                                     google.maps.ControlPosition.TOP_RIGHT);
+
                 $(_self.container).append(_self.layers);
                 
                 
@@ -106,10 +136,10 @@ MOL = (function ( $ ) {
                 if (!_self.type){
                     var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
                     var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
-                    $(dialog).append(buttonPoints)
+                    $(dialog).append(buttonPoints);
                     
                     var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
-                    $(dialog).append(buttonRange)
+                    $(dialog).append(buttonRange);
                     
                     $(buttonPoints).click(function(){
                         _self.setType('points');
@@ -183,7 +213,7 @@ MOL = (function ( $ ) {
         };
     };
     
-    return {
+    MOL = {
 		// constructor
 		Viz: function( context ){
             var _self = this;
@@ -192,7 +222,8 @@ MOL = (function ( $ ) {
         },
         Widget: function(){
             /*build stuff different here */
-        }
+        },
+        eventBus: new MOL.EventBus()
     };
 
-})(jQuery);
+};
