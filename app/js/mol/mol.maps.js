@@ -87,21 +87,21 @@ mol.maps.Layer = function(options) {
 mol.maps.Layer.prototype.build = function() {
     switch (this.type) {
     case "points":
-        this.engine = new engine().Points();
+        this.engine = new mol.engines.PointsEngine();
         if (!this.source) {
             //for the future when more soruces are available
-            this.engine.setSource('gbif');
+            this.engine.source = 'gbif';
         } else {
-            this.engine.setSource(this.source);
+            this.engine.source = this.source;
         }
         break;
     case "range":
-        this.engine = new engine().Range();
+        this.engine = new mol.engines.RangeEngine();
         if (!this.source){
             //for the future when more soruces are available
-            this.engine.setSource('mol');
+            this.engine.source = 'mol';
         } else {
-            this.engine.setSource(this.source);
+            this.engine.source = this.source;
         }
         break;
     }
@@ -136,3 +136,4 @@ mol.maps.Layer.prototype.showTypesUi = function() {
     );        
    mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);                                         
 };
+

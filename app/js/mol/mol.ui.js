@@ -68,7 +68,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
-            $(self.list).prepend($(layerUI));
+            $(self.container).append($(layerUI));
         }
     );    
 };
