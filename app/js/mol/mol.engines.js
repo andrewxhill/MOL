@@ -151,7 +151,7 @@ mol.engines.PointsEngine = function(source,name,data) {
             return this._source;
         }
     }
-    if (source) this.name(source);
+    if (source) this.source(source);
 };
 
 /**
@@ -313,7 +313,7 @@ mol.engines.RangeEngine = function(source,name,data) {
             return this._source;
         }
     }
-    if (source) this.name(source);
+    if (source) this.source(source);
 };
 
 /**
