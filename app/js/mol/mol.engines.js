@@ -58,7 +58,7 @@ mol.engines.PointsEngine = function(source,name,data) {
                             .attr({"class":"source"})
                             .html(this._source);
             var toggle = $('<input>')
-                            .attr({"class":"toggle","type":"checkbox"});
+                            .attr({"class":"toggle","type":"checkbox","checked":true});
             var loader = $('<img>')
                             .attr({"src":"/static/loading-small.gif","class":"loading"})
                             .height("16px");
@@ -220,7 +220,7 @@ mol.engines.RangeEngine = function(source,name,data) {
                             .attr({"class":"source"})
                             .html(this._source);
             var toggle = $('<input>')
-                            .attr({"class":"toggle","type":"checkbox"});
+                            .attr({"class":"toggle","type":"checkbox","checked":true});
                             
             var loader = $('<img>')
                             .attr({"src":"/static/loading-small.gif","class":"loading"})
