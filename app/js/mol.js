@@ -144,6 +144,16 @@ MOL = (function ( $ ) {
         },
         Widget: function(){
             /*build stuff different here */
+        },
+        Engine: function(){
+            return {
+                Points: function(){
+                    //populate all methods of the Points engine
+                },
+                Range: function(){
+                    //populate all methods of the Range engine
+                }
+            }
         }
     };
 
