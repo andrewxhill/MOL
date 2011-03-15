@@ -78,7 +78,7 @@ MOL.init = function () {
                 _self.container = $('<div>').attr({'id':'widget-container'});
                 
                 // Triggers 'add-custom-map-controller' event on the bus:
-                MOL.EventBus.trigger('add-custom-map-controller', 
+                MOL.eventBus.trigger('add-custom-map-controller', 
                                      _self.container, 
                                      google.maps.ControlPosition.TOP_RIGHT);
 
@@ -207,7 +207,7 @@ MOL.init = function () {
 		Viz: function( context ){
             var _self = this;
             _self.context = context;
-            _self.mapdiv = $(_self.context);
+            _self.mapdiv = $(context);
             _self.rangemap = new Map();
             _self.rangemap.init(_self.mapdiv);
             _self.layerstackui = new LayerStackUI();
