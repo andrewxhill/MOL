@@ -67,7 +67,7 @@ MOL = (function ( $ ) {
                 $('#tester').append(_self.container);
                 
                 //TODO: add Evenbus call that tells Map to add this new Controller via addController(divId,position)
-            },
+            }
         };
     };
 
@@ -96,7 +96,7 @@ MOL = (function ( $ ) {
                     }
                     break;
             }
-        }
+        };
         
         return {
             init: function(){
@@ -105,10 +105,10 @@ MOL = (function ( $ ) {
                 /* Register the UI element in the Event Bus so that the LayerStackUI sees it and appends it to the stack */
                 if (!_self.type){
                     var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
-                    var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points')
+                    var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
                     $(dialog).append(buttonPoints)
                     
-                    var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map')
+                    var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
                     $(dialog).append(buttonRange)
                     
                     $(buttonPoints).click(function(){
@@ -121,7 +121,7 @@ MOL = (function ( $ ) {
                 } else {
                     _self.setType(_self.type);
                 }
-            },
+            }
         };
     };
 
@@ -140,8 +140,8 @@ MOL = (function ( $ ) {
         return {
             Points: function(){
                 //populate all methods of the Points engine
-                _self = this;
-                    var source, name;
+                var _self = this;
+                var source, name;
                 
                 
                 return {
@@ -158,12 +158,12 @@ MOL = (function ( $ ) {
                                 break;
                             }
                         }
-                    }
+                    };
             },
             Range: function(){
                 //populate all methods of the Range engine
-                _self = this;
-                    var source, name;
+                var _self = this;
+                var source, name;
                 return {
                     setSource: function(source){
                         switch ( source ) {
@@ -178,10 +178,10 @@ MOL = (function ( $ ) {
                                 break;
                             }
                         }
-                    }
+                    };
             }
-        }
-    }
+        };
+    };
     
     return {
 		// constructor
@@ -192,7 +192,7 @@ MOL = (function ( $ ) {
         },
         Widget: function(){
             /*build stuff different here */
-        },
+        }
     };
 
 })(jQuery);
