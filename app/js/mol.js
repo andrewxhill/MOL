@@ -14,19 +14,16 @@ MOL.init = function () {
     };
     
     
-
-    var layer = {}; //layers has form layer[0] = {'id'=someide,'layer':Layer()} etc. that way we can use this to also reflect changes in the LayerStackUI
-    //var bus = new EventBus();
-    
     var Map = function( ) {
         var _self = this;
+        var layers = [];
         //TODO: Event bus listener to call _self.addController for new controllers
 
         _self.addController = function(divId,position){   
             //var overlayDiv = document.getElementById(divId);
             _self.map.controls[position].push(divId[0]);
         };
-
+        
         return {
             init: function(context) {
                 _self.context = context;
@@ -45,13 +42,30 @@ MOL.init = function () {
                                   function(divId, position) {
                                       _self.addController(divId, position);
                                   });
+                MOL.eventBus.bind('add-new-map-layer', 
+                                  function(layer,id) {
+                                      var tmp = _self.layers.reverse;
+                                      tmp.push({'id': id, 'layer': layer});
+                                      _self.layers = tmp.reverse;
+                                  });
+                MOL.eventBus.bind('reorder-map-layers', 
+                                  function(layerOrder) {
+                                      //layerOrder is an ordered list of layerIds
+                                      var tmp = new Array(_self.layers.length);
+                                      var ct = 0;
+                                      for (var i in layerOrder){
+                                          tmp[ct] = layerOrder[i];
+                                          ct++;
+                                      }
+                                      _self.layers = tmp;
+                                  });
             }
         };
     };
 
     var LayerStackUI = function(){
         var _self = this;
-            var container,layers,menu,list,position,addController;
+            var id,container,layers,menu,list,position,addController;
             //TODO: add an event bus listener that will look for new Elements to be added to the (#layers #list)
         return {
             init: function(context){
@@ -76,27 +90,27 @@ MOL.init = function () {
                 
                 
                 _self.container = $('<div>').attr({'id':'widget-container'});
+                $(_self.container).append(_self.layers);
                 
+                _self.id = "widget-container";
                 // Triggers 'add-custom-map-controller' event on the bus:
                 MOL.eventBus.trigger('add-custom-map-controller', 
                                      _self.container, 
                                      google.maps.ControlPosition.TOP_RIGHT);
-
-                $(_self.container).append(_self.layers);
-                
-                
+                                     
                 $('#layers #delete_layer').click(function(){
+                    console.log('delete');
                     var id = $("#layers .layer.list input:checked");
                     //TODO: Send event bus a delete for this id
                 });
                 $('#layers #add_layer').click(function(){
+                    console.log('add');
+                    var layer = new Layer();
+                    layer.init();
                     //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
                 });
                 
-                //TODO: remove #tester and next line
-                //$('#tester').append(_self.container);
                 
-                //TODO: add Evenbus call that tells Map to add this new Controller via addController(divId,position)
             }
         };
     };
@@ -136,6 +150,7 @@ MOL.init = function () {
                 if (!_self.type){
                     var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
                     var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
+                    
                     $(dialog).append(buttonPoints);
                     
                     var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
