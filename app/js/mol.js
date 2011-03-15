@@ -78,7 +78,7 @@ MOL = (function ( $ ) {
             _self.type = type;
             switch ( type ) {
                 case "points":
-                    _self.Engine = new MOL.Engine().Points();
+                    _self.Engine = new Engine().Points();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('gbif');
@@ -87,7 +87,7 @@ MOL = (function ( $ ) {
                     }
                     break;
                 case "range":
-                    _self.Engine = new MOL.Engine().Range();
+                    _self.Engine = new Engine().Range();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('mol');
@@ -107,10 +107,10 @@ MOL = (function ( $ ) {
                     var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
                     var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points')
                     $(dialog).append(buttonPoints)
-                    $(dialog).append($('<div id="add_points_dialog" class="dialog_button output">Get GBIF Points<input type="search" id="gbif_points_search_box"><a href="javascript:" id="gbif_points_search">Go</a></div>'));
+                    
                     var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map')
                     $(dialog).append(buttonRange)
-                    $(dialog).append($('<div id="add_range_dialog" class="dialog_button output">Get MOL Range Map<input type="search" id="mol_range_search_box"><a href="javascript:" id="mol_range_search">Go</a></div></div>'));
+                    
                     $(buttonPoints).click(function(){
                         _self.setType('points');
                     });
@@ -135,6 +135,46 @@ MOL = (function ( $ ) {
         
     };
     
+    var Engine = function(){
+        return {
+            Points: function(){
+                //populate all methods of the Points engine
+                _self = this;
+                    var source, name;
+                
+                
+                return {
+                    setSource: function(source){
+                        case "gbif":
+                            _self.source = source;
+                            if (!_self.name){
+                                $(dialog).append($('<div id="add_points_dialog" class="dialog_button output">Get GBIF Points<input type="search" id="gbif_points_search_box"><a href="javascript:" id="gbif_points_search">Go</a></div>'));
+                            }else{
+                                _self.setName(_self.name);
+                            }
+                            break;
+                        }
+                    }
+            },
+            Range: function(){
+                //populate all methods of the Range engine
+                _self = this;
+                    var source, name;
+                return {
+                    setSource: function(source){
+                        case "mol":
+                            _self.source = source;
+                            if (!_self.name){
+                                $(dialog).append($('<div id="add_range_dialog" class="dialog_button output">Get MOL Range Map<input type="search" id="mol_range_search_box"><a href="javascript:" id="mol_range_search">Go</a></div></div>'));
+                            }else{
+                                _self.setName(_self.name);
+                            }
+                            break;
+                        }
+                    }
+            }
+        }
+    }
     return {
 		// constructor
 		Viz: function( context ){
@@ -145,16 +185,6 @@ MOL = (function ( $ ) {
         Widget: function(){
             /*build stuff different here */
         },
-        Engine: function(){
-            return {
-                Points: function(){
-                    //populate all methods of the Points engine
-                },
-                Range: function(){
-                    //populate all methods of the Range engine
-                }
-            }
-        }
     };
 
 })(jQuery);
