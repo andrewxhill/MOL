@@ -117,6 +117,7 @@ MOL = (function ( $ ) {
                     $(buttonRange).click(function(){
                         _self.setType('range');
                     });
+                    
                 } else {
                     _self.setType(_self.type);
                 }
@@ -145,14 +146,17 @@ MOL = (function ( $ ) {
                 
                 return {
                     setSource: function(source){
-                        case "gbif":
-                            _self.source = source;
-                            if (!_self.name){
-                                $(dialog).append($('<div id="add_points_dialog" class="dialog_button output">Get GBIF Points<input type="search" id="gbif_points_search_box"><a href="javascript:" id="gbif_points_search">Go</a></div>'));
-                            }else{
-                                _self.setName(_self.name);
+                        switch ( source ) {
+                            case "gbif":
+                                _self.source = source;
+                                if (!_self.name){
+                                    var dialog = $("div");
+                                    $(dialog).append($('<div id="add_points_dialog" class="dialog_button output">Get GBIF Points<input type="search" id="gbif_points_search_box"><a href="javascript:" id="gbif_points_search">Go</a></div>'));
+                                }else{
+                                    _self.setName(_self.name);
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
             },
@@ -162,19 +166,23 @@ MOL = (function ( $ ) {
                     var source, name;
                 return {
                     setSource: function(source){
-                        case "mol":
-                            _self.source = source;
-                            if (!_self.name){
-                                $(dialog).append($('<div id="add_range_dialog" class="dialog_button output">Get MOL Range Map<input type="search" id="mol_range_search_box"><a href="javascript:" id="mol_range_search">Go</a></div></div>'));
-                            }else{
-                                _self.setName(_self.name);
+                        switch ( source ) {
+                            case "mol":
+                                _self.source = source;
+                                if (!_self.name){
+                                    var dialog = $("div");
+                                    $(dialog).append($('<div id="add_range_dialog" class="dialog_button output">Get MOL Range Map<input type="search" id="mol_range_search_box"><a href="javascript:" id="mol_range_search">Go</a></div></div>'));
+                                }else{
+                                    _self.setName(_self.name);
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
             }
         }
     }
+    
     return {
 		// constructor
 		Viz: function( context ){
