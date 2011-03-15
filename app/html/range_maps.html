@@ -10,8 +10,14 @@
     <script src="../../../js/lib/underscore-min.js"></script>    
     <script src="../../../js/lib/backbone-min.js"></script>    
     <script src="../../../js/lib/mustache.js"></script>    
-    <script src="../../../js/class.js"></script>
-    <script src="../../../js/mol.js"></script>
+    <script src="../../../js/mol/mol.util.js"></script>
+    <script src="../../../js/mol/mol.init.js"></script>
+    <script src="../../../js/mol/mol.ui.LayerStack.js"></script>
+    <script src="../../../js/mol/mol.engines.js"></script>
+    <script src="../../../js/mol/mol.maps.Layer.js"></script>
+    <script src="../../../js/mol/mol.api.js"></script>
+    <script src="../../../js/mol/mol.event.js"></script>
+    <script src="../../../js/mol/mol.maps.Map.js"></script>
     <meta charset="utf-8" /> 
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
     <style type="text/css"> 
@@ -43,11 +49,9 @@
     <div id="map"></div>
     <div id="tester"></div>
 	<script type="text/javascript">
-        var mol;
-        $(document).ready(function(){
-            MOL.init();
+        $(document).ready(function(){            
             var context = $("#content");
-            mol = new MOL.Viz(context);
+            mol.initRangeMap(context);
         });
     </script>
   </body>  

@@ -21,12 +21,12 @@ mol.ns = function(namespace) {
     return parent;
 };
 
-mol.ns('mol.util');
-mol.ns('mol.control');
+mol.ns('mol.maps');
+mol.ns('mol.engines');
 mol.ns('mol.event');
 mol.ns('mol.api');
-mol.ns('mol.view');
-mol.ns('mol.activity');
+mol.ns('mol.ui');
+mol.ns('mol.util');
 
 /**
  * Logging via Speed Tracer Logging API.

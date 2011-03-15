@@ -48,6 +48,9 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(open(path, 'r').read())
 
+class RangeMap(BaseHandler):
+    def get(self):
+        self.push_html('range_maps.html')
 
 """remove this after layer widget is developed"""
 class LayerWidget(BaseHandler):
@@ -99,6 +102,7 @@ application = webapp.WSGIApplication(
           ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
+          ('/rangemap', RangeMap),
           ('/playground/col', ColPage),
           ('/playground/map', MapPage),
           ('/admin/flush-memcache', AdminFlushMemcacheHandler),

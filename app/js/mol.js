@@ -14,19 +14,16 @@ MOL.init = function () {
     };
     
     
-
-    var layer = {}; //layers has form layer[0] = {'id'=someide,'layer':Layer()} etc. that way we can use this to also reflect changes in the LayerStackUI
-    //var bus = new EventBus();
-    
     var Map = function( ) {
         var _self = this;
+        var layers = [];
         //TODO: Event bus listener to call _self.addController for new controllers
 
         _self.addController = function(divId,position){   
             //var overlayDiv = document.getElementById(divId);
             _self.map.controls[position].push(divId[0]);
         };
-
+        
         return {
             init: function(context) {
                 _self.context = context;
@@ -45,26 +42,60 @@ MOL.init = function () {
                                   function(divId, position) {
                                       _self.addController(divId, position);
                                   });
+                MOL.eventBus.bind('add-new-map-layer', 
+                                  function(layer,id) {
+                                      var tmp = _self.layers.reverse;
+                                      tmp.push({'id': id, 'layer': layer});
+                                      _self.layers = tmp.reverse;
+                                  });
+                MOL.eventBus.bind('reorder-map-layers', 
+                                  function(layerOrder) {
+                                      //layerOrder is an ordered list of layerIds
+                                      var tmp = new Array(_self.layers.length);
+                                      var ct = 0;
+                                      for (var i in layerOrder){
+                                          tmp[ct] = layerOrder[i];
+                                          ct++;
+                                      }
+                                      _self.layers = tmp;
+                                  });
             }
         };
     };
 
     var LayerStackUI = function(){
         var _self = this;
-            var container,layers,menu,list,position,addController;
+            var id,container,layers,menu,list,position,addController;
             //TODO: add an event bus listener that will look for new Elements to be added to the (#layers #list)
         return {
             init: function(context){
                 /* create widget ui framework here */
                 var options = $('<ul>').attr({'class': 'options list'});
+                
+                var addLayer = $('<a>').attr({'id': 'add_layer', 'href':'javascript:'}).html('Add');
+                var deleteLayer = $('<a>').attr({'id': 'delete_layer', 'href':'javascript:'}).html('Delete')
+                             
+                $(deleteLayer).click(function(){
+                    console.log('delete');
+                    var id = $("#layers .layer.list input:checked");
+                    //TODO: Send event bus a delete for this id
+                });
+                $(addLayer).click(function(){
+                    var layer = new Layer();
+                    layer.init();
+                    //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
+                });
+                
                 $(options).append(
                     $('<li>').attr({'class':'option list','id':'add'})
-                        .append($('<a>').attr({'id': 'add_layer', 'href':'javascript:'}).html('Add'))
+                        .append(addLayer)
                 );
                 $(options).append(
                     $('<li>').attr({'class':'option list','id':'delete'})
-                        .append($('<a>').attr({'id': 'delete_layer', 'href':'javascript:'}).html('Delete'))
+                        .append(deleteLayer)
                 );
+                
+                
                 _self.menu = $('<div>').attr({'id':'menu'});
                 $(_self.menu).append(options);
                 
@@ -76,27 +107,20 @@ MOL.init = function () {
                 
                 
                 _self.container = $('<div>').attr({'id':'widget-container'});
+                $(_self.container).append(_self.layers);
                 
+                _self.id = "widget-container";
+                
+                MOL.eventBus.bind('add-new-stackui-layer', 
+                                  function(layerUI) {
+                                      $(_self.list).prepend($(layerUI));
+                                  });
+                                  
                 // Triggers 'add-custom-map-controller' event on the bus:
                 MOL.eventBus.trigger('add-custom-map-controller', 
                                      _self.container, 
-                                     google.maps.ControlPosition.TOP_RIGHT);
-
-                $(_self.container).append(_self.layers);
+                                     google.maps.ControlPosition.TOP_RIGHT);               
                 
-                
-                $('#layers #delete_layer').click(function(){
-                    var id = $("#layers .layer.list input:checked");
-                    //TODO: Send event bus a delete for this id
-                });
-                $('#layers #add_layer').click(function(){
-                    //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
-                });
-                
-                //TODO: remove #tester and next line
-                $('#tester').append(_self.container);
-                
-                //TODO: add Evenbus call that tells Map to add this new Controller via addController(divId,position)
             }
         };
     };
@@ -108,7 +132,7 @@ MOL.init = function () {
             _self.type = type;
             switch ( type ) {
                 case "points":
-                    _self.Engine = new Engine().Points();
+                    _self.Engine = new Engines().Points();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('gbif');
@@ -117,7 +141,7 @@ MOL.init = function () {
                     }
                     break;
                 case "range":
-                    _self.Engine = new Engine().Range();
+                    _self.Engine = new Engines().Range();
                     if (!_self.source){
                         //for the future when more soruces are available
                         _self.Engine.setSource('mol');
@@ -136,6 +160,7 @@ MOL.init = function () {
                 if (!_self.type){
                     var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
                     var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
+                    
                     $(dialog).append(buttonPoints);
                     
                     var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
@@ -148,32 +173,23 @@ MOL.init = function () {
                         _self.setType('range');
                     });
                     
+                    MOL.eventBus.trigger('add-new-stackui-layer', 
+                                         dialog); 
+                    
                 } else {
                     _self.setType(_self.type);
                 }
             }
         };
     };
-
-    var Interface = function(context) {
-        var _self = this;
-        _self.mapdiv = $("#map");
-        _self.rangemap = new Map();
-        _self.rangemap.init(_self.mapdiv);
-        
-        _self.layerstackui = new LayerStackUI();
-        _self.layerstackui.init(context);
-        
-    };
     
-    var Engine = function(){
+    var Engines = function(){
         return {
             Points: function(){
                 //populate all methods of the Points engine
                 var _self = this;
+                var type='points';
                 var source, name;
-                
-                
                 return {
                     setSource: function(source){
                         switch ( source ) {
@@ -193,6 +209,7 @@ MOL.init = function () {
             Range: function(){
                 //populate all methods of the Range engine
                 var _self = this;
+                var type='range';
                 var source, name;
                 return {
                     setSource: function(source){
@@ -218,7 +235,11 @@ MOL.init = function () {
 		Viz: function( context ){
             var _self = this;
             _self.context = context;
-            var _interface = new Interface(context);
+            _self.mapdiv = $(context);
+            _self.rangemap = new Map();
+            _self.rangemap.init(_self.mapdiv);
+            _self.layerstackui = new LayerStackUI();
+            _self.layerstackui.init(context);
         },
         Widget: function(){
             /*build stuff different here */
