@@ -33,10 +33,12 @@ mol.ui.LayerStack.prototype.buildUi = function() {
     this.layers = $('<div>').attr({'id':'layers'}),
     this.menu = $('<div>').attr({'id':'menu'}),
     this.list = $('<div>').attr({'id':'list'}),
-    $(this.options).append($('<li>').attr({'class':'option list','id':'add'}));
-    $(this.options).append(this.addLayer);
-    $(this.options).append($('<li>').attr({'class':'option list','id':'delete'}));
-    $(this.options).append(this.deleteLayer);        
+    $(this.options).append(
+        $('<li>').attr({'class':'option list','id':'add'}
+                      ).append(this.addLayer));
+    $(this.options).append(
+        $('<li>').attr({'class':'option list','id':'delete'}
+                      ).append(this.deleteLayer));        
     $(this.menu).append(this.options);
     $(this.layers).append(this.menu);
     $(this.layers).append(this.list);

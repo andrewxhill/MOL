@@ -117,12 +117,10 @@ mol.maps.Layer.prototype.showTypesUi = function() {
       self = this;
     dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
     buttonPoints = $('<button>').attr(
-        {"id":"add_points_button","class":"dialog_buttons"});
-    buttonPoints.html('Add Points');
+        {"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
     $(dialog).append(buttonPoints);
     buttonRange = $('<button>').attr(
-        {"id":"add_range_button","class":"dialog_buttons"});
-    buttonRange.html('Add Range Map');
+        {"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
     $(dialog).append(buttonRange);    
     $(buttonPoints).click(
         function() {
