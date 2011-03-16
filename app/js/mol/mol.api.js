@@ -26,7 +26,7 @@ mol.api.ApiProxy = function() {
             var xhr = $.post('/api/tile/metadata/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
-         } else if (request.action === 'points') {
+         } else if (request.action === 'gbif-points') {
             var xhr = $.post('/api/points/gbif/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);

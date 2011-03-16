@@ -313,14 +313,14 @@ class GbifDataHandler(webapp.RequestHandler):
 
         """make sure that the keyname exists in MOL"""
         q = Species.get_by_key_name(species_key_name)
-        if not q:
-            self.error(404)
-            return
+        #if not q:
+        #    self.error(404)
+        #    return
 
         """create query URL for GBIF occurrence point url"""
         #for testing on localhost
-        #names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
-        names = simplejson.loads(q.names)
+        names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
+        #names = simplejson.loads(q.names)
 
         nms = [i for i in names if i['type']=="accepted name"]
         nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
@@ -348,7 +348,7 @@ class GbifDataHandler(webapp.RequestHandler):
                 p, r, o = True, False, False
                 pct, rct, oct = 0, 0, 0
                 for action, element in xml:
-                    logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
+                    #logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
                     if "{%s}TaxonOccurrence" % TOXML == element.tag:
                         if action=="start":
                             p, r, o = False, False, True
