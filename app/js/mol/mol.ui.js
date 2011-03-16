@@ -35,8 +35,7 @@ mol.ui.Focus = function() {
         if (focus) {
             self.controllers[divId].timeout = 1;
             /* show */
-            $("#"+divId+" #menu .option").show('slow');
-            $("#"+divId+" #list").show('slow');
+            $("#"+divId+" #list, #menu .option").show('fast');
         } else {
             if (fromUI){
                 self.controllers[divId].timeout = 0;
@@ -46,7 +45,7 @@ mol.ui.Focus = function() {
                         divId, 
                         false
                     );   
-                 }, 2500);
+                 }, 3500);
             } else if (self.controllers[divId].timeout == 0){
                 /* hide */
                 var hide = true;
@@ -56,8 +55,8 @@ mol.ui.Focus = function() {
                     }
                 }
                 if (hide) {
-                    $("#"+divId+"  #menu .option:not(#menuLabel)").hide('slow');
-                    $("#"+divId+"  #list").hide('slow');
+                    $("#"+divId+"  #list").hide('fast');
+                    $("#"+divId+"  #menu .option:not(#menuLabel)").hide('fast');
                 } else {
                     setTimeout(function(){
                         mol.eventBus.trigger(

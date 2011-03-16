@@ -10,6 +10,13 @@
  */
 mol.maps.Map = function(context) {
     if (!(this instanceof mol.maps.Map)) {
+    this.mouse = {};
+    $().mousedown(function(e){
+        this.e.down=true;
+    });
+    $().mouseup(function(e){
+        this.e.down=false;
+    });
         return new mol.maps.Map();
     }
     var contextDoc = document.getElementById($(context).attr('id')),
@@ -128,13 +135,12 @@ mol.maps.Map.prototype.addController = function(divId, which, first) {
             } else {
                 $(this.rightController).append(divId);
             }
-            $(divId).mouseover(function(){
-                //self.setStackFocus(true);    
+            $(divId).mouseover(function(){ 
                 mol.eventBus.trigger(
                     mol.event.Types.CONTROLLER_FOCUS_UPDATE,
                     $(divId).attr('id'), 
                     true
-                );      
+                ); 
             });
             $(divId).mouseleave(function(){
                 mol.eventBus.trigger(

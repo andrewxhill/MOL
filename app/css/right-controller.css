@@ -6,8 +6,8 @@
     color: #141414;
 }
 #right-controller #menu{
-    float: left;
-    width: 100%;
+    float: right;
+    width: 70%;
 }
 #right-controller .list{
     list-style-type: none;

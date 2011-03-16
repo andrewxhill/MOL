@@ -76,8 +76,8 @@ mol.engines.PointsEngine.prototype = (
             }
             mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
             /* show the widget when loading is complete */
-            mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, true);   
-            mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, false, true);   
+            //mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, true);   
+            //mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, false, true);   
         };    
 
         /**
