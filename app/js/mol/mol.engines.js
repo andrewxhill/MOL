@@ -75,7 +75,9 @@ mol.engines.PointsEngine.prototype = (
                 break;
             }
             mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
-            mol.eventBus.trigger(mol.event.Types.SHOW_LAYER_STACK); 
+            /* show the widget when loading is complete */
+            mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, true);   
+            mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, false, true);   
         };    
 
         /**
@@ -89,7 +91,7 @@ mol.engines.PointsEngine.prototype = (
                 return;
             }
             var radio = $('<input>')
-                .attr({"type":"radio","name":"layer-toggle","value":"points"});
+                .attr({"type":"radio","name":"active-layer","value":"points"});
             var leftCol = $('<div>')
                 .attr({"class":"leftCol"})
                 .append(radio);
@@ -100,7 +102,7 @@ mol.engines.PointsEngine.prototype = (
                 .attr({"class":"source"})
                 .html(source);
             var toggle = $('<input>')
-                .attr({"class":"toggle","type":"checkbox","checked":true});
+                .attr({"class":"view-toggle","type":"checkbox","checked":true});
             var loader = $('<img>')
                 .attr({"src":"/static/loading-small.gif","class":"loading"});
             row = $("<div>")

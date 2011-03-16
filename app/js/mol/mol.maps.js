@@ -42,9 +42,8 @@ mol.maps.Map = function(context) {
         var year = $("<div>")
                         .attr({"id":"year", "class":"filter list"});
 		var yeartitle = $("<div class='title'>Year min</div>")
-		//var yearslider = $("<input>")
-        //                    .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
-        var yearslider = $('<div id="yearslider" class="slider">');
+		var yearslider = $("<input>")
+                            .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
         
         $(year).append(yeartitle);
         $(year).append(yearslider);
@@ -138,7 +137,6 @@ mol.maps.Map.prototype.addController = function(divId, which, first) {
                 );      
             });
             $(divId).mouseleave(function(){
-                //self.setStackFocus(false,true);  
                 mol.eventBus.trigger(
                     mol.event.Types.CONTROLLER_FOCUS_UPDATE,
                     $(divId).attr('id'), 

@@ -122,15 +122,6 @@ mol.ui.LayerStack.prototype.buildUi = function() {
         }
     );
     $(this.list).disableSelection();
-    
-    /* this needs to be reconciled with the new Focus() method above */
-    mol.eventBus.bind(
-        mol.event.Types.SHOW_LAYER_STACK, 
-        function() {
-            self.setStackFocus(true);
-            self.setStackFocus(false,true);
-        }
-    );
 };
 
 /**
@@ -182,10 +173,13 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
             if ($(self.list).find("#"+$(layerUI).attr('id')).length > 0){
-                mol.log('LayerStack handling event: ' + 
-                             mol.event.Types.ADD_NEW_STACK_LAYER +
-                             ': removed an existing stack layer');
-                $("#layers #"+$(layerUI).attr('id')).remove();
+                if ($(layerUI).attr('class') == 'layer'){
+                    /* TELL THE LAYER TO REMOVE ITSELF */
+                } else {
+                    mol.log('LayerStack handling event: ' + 
+                                mol.event.Types.ADD_NEW_STACK_LAYER + ': removed an existing stack layer');
+                    $("#layers #"+$(layerUI).attr('id')).remove();
+                }
             } else {
                 if ("dialog" == $(layerUI).attr('class').split(' ')[0]){
                     /*avoid dialog stacking */
@@ -194,6 +188,9 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
                 mol.log('LayerStack handling event: ' + 
                              mol.event.Types.ADD_NEW_STACK_LAYER);
                 $(self.list).prepend($(layerUI));
+                if ($(self.list).find('.layer').length == 1){
+                    $(layerUI).find("input[name=active-layer]").click();
+                }
             }
         }
     );    
