@@ -98,8 +98,7 @@ mol.engines.PointsEngine.prototype = (
             var toggle = $('<input>')
                 .attr({"class":"toggle","type":"checkbox","checked":true});
             var loader = $('<img>')
-                .attr({"src":"/static/loading-small.gif","class":"loading"})
-                .height("16px");
+                .attr({"src":"/static/loading-small.gif","class":"loading"});
             row = $("<div>")
                 .attr({"id":rowId,"class":"layer list"})
                 .prepend(title)
@@ -394,8 +393,7 @@ mol.engines.RangeEngine = function(source,name,data) {
                             .attr({"class":"toggle","type":"checkbox","checked":true});
                             
             var loader = $('<img>')
-                            .attr({"src":"/static/loading-small.gif","class":"loading"})
-                            .height("16px");
+                            .attr({"src":"/static/loading-small.gif","class":"loading"});
                             
             this.row = $("<div>")
                             .attr({"id":this._id,"class":"layer list"})
