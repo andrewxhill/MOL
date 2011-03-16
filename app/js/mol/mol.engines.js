@@ -10,7 +10,11 @@
  * 
  */
 mol.engines.PointsEngine = function(source, name, data) {
-    
+    if (!(this instanceof mol.engines.PointsEngine)) {
+        return new mol.engines.PointsEngine(source, name, data);
+    }
+    this.init(source, name, data);
+    return this;
 };
 
 /**
@@ -25,9 +29,8 @@ mol.engines.PointsEngine.prototype = (
             rowId = null,
             metadata = null,
             row = null,
-            self = this,
             state = {
-                HAS_TYPE: 'has_type',
+                NO_NAME_NO_SOURCE: 'no_name_no_source',
                 SOURCE_NO_NAME: 'source_no_name',
                 NAME_NO_SOURCE: 'name_no_source',
                 NO_ROW: 'no_row',
@@ -55,7 +58,7 @@ mol.engines.PointsEngine.prototype = (
          * 
          */
         var updateRowStatus = function(layerId, status, msg) {
-            if (layerId !== self.rowId) {
+            if (layerId !== rowId) {
                 mol.log.warn('Layer id does not match');
                 return;                
             }
@@ -64,18 +67,19 @@ mol.engines.PointsEngine.prototype = (
             switch (status) {
             case "download-complete":
                 info = $('<button>').attr({"class":"info"}).html('i');
-                $(self.row).find(".loading").replaceWith(info);
+                $(row).find(".loading").replaceWith(info);
                 break;
             case "download-error":
                 error = $('<button>').attr({"class":"error"}).html('!');
-                $(self.row).find(".loading").replaceWith(error);
+                $(row).find(".loading").replaceWith(error);
                 break;
             }
+            mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
             mol.eventBus.trigger(mol.event.Types.SHOW_LAYER_STACK); 
         };    
 
         /**
-         * Builds the row UI.
+         * Private method that builds the row UI.
          * 
          * Binds an UPDATE_LAYER_STATUS event.
          * 
@@ -111,7 +115,7 @@ mol.engines.PointsEngine.prototype = (
         };
 
         /**
-         * Builds the source UI.
+         * Private method that builds the source UI.
          * 
          */
         var buildSourceUi = function() {
@@ -122,7 +126,7 @@ mol.engines.PointsEngine.prototype = (
         };
 
         /**
-         * Builds the GBIF source UI. 
+         * Private method that builds the GBIF source UI. 
          * 
          * Triggers an ADD_NEW_STACK_LAYER event with itself as the parameter.
          * 
@@ -152,20 +156,20 @@ mol.engines.PointsEngine.prototype = (
                 function() {
                     var layerName = $(input).val();
                     if (!layerName) {
-                        mol.log.warn('No input available in: ' + $(input).attr('id'));
+                        mol.log.warn('No input available in: ' + input[0].attr('id'));
                         return;
                     }
                     mol.log('Trigger ' + mol.event.Types.DELETE_STACK_LAYER);
                     mol.eventBus.trigger(mol.event.Types.DELETE_STACK_LAYER, ".dialog");   
-                    self.setName(layerName);
-                    self.transition();
+                    setName(layerName);
+                    transition();
                 });
             mol.log('Trigger: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
             mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);   
         };
 
         /**
-         * Returns the current engine state.
+         * Private method that returns the current engine state.
          * 
          */
         var getCurrentState = function() {
@@ -174,6 +178,8 @@ mol.engines.PointsEngine.prototype = (
                 currentState = state.SOURCE_NO_NAME;
             } else if (name && !source) {
                 currentState = state.NAME_NO_SOURCE;
+            } else if (!name && !source) {
+                currentState = state.NO_NAME_NO_SOURCE;  
             } else if (source && name && !row) {
                 currentState = state.NO_ROW;                
             } else if (source && name && row && data) {
@@ -185,14 +191,16 @@ mol.engines.PointsEngine.prototype = (
         };
 
         /**
-         * Performs an engine state transition based on the current state.
+         * Private method that performs an engine state transition based on the 
+         * current state.
          * 
          */
         var transition = function() {
-            var currentState = currentState();
-            mol.log(currentState);
+            var currentState = getCurrentState();
+            mol.log('Engine state transition: ' + currentState);
             switch (currentState) {
                 case state.SOURCE_NO_NAME:
+                case state.NO_NAME_NO_SOURCE:
                 buildSourceUi(); // <--- should set name and call transition()
                 break;
                 case state.NAME_NO_SOURCE:
@@ -210,7 +218,8 @@ mol.engines.PointsEngine.prototype = (
         };
 
         /**
-         * Loads GBIF point data asynchronously. On success, this.data is set
+         * Private method that loads GBIF point data asynchronously. On success, 
+         * this.data is set
          * 
          * Triggers an UPDATE_LAYER_STATUS event on success or failure.
          * 
@@ -223,21 +232,21 @@ mol.engines.PointsEngine.prototype = (
                 cb = new mol.api.AsyncCallback(
                     // Success callback:
                     function(json) { 
-                        self.data = json;
-                        self.transition();
+                        data = json;
+                        transition();
                         mol.eventBus.trigger(
                             mol.event.Types.UPDATE_LAYER_STATUS,
-                            self.id,
+                            rowId,
                             'download-complete',
                             'Success');
                     },
                     // Failure callback:
                     function(error) { 
-                        self.data = null;
-                        self.transition();
+                        data = null;
+                        transition();
                         mol.eventBus.trigger(
                             mol.event.Types.UPDATE_LAYER_STATUS,
-                            self.id,
+                            rowId,
                             'download-error',
                             'Error: ' + error);
                     });
@@ -245,91 +254,77 @@ mol.engines.PointsEngine.prototype = (
         };
 
         /**
-         * Initializes the engine with a source, name, and data and immediately 
-         * transitions.
+         * Public method that initializes the engine with a source, name, and 
+         * data and immediately transitions.
          * 
          */
-        this.init = function(initSource, initName, initData) {
+        var init = function(initSource, initName, initData) {
             source = initSource;
             name = initName;
             data = initData;
             transition();
         };
 
-        // Type (immutable)
-        this.getType = function() {
+        /**
+         * Public getter and setters.
+         */
+        var getType = function() {
             return type;
         };
-        
-        // Source
-        this.getSource = function() {
+        var getSource = function() {
             return source;
         };
-        this.setSource = function(val) {
+        // Note: This method causes a state transition:
+        var setSource = function(val) {
             source = val;
-            // TODO: transition()?
+            transition();
          };
-        
-        // Name
-        this.getName = function() {
+        var getName = function() {
             return name;
         };
-        this.setName = function(val) {
+        // Note: This method causes a state transition:
+        var setName = function(val) {
             name = val;        
-            // TODO: transition()?
+            transition();
         };
-        
-        // Data
-        this.getData = function() {
+        var getData = function() {
             return data;
         };
-        this.setType = function(val) {
-            data = val;        
-        };    
-
-        // Id (immutable)
-        this.getRowId = function() {
+        var getRowId = function() {
             return rowId;
         };
-
-        // Metadata
-        this.getMetadata = function() {
+        var getMetadata = function() {
             return metadata;
         };
-        this.setMetadata = function(val) {
+        var setMetadata = function(val) {
             metadata = val;        
         };    
-
-        // Row (immutable)
-        this.getRow = function() {
+        var getRow = function() {
             return row;
+        };
+        
+
+        /**
+         * This is the object that is exposed publically as the prototype. So 
+         * everything in this object is public. Everthing else is private by
+         * enclosure.
+         * 
+         */
+        return {            
+            init: init,
+            getType: getType,
+            getSource: getSource,
+            setSource: setSource,
+            getName: getName,
+            setName: setName,
+            getData: getData,
+            getRowId: getRowId,
+            getMetadata: getMetadata,
+            setMetadata: setMetadata,
+            getRow: getRow
         };
     }
 )();
-
-/**
- * Builds the id if type, source, and name are all defined. If an id is built,
- * true is returned. If an id is not build because either type, source, or name
- * is undefined, returns false.
- * 
- */
-mol.engines.PointsEngine.prototype.buildId = function() {
-    var type = this.getType(),
-        source = this.getSource(),
-        name = this.getName();
-    if (!type || !source || !name) {
-        return false;
-    }
-    this.setId([type, source, name.split(' ')].join('_'));    
-    return true;
-};
-
-/**
- * Shows a UI for a PointsEngine.
- * 
- */
-mol.engines.PointsEngine.prototype.showUi = function() {
-};
 
 
 // =============================================================================
@@ -428,6 +423,7 @@ mol.engines.RangeEngine = function(source,name,data) {
                                 $(self.row).find(".loading").replaceWith(error);
                                 break;
                         }
+                        mol.eventBus.trigger(mol.event.Types.SHOW_LAYER_STACK);
                     }
                 }
             );  

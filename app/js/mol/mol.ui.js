@@ -12,7 +12,7 @@ mol.ui.LayerStack = function(context) {
     this.stackFocus = 0;
     this.buildUi();
     this.wireEvents();          
-    mol.util.log('LayerStack triggering event: ' + 
+    mol.log('LayerStack triggering event: ' + 
                  mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
     mol.eventBus.trigger(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL,

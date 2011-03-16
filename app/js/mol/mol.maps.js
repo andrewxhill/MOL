@@ -115,9 +115,9 @@ mol.maps.Layer.prototype.build = function() {
         this.engine = new mol.engines.PointsEngine();
         if (!this.source) {
             //for the future when more soruces are available
-            this.engine.source('GBIF');
+            this.engine.setSource('GBIF');
         } else {
-            this.engine.source(this.source);
+            this.engine.setSource(this.source);
         }
         break;
     case "range":
