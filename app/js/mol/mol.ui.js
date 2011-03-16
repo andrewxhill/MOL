@@ -12,7 +12,7 @@ mol.ui.LayerStack = function(context) {
     this.stackFocus = 0;
     this.buildUi();
     this.wireEvents();        
-    mol.util.log('LayerStack triggering event: ' + 
+    mol.log('LayerStack triggering event: ' + 
                  mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
     mol.eventBus.trigger(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL,
@@ -109,7 +109,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     // Wires event for clicking the delete layer button:
     $(this.deleteLayer).click(
         function() {
-            mol.util.log('LayerStack.deleteLayer.click');
+            mol.log('LayerStack.deleteLayer.click');
             var id = $("#layers .layer.list input:checked");
             mol.eventBus.trigger(mol.event.Types.DELETE_STACK_LAYER, id);
         }
@@ -118,11 +118,11 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     $(this.addLayer).click(
         function() {
             if ($("#layers").find("#add_new_layer_dialog").length > 0){
-                mol.util.log('LayerStack.addLayer.click:' +
+                mol.log('LayerStack.addLayer.click:' +
                                 'removed existing dialog');
                 $("#layers #add_new_layer_dialog").remove();
             } else {
-                mol.util.log('LayerStack.addLayer.click');
+                mol.log('LayerStack.addLayer.click');
                 var layer = new mol.maps.Layer();
                 // TODO: Trigger event?
             }
@@ -133,12 +133,12 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
         mol.event.Types.DELETE_STACK_LAYER,
         function(layerIdentifier) {
             if ($(self.list).find(layerIdentifier).length > 0){
-                mol.util.log('LayerStack handling event: ' + 
+                mol.log('LayerStack handling event: ' + 
                              mol.event.Types.DELETE_STACK_LAYER +
                              ': removed an existing stack layer');
                 $("#layers "+layerIdentifier).remove();
             } else {
-                mol.util.log('LayerStack handling event: ' + 
+                mol.log('LayerStack handling event: ' + 
                              mol.event.Types.DELETE_STACK_LAYER +
                              ': layer did not exist');
             }
@@ -149,7 +149,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
         mol.event.Types.ADD_NEW_STACK_LAYER,
         function(layerUI) {
             if ($(self.list).find("#"+$(layerUI).attr('id')).length > 0){
-                mol.util.log('LayerStack handling event: ' + 
+                mol.log('LayerStack handling event: ' + 
                              mol.event.Types.ADD_NEW_STACK_LAYER +
                              ': removed an existing stack layer');
                 $("#layers #"+$(layerUI).attr('id')).remove();
@@ -158,7 +158,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
                     /*avoid dialog stacking */
                     $("#layers .dialog").remove();
                 }
-                mol.util.log('LayerStack handling event: ' + 
+                mol.log('LayerStack handling event: ' + 
                              mol.event.Types.ADD_NEW_STACK_LAYER);
                 $(self.list).prepend($(layerUI));
             }

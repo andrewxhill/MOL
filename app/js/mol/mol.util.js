@@ -28,6 +28,7 @@ mol.ns('mol.event');
 mol.ns('mol.api');
 mol.ns('mol.ui');
 mol.ns('mol.util');
+mol.ns('mol.log');
 
 /**
  * Logging via Speed Tracer Logging API and Chrome console.
@@ -35,7 +36,7 @@ mol.ns('mol.util');
  * @param msg the message to log
  * 
  */
-mol.util.log = function log(msg) {
+mol.log = function(msg) {
     if (!mol.isLogging) {
         return;        
     }
@@ -44,6 +45,10 @@ mol.util.log = function log(msg) {
         logger.markTimeline(msg);
     }
     console.log(msg);
+};
+
+mol.log.warn = function(msg) {
+    return mol.log('WARN: ' + msg);
 };
 
 /**
