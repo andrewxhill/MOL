@@ -60,8 +60,7 @@ mol.engines.PointsEngine = function(source,name,data) {
             var toggle = $('<input>')
                             .attr({"class":"toggle","type":"checkbox","checked":true});
             var loader = $('<img>')
-                            .attr({"src":"/static/loading-small.gif","class":"loading"})
-                            .height("16px");
+                            .attr({"src":"/static/loading-small.gif","class":"loading"});
             this.row = $("<div>")
                             .attr({"id":this._id,"class":"layer list"})
                             .prepend(title)
@@ -76,8 +75,6 @@ mol.engines.PointsEngine = function(source,name,data) {
                 function(layerId, status, msg) {
                     mol.util.log('Map handling event: ' + 
                                  mol.event.Types.UPDATE_LAYER_STATUS);
-                    console.log(layerId);
-                    console.log($(self.row));
                     if(layerId == $(self.row).attr('id')){
                         switch (status) {
                             case "download-complete":
@@ -223,8 +220,7 @@ mol.engines.RangeEngine = function(source,name,data) {
                             .attr({"class":"toggle","type":"checkbox","checked":true});
                             
             var loader = $('<img>')
-                            .attr({"src":"/static/loading-small.gif","class":"loading"})
-                            .height("16px");
+                            .attr({"src":"/static/loading-small.gif","class":"loading"});
                             
             this.row = $("<div>")
                             .attr({"id":this._id,"class":"layer list"})

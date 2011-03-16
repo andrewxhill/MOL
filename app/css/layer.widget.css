@@ -1,16 +1,11 @@
-
 #widget-container {
     float: left;
     display: block;
     margin-top: -11px;
 	width: 290px;
-    height: auto;
     font-family: Arial, sans-serif;
     font-weight:700;
     color: #141414;
-}
-#layers #list{
-    height: auto;
 }
 #layers #menu{
     float: left;
@@ -23,8 +18,8 @@
         linear,
         left bottom,
         left top,
-        color-stop(0.37, rgba(184, 253, 133,0.65)),
-        color-stop(0.69, rgba(92,214,7,0.65))
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
     );
     background-image: -moz-linear-gradient(
         center bottom,
@@ -32,6 +27,7 @@
         rgba(92,214,7,0.65) 69%
     );
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
 }
 #layers .option{
@@ -46,10 +42,10 @@
     text-align: center;
 }
 #layers #menuLabel.option{
-    -moz-border-radius-bottomleft: 3px;
-    border-bottom-left-radius: 3px;
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
     border: 1px solid rgb(123, 136, 163);
     border-right: none;
 }
@@ -58,10 +54,10 @@
     border-bottom: 1px solid rgb(135, 165, 149);
 }
 #layers #delete.option{
-    -moz-border-radius-bottomright: 3px;
-    border-bottom-right-radius: 3px;
     -moz-border-radius-topright: 3px;
     border-top-right-radius: 3px;
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
     border: 1px solid rgb(135, 165, 149);
     border-left: none;
 }
@@ -85,8 +81,8 @@
     );
     background-image: -moz-linear-gradient(
         center bottom,
-        rgba(184, 253, 133,0.75) 37%,
-        rgba(92,214,7,0.75) 69%
+        rgba(35, 35, 35,0.75) 37%,
+        rgba(66,66,66,0.75) 69%
     );
     border: 1px solid rgb(73, 73, 73);
     color: rgb(240, 240, 260);
@@ -104,6 +100,8 @@
     padding-bottom: 2px;
     line-height: 165%;
     text-align: center;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 #layers .dialog span{
     float: left;
@@ -139,6 +137,8 @@
     padding-bottom: 2px;
     line-height: 165%;
     text-align: center;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 #layers .layer .leftCol{
     float: left;
@@ -167,6 +167,7 @@
 #layers .layer .title{
     float: left;
     font-size: 1.2em;
+    padding-top: 2px;
 }
 #layers .layer .error{
     color: rgba(255, 255, 255, 0.80);
@@ -177,4 +178,5 @@
     font-style:normal;
     margin-right: 5px;
 }
-
+#layers .layer .loading{
+}
