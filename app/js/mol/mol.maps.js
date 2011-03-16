@@ -20,11 +20,56 @@ mol.maps.Map = function(context) {
     this.options = {
         zoom: 2,
         maxZoom: 20,
+        mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
         center: new google.maps.LatLng(0,0),
         mapTypeId: google.maps.MapTypeId.TERRAIN
     };
     this.map = new google.maps.Map(mapDiv[0], this.options);
     this.wireEvents();
+    
+    this.rightController = $('<div>').attr({'id': 'right-controller'});
+    this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.rightController[0]);
+    
+    function filterWidgetTest() {
+        var dialog = $('<div>')
+                        .attr({'id':'filter-widget-container','class':'widget-container'});
+        var menu = $('<div>').attr({'id': 'menu'});
+        var list = $('<div>').attr({'id': 'list'});
+        var filters = $('<div>').attr({'id': 'filters'});
+        var options = $('<ul>').attr({'class': 'options list'});
+        var label = $('<li id="menuLabel" class="option list">Filters</li>');
+        
+        var year = $("<div>")
+                        .attr({"id":"year", "class":"filter list"});
+		var yeartitle = $("<div class='title'>Year min</div>")
+		//var yearslider = $("<input>")
+        //                    .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
+        var yearslider = $('<div id="yearslider" class="slider">');
+        
+        $(year).append(yeartitle);
+        $(year).append(yearslider);
+        $(filters).append(year);
+        
+        var cuim = $("<div>")
+                        .attr({"id":"year", "class":"filter list"});
+		var cuimtitle = $("<div class='title'>Max cuim</div>")
+		var cuimslider = $("<input>")
+                            .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
+        $(cuim).append(cuimtitle);
+        $(cuim).append(cuimslider);
+        $(filters).append(cuim);
+        
+        
+        $(options).append(label);
+        $(menu).append(options);
+        $(list).append(filters);
+        $(dialog).append(menu);
+        $(dialog).append(list);
+        mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
+    }
+    
+    filterWidgetTest();
+    
     return this;
 };
 
@@ -37,10 +82,10 @@ mol.maps.Map.prototype.wireEvents = function() {
     
     mol.eventBus.bind(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL, 
-        function(divId, position) {
+        function(divId, position, first) {
             mol.util.log('Map handling event: ' + 
                          mol.event.Types.ADD_CUSTOM_MAP_CONTROL);
-            self.addController(divId, position);
+            self.addController(divId, position, first);
         }
     );
     mol.eventBus.bind(
@@ -76,8 +121,33 @@ mol.maps.Map.prototype.wireEvents = function() {
  * @param position The position on the map to place the widget
  * 
  */
-mol.maps.Map.prototype.addController = function(divId, position) {   
-    this.map.controls[position].push(divId[0]);
+mol.maps.Map.prototype.addController = function(divId, which, first) { 
+    switch(which){
+        case 'right-controller':
+            if (first) {
+                $(this.rightController).prepend(divId);
+            } else {
+                $(this.rightController).append(divId);
+            }
+            $(divId).mouseover(function(){
+                //self.setStackFocus(true);    
+                mol.eventBus.trigger(
+                    mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+                    $(divId).attr('id'), 
+                    true
+                );      
+            });
+            $(divId).mouseleave(function(){
+                //self.setStackFocus(false,true);  
+                mol.eventBus.trigger(
+                    mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+                    $(divId).attr('id'), 
+                    false,
+                    true
+                );   
+            });
+            break;
+    }
 };
 
 

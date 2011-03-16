@@ -1,65 +1,19 @@
-#widget-container {
-    float: left;
-    display: block;
+#layer-widget-container {
     margin-top: -11px;
 	width: 290px;
-    font-family: Arial, sans-serif;
-    font-weight:700;
-    color: #141414;
-}
-#layers #menu{
-    float: left;
-    width: 100%;
-}
-/* ADD, DELETE Menu setup */
-#layers .list{
-    list-style-type: none;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.37, rgba(184, 233, 133,0.65)),
-        color-stop(0.69, rgba(92,194,7,0.65))
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        rgba(184, 253, 133,0.65) 37%,
-        rgba(92,214,7,0.65) 69%
-    );
-    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
-    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
-    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
-}
-#layers .option{
-    font-size: 12px;
     float: right;
-    margin: 0px;
-    padding-top: 0px;
-    padding-right: 6px;
-    padding-left: 6px;
-    padding-bottom: 0px;
-    line-height: 170%;
-    text-align: center;
 }
-#layers #menuLabel.option{
+#layers #add.option{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
     -moz-border-radius-bottomleft: 3px;
     border-bottom-left-radius: 3px;
-    border: 1px solid rgb(123, 136, 163);
+    border: 1px solid rgb(135, 165, 149);
     border-right: none;
 }
-#layers #add.option{
+#layers #delete.option{
     border-top: 1px solid rgb(135, 165, 149);
     border-bottom: 1px solid rgb(135, 165, 149);
-}
-#layers #delete.option{
-    -moz-border-radius-topright: 3px;
-    border-top-right-radius: 3px;
-    -moz-border-radius-bottomright: 3px;
-    border-bottom-right-radius: 3px;
-    border: 1px solid rgb(135, 165, 149);
-    border-left: none;
 }
 #layers #delete.option:hover {
     background-color: rgb(255, 0, 0)
@@ -67,65 +21,6 @@
 #layers #add.option:hover {
     background-color: rgb(184, 255, 33)
 }
-#layers .option a{
-    text-decoration:none;
-    color: #141414;
-}
-#layers #menuLabel.option{
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.37, rgba(35, 35, 35,0.75)),
-        color-stop(0.69, rgba(66,66,66,0.75))
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        rgba(35, 35, 35,0.75) 37%,
-        rgba(66,66,66,0.75) 69%
-    );
-    border: 1px solid rgb(73, 73, 73);
-    color: rgb(240, 240, 260);
-}
-/* Add Layer Dialog Setup */
-
-#layers .dialog{
-    font-size: 12px;
-    float: right;
-    margin: 0px;
-    width: 100%;
-    padding-top: 2px;
-    padding-right: 6px;
-    padding-left: 6px;
-    padding-bottom: 2px;
-    line-height: 165%;
-    text-align: center;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-#layers .dialog span{
-    float: left;
-    width: 100%;
-}
-#layers  button{
-    width: auto;
-    margin: 2px;
-    font-size: 1.1em;
-    font-weight:700;
-    color: rgb(240, 240, 260);
-    background-color: rgba(25, 25, 25, 0.75);
-    -moz-box-shadow: 2px 2px 5px #000;
-    -webkit-box-shadow: 2px 2px 5px #000;
-    box-shadow: 2px 2px 5px #222;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    border: none;
-}
-#layers  button:hover{
-    background-color: rgba(25, 25, 25, 1.0);
-    cursor: pointer;
-}
-
 #layers .layer{
     font-size: 14px;
     float: right;

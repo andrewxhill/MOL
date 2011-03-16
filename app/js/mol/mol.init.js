@@ -9,5 +9,6 @@ mol.initRangeMap = function(context) {
     mol.context = context;
     mol.rangeMap = new mol.maps.Map($(context));
     mol.layerStack = new mol.ui.LayerStack(context);
+    mol.uiFocus = new mol.ui.Focus();
     //Backbone.history.start();
 };

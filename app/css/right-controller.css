@@ -1,0 +1,102 @@
+#right-controller {
+    margin-right: 5px;
+	width: 290px;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    color: #141414;
+}
+#right-controller #menu{
+    float: left;
+    width: 100%;
+}
+#right-controller .list{
+    list-style-type: none;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+}
+#right-controller .option{
+    font-size: 12px;
+    float: right;
+    margin: 0px;
+    padding-top: 0px;
+    padding-right: 6px;
+    padding-left: 6px;
+    padding-bottom: 0px;
+    line-height: 170%;
+    text-align: center;
+}
+
+#right-controller #menuLabel.option{
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(35, 35, 35,0.75)),
+        color-stop(0.69, rgba(66,66,66,0.75))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(35, 35, 35,0.75) 37%,
+        rgba(66,66,66,0.75) 69%
+    );
+    border: 1px solid rgb(73, 73, 73);
+    color: rgb(240, 240, 260);
+    width: 40px;
+}
+#right-controller .option a{
+    text-decoration:none;
+    color: #141414;
+}
+
+#right-controller .dialog{
+    font-size: 12px;
+    float: right;
+    margin: 0px;
+    width: 100%;
+    padding-top: 2px;
+    padding-right: 6px;
+    padding-left: 6px;
+    padding-bottom: 2px;
+    line-height: 165%;
+    text-align: center;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#right-controller .dialog span{
+    float: left;
+    width: 100%;
+}
+#right-controller  button{
+    width: auto;
+    margin: 2px;
+    font-size: 1.1em;
+    font-weight:700;
+    color: rgb(240, 240, 260);
+    background-color: rgba(25, 25, 25, 0.75);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+#right-controller  button:hover{
+    background-color: rgba(25, 25, 25, 1.0);
+    cursor: pointer;
+}
+

@@ -1,0 +1,29 @@
+#filter-widget-container {
+	width: 290px;
+    float: right;
+}
+#filters .filter{
+    font-size: 14px;
+    float: right;
+    margin: 0px;
+    width: 100%;
+    padding-top: 2px;
+    padding-right: 6px;
+    padding-left: 6px;
+    padding-bottom: 2px;
+    line-height: 165%;
+    text-align: center;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+#filters .filter .title{
+    float: left;
+    font-size: 1.2em;
+    padding: 2px;
+}
+#filters .filter .slider{
+    width: 60%;
+    float: right;
+    margin-right: 5px;
+}

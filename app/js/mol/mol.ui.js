@@ -18,10 +18,69 @@ mol.ui.LayerStack = function(context) {
     mol.eventBus.trigger(
         mol.event.Types.ADD_CUSTOM_MAP_CONTROL,
         this.container, 
-        google.maps.ControlPosition.TOP_RIGHT
+        'right-controller',
+        true
     );               
 };
 
+/**
+ * Handles tray minimizing for stack.
+ * 
+ */
+mol.ui.Focus = function() {
+    this.controllers = {};
+    /* SETUP HIDING FOR THE STACK*/
+    var self = this;
+    this.setStackFocus = function(divId,focus,fromUI){
+        var _self = this;
+        if (focus) {
+            self.controllers[divId].timeout = 1;
+            /* show */
+            $("#"+divId+" #menu .option").show('slow');
+            $("#"+divId+" #list").show('slow');
+        } else {
+            if (fromUI){
+                self.controllers[divId].timeout = 0;
+                setTimeout(function(){
+                    mol.eventBus.trigger(
+                        mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+                        divId, 
+                        false
+                    );   
+                 }, 2500);
+            } else if (self.controllers[divId].timeout == 0){
+                /* hide */
+                var hide = true;
+                for (c in self.controllers){
+                    if(self.controllers[c].timeout==1){
+                        hide=false;
+                    }
+                }
+                if (hide) {
+                    $("#"+divId+"  #menu .option:not(#menuLabel)").hide('slow');
+                    $("#"+divId+"  #list").hide('slow');
+                } else {
+                    setTimeout(function(){
+                        mol.eventBus.trigger(
+                            mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+                            divId, 
+                            false
+                        );   
+                     }, 500);
+                }
+            }
+        }
+    }
+    mol.eventBus.bind(
+        mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
+        function(divId, focus, fromUI) {
+            if (!self.controllers[divId]) {
+                self.controllers[divId] = {'timeout': 1};
+            }
+            self.setStackFocus(divId,focus,fromUI);
+        }
+    );
+};
 /**
  * Builds the UI for a LayerStack.
  * 
@@ -37,20 +96,20 @@ mol.ui.LayerStack.prototype.buildUi = function() {
         {'id': 'delete_layer', 'href':'javascript:'});
     this.deleteLayer.html('Delete');
     
-    this.id = 'widget-container';
-    this.container = $('<div>').attr({'id':'widget-container'}),
+    this.id = 'layer-widget-container';
+    this.container = $('<div>').attr({'id':'layer-widget-container','class':'widget-container'}),
     this.layers = $('<div>').attr({'id':'layers'}),
     this.menu = $('<div>').attr({'id':'menu'}),
     this.list = $('<div>').attr({'id':'list'}),
+    $(this.options).append(
+        $('<li>').attr({'class':'option list','id':'menuLabel'}
+                      ).html('Layers'));  
     $(this.options).append(
         $('<li>').attr({'class':'option list','id':'delete'}
                       ).append(this.deleteLayer)); 
     $(this.options).append(
         $('<li>').attr({'class':'option list','id':'add'}
                       ).append(this.addLayer));
-    $(this.options).append(
-        $('<li>').attr({'class':'option list','id':'menuLabel'}
-                      ).html('Layers'));  
     $(this.menu).append(this.options);
     $(this.layers).append(this.menu);
     $(this.layers).append(this.list);
@@ -65,33 +124,7 @@ mol.ui.LayerStack.prototype.buildUi = function() {
     );
     $(this.list).disableSelection();
     
-    
-    /* SETUP HIDING FOR THE STACK*/
-    var self = this;
-    this.setStackFocus = function(focus,fromUI){
-        var _self = this;
-        if (focus) {
-            _self.timeout = 1;
-            /* show */
-            $("#widget-container #list").show('slow');
-        } else {
-            if (fromUI){
-                _self.timeout = 0;
-                setTimeout(function(){
-                    self.setStackFocus(false);
-                 }, 5000);
-            } else if (_self.timeout == 0){
-                /* hide */
-                $("#widget-container #list").hide('slow');
-            }
-        }
-    }
-    $(this.container).mouseover(function(){
-        self.setStackFocus(true);
-    });
-    $(this.container).mouseleave(function(){
-        self.setStackFocus(false,true);
-    });
+    /* this needs to be reconciled with the new Focus() method above */
     mol.eventBus.bind(
         mol.event.Types.SHOW_LAYER_STACK, 
         function() {
