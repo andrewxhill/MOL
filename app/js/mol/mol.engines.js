@@ -164,7 +164,6 @@ mol.engines.PointsEngine.prototype = (
                     mol.log('Trigger ' + mol.event.Types.DELETE_STACK_LAYER);
                     mol.eventBus.trigger(mol.event.Types.DELETE_STACK_LAYER, ".dialog");   
                     setName(layerName);
-                    transition();
                 });
             mol.log('Trigger: ' + mol.event.Types.ADD_NEW_STACK_LAYER);
             mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, dialog);   
@@ -203,7 +202,7 @@ mol.engines.PointsEngine.prototype = (
             switch (currentState) {
                 case state.SOURCE_NO_NAME:
                 case state.NO_NAME_NO_SOURCE:
-                buildSourceUi(); // <--- should set name and call transition()
+                buildSourceUi();
                 break;
                 case state.NAME_NO_SOURCE:
                 // TODO: How handle this?
