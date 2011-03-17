@@ -49,7 +49,7 @@ mol.engines.PointsEngine.prototype = (
             if (!type || !source || !name) {
                 return false;
             }
-            rowId = [type, source, name.split(' ')].join('_');
+            rowId = [type, source, name.split(' ').join('_')].join('_');
             return true;
         };
 
@@ -70,13 +70,34 @@ mol.engines.PointsEngine.prototype = (
             case "download-complete":
                 info = $('<button>').attr({"class":"info"}).html('i');
                 $(row).find(".loading").replaceWith(info);
+                $(info).click(function(){
+                    var dialog = $('<div>').attr({"id":rowId+'-layer-info',"class":"info"});
+                    var title = $('<div id="infoTitle">Info about layer: '+name+" "+type+'</div>');
+                    var src = $('<div id="source">Source: '+source+'</div>');
+                    var details = $('<div id="details">Details: The data is the result of the work of 24 institution. To use this data you must bide by the requirements of the data providers. For the complete list of data providers, go here <a href="/static/dead_link.html">here</a></div>');
+                    $(dialog)
+                        .append(title)
+                        .append(src)
+                        .append(details)
+                    mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+                });
                 break;
             case "download-error":
                 error = $('<button>').attr({"class":"error"}).html('!');
                 $(row).find(".loading").replaceWith(error);
+                $(error).click(function(){
+                    var dialog = $('<div>').attr({"id":rowId+'-error-info',"class":"info"});
+                    var title = $('<div id="infoTitle">Error: '+name+" "+type+'</div>');
+                    var src = $('<div id="source">Source: '+source+'</div>');
+                    var details = $('<div id="details">Details: There was an error loading the data, '+msg+'. To replicate the query go <a href="/static/dead_link.html">here</a></div>');
+                    $(dialog)
+                        .append(title)
+                        .append(src)
+                        .append(details)
+                    mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+                });
                 break;
             }
-            mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
             /* show the widget when loading is complete */
             //mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, true);   
             //mol.eventBus.trigger(mol.event.Types.CONTROLLER_FOCUS_UPDATE,rowId, false, true);   
@@ -103,6 +124,15 @@ mol.engines.PointsEngine.prototype = (
             var src = $('<button>')
                 .attr({"class":"source"})
                 .html(source);
+            src.click(function(){
+                var dialog = $('<div>').attr({"id":rowId+'-source-info',"class":"info"});
+                var title = $('<div id="infoTitle">'+source+'</div>');
+                var details = $('<div id="details">Here we will give you some details about the source</div>');
+                $(dialog)
+                    .append(title)
+                    .append(details)
+                mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+            });
             var toggle = $('<input>')
                 .attr({"class":"view-toggle","type":"checkbox","checked":true});
             toggle.click(
@@ -123,6 +153,7 @@ mol.engines.PointsEngine.prototype = (
                 .prepend(loader)
                 .prepend(src)
                 .prepend(leftCol);
+            mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
             mol.eventBus.bind(
                 mol.event.Types.UPDATE_LAYER_STATUS, updateRowStatus);
         };
@@ -402,10 +433,32 @@ mol.engines.RangeEngine.prototype = (
             case "download-complete":
                 info = $('<button>').attr({"class":"info"}).html('i');
                 $(row).find(".loading").replaceWith(info);
+                $(info).click(function(){
+                    var dialog = $('<div>').attr({"id":rowId+'-layer-info',"class":"info"});
+                    var title = $('<div id="infoTitle">Info about layer: '+name+" "+type+'</div>');
+                    var src = $('<div id="source">Source: '+source+'</div>');
+                    var details = $('<div id="details">Details: Some info about the range provenance</div>');
+                    $(dialog)
+                        .append(title)
+                        .append(src)
+                        .append(details)
+                    mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+                });
                 break;
             case "download-error":
                 error = $('<button>').attr({"class":"error"}).html('!');
                 $(row).find(".loading").replaceWith(error);
+                $(error).click(function(){
+                    var dialog = $('<div>').attr({"id":rowId+'-error-info',"class":"info"});
+                    var title = $('<div id="infoTitle">Error: '+name+" "+type+'</div>');
+                    var src = $('<div id="source">Source: '+source+'</div>');
+                    var details = $('<div id="details">Details: There was an error loading the data, '+msg+'. To replicate the query go <a href="/static/dead_link.html">here</a></div>');
+                    $(dialog)
+                        .append(title)
+                        .append(src)
+                        .append(details)
+                    mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+                });
                 break;
             }
             mol.eventBus.trigger(mol.event.Types.ADD_NEW_STACK_LAYER, row); 
@@ -435,6 +488,15 @@ mol.engines.RangeEngine.prototype = (
             var src = $('<button>')
                 .attr({"class":"source"})
                 .html(source);
+            src.click(function(){
+                var dialog = $('<div>').attr({"id":rowId+'-source-info',"class":"info"});
+                var title = $('<div id="infoTitle">'+source+'</div>');
+                var details = $('<div id="details">Here we will give you some details about the source</div>');
+                $(dialog)
+                    .append(title)
+                    .append(details)
+                mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'info-controller');
+            });
             var toggle = $('<input>')
                 .attr({"class":"view-toggle","type":"checkbox","checked":true});
             var loader = $('<img>')

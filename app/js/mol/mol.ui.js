@@ -39,8 +39,9 @@ mol.ui.Focus = function() {
         }
         if (focus) {
             self.controllers[divId].timeout = 1;
+            console.log(divId);
             /* show */
-            $("#"+divId+" #list, #menu .option").show('slow');
+            $("#"+divId+" #list, #"+divId+" #menu .option").show('slow');
             //if the mouse didn't cause it, auto hide the ui in t
             if(autoClose) {
                 self.controllers[divId].timeout = 0;
@@ -63,10 +64,8 @@ mol.ui.Focus = function() {
                 }
             }
             if (hide){
-                for (c in self.controllers){
-                    $("#"+c+" #list").hide('slow');
-                    $("#"+c+" #menu .option:not(#menuLabel)").hide('slow');
-                }
+                $("#right-controller #list").hide('slow');
+                $("#right-controller #menu .option:not(#menuLabel)").hide('slow');
             } else if (divId=='controller'){
                 setTimeout(function(){
                     mol.eventBus.trigger(

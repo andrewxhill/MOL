@@ -40,6 +40,12 @@ mol.maps.Map = function(context) {
     
     this.rightController = $('<div>').attr({'id': 'right-controller'});
     this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.rightController[0]);
+    
+    this.infoController = $('<div>').attr({'id': 'info-controller'});
+    this.map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(this.infoController[0]);
+    $(this.infoController).disableSelection();
+    
+        
     $(this.rightController).mouseleave(function(){
         console.log('try');
         mol.eventBus.trigger(
@@ -187,6 +193,16 @@ mol.maps.Map.prototype.addController = function(divId, which, first) {
                     false
                 );   
             });
+            break;
+        case 'info-controller':
+            if ($(this.infoController).find("#"+divId[0].id).length==0){
+                $(this.infoController).prepend(divId);
+                setTimeout(function(){
+                    $(divId).fadeOut('slow', function() {
+                        $(divId).remove();
+                    });
+                },8000);
+            }
             break;
     }
 };
