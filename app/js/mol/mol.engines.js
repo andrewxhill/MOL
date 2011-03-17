@@ -478,6 +478,7 @@ mol.engines.RangeEngine.prototype = (
             $(button).click(
                 function() {
                     var layerName = $(input).val();
+                    console.log(layerName);
                     if (!layerName) {
                         mol.log.warn('No input available in: ' + input[0].attr('id'));
                         return;
