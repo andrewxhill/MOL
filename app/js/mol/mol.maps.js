@@ -82,6 +82,7 @@ mol.maps.Map = function(context) {
         $(menu).append(options);
         $(dialog).append(menu);
         $(dialog).append(list);
+        $(dialog).disableSelection();
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
         /* add this back
         mol.eventBus.trigger( mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
@@ -102,6 +103,7 @@ mol.maps.Map = function(context) {
         $(menu).append(options);
         $(dialog).append(menu);
         $(dialog).append(list);
+        $(dialog).disableSelection();
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
     }
     

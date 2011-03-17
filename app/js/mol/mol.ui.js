@@ -125,7 +125,7 @@ mol.ui.LayerStack.prototype.buildUi = function() {
             cursor: 'move'
         }
     );
-    $(this.list).disableSelection();
+    $(this.container).disableSelection();
     $(this.container).mouseover(function(){
         mol.eventBus.trigger(
             mol.event.Types.CONTROLLER_FOCUS_UPDATE,
