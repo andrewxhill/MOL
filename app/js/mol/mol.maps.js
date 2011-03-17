@@ -10,13 +10,17 @@
  */
 mol.maps.Map = function(context) {
     if (!(this instanceof mol.maps.Map)) {
-    this.mouse = {};
-    $().mousedown(function(e){
-        this.e.down=true;
-    });
-    $().mouseup(function(e){
-        this.e.down=false;
-    });
+        this.mouse = {};
+        $().mousedown(
+            function(e){
+                this.e.down=true;
+            }
+        );
+        $().mouseup(
+            function(e){
+                this.e.down=false;
+            }
+        );
         return new mol.maps.Map();
     }
     var contextDoc = document.getElementById($(context).attr('id')),
@@ -45,7 +49,7 @@ mol.maps.Map = function(context) {
         );   
     });
     
-    function newWidgetsTest() {
+    function WidgetsTest() {
         var id = 'filter-widget-container';
         var dialog = $('<div>')
                         .attr({'id':id,'class':'widget-container'});
@@ -58,7 +62,7 @@ mol.maps.Map = function(context) {
         /*
         var year = $("<div>")
                         .attr({"id":"year", "class":"filter list"});
-		var yeartitle = $("<div class='title'>Year min</div>")
+		var yeartitle = $("<div class='title'>Year min</div>");
 		var yearslider = $("<input>")
                             .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
         
@@ -68,7 +72,7 @@ mol.maps.Map = function(context) {
         
         var cuim = $("<div>")
                         .attr({"id":"year", "class":"filter list"});
-		var cuimtitle = $("<div class='title'>Max cuim</div>")
+		var cuimtitle = $("<div class='title'>Max cuim</div>");
 		var cuimslider = $("<input>")
                             .attr({"id":"yearslider","class":"slider","type":"range","min":"0","max":"100"});
         $(cuim).append(cuimtitle);
@@ -107,7 +111,7 @@ mol.maps.Map = function(context) {
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
     }
     
-    newWidgetsTest();
+    WidgetsTest();
     
     return this;
 };
@@ -199,7 +203,11 @@ mol.maps.Map.prototype.addController = function(divId, which, first) {
  * 
  */
 mol.maps.Layer = function(options) {  
+    if (!(this instanceof mol.maps.Layer)) {
+        return new mol.maps.Layer(options);
+    }
     if (options) {        
+        this.map = options.map,
         this.type = options.type;
         this.source = options.source;
         this.name = options.name;
@@ -207,9 +215,10 @@ mol.maps.Layer = function(options) {
     }
     if (this.type) {        
         this.build();
-        return;
+        return this;
     } 
     this.showTypesUi();
+    return this;
 };
 
 /**
@@ -219,7 +228,7 @@ mol.maps.Layer = function(options) {
 mol.maps.Layer.prototype.build = function() {
     switch (this.type) {
     case "points":
-        this.engine = new mol.engines.PointsEngine();
+        this.engine = new mol.engines.PointsEngine({map: this.map});
         if (!this.source) {
             //for the future when more soruces are available
             this.engine.setSource('GBIF');

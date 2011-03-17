@@ -23,6 +23,7 @@ mol.ns = function(namespace) {
 };
 
 mol.ns('mol.maps');
+mol.ns('mol.maps.controllers');
 mol.ns('mol.engines');
 mol.ns('mol.event');
 mol.ns('mol.api');
