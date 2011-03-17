@@ -6,14 +6,14 @@
  * Constructor for PointsEngine.
  * 
  * @constructor
- * @param source The data source
+ * @param config Includes source, name, data, and map
  * 
  */
-mol.engines.PointsEngine = function(source, name, data) {
+mol.engines.PointsEngine = function(config) {
     if (!(this instanceof mol.engines.PointsEngine)) {
-        return new mol.engines.PointsEngine(source, name, data);
+        return new mol.engines.PointsEngine(config);
     }
-    this.init(source, name, data);
+    this.init(config);
     return this;
 };
 
@@ -29,6 +29,8 @@ mol.engines.PointsEngine.prototype = (
             rowId = null,
             metadata = null,
             row = null,
+            map = null,
+            pointsController = null,
             state = {
                 NO_NAME_NO_SOURCE: 'no_name_no_source',
                 SOURCE_NO_NAME: 'source_no_name',
@@ -234,6 +236,7 @@ mol.engines.PointsEngine.prototype = (
                     // Success callback:
                     function(json) { 
                         data = json;
+                        pointsController = new mol.maps.controllers.PointsController({map:map, data:json});
                         transition();
                         mol.eventBus.trigger(
                             mol.event.Types.UPDATE_LAYER_STATUS,
@@ -259,10 +262,11 @@ mol.engines.PointsEngine.prototype = (
          * data and immediately transitions.
          * 
          */
-        var init = function(initSource, initName, initData) {
-            source = initSource;
-            name = initName;
-            data = initData;
+        var init = function(config) {
+            source = config.source;
+            name = config.name;
+            data = config.data;
+            map = config.map;
             transition();
         };
 
