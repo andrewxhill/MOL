@@ -28,61 +28,59 @@ mol.ui.LayerStack = function(context) {
  */
 mol.ui.Focus = function() {
     this.controllers = {};
+    var self = this;
     /* SETUP HIDING FOR THE STACK*/
     var self = this;
-    this.setStackFocus = function(divId,focus,fromUI){
-        var _self = this;
-        if (focus) {
-            if(self.controllers[divId].timeout != 1){
-                self.controllers[divId].timeout = 1;
-                /* show */
-                //$("#"+divId+" #list, #menu .option").show('fast');
-                $("#"+divId+" #list").show('slow');
+    this.setStackFocus = function(divId,focus,updateFocus,autoClose){
+        if (divId != 'controller' && divId != 'ui-focus'){
+            if (!self.controllers[divId]) {
+                self.controllers[divId] = {'timeout': 1};
             }
-        } else {
-            if (fromUI){
+        }
+        if (focus) {
+            self.controllers[divId].timeout = 1;
+            /* show */
+            $("#"+divId+" #list, #menu .option").show('slow');
+            //if the mouse didn't cause it, auto hide the ui in t
+            if(autoClose) {
                 self.controllers[divId].timeout = 0;
                 setTimeout(function(){
                     mol.eventBus.trigger(
                         mol.event.Types.CONTROLLER_FOCUS_UPDATE,
-                        divId, 
+                        'controller', 
                         false
                     );   
-                 }, 500);
-            } else if (self.controllers[divId].timeout == 0){
-                /* hide */
-                var hide = true;
+                 }, 2000);
+            }
+        } else if (updateFocus) {
+            self.controllers[divId].timeout = 1;
+        } else {
+            var hide = true;
+            for (c in self.controllers){
+                if( self.controllers[c].timeout==1 ) {
+                    hide = false;
+                    self.controllers[c].timeout=0;
+                }
+            }
+            if (hide){
                 for (c in self.controllers){
-                    if(self.controllers[c].timeout==1){
-                        hide=false;
-                    }
+                    $("#"+c+" #list").hide('slow');
+                    $("#"+c+" #menu .option:not(#menuLabel)").hide('slow');
                 }
-                if (hide) {
-                    for (c in self.controllers){
-                        self.controllers[c].timeout=0;
-                    }
-                    $("#right-controller  #list").hide('slow');
-                    //$("#right-controller  #list").addClass('hidden');
-                    //$("#"+divId+"  #menu .option:not(#menuLabel)").hide('fast');
-                } else {
-                    setTimeout(function(){
-                        mol.eventBus.trigger(
-                            mol.event.Types.CONTROLLER_FOCUS_UPDATE,
-                            divId, 
-                            false
-                        );   
-                     }, 3000);
-                }
+            } else if (divId=='controller'){
+                setTimeout(function(){
+                    mol.eventBus.trigger(
+                        mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+                        'ui-focus', false, false
+                    );   
+                 }, 2000);
             }
         }
     }
     mol.eventBus.bind(
         mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
-        function(divId, focus, fromUI) {
-            if (!self.controllers[divId]) {
-                self.controllers[divId] = {'timeout': 1};
-            }
-            self.setStackFocus(divId,focus,fromUI);
+        function(divId,focus,updateFocus,autoClose) {
+            self.setStackFocus(divId,focus,updateFocus,autoClose);
         }
     );
 };
@@ -128,6 +126,14 @@ mol.ui.LayerStack.prototype.buildUi = function() {
         }
     );
     $(this.list).disableSelection();
+    $(this.container).mouseover(function(){
+        mol.eventBus.trigger(
+            mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+            this.id, 
+            false,
+            true
+        );   
+    });
 };
 
 /**
@@ -198,6 +204,10 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
                     $(layerUI).find("input[name=active-layer]").click();
                 }
             }
+            console.log($(self).attr('id'));
+            mol.eventBus.trigger( mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
+                $(self).attr('id'), 
+                true); 
         }
     );    
 };

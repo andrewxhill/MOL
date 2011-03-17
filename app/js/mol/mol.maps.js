@@ -26,7 +26,7 @@ mol.maps.Map = function(context) {
     this.context = context;
     this.options = {
         zoom: 2,
-        maxZoom: 20,
+        maxZoom: 15,
         mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
         center: new google.maps.LatLng(0,0),
         mapTypeId: google.maps.MapTypeId.TERRAIN
@@ -36,8 +36,16 @@ mol.maps.Map = function(context) {
     
     this.rightController = $('<div>').attr({'id': 'right-controller'});
     this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.rightController[0]);
+    $(this.rightController).mouseleave(function(){
+        console.log('try');
+        mol.eventBus.trigger(
+            mol.event.Types.CONTROLLER_FOCUS_UPDATE,
+            'controller', 
+            false
+        );   
+    });
     
-    function filterWidgetTest() {
+    function newWidgetsTest() {
         var id = 'filter-widget-container';
         var dialog = $('<div>')
                         .attr({'id':id,'class':'widget-container'});
@@ -46,8 +54,8 @@ mol.maps.Map = function(context) {
         var filters = $('<div>').attr({'id': 'filters'});
         var options = $('<ul>').attr({'class': 'options list'});
         var label = $('<li id="menuLabel" class="option list">Filters</li>');
-        /*
         
+        /*
         var year = $("<div>")
                         .attr({"id":"year", "class":"filter list"});
 		var yeartitle = $("<div class='title'>Year min</div>")
@@ -75,11 +83,29 @@ mol.maps.Map = function(context) {
         $(dialog).append(menu);
         $(dialog).append(list);
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
+        /* add this back
+        mol.eventBus.trigger( mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
+            $(dialog).attr('id'), 
+            true,false,true); 
+        */
         
-
+        
+        id = 'tools-widget-container';
+        dialog = $('<div>')
+                        .attr({'id':id,'class':'widget-container'});
+        menu = $('<div>').attr({'id': 'menu'});
+        list = $('<div>').attr({'id': 'list'});
+        filters = $('<div>').attr({'id': 'filters'});
+        options = $('<ul>').attr({'class': 'options list'});
+        label = $('<li id="menuLabel" class="option list">Tools</li>');
+        $(options).append(label);
+        $(menu).append(options);
+        $(dialog).append(menu);
+        $(dialog).append(list);
+        mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
     }
     
-    filterWidgetTest();
+    newWidgetsTest();
     
     return this;
 };
@@ -140,19 +166,19 @@ mol.maps.Map.prototype.addController = function(divId, which, first) {
             } else {
                 $(this.rightController).append(divId);
             }
-            $(divId).mouseover(function(){ 
+            $(divId).find("#menuLabel").mouseover(function(){ 
                 mol.eventBus.trigger(
                     mol.event.Types.CONTROLLER_FOCUS_UPDATE,
                     $(divId).attr('id'), 
                     true
                 ); 
             });
-            $(divId).mouseleave(function(){
+            $("#right-controller").mouseleave(function(){
+                console.log('try');
                 mol.eventBus.trigger(
                     mol.event.Types.CONTROLLER_FOCUS_UPDATE,
                     $(divId).attr('id'), 
-                    false,
-                    true
+                    false
                 );   
             });
             break;
