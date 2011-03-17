@@ -22,7 +22,7 @@ mol.api.ApiProxy = function() {
             var xhr = $.post('/api/taxonomy', request.params, 'json');
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);
-        } else if (request.action === 'rangemap_metadata') {
+        } else if (request.action === 'rangemap-metadata') {
             var xhr = $.post('/api/tile/metadata/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
             xhr.error(cb.onError);

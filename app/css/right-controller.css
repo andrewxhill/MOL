@@ -99,4 +99,17 @@
     background-color: rgba(25, 25, 25, 1.0);
     cursor: pointer;
 }
+.hidden
+{
+    display: none;
+}
 
+.inline
+{
+    display: inline;
+}
+
+.block
+{
+    display: block;
+}
