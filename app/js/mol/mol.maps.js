@@ -49,7 +49,7 @@ mol.maps.Map = function(context) {
         );   
     });
     
-    function newWidgetsTest() {
+    function WidgetsTest() {
         var id = 'filter-widget-container';
         var dialog = $('<div>')
                         .attr({'id':id,'class':'widget-container'});
@@ -111,7 +111,7 @@ mol.maps.Map = function(context) {
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
     }
     
-    newWidgetsTest();
+    WidgetsTest();
     
     return this;
 };

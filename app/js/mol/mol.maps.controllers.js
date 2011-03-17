@@ -13,7 +13,7 @@ mol.maps.controllers.PointsController.prototype = (
             overlays = [];
         
         var init = function(config) {
-            map = config.map;
+            map = mol.rangeMap.map;
             data = config.data;
             renderPoints();
         };
@@ -28,12 +28,17 @@ mol.maps.controllers.PointsController.prototype = (
         };
 
         var toggle = function(visible) {
-            // TODO
+            for (x in overlays) {
+                if (visible) {
+                    overlays[x].setMap(map);
+                } else {
+                    overlays[x].setMap(null);
+                }
+            }
         };
 
         var renderPoints = function() {        
-            var results = json,
-                center = null,
+            var center = null,
                 marker = null,
                 infowin = null,
                 lat = 0,
@@ -70,14 +75,14 @@ mol.maps.controllers.PointsController.prototype = (
                             }
                             var circle = new google.maps.Circle(
                                 {
-                                    map: this.map,
+                                    map: map,
                                     center: center,
                                     radius: cuim,
                                     fillColor: '#CEE3F6',
                                     strokeWeight: 1,                                
                                     zIndex: 5
                                 });
-                           overlays.push(circle);
+                            overlays.push(circle);
                         }                                                      
                         var providerName = data.records.providers[provider].name;
                         var resourceName = resources[resource].name;
@@ -116,6 +121,12 @@ mol.maps.controllers.PointsController.prototype = (
                 infowin.setPosition(marker.getPosition());
                 infowin.open(map, marker);
             };
+        };
+        
+        return {
+            init: init,
+            hideAll: hideAll,
+            showAll: showAll            
         };
         
 }());

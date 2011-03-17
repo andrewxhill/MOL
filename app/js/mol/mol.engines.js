@@ -105,6 +105,15 @@ mol.engines.PointsEngine.prototype = (
                 .html(source);
             var toggle = $('<input>')
                 .attr({"class":"view-toggle","type":"checkbox","checked":true});
+            toggle.click(
+                function(evt) {
+                    if (evt.srcElement.checked) {
+                        pointsController.showAll();
+                    } else {
+                        pointsController.hideAll();
+                    }
+                }
+            );
             var loader = $('<img>')
                 .attr({"src":"/static/loading-small.gif","class":"loading"});
             row = $("<div>")
