@@ -38,13 +38,15 @@ mol.maps.Map = function(context) {
     this.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(this.rightController[0]);
     
     function filterWidgetTest() {
+        var id = 'filter-widget-container';
         var dialog = $('<div>')
-                        .attr({'id':'filter-widget-container','class':'widget-container'});
+                        .attr({'id':id,'class':'widget-container'});
         var menu = $('<div>').attr({'id': 'menu'});
         var list = $('<div>').attr({'id': 'list'});
         var filters = $('<div>').attr({'id': 'filters'});
         var options = $('<ul>').attr({'class': 'options list'});
         var label = $('<li id="menuLabel" class="option list">Filters</li>');
+        /*
         
         var year = $("<div>")
                         .attr({"id":"year", "class":"filter list"});
@@ -66,12 +68,15 @@ mol.maps.Map = function(context) {
         $(filters).append(cuim);
         
         
+        $(list).append(filters);
+        */
         $(options).append(label);
         $(menu).append(options);
-        $(list).append(filters);
         $(dialog).append(menu);
         $(dialog).append(list);
         mol.eventBus.trigger(mol.event.Types.ADD_CUSTOM_MAP_CONTROL, dialog, 'right-controller');
+        
+
     }
     
     filterWidgetTest();
@@ -198,9 +203,9 @@ mol.maps.Layer.prototype.build = function() {
         this.engine = new mol.engines.RangeEngine();
         if (!this.source){
             //for the future when more soruces are available
-            this.engine.source('MOL');
+            this.engine.setSource('MOL');
         } else {
-            this.engine.source(this.source);
+            this.engine.setSource(this.source);
         }
         break;
     }

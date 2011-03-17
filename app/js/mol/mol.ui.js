@@ -33,9 +33,12 @@ mol.ui.Focus = function() {
     this.setStackFocus = function(divId,focus,fromUI){
         var _self = this;
         if (focus) {
-            self.controllers[divId].timeout = 1;
-            /* show */
-            $("#"+divId+" #list, #menu .option").show('fast');
+            if(self.controllers[divId].timeout != 1){
+                self.controllers[divId].timeout = 1;
+                /* show */
+                //$("#"+divId+" #list, #menu .option").show('fast');
+                $("#"+divId+" #list").show('slow');
+            }
         } else {
             if (fromUI){
                 self.controllers[divId].timeout = 0;
@@ -45,7 +48,7 @@ mol.ui.Focus = function() {
                         divId, 
                         false
                     );   
-                 }, 3500);
+                 }, 500);
             } else if (self.controllers[divId].timeout == 0){
                 /* hide */
                 var hide = true;
@@ -55,8 +58,12 @@ mol.ui.Focus = function() {
                     }
                 }
                 if (hide) {
-                    $("#"+divId+"  #list").hide('fast');
-                    $("#"+divId+"  #menu .option:not(#menuLabel)").hide('fast');
+                    for (c in self.controllers){
+                        self.controllers[c].timeout=0;
+                    }
+                    $("#right-controller  #list").hide('slow');
+                    //$("#right-controller  #list").addClass('hidden');
+                    //$("#"+divId+"  #menu .option:not(#menuLabel)").hide('fast');
                 } else {
                     setTimeout(function(){
                         mol.eventBus.trigger(
@@ -64,7 +71,7 @@ mol.ui.Focus = function() {
                             divId, 
                             false
                         );   
-                     }, 500);
+                     }, 3000);
                 }
             }
         }
