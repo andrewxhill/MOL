@@ -245,6 +245,7 @@ mol.maps.Layer.prototype.build = function() {
     switch (this.type) {
     case "points":
         this.engine = new mol.engines.PointsEngine({map: this.map});
+        mol.log('Engine name ' + this.engine.getName());
         if (!this.source) {
             //for the future when more soruces are available
             this.engine.setSource('GBIF');

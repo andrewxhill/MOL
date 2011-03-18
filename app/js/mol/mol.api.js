@@ -21,16 +21,16 @@ mol.api.ApiProxy = function() {
         if (request.action === 'search') {
             var xhr = $.post('/api/taxonomy', request.params, 'json');
             xhr.success(cb.onSuccess);
-            xhr.error(cb.onError);
+            xhr.error(cb.onFailure);
         } else if (request.action === 'rangemap-metadata') {
             var xhr = $.post('/api/tile/metadata/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
-            xhr.error(cb.onError);
+            xhr.error(cb.onFailure);
          } else if (request.action === 'gbif-points') {
             var xhr = $.post('/api/points/gbif/'+ request.params.speciesKey);
             xhr.success(cb.onSuccess);
-            xhr.error(cb.onError);
-        } 
+            xhr.error(cb.onFailure);
+        }
     };
     return this;
 };
