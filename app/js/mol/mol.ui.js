@@ -192,7 +192,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
                     $("#layers #"+$(layerUI).attr('id')).remove();
                 }
             } else {
-                if ("dialog" == $(layerUI).attr('class').split(' ')[0]){
+                if ("dialog" === $(layerUI).attr('class').split(' ')[0]){
                     /*avoid dialog stacking */
                     $("#layers .dialog").remove();
                 }

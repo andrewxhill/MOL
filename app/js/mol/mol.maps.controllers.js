@@ -2,42 +2,37 @@ mol.maps.controllers.PointsController = function(config) {
     if (!(this instanceof mol.maps.controllers.PointsController)) {
         return new mol.maps.controllers.PointsController(config);
     }
-    this.init(config);
-    return this;
-};
-
-mol.maps.controllers.PointsController.prototype = (
-    function() {
-        var map = null,
-            data = null,
-            overlays = [];
+    function F() {};
+    F.prototype = {
+        map: null,
+        data:null,
+        overlays: [],
         
-        var init = function(config) {
-            map = mol.rangeMap.map;
-            data = config.data;
-            renderPoints();
-        };
+        init: function(config) {
+            this.map = mol.rangeMap.map;
+            this.data = config.data;
+            this.renderPoints();
+        },
         
+        showAll: function() {
+            this.toggle(true);
+        },
         
-        var showAll = function() {
-            toggle(true);
-        };
+        hideAll: function() {
+            this.toggle(false);
+        },
         
-        var hideAll = function() {
-            toggle(false);
-        };
-
-        var toggle = function(visible) {
-            for (x in overlays) {
+        toggle:function(visible) {
+            for (x in this.overlays) {
                 if (visible) {
-                    overlays[x].setMap(map);
+                    this.overlays[x].setMap(this.map);
                 } else {
-                    overlays[x].setMap(null);
+                    this.overlays[x].setMap(null);
                 }
             }
-        };
-
-        var renderPoints = function() {        
+        },
+        
+        renderPoints: function() {        
             var center = null,
                 marker = null,
                 infowin = null,
@@ -47,6 +42,7 @@ mol.maps.controllers.PointsController.prototype = (
                 resources = [],
                 occurrences = [],
                 coordinate = null,
+                data = this.data,
                 iconUrl = 'http://labs.google.com/ridefinder/images/mm_20_red.png';
             for (provider in data.records.providers) {
                 resources = data.records.providers[provider].resources;
@@ -60,12 +56,12 @@ mol.maps.controllers.PointsController.prototype = (
                         marker = new google.maps.Marker(
                             {
                                 position: center,
-                                map: map,
+                                map: this.map,
                                 icon: iconUrl
                             }
                         );
                     
-                        overlays.push(marker);                      
+                        this.overlays.push(marker);                      
                         if (coordinate.coordinateUncertaintyInMeters != null) {
                             var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
                             radius = cuim;
@@ -75,14 +71,14 @@ mol.maps.controllers.PointsController.prototype = (
                             }
                             var circle = new google.maps.Circle(
                                 {
-                                    map: map,
+                                    map: this.map,
                                     center: center,
                                     radius: cuim,
                                     fillColor: '#CEE3F6',
                                     strokeWeight: 1,                                
                                     zIndex: 5
                                 });
-                            overlays.push(circle);
+                            this.overlays.push(circle);
                         }                                                      
                         var providerName = data.records.providers[provider].name;
                         var resourceName = resources[resource].name;
@@ -90,14 +86,15 @@ mol.maps.controllers.PointsController.prototype = (
                         google.maps.event.addListener(
                             marker, 
                             'click', 
-                            markerClickHandler(marker, radius, providerName, resourceName, sourceUrl)
+                            this.markerClickHandler(marker, radius, providerName, resourceName, sourceUrl)
                         );                                
                     }
                 }
             }
-        };
+        },
 
-        var markerClickHandler = function(marker, radius, provider, resource, url) {
+        markerClickHandler: function(marker, radius, provider, resource, url) {
+            var self = this;
             return function() {
                 var content = '<div id="content">' +
                     '<h3>' + provider + ': ' + resource + '</h3>' +
@@ -110,8 +107,8 @@ mol.maps.controllers.PointsController.prototype = (
                 e.innerHTML = content;
                 e.getElementsByClassName('zoom')[0].addEventListener(
                     'click', function() {
-                        map.setZoom(12);
-                        map.panTo(marker.getPosition());
+                        self.map.setZoom(12);
+                        self.map.panTo(marker.getPosition());
                     }, false);        
                 var infowin = new google.maps.InfoWindow(
                     {
@@ -119,14 +116,12 @@ mol.maps.controllers.PointsController.prototype = (
                     }
                 );
                 infowin.setPosition(marker.getPosition());
-                infowin.open(map, marker);
+                infowin.open(self.map, marker);
             };
-        };
+        }
         
-        return {
-            init: init,
-            hideAll: hideAll,
-            showAll: showAll            
-        };
-        
-}());
+    };
+    this.f = new F();
+    this.f.init(config);
+    return this.f;
+};
