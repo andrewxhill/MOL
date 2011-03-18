@@ -50,6 +50,7 @@ mol.engines.PointsEngine.prototype = (
                 return false;
             }
             rowId = [type, source, name.split(' ')].join('_');
+            mol.log('ROWID ' + rowId);
             return true;
         };
 
@@ -125,6 +126,7 @@ mol.engines.PointsEngine.prototype = (
                 .prepend(leftCol);
             mol.eventBus.bind(
                 mol.event.Types.UPDATE_LAYER_STATUS, updateRowStatus);
+            mol.log('RowId: ' + rowId);
         };
 
         /**
@@ -168,6 +170,7 @@ mol.engines.PointsEngine.prototype = (
             $(button).click(
                 function() {
                     var layerName = $(input).val();
+                    mol.log('LAYER NAME ' + layerName);
                     if (!layerName) {
                         mol.log.warn('No input available in: ' + input[0].attr('id'));
                         return;
@@ -298,7 +301,7 @@ mol.engines.PointsEngine.prototype = (
         };
         // Note: This method causes a state transition:
         var setName = function(val) {
-            name = val;        
+            name = val;                  
             transition();
         };
         var getData = function() {
