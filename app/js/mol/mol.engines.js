@@ -85,7 +85,7 @@ mol.engines.PointsEngine = function(config) {
                             function(layerIdentifier) {  
                                 var id = $(layerIdentifier).attr('id');
                                 if (id==layerId ){
-                                    this.pointsController.hideAll();
+                                    self.pointsController.hideAll();
                                 }
                             }
                         );
