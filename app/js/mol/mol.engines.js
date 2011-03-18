@@ -80,6 +80,15 @@ mol.engines.PointsEngine = function(config) {
                                     'info-controller');
                             }
                         );
+                        mol.eventBus.bind(
+                            mol.event.Types.DELETE_STACK_LAYER,
+                            function(layerIdentifier) {  
+                                var id = $(layerIdentifier).attr('id');
+                                if (id==layerId ){
+                                    this.pointsController.hideAll();
+                                }
+                            }
+                        );
                         break;
                     case "download-error":
                         error = $('<button>').attr({"class":"error"}).html('!');
@@ -346,7 +355,8 @@ mol.engines.PointsEngine = function(config) {
                             'download-error',
                             'Error: HTTP status ' + error.status);
                     });
-                mol.apiProxy.execute({action: 'gbif-points', params: params}, cb);            
+                mol.apiProxy.execute({action: 'gbif-points', params: params}, cb);
+                                    
             },
 
             /**

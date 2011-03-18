@@ -145,7 +145,7 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     $(this.deleteLayer).click(
         function() {
             mol.log('LayerStack.deleteLayer.click');
-            var id = $("#layers .layer.list input:checked");
+            var id = $("#layers .layer.list input:checked").parent();
             mol.eventBus.trigger(mol.event.Types.DELETE_STACK_LAYER, id);
         }
     );
@@ -167,15 +167,17 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
     mol.eventBus.bind(
         mol.event.Types.DELETE_STACK_LAYER,
         function(layerIdentifier) {
-            if ($(self.list).find(layerIdentifier).length > 0){
+            var id = $(layerIdentifier).attr('id');
+            if ($(self.list).find("#"+id).length > 0){
                 mol.log('LayerStack handling event: ' + 
                              mol.event.Types.DELETE_STACK_LAYER +
                              ': removed an existing stack layer');
-                $("#layers "+layerIdentifier).remove();
+                $(self.list).find("#"+id).remove();
+                //$("#layers "+layerIdentifier).remove();
             } else {
                 mol.log('LayerStack handling event: ' + 
                              mol.event.Types.DELETE_STACK_LAYER +
-                             ': layer did not exist');
+                             ': layer '+id+' did not exist');
             }
         }
     );   
