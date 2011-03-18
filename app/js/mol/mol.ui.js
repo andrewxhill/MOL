@@ -203,7 +203,6 @@ mol.ui.LayerStack.prototype.wireEvents = function() {
                     $(layerUI).find("input[name=active-layer]").click();
                 }
             }
-            console.log($(self).attr('id'));
             mol.eventBus.trigger( mol.event.Types.CONTROLLER_FOCUS_UPDATE, 
                 $(self).attr('id'), 
                 true); 

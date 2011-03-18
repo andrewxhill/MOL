@@ -222,7 +222,7 @@ mol.maps.Layer = function(options) {
     if (!(this instanceof mol.maps.Layer)) {
         return new mol.maps.Layer(options);
     }
-    if (options) {        
+    if (options) {      
         this.map = options.map,
         this.type = options.type;
         this.source = options.source;
