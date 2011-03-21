@@ -21,7 +21,13 @@ function MOL() {
     return this;
 };
 
+// =============================================================================
+// Modules
+
 MOL.modules = {};
+
+// =============================================================================
+// Log Module
 
 MOL.modules.log = function(env) {    
     env.log = {};
@@ -49,6 +55,9 @@ MOL.modules.log = function(env) {
     };
 };
 
+// =============================================================================
+// AJAX Module
+
 MOL.modules.ajax = function(env) {
     env.ajax = {};
 
@@ -72,6 +81,9 @@ MOL.modules.ajax = function(env) {
         }
     );    
 };
+
+// =============================================================================
+// Events Module
 
 MOL.modules.events = function(env) {
     env.events = {};
@@ -128,6 +140,9 @@ MOL.modules.events = function(env) {
     );
 };
 
+// =============================================================================
+// UI Module
+
 MOL.modules.ui = function(env) { 
     
     env.ui = {};
@@ -141,11 +156,43 @@ MOL.modules.ui = function(env) {
                 this.root = root;
             },
             
-            getRoot: function() {
+            getElement: function() {
                 return this.root;
             }
         }
     );
+
+// =============================================================================
+// UI Module - MapControl
+
+    env.ui.MapControl = Class.extend(
+        {
+            init: function(api, bus, map) {
+                this.api = api;
+                this.bus = bus;
+                this.map = map;
+                this.view = new env.ui.MapControlView(this.viewConfig());
+                this.engine = new env.ui.MapControlEngine(api, bus, this.view, map);
+            },
+            
+            viewConfig: function() {
+                return {
+                    text: {
+                        addLayer: 'Add',
+                        deleteLayer: 'Delete', 
+                        layers:'Layers',
+                        addRangeMap: 'Add range map',
+                        addPoints: 'Add points',
+                        go: 'Go',
+                        pointsFromGbif: 'Points from GBIF'
+                    }
+                };
+            }
+        }
+    );
+
+// =============================================================================
+// UI Module - MapControl View
 
     /**
      * Interface for map control view implementations.
@@ -247,6 +294,9 @@ MOL.modules.ui = function(env) {
                     case 'add_range_button':
                     this.engine.onAddRangeMapButtonClick();
                     break;
+                    case 'gbif_points_search':
+                    this.engine.onPointsSearchButtonClick();
+                    break;
                 }
                 event.stopPropagation();
                 event.preventDefault();
@@ -257,7 +307,7 @@ MOL.modules.ui = function(env) {
             },
             
             getPointsSearchText: function() {            
-                env.log.warn('Not implemented yet');
+                return $(this.addPointsUi).find('#gbif_points_search_box').val();
             },
             
             setPointsSearchText: function(value) {
@@ -295,6 +345,38 @@ MOL.modules.ui = function(env) {
                 );            
             },
 
+            buildAddPointsUi: function() {
+                var button = null,
+                    input = null,
+                    dialog = null,                
+                    go = this.config.text.go,
+                    pointsFromGbif = this.config.text.pointsFromGbif,
+                    self = this;
+                if (this.addPointsUi) {
+                    return;
+                }
+                dialog = $('<div>')
+                    .attr({"class":"dialog list", 
+                           "id":"add_points_dialog"})                       
+                    .html('<span>' + pointsFromGbif + '</span>');
+                button = $('<button>')
+                    .attr({"id":"gbif_points_search"})
+                    .html(go);
+                input = $('<input>')
+                    .attr({"type":"search",
+                           "id":"gbif_points_search_box",
+                           "value": "Puma concolor"});
+                dialog.append(input).append(button);
+                this.addPointsUi = dialog;
+                // Delegates 'Go' click to root:
+                $(this.root).delegate(
+                    '#gbif_points_search', 'click', 
+                    function(event) {
+                        self.handleClickDelegates(event);
+                    }
+                );            
+            },
+
             toggleAddLayerUi: function(visible) {
                 this.buildAddLayerUi();
                 if (visible) {
@@ -305,11 +387,17 @@ MOL.modules.ui = function(env) {
             },
             
             toggleAddPointsUi: function(visible) {          
-                env.log.warn('Not implemented yet');
+                this.buildAddPointsUi();
+                if (visible) {
+                    $(this.list).prepend($(this.addPointsUi));
+                } else {
+                    $(this.addPointsUi).remove();
+                }
             },
             
             addLayerView: function(layerView) {            
-                env.log.warn('Not implemented yet');
+                $(this.list).prepend($(layerView.getElement()));
+                // Setup delegation!
             },
 
             deleteLayer: function(layerId) {
@@ -317,33 +405,8 @@ MOL.modules.ui = function(env) {
             }
         });
 
-    env.LayerView = env.ui.View.extend( 
-        {
-            init: function(root) {
-            },
-            
-            setLoading: function(loading) {
-                env.log.warn('Not implemented yet');
-            },
-
-            setSelectionRadio: function(selected) {
-                env.log.warn('Not implemented yet');
-            },
-
-            setVisibilityCheckbox: function(checked) {
-                env.log.warn('Not implemented yet');
-            },
-
-            toggleInfoUi: function(visible) {
-                env.log.warn('Not implemented yet');
-            },
-
-            toggleSourceUi: function(visible) {
-                env.log.warn('Not implemented yet');
-            }
-        }
-    );
-        
+// =============================================================================
+// UI Module - MapControl Engine
 
     /**
      * Interface for map control engine implementations.
@@ -374,10 +437,12 @@ MOL.modules.ui = function(env) {
                 this.view = view;
                 this.map = map;
                 this.view.setEngine(this);
+                this.layers = {};
             },
 
             onAddButtonClick: function() {
                 this.view.toggleAddLayerUi(true);
+                this.layerModel = null;
             },
 
             onDeleteButtonClick: function() {
@@ -385,7 +450,9 @@ MOL.modules.ui = function(env) {
             },
 
             onAddPointsButtonClick: function() {
-                env.log.warn('Not implemented yet');
+                this.layerModel = {type: 'points', source: 'gbif'};
+                this.view.toggleAddLayerUi(false);
+                this.view.toggleAddPointsUi(true);
             },
 
             onAddRangeMapButtonClick: function() {
@@ -393,7 +460,12 @@ MOL.modules.ui = function(env) {
             },
             
             onPointsSearchButtonClick: function() {
-                env.log.warn('Not implemented yet');
+                this.view.toggleAddPointsUi(false);
+                this.layerModel.name = this.view.getPointsSearchText();
+                var layer = new env.ui.Layer(this.api, this.bus, 
+                                             this.map, this.layerModel);
+                this.view.addLayerView(layer.view);
+                layer.load();
             },
             
             onLayerInfoClick: function(layerId) {
@@ -414,26 +486,213 @@ MOL.modules.ui = function(env) {
 
         });
 
-    env.ui.MapControl = Class.extend(
+
+// =============================================================================
+// UI Module - Layer
+    
+    env.ui.Layer = Class.extend(
         {
-            init: function(api, bus, map) {
+            init: function(api, bus, map, layerModel) {
                 this.api = api;
                 this.bus = bus;
                 this.map = map;
-                this.view = new env.ui.MapControlView(this.viewConfig());
-                this.engine = new env.ui.MapControlEngine(api, bus, this.view, map);
+                this.layerModel = layerModel;
+                this.id = this.buildId(),
+                this.view = new env.ui.LayerView(this.viewConfig());
+                this.engine = new env.ui.LayerEngine(this.engineConfig());
             },
             
+            engineConfig: function() {
+                return {
+                    id: this.id,
+                    api: this.api,
+                    bus: this.bus,
+                    view: this.view,
+                    map: this.map
+                };                
+            },
+
             viewConfig: function() {
                 return {
+                    id: this.id,
+                    name: this.layerModel.name,
+                    type: this.layerModel.type,
+                    source: this.layerModel.source,
                     text: {
-                        addLayer: 'Add',
-                        deleteLayer: 'Delete', 
-                        layers:'Layers',
-                        addRangeMap: 'Add range map',
-                        addPoints: 'Add points'
                     }
                 };
+            },
+
+            buildId: function() {
+                var type = this.layerModel.type,
+                    source = this.layerModel.source,
+                    name = this.layerModel.name;
+                if (this.id) {
+                    return this.id;                    
+                }
+                this.id = [type, source, name.split(' ').join('_')].join('_');
+                return this.id;
+            },
+
+            load: function() {
+                var name = this.layerModel.name,
+                    speciesKey = 'animalia/species/' + name.replace(' ', '_').toLowerCase(),
+                    params = {speciesKey: speciesKey},
+                    self = this;
+                this.api.execute(
+                    {action: 'gbif-points', params: params}, 
+                    function(json) {
+                        self.view.setLoading(false);     
+                    },
+                    function(error) {
+                        self.view.setLoading(false);     
+                    }
+                );
+
+            }
+        }
+    );
+
+// =============================================================================
+// UI Module - Layer View
+
+    /**
+     * Interface for LayerView implementations.
+     */
+    env.ui.LayerViewInterface = Class.extend( 
+        {
+            init: function(root) {},
+            setEngine: function(engine) {},
+            setLoading: function(loading) {},
+            setSelectionRadio: function(selected) {},
+            setVisibilityCheckbox: function(checked) {},
+            toggleInfoUi: function(visible) {},
+            toggleSourceUi: function(visible) {}
+        }
+    );
+
+    env.ui.LayerView = env.ui.View.extend( 
+        {
+            init: function(config) {
+                this._super($('<div>'));
+                this.config = config;
+                this.buildUi();
+            },
+            
+            setEngine: function(engine) {
+                this.engine = engine;
+            },
+
+            setLoading: function(loading) {
+                var info = $('<button>').attr({"class":"info"}).html('i');
+                $(this.root).find(".loading").replaceWith(info);               
+            },
+
+            setSelectionRadio: function(selected) {
+                env.log.warn('Not implemented yet');
+            },
+
+            setVisibilityCheckbox: function(checked) {
+                env.log.warn('Not implemented yet');
+            },
+
+            toggleInfoUi: function(visible) {
+                env.log.warn('Not implemented yet');
+            },
+
+            toggleSourceUi: function(visible) {
+                env.log.warn('Not implemented yet');
+            },
+
+            handleClickDelegates: function(event) {
+                var target = event.target;
+                switch (target.id) {
+                    case 'layer_radio':
+                    this.engine.onAddButtonClick();
+                    break;
+                    case 'layer_checkbox':
+                    this.engine.onDeleteButtonClick();
+                    break;
+                }
+                event.stopPropagation();
+                event.preventDefault();
+            },
+
+
+            buildUi: function() {
+                var rowId = this.config.id,
+                    name = this.config.name,
+                    type = this.config.type,
+                    source = this.config.source,
+                    radio = null,
+                    leftCol = null,
+                    title = null,
+                    src = null,
+                    toggle = null,
+                    loader = null,
+                    row = null,
+                    self = this;
+                radio = $('<input>')
+                    .attr({"type":"radio",
+                           "name":"active-layer",
+                           "value":"points"});
+                leftCol = $('<div>')
+                    .attr({"class":"leftCol"})
+                    .append(radio);
+                title = $('<span>')
+                    .attr({"class":"title"})
+                    .html(name);
+                src = $('<button>')
+                    .attr({"class":"source",
+                           "id": "layer-radio"})
+                    .html(source);
+                toggle = $('<input>')
+                    .attr({"class":"view-toggle",
+                           "type":"checkbox",
+                           "checked":true,
+                           "id": "layer-checkbox"});
+                loader = $('<img>')
+                    .attr({"src":"/static/loading-small.gif",
+                           "class":"loading"});
+                row = $("<div>")
+                    .attr({"id":rowId,"class":"layer list"})
+                    .prepend(title)
+                    .prepend(toggle)
+                    .prepend(loader)
+                    .prepend(src)
+                    .prepend(leftCol);
+                this.root = row;
+                // Delegates checkbox clicks to root:
+                $(this.root).delegate(
+                    '.view-toggle', 'click', 
+                    function(event) {
+                        self.handleClickDelegates(event);
+                    }
+                );
+                // Delegates layer info clicks to root:
+                $(this.root).delegate(
+                    '.source', 'click', 
+                    function(event) {
+                        self.handleClickDelegates(event);
+                    }
+                );
+            }            
+        }
+    );
+        
+
+// =============================================================================
+// UI Module - Layer Engine
+
+    env.ui.LayerEngine = Class.extend(
+        {
+            init: function(config) {
+                this.api = config.api;
+                this.bus = config.bus;
+                this.view = config.view;
+                this.map = config.map;
+                this.id = config.id;
+                this.view.setEngine(this);
             }
         }
     );
