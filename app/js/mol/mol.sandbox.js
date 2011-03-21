@@ -177,6 +177,7 @@ MOL.modules.ui = function(env) {
             
             viewConfig: function() {
                 return {
+                    map: this.map,
                     text: {
                         addLayer: 'Add',
                         deleteLayer: 'Delete', 
@@ -219,8 +220,18 @@ MOL.modules.ui = function(env) {
                 this._super($('<div>'));
                 this.config = config;
                 this.buildUi();
+                this.attachToMap();
             },
         
+            attachToMap: function() {
+                var map = this.config.map,
+                    position = google.maps.ControlPosition.TOP_RIGHT;
+                this.mapDiv = $('<div>')
+                    .attr({'id': 'right-controller'});
+                map.controls[position].push(this.mapDiv[0]);
+                this.mapDiv.prepend(this.root);
+            },
+
             buildUi: function() {
                 var self = this;
                 this.root.attr({'id':'layer-widget-container', 

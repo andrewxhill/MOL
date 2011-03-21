@@ -48,6 +48,10 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(open(path, 'r').read())
 
+class SandboxHandler(BaseHandler):
+    def get(self):
+        self.push_html('mol.sandbox.html')
+
 class RangeMap(BaseHandler):
     def get(self):
         self.push_html('range_maps.html')
@@ -102,6 +106,7 @@ application = webapp.WSGIApplication(
           ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
+          ('/sandbox', SandboxHandler),
           ('/rangemap', RangeMap),
           ('/playground/col', ColPage),
           ('/playground/map', MapPage),
