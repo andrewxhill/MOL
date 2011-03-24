@@ -58,7 +58,7 @@
                 };
                 var map = new google.maps.Map($('#map')[0], mapOptions);
                 var mapControl = new env.ui.MapControl(api, bus, map);
-                console.log(mapControl);
+                env.log.info('MOL app initialized');
             });         
         });
     </script>
