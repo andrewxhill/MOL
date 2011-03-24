@@ -1275,18 +1275,25 @@ MOL.modules.ui = function(env) {
             show: function() {
                 if (this._visible) {
                     return;
-                }
-                this._mapIndex = this._map.overlayMapTypes.getLength();
-                this._map.overlayMapTypes.insertAt(this._mapIndex, this._imageMapType);                
+                }                
+                this._map.overlayMapTypes.push(this._imageMapType);                
                 this._visible = true;
             },
         
             hide: function() {
                 if (!this._visible) {
                     return;
-                }
-                this._map.overlayMapTypes.removeAt(this._mapIndex);                
-                this._visible = false;
+                }                
+                var self = this;
+                this._map.overlayMapTypes.forEach(
+                    function(x, i) {
+                        if (x && (x.name === self._speciesKey)) {
+                            self._map.overlayMapTypes.removeAt(i);
+                            self._visible = false;
+                        }
+                    }
+                );
+
             },
 
             // -----------------------------------------------------------------
@@ -1301,6 +1308,8 @@ MOL.modules.ui = function(env) {
                 var self = this;
                 return new google.maps.ImageMapType(
                     {
+                        name: speciesKey,
+
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom);
                             if (!normalizedCoord) {
