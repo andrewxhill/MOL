@@ -272,6 +272,16 @@ MOL.modules.ui = function(env) {
                 this._toggleAddPointsUi(false);
             },
             
+            showAddRangeUi: function() {
+                env.log.todo('Implement AddRangeUi');
+                this._toggleAddPointsUi(true);
+            },
+
+            hideAddRangeUi: function() {
+                env.log.todo('Implement AddRangeUi');
+                this._toggleAddPointsUi(false);
+            },
+
             addLayerView: function(layerView, id) {            
                 this._list.prepend(layerView.getElement());
                 this._layerViews[id] = layerView;
@@ -564,7 +574,9 @@ MOL.modules.ui = function(env) {
             },
 
             onAddRangeClick: function() {
-                env.log.warn('Not implemented yet');
+                this._model = {type: 'range', source:'mol'};
+                this._view.hideAddLayerUi();
+                this._view.showAddRangeUi();
             },
             
             onSearchPointsClick: function() {
@@ -612,7 +624,7 @@ MOL.modules.ui = function(env) {
     
     env.ui.Layer = Class.extend(
         {
-            init: function(api, bus, map, model) {
+            init: function(api, bus, map, model) {                
                 this._api = api;
                 this._bus = bus;
                 this._map = map;
@@ -624,7 +636,7 @@ MOL.modules.ui = function(env) {
                     this._engine = new env.ui.PointsLayerEngine(this._engineConfig());
                     break;
                     case 'range':
-                    env.log.todo('Implement RangeLayerEngine');
+                    this._engine = new env.ui.RangeLayerEngine(this._engineConfig());
                     break;
                 }
             },
@@ -1037,6 +1049,82 @@ MOL.modules.ui = function(env) {
     );
 
     /**
+     * A LayerEngine for range maps.
+     * 
+     * @constuctor
+     * @subclasses LayerEngine
+     */
+    env.ui.RangeLayerEngine = env.ui.LayerEngine.extend(
+        {
+            init: function(config) {
+                this._super(config);
+            },
+
+            // -----------------------------------------------------------------
+            // Public methods:
+
+            /**
+             * 
+             * @override LayerEngine.load
+             */
+            load: function() {
+                var name = this._model.name.toLowerCase(),
+                    speciesKey = 'animalia/species/' + name.replace(' ', '_'),
+                    params = {speciesKey: speciesKey},
+                    self = this;                
+                this._api.execute(
+                    {action: 'rangemap-metadata', params: params}, 
+                    function(json) {
+                        self._data = json;
+                        var lmc = self._layerManagerConfig(speciesKey);
+                        self._layerManager = new env.ui.RangeLayerManager(lmc);
+                        self._layerManager.load();
+                        self._layerManager.show();
+                        self._view.hideLoadingImage();
+                        self._view.showInfoButton();
+                        self._view.setChecked(true);
+                        self._view.enableChecked(true);
+                    },
+                    function(error) {
+                        self._view.hideLoadingImage();
+                        self._view.showErrorButton();
+                    }
+                );                
+            },
+
+            /**
+             * 
+             * @override PointsLayer.onCheckboxClick
+             */
+            onCheckboxClick: function() {
+                var checked = this._view.isChecked();
+                if (checked) {
+                    this._layerManager.show();
+                } else {
+                    this._layerManager.hide();
+                }
+            },
+
+            // -----------------------------------------------------------------
+            // Private methods:
+
+            /**
+             * Returns a config object for the layer manager.
+             */
+            _layerManagerConfig: function(speciesKey) {
+                return {
+                    engine: this,
+                    map: this._map,
+                    bus: this._bus,
+                    data: this._data,
+                    speciesKey: speciesKey
+                };
+            }
+        }
+    );
+
+
+    /**
      * A LayerEngine for points.
      * 
      * @constructor 
@@ -1162,6 +1250,98 @@ MOL.modules.ui = function(env) {
             }
         }
 
+    );
+    
+    env.ui.RangeLayerManager = env.ui.LayerManager.extend(
+        {
+
+            init: function(config) {
+                this._super(config);
+                this._speciesKey = config.speciesKey;
+                this._visible = false;
+            },
+
+            // -----------------------------------------------------------------
+            // Public methods:
+            
+            load: function() {
+                this._load();                
+            },
+
+            isVisible: function() {
+                return this._visible;
+            },
+
+            show: function() {
+                if (this._visible) {
+                    return;
+                }
+                this._mapIndex = this._map.overlayMapTypes.getLength();
+                this._map.overlayMapTypes.insertAt(this._mapIndex, this._imageMapType);                
+                this._visible = true;
+            },
+        
+            hide: function() {
+                if (!this._visible) {
+                    return;
+                }
+                this._map.overlayMapTypes.removeAt(this._mapIndex);                
+                this._visible = false;
+            },
+
+            // -----------------------------------------------------------------
+            // Private methods:
+            
+            _load: function() {
+                this._imageMapType = this._rangeImageMapType(this._speciesKey);
+                this._maxZoom = this._data.zoom;
+            },
+
+            _rangeImageMapType: function(speciesKey) {   
+                var self = this;
+                return new google.maps.ImageMapType(
+                    {
+                        getTileUrl: function(coord, zoom) {
+                            var normalizedCoord = self._getNormalizedCoord(coord, zoom);
+                            if (!normalizedCoord) {
+                                return null;
+                            }
+                            var bound = Math.pow(2, zoom);            
+                            return "/layers/" + speciesKey + ".png?" +
+                                "z=" + zoom + 
+                                "&x=" + normalizedCoord.x + 
+                                "&y=" + (normalizedCoord.y);
+                        },
+                        tileSize: new google.maps.Size(256, 256),
+                        isPng: true,
+                        opacity: 0.5
+                    });
+            },
+
+            /**
+             * Returns normalized coordinates for a given map zoom level.
+             * 
+             * @param coord The coordinate
+             * @param zoom The current zoom level
+             */
+            _getNormalizedCoord: function(coord, zoom) {
+                var y = coord.y,
+                    x = coord.x,
+                    tileRange = 1 << zoom;
+                // don't repeat across y-axis (vertically)
+                if (y < 0 || y >= tileRange) {
+                    return null;
+                }
+                // repeat across x-axis
+                if (x < 0 || x >= tileRange) {
+                    x = (x % tileRange + tileRange) % tileRange;
+                }
+                return {
+                    x: x,
+                    y: y
+                };
+            }
+        }
     );
 
     /**
