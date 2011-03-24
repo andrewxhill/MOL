@@ -93,6 +93,12 @@ MOL.modules.ajax = function(env) {
 MOL.modules.events = function(env) {
     env.events = {};
     
+    // Triggered when a layer is selected:
+    env.events.LAYER_SELECTED = 'layer_selected';
+
+    // Triggered when a layer is deleted:
+    env.events.LAYER_DELETED = 'layer_deleted';
+    
     // Backbone.js Events rip:
     env.events.Bus = Class.extend(
         {
@@ -163,12 +169,16 @@ MOL.modules.ui = function(env) {
             
             getElement: function() {
                 return this._element;
+            },
+            
+            remove: function() {
+                this._element.remove();
             }
         }
     );
 
-// =============================================================================
-// Modules: UI - MapControl
+    // =========================================================================
+    // Modules: UI - MapControl
 
     /**
      * The MapControl encapsulates a MapControlView and a MapControlEngine. It
@@ -184,7 +194,7 @@ MOL.modules.ui = function(env) {
                 this._bus = bus;
                 this._map = map;
                 this._view = new env.ui.MapControlView(this._viewConfig());
-                this._engine = new env.ui.MapControlEngine(api, bus, this._view, map);
+                this._engine = new env.ui.MapControlEngine(this._engineConfig());
             },
             
             // -----------------------------------------------------------------
@@ -196,19 +206,24 @@ MOL.modules.ui = function(env) {
                     text: {
                         addLayer: 'Add',
                         deleteLayer: 'Delete', 
-                        layers:'Layers',
-                        addRangeMap: 'Add range map',
-                        addPoints: 'Add points',
-                        go: 'Go',
-                        pointsFromGbif: 'Points from GBIF'
+                        layers:'Layers'
                     }
+                };
+            },
+
+            _engineConfig: function() {
+                return {
+                    api: this._api,
+                    bus: this._bus,
+                    view: this._view,
+                    map: this._map                    
                 };
             }
         }
     );
 
-// =============================================================================
-// Modules: UI - MapControlView
+    // =========================================================================
+    // Modules: UI - MapControlView
 
     /**
      * The MapControlView encapsulates all the UI DOM stuff for presenting the
@@ -235,7 +250,7 @@ MOL.modules.ui = function(env) {
                            'class':'widget-container'});                
                 this._super(element);                
                 this._config = config;
-                this._layerViews = {};
+                this._layerViews = [];
                 this._initUiElements();
                 this._buildUi();
                 this._attachToMap();
@@ -248,48 +263,13 @@ MOL.modules.ui = function(env) {
                 this.engine = engine;
             },
             
-            getPointSearchText: function() {            
-                return this._addPointsUi.find('#gbif_points_search_box').val();
-            },
-            
-            setPointSearchText: function(value) {
-                this._addPointsUi.find('#gbif_points_search_box').val(value);
-            },
-            
-            showAddLayerUi: function() {
-                this._toggleAddLayerUi(true);
-            },
-
-            hideAddLayerUi: function() {
-                this._toggleAddLayerUi(false);
-            },
-            
-            showAddPointsUi: function() {
-                this._toggleAddPointsUi(true);
-            },
-
-            hideAddPointsUi: function() {
-                this._toggleAddPointsUi(false);
-            },
-            
-            showAddRangeUi: function() {
-                env.log.todo('Implement AddRangeUi');
-                this._toggleAddPointsUi(true);
-            },
-
-            hideAddRangeUi: function() {
-                env.log.todo('Implement AddRangeUi');
-                this._toggleAddPointsUi(false);
-            },
-
-            addLayerView: function(layerView, id) {            
+            addLayerView: function(layerView) {            
                 this._list.prepend(layerView.getElement());
-                this._layerViews[id] = layerView;
+                this._layerViews.push(layerView);
             },
 
             deleteLayerView: function(id) {
-                this._layerViews[id].remove();
-                this._layerViews[id] = null;
+                env.log.todo('Implement MapControlView.deleteLayerView()');
             },
 
             // -----------------------------------------------------------------
@@ -324,15 +304,7 @@ MOL.modules.ui = function(env) {
                 // The <div> container for the sortable list of layers:
                 this._list = $('<div>')
                     .sortable({items: '.layer', cursor: 'move'});
-                
-                // The UI with options for adding a range map or points layer.
-                // It is built on demand:
-                this._addLayerUi = null;
-
-                // The UI for searching and GBIF points as a layer. It is 
-                // built on demand.
-                this._addPointsUi = null;
-                
+                                
                 // The top level <div> on the Google map for adding this view:
                 this._mapDiv = $('<div>')
                     .attr({'id': 'right-controller'});
@@ -352,7 +324,6 @@ MOL.modules.ui = function(env) {
                 this._layers.append(this._list);                
                 this._buildOptions();                
                 this._menu.append(this._options);
-                // Delegates clicks in this._options to minimize event overhead:
                 element.delegate(
                     '.option.list', 'click', 
                     function(event) {
@@ -388,6 +359,493 @@ MOL.modules.ui = function(env) {
                             .attr({'class':'option list',
                                    'id':'add'})
                             .append(this._addLayer));               
+            },
+
+            /**
+             * Handles the event by dispatching down to the engine.
+             */
+            _handleEvent: function(event) {
+                var target = event.target;
+                switch (target.id) {
+                    case 'add_layer':
+                    this.engine.onAddLayerClick();
+                    break;
+                    case 'delete_layer':
+                    this.engine.onDeleteLayerClick();
+                    break;
+                }
+                event.stopPropagation();
+            },
+            
+            /**
+             * Attaches the MapControlWidget to the Google map.
+             */
+            _attachToMap: function() {
+                var map = this._config.map,
+                    position = google.maps.ControlPosition.TOP_RIGHT,
+                    element = this.getElement();
+                this._mapDiv.prepend(element);
+                map.controls[position].push(this._mapDiv[0]);
+            }
+
+        });
+
+    // =========================================================================
+    // Modules: UI - MapControlEngine
+
+    /**
+     * The MapControlEngine encapsulates and drives a MapControlView. It provides
+     * a public interface for handling UI events that are delivered by the view.
+     * Based on the event, it updates the view to do stuff.
+     * 
+     * Events:
+     *     Binds to - LAYER_SELECTED
+     * 
+     * @constructor
+     */
+    env.ui.MapControlEngine = Class.extend( 
+        {
+            init: function(config) {
+                var self = this;
+                this._api = config.api;
+                this._bus = config.bus;
+                this._map = config.map;
+                this._view = config.view;
+                this._view.setEngine(this);
+                this._layers = [];
+                this._selectedLayer = null;                
+                this._bus.bind(
+                    env.events.LAYER_SELECTED,
+                    function(layerId) {
+                        var layer;
+                        for (x in self._layers) {
+                            layer = self._layers[x];
+                            if (layer && (layerId === layer.getId())) {
+                                self._selectedLayer = layer;
+                                return;
+                            }
+                        }
+                    }
+                );
+            },
+
+            // -----------------------------------------------------------------
+            // Public methods:
+
+            onAddLayerClick: function() {
+                var layer = new env.ui.Layer(this._api, this._bus, this._map);
+                this._layers.push(layer);
+                this._view.addLayerView(layer.getView());
+            },
+
+            onDeleteLayerClick: function() {
+                var layer = this._selectedLayer,
+                    layerId = null,
+                    temp = null;
+                if (!layer || !(layerId = layer.getId())) {
+                    env.log.warn('MapControlEngine: Unable to delete layer');
+                    return;
+                }
+                layer.goodbye();
+                for (x in this._layers) {
+                    temp = this._layers[x];
+                    if (temp && (temp.getId() == layerId)) {
+                        delete this._layers[x];
+                    }
+                }
+                this._bus.trigger(env.events.LAYER_DELETED, layerId);
+            }
+        });
+
+
+    // =========================================================================
+    // Modules: UI - Layer
+    
+    /**
+     * A Layer contains an engine and a view. It has everthing it needs to build
+     * itself by surfacing a UI to capture layer type (point or range), source,
+     * and name. 
+     * 
+     * In the beginning of time, the Layer acts as an engine for the view. When 
+     * the layer figures out if it's a point or range layer, it creates a 
+     * type-specific engine for the view.
+     */
+    env.ui.Layer = Class.extend(
+        {
+            init: function(api, bus, map) {                
+                this._api = api;
+                this._bus = bus;
+                this._map = map;
+                this._model = null;
+                this._view = new env.ui.LayerView(this._viewConfig());
+                this._view.setEngine(this);
+                this._view.showAddLayerUi();
+            },
+            
+            // -----------------------------------------------------------------
+            // Public methods:
+            
+            /**
+             * Handles the 'add points' click. Now we know that this layer is a 
+             * points layer, so we give the view a new points engine which takes
+             * over command of the view.
+             */
+            onAddPointsClick: function() {
+                this._model = {type: 'points', source: 'gbif'};
+                this._engine = new env.ui.PointsLayerEngine(this._engineConfig());
+            },
+
+            /**
+             * Handles the 'add range' click. Now we know that this layer is a
+             * range layer, so we give the view a new range engine which takes 
+             * over command of the view.
+             */
+            onAddRangeClick: function() {
+                this._model = {type: 'range', source:'mol'};
+                this._engine = new env.ui.RangeLayerEngine(this._engineConfig());
+            },
+
+            goodbye: function() {
+                this._engine.stop();
+            },
+
+            load: function() {
+                this._engine.load();
+            },
+
+            getId: function() {
+                return this._engine.getId();                
+            },
+
+            getView: function() {
+                return this._view;
+            },
+
+            // -----------------------------------------------------------------
+            // Private methods:
+
+            _engineConfig: function() {
+                return {
+                    model: this._model,
+                    api: this._api,
+                    bus: this._bus,
+                    view: this._view,
+                    map: this._map
+                };                
+            },
+
+            _viewConfig: function() {
+                return {
+                    map: this._map,
+                    text: {
+                        addRangeMap: 'Add range map',
+                        addPoints: 'Add points',
+                        go: 'Go',
+                        pointsFromGbif: 'Points from GBIF',
+                        errorTitle: 'Layer Error',
+                        errorSource: 'Error Source',
+                        errorDetails: 'Error Details',
+                        infoTitle: 'Layer Info',
+                        infoSource: 'Info Source',
+                        infoDetails: 'Info Details',
+                        sourceTitle: 'Layer Source',
+                        sourceSource: 'Source Source',
+                        sourceDetails: 'Source Details'
+                    }
+                };
+            }
+        }
+    );
+
+    // =========================================================================
+    // Modules: UI - LayerView
+
+    /**
+     * The LayerView is pretty slick. It surfaces UIs for figuring out layer type,
+     * source, and name via search interface. When it has everything it needs, it
+     * displays a control UI.
+     * 
+     * @constructor
+     */
+    env.ui.LayerView = env.ui.View.extend( 
+        {
+            init: function(config) {
+                var element = $("<div>");
+                this._super(element);
+                this._config = config;
+                this._map = config.map;
+                this._engine = null;
+                this._initUiElements();
+            },
+
+            // -----------------------------------------------------------------
+            // Public methods:
+            
+            setEngine: function(engine) {
+                this._engine = engine;
+            },
+
+            setModel: function(model) {
+                this._model = model;
+            },
+
+            getPointSearchText: function() {            
+                return this._addPointsUi.find('#gbif_points_search_box').val();
+            },
+            
+            setPointSearchText: function(value) {
+                this._addPointsUi.find('#gbif_points_search_box').val(value);
+            },
+
+            showControlUi: function() {
+                this._toggleControlUi(true);
+            },
+
+            hideControlUi: function() {
+                this._toggleControlUi(false);                
+            },
+
+            showAddLayerUi: function() {
+                this._toggleAddLayerUi(true);
+            },
+
+            hideAddLayerUi: function() {
+                this._toggleAddLayerUi(false);
+            },
+            
+            showAddPointsUi: function() {
+                this._toggleAddPointsUi(true);
+            },
+
+            hideAddPointsUi: function() {
+                this._toggleAddPointsUi(false);
+            },
+            
+            showAddRangeUi: function() {
+                env.log.todo('Implement AddRangeUi');
+                this._toggleAddPointsUi(true);
+            },
+
+            hideAddRangeUi: function() {
+                env.log.todo('Implement AddRangeUi');
+                this._toggleAddPointsUi(false);
+            },
+
+            onAddPointsClick: function() {
+                this._model = {type: 'points', source: 'gbif'};
+                this._view.hideAddLayerUi();
+                this._view.showAddPointsUi();
+            },
+
+            onAddRangeClick: function() {
+                this._model = {type: 'range', source:'mol'};
+                this._view.hideAddLayerUi();
+                this._view.showAddRangeUi();
+            },
+            
+            onSearchPointsClick: function() {
+                var type = this._model.type,
+                    source = this._model.source,
+                    name = this._view.getPointSearchText(),
+                    layer = this._createLayer(type, source, name);
+                this._view.hideAddPointsUi();
+                this._view.addLayerView(layer.getView(), layer.getId());
+                layer.load();
+            },
+
+            showInfoWidget: function(fade, ms) {
+                this._buildWidget('info');
+                this._addToMap(this._infoWidget, fade, ms);
+            },
+
+            hideInfoWidget: function() {
+                this._infoWidget.remove();
+            },
+
+            showSourceWidget: function(fade, ms) {
+                this._buildWidget('source');
+                this._addToMap(this._sourceWidget, fade, ms);
+            },
+
+            hideSourceWidget: function() {
+                this._sourceWidget.remove();
+            },
+
+            showErrorWidget: function(fade, ms) {
+                this._buildWidget('error');
+                this._addToMap(this._errorWidget, fade, ms);
+            },
+
+            hideErrorWidget: function() {
+                this._errorWidget.remove();
+            },
+
+            showLoadingImage: function() {
+                this._loader.show();                
+            },
+            
+            hideLoadingImage: function() {
+                this._loader.hide();
+            },
+
+            showErrorButton: function() {
+                this._error.show();
+            },
+            
+            hideErrorButton: function() {
+                this._error.hide();
+            },
+
+            showInfoButton: function() {
+                this._info.show();
+            },
+            
+            hideInfoButton: function() {
+                this._info.hide();
+            },
+
+            showSourceButton: function() {
+                this._src.show();
+            },
+            
+            hideSourceButton: function() {
+                this._src.hide();
+            },
+
+            setRadio: function(selected) {
+                this._radio.attr('selected', selected);
+            },
+
+            enableRadio: function(enabled) {
+                this._radio.attr('enabled', enabled);
+            },
+
+            isRadio: function() {
+                return this._radio.attr('enabled');
+            },
+
+            setChecked: function(checked) {
+                this._toggle.attr('checked', checked);
+            },
+
+            enableChecked: function(enabled) {
+                this._toggle.attr('enabled', enabled);
+            },
+
+            isChecked: function() {
+                return this._toggle.attr('checked');
+            },
+
+            // -----------------------------------------------------------------
+            // Private methods:
+            
+            /**
+             * Initializes all the UI elements for this view.
+             */
+            _initUiElements: function() {
+                // Div on the map for showing layer info widget:
+                this._mapDiv = $('<div>')
+                    .attr({'id': 'info-controller'});
+
+                // The UI with layer controls:
+                this._controlUi = null;
+
+                // The UI with options for adding a range or points layer.
+                // It is built on demand:
+                this._addLayerUi = null;
+
+                // The UI for searching and GBIF points as a layer. It is 
+                // built on demand.
+                this._addPointsUi = null;
+
+                // Elements displayed in this._mapDiv:
+                this._infoWidget = null;
+                this._errorWidget = null;
+                this._sourceWidget = null;
+                
+                // The radio button the selects the layer:
+                this._radio = $('<input>')
+                    .attr({"id":"layer-radio",
+                           "type":"radio",
+                           "name":"active-layer",
+                           "value":"points"});
+
+                // The left container for the radio button:
+                this._leftCol = $('<div>')
+                    .attr({"class":"leftCol"});
+                
+                // Span that contains the layer name:
+                this._title = $('<span>')
+                    .attr({"class":"title"});
+                
+
+                // Checkbox for showing/hiding the layer on the map:
+                this._toggle = $('<input>')
+                    .attr({"class":"view-toggle",
+                           "type":"checkbox",
+                           "checked":true,
+                           "id": "layer-checkbox"});
+                
+                // The loading gif widget:
+                this._loader = $('<img>')
+                    .attr({"src":"/static/loading-small.gif",
+                           "class":"loading"});
+                
+                // The layer info button:
+                this._info = $('<button>')
+                    .attr({"id": "layer-info",
+                           "class":"info"});
+
+                // The Error info button:
+                this._error = $('<button>')
+                    .attr({"id": "layer-error",
+                           "class":"error"});
+
+                // Button for the layer source:
+                this._src = $('<button>')
+                    .attr({"class":"source",
+                           "id": "layer-source"});
+            },
+
+            _buildControlUi: function() {
+                var nameText = this._model.name,
+                    typeText = this._model.type,
+                    sourceText = this._model.source,
+                    id = this._model.id,
+                    errorText = '!',
+                    infoText = 'i',
+                    infoPosition = google.maps.ControlPosition.LEFT_BOTTOM,
+                    element = this.getElement(),
+                    self = this;
+                if (this._controlUi) {
+                    return;
+                }
+                this._controlUi = $("<div>")
+                    .attr({"id": id,
+                           "class":"layer list"});
+                // Attaches this.mapDiv to the Google map:              
+                this._map.controls[infoPosition].push(this._mapDiv[0]);
+                // Combines elements:
+                this._leftCol.append(this._radio);
+                this._title.html(nameText);
+                this._src.html(sourceText);
+                this._info.html(infoText);
+                this._error.html(errorText);
+                this._controlUi
+                    .prepend(this._title)
+                    .prepend(this._toggle)
+                    .prepend(this._loader)
+                    .prepend(this._error)
+                    .prepend(this._info)
+                    .prepend(this._src)
+                    .prepend(this._leftCol);
+                // Delegates events for efficiency:
+                element.delegate(
+                    '.view-toggle, .source, .info, .error, #layer-radio', 'click', 
+                    function(event) {
+                        self._handleEvent(event);
+                    }
+                );
             },
 
             /**
@@ -468,431 +926,11 @@ MOL.modules.ui = function(env) {
                     }
                 );            
             },
-
-            /**
-             * For efficiency, all UI events associated with MapControlWidget
-             * are delegated to this function which in turn delegates down to 
-             * the engine for processing. Note that all event propogation is
-             * stopped here.
-             */
-            _handleEvent: function(event) {
-                var target = event.target;
-                switch (target.id) {
-                    case 'add_layer':
-                    this.engine.onAddLayerClick();
-                    break;
-                    case 'delete_layer':
-                    this.engine.onDeleteLayerClick();
-                    break;
-                    case 'add_points_button':
-                    this.engine.onAddPointsClick();
-                    break;
-                    case 'add_range_button':
-                    this.engine.onAddRangeClick();
-                    break;
-                    case 'gbif_points_search':
-                    this.engine.onSearchPointsClick();
-                    break;
-                }
-                event.stopPropagation();
-            },
             
             /**
-             * Attaches the MapControlWidget to the Google map.
+             * Builds a widget based on type that gets overlaid on the Google
+             * map.
              */
-            _attachToMap: function() {
-                var map = this._config.map,
-                    position = google.maps.ControlPosition.TOP_RIGHT,
-                    element = this.getElement();
-                this._mapDiv.prepend(element);
-                map.controls[position].push(this._mapDiv[0]);
-            },
-
-            /**
-             * Toggles the Add Layer UI based on the 'visible' parameter.
-             */
-            _toggleAddLayerUi: function(visible) {
-                this._buildAddLayerUi();
-                if (visible) {
-                    this._list.prepend(this._addLayerUi);
-                } else {
-                    this._addLayerUi.remove();
-                }
-            },
-            
-            /**
-             * Toggles the Add Point UI based on the 'visible' parameter.
-             */
-            _toggleAddPointsUi: function(visible) {          
-                this._buildAddPointsUi();
-                if (visible) {
-                    this._list.prepend(this._addPointsUi);
-                } else {
-                    this._addPointsUi.remove();
-                }
-            }
-        });
-
-// =============================================================================
-// Modules: UI - MapControlEngine
-
-    /**
-     * The MapControlEngine encapsulates and drives a MapControlView. It provides
-     * a public interface for handling UI events that are delivered by the view.
-     * Based on the event, it updates the view to do stuff.
-     * 
-     * @constructor
-     */
-    env.ui.MapControlEngine = Class.extend( 
-        {
-            init: function(api, bus, view, map) {
-                this._api = api;
-                this._bus = bus;
-                this._view = view;
-                this._map = map;
-                this._view.setEngine(this);
-                this._layers = {};
-                this._model = null;
-            },
-
-            // -----------------------------------------------------------------
-            // Public methods:
-
-            onAddLayerClick: function() {
-                this._view.showAddLayerUi();
-                this._model = null;
-            },
-
-            onDeleteLayerClick: function() {
-                env.log.warn('Not implemented yet');
-            },
-
-            onAddPointsClick: function() {
-                this._model = {type: 'points', source: 'gbif'};
-                this._view.hideAddLayerUi();
-                this._view.showAddPointsUi();
-            },
-
-            onAddRangeClick: function() {
-                this._model = {type: 'range', source:'mol'};
-                this._view.hideAddLayerUi();
-                this._view.showAddRangeUi();
-            },
-            
-            onSearchPointsClick: function() {
-                var type = this._model.type,
-                    source = this._model.source,
-                    name = this._view.getPointSearchText(),
-                    layer = this._createLayer(type, source, name);
-                this._view.hideAddPointsUi();
-                this._view.addLayerView(layer.getView(), layer.getId());
-                layer.load();
-            },
-            
-            onLayerInfoClick: function(layerId) {
-                env.log.warn('Not implemented yet');
-            },
-
-            onLayerSourceClick: function(layerId) {
-                env.log.warn('Not implemented yet');
-            },
-
-            onLayerSelected: function(layerId) {
-                env.log.warn('Not implemented yet');
-            },
-
-            onLayerChecked: function(layerId) {
-                env.log.warn('Not implemented yet');
-            },
-
-            // -----------------------------------------------------------------
-            // Private methods:
-
-            _createLayer: function(type, source, name) {
-                var model = {
-                    type: type,
-                    source: source,
-                    name: name
-                };
-                return new env.ui.Layer(this._api, this._bus, this._map, model);
-            }
-        });
-
-
-    // =========================================================================
-    // Modules: UI - Layer
-    
-    env.ui.Layer = Class.extend(
-        {
-            init: function(api, bus, map, model) {                
-                this._api = api;
-                this._bus = bus;
-                this._map = map;
-                this._model = model;
-                this._id = this._buildId(),
-                this._view = new env.ui.LayerView(this._viewConfig());
-                switch (model.type) {
-                    case 'points':
-                    this._engine = new env.ui.PointsLayerEngine(this._engineConfig());
-                    break;
-                    case 'range':
-                    this._engine = new env.ui.RangeLayerEngine(this._engineConfig());
-                    break;
-                }
-            },
-            
-            // -----------------------------------------------------------------
-            // Public methods:
-
-            load: function() {
-                this._engine.load();
-            },
-
-            getId: function() {
-                return this._id;                
-            },
-
-            getView: function() {
-                return this._view;
-            },
-
-            // -----------------------------------------------------------------
-            // Private methods:
-
-            _engineConfig: function() {
-                return {
-                    id: this._id,
-                    model: this._model,
-                    api: this._api,
-                    bus: this._bus,
-                    view: this._view,
-                    map: this._map
-                };                
-            },
-
-            _viewConfig: function() {
-                return {
-                    id: this._id,
-                    model: this._model,
-                    map: this._map,
-                    text: {
-                        errorTitle: 'Layer Error',
-                        errorSource: 'Error Source',
-                        errorDetails: 'Error Details',
-                        infoTitle: 'Layer Info',
-                        infoSource: 'Info Source',
-                        infoDetails: 'Info Details',
-                        sourceTitle: 'Layer Source',
-                        sourceSource: 'Source Source',
-                        sourceDetails: 'Source Details'
-                    }
-                };
-            },
-
-            _buildId: function() {
-                var type = this._model.type,
-                    source = this._model.source,
-                    name = this._model.name;
-                if (this.id) {
-                    return this.id;                    
-                }
-                this.id = [type, source, name.split(' ').join('_')].join('_');
-                return this.id;
-            }
-        }
-    );
-
-    // =========================================================================
-    // Modules: UI - LayerView
-
-    env.ui.LayerView = env.ui.View.extend( 
-        {
-            init: function(config) {
-                var element = $("<div>")
-                    .attr({"id":config.id,"class":"layer list"});
-                this._super(element);
-                this._config = config;
-                this._map = config.map;
-                this._engine = null;
-                this._initUiElements();
-                this._buildUi();
-            },
-
-            // -----------------------------------------------------------------
-            // Public methods:
-            
-            setEngine: function(engine) {
-                this._engine = engine;
-            },
-
-            showInfoWidget: function(fade, ms) {
-                this._buildWidget('info');
-                this._addToMap(this._infoWidget, fade, ms);
-            },
-
-            hideInfoWidget: function() {
-                this._infoWidget.remove();
-            },
-
-            showSourceWidget: function(fade, ms) {
-                this._buildWidget('source');
-                this._addToMap(this._sourceWidget, fade, ms);
-            },
-
-            hideSourceWidget: function() {
-                this._sourceWidget.remove();
-            },
-
-            showErrorWidget: function(fade, ms) {
-                this._buildWidget('error');
-                this._addToMap(this._errorWidget, fade, ms);
-            },
-
-            hideErrorWidget: function() {
-                this._errorWidget.remove();
-            },
-
-            showLoadingImage: function() {
-                this._loader.show();                
-            },
-            
-            hideLoadingImage: function() {
-                this._loader.hide();
-            },
-
-            showErrorButton: function() {
-                this._error.show();
-            },
-            
-            hideErrorButton: function() {
-                this._error.hide();
-            },
-
-            showInfoButton: function() {
-                this._info.show();
-            },
-            
-            hideInfoButton: function() {
-                this._info.hide();
-            },
-
-            showSourceButton: function() {
-                this._src.show();
-            },
-            
-            hideSourceButton: function() {
-                this._src.hide();
-            },
-
-            setRadio: function(selected) {
-                env.log.warn('Not implemented yet');
-            },
-
-            setChecked: function(checked) {
-                this._toggle.attr('checked', checked);
-            },
-
-            enableChecked: function(enabled) {
-                this._toggle.attr('enabled', enabled);
-            },
-
-            isChecked: function() {
-                return this._toggle.attr('checked');
-            },
-
-            // -----------------------------------------------------------------
-            // Private methods:
-            
-            /**
-             * Initializes all the UI elements for this view.
-             */
-            _initUiElements: function() {
-                // Div on the map for showing layer info widget:
-                this._mapDiv = $('<div>')
-                    .attr({'id': 'info-controller'});
-
-                // Elements displayed in this._mapDiv:
-                this._infoWidget = null;
-                this._errorWidget = null;
-                this._sourceWidget = null;
-                
-                // The radio button the selects the layer:
-                this._radio = $('<input>')
-                    .attr({"type":"radio",
-                           "name":"active-layer",
-                           "value":"points"});
-
-                // The left container for the radio button:
-                this._leftCol = $('<div>')
-                    .attr({"class":"leftCol"});
-                
-                // Span that contains the layer name:
-                this._title = $('<span>')
-                    .attr({"class":"title"});
-                
-
-                // Checkbox for showing/hiding the layer on the map:
-                this._toggle = $('<input>')
-                    .attr({"class":"view-toggle",
-                           "type":"checkbox",
-                           "checked":true,
-                           "id": "layer-checkbox"});
-                
-                // The loading gif widget:
-                this._loader = $('<img>')
-                    .attr({"src":"/static/loading-small.gif",
-                           "class":"loading"});
-                
-                // The layer info button:
-                this._info = $('<button>')
-                    .attr({"id": "layer-info",
-                           "class":"info"});
-
-                // The Error info button:
-                this._error = $('<button>')
-                    .attr({"id": "layer-error",
-                           "class":"error"});
-
-                // Button for the layer source:
-                this._src = $('<button>')
-                    .attr({"class":"source",
-                           "id": "layer-source"});
-            },
-
-            _buildUi: function() {
-                var nameText = this._config.model.name,
-                    typeText = this._config.model.type,
-                    sourceText = this._config.model.source,
-                    errorText = '!',
-                    infoText = 'i',
-                    infoPosition = google.maps.ControlPosition.LEFT_BOTTOM,
-                    element = this.getElement(),
-                    self = this;
-                // Attaches this.mapDiv to the Google map:              
-                this._map.controls[infoPosition].push(this._mapDiv[0]);
-                // Combines elements:
-                this._leftCol.append(this._radio);
-                this._title.html(nameText);
-                this._src.html(sourceText);
-                this._info.html(infoText);
-                this._error.html(errorText);
-                element
-                    .prepend(this._title)
-                    .prepend(this._toggle)
-                    .prepend(this._loader)
-                    .prepend(this._error)
-                    .prepend(this._info)
-                    .prepend(this._src)
-                    .prepend(this._leftCol);
-                // Delegates events for efficiency:
-                element.delegate(
-                    '.view-toggle, .source, .info, .error', 'click', 
-                    function(event) {
-                        self._handleEvent(event);
-                    }
-                );
-            },
-            
             _buildWidget: function(type) {
                 var titleText = null,
                     sourceText = null,
@@ -954,6 +992,48 @@ MOL.modules.ui = function(env) {
                 el.append(titleWidget).append(srcWidget).append(detailsWidget);
             },
 
+            /**
+             * Toggles the Control UI based on the 'visible' parameter.
+             */
+            _toggleControlUi: function(visible) {
+                var element = this.getElement();
+                element.empty();
+                this._buildControlUi();
+                if (visible) {
+                    element.prepend(this._controlUi);
+                } else {
+                    this._controlUi.remove();
+                }
+            },
+
+            /**
+             * Toggles the Add Layer UI based on the 'visible' parameter.
+             */
+            _toggleAddLayerUi: function(visible) {
+                var element = this.getElement();
+                element.empty();
+                this._buildAddLayerUi();
+                if (visible) {
+                    element.append(this._addLayerUi);
+                } else {
+                    this._addLayerUi.remove();
+                }
+            },
+            
+            /**
+             * Toggles the Add Point UI based on the 'visible' parameter.
+             */
+            _toggleAddPointsUi: function(visible) {          
+                var element = this.getElement();
+                element.empty();
+                this._buildAddPointsUi();
+                if (visible) {
+                    element.prepend(this._addPointsUi);
+                } else {
+                    this._addPointsUi.remove();
+                }
+            },
+
             _addToMap: function(element, fade, ms) {
                 this._mapDiv.prepend(element[0]);
                 setTimeout(
@@ -970,14 +1050,20 @@ MOL.modules.ui = function(env) {
             },
 
             /**
-             * For efficiency, all UI events associated with a LayerWidget
-             * are delegated to this function which in turn delegates down to 
-             * the engine for processing. Note that all event propogation is
-             * stopped here.
+             * Handles the event by dispatching it down to the engine.
              */
             _handleEvent: function(event) {
                 var target = event.target;
                 switch (target.id) {
+                    case 'add_points_button':
+                    this._engine.onAddPointsClick();
+                    break;
+                    case 'add_range_button':
+                    this._engine.onAddRangeClick();
+                    break;
+                    case 'gbif_points_search':
+                    this._engine.onSearchPointsClick();
+                    break;
                     case 'layer-radio':
                     this._engine.onRadioClick();
                     break;
@@ -1000,19 +1086,32 @@ MOL.modules.ui = function(env) {
         
     // =========================================================================
     // Modules: UI - LayerEngine
-
+    
+    /**
+     * The LayerEngine controls a LayerView. It is designed to be subclasses for
+     * type specific engines (PointsLayerEngine, RangeLayerEngine).
+     */
     env.ui.LayerEngine = Class.extend(
         {
             init: function(config) {
+                var self = this;
                 this._api = config.api;
                 this._bus = config.bus;
-                this._view = config.view;                
                 this._map = config.map;
                 this._model = config.model;
-                this._id = config.id;
+                this._view = config.view;                
                 this._view.setEngine(this);
+                switch (this._model.type) {
+                    case 'points':
+                    this._view.showAddPointsUi();
+                    break;
+                    case 'range':
+                    this._view.showAddRangeUi();
+                    break;
+                }
                 this._view.setChecked(false);
                 this._view.enableChecked(false);
+                this._view.enableRadio(false);
                 this._view.hideInfoButton();
                 this._view.showSourceButton();
                 this._view.hideErrorButton();
@@ -1030,9 +1129,41 @@ MOL.modules.ui = function(env) {
             onCheckboxClick: function() {
                 throw 'NotImplementedError';
             },
+            
+            getId: function() {
+                throw 'NotImplementedError';
+            },
+
+            stop: function() {
+                throw 'NotImplementedError';                  
+            },
 
             // -----------------------------------------------------------------
             // Public methods:
+            
+            onRadioClick: function() {
+                var layerId = this.getId();                    
+                if (!layerId) {
+                    env.log.warn('Selected layer with null id');
+                    return;
+                }
+                this._bus.trigger(env.events.LAYER_SELECTED, layerId);
+            },
+
+            onSearchPointsClick: function() {
+                this._model.name = this._view.getPointSearchText();
+                this._model.id = this.getId();
+                this._view.setModel(this._model);
+                this._view.hideAddPointsUi();
+                this._view.showControlUi();
+                this._view.setChecked(false);
+                this._view.enableChecked(false);
+                this._view.hideInfoButton();
+                this._view.showSourceButton();
+                this._view.hideErrorButton();
+                this._view.showLoadingImage();
+                this.load();
+            },
 
             onErrorButtonClick: function() {
                 this._view.showErrorWidget('slow', 8000);
@@ -1048,21 +1179,33 @@ MOL.modules.ui = function(env) {
         }
     );
 
+    // =========================================================================
+    // Modules: UI - RangeLayerEngine
+
     /**
-     * A LayerEngine for range maps.
+     * A range map LayerEngine.
      * 
-     * @constuctor
+     * @constructor
      * @subclasses LayerEngine
      */
     env.ui.RangeLayerEngine = env.ui.LayerEngine.extend(
         {
             init: function(config) {
                 this._super(config);
+                this._id = null;
             },
 
             // -----------------------------------------------------------------
             // Public methods:
 
+            /**
+             * @override LayerEngine.stop()
+             */
+            stop: function() {
+                this._view.remove();
+                this._layerManager.cleanup();
+            },
+            
             /**
              * 
              * @override LayerEngine.load
@@ -1094,7 +1237,7 @@ MOL.modules.ui = function(env) {
 
             /**
              * 
-             * @override PointsLayer.onCheckboxClick
+             * @override LayerEngine.onCheckboxClick
              */
             onCheckboxClick: function() {
                 var checked = this._view.isChecked();
@@ -1103,6 +1246,10 @@ MOL.modules.ui = function(env) {
                 } else {
                     this._layerManager.hide();
                 }
+            },
+
+            getId: function() {
+                return this._buildId();
             },
 
             // -----------------------------------------------------------------
@@ -1119,13 +1266,26 @@ MOL.modules.ui = function(env) {
                     data: this._data,
                     speciesKey: speciesKey
                 };
+            },
+
+            _buildId: function() {
+                var type = this._model.type,
+                    source = this._model.source,
+                    name = this._model.name;
+                if (this._id) {
+                    return this._id;                    
+                }
+                this.id = [type, source, name.split(' ').join('_')].join('_');
+                return this.id;
             }
         }
     );
 
+    // =========================================================================
+    // Modules: UI - PointsLayerEngine
 
     /**
-     * A LayerEngine for points.
+     * A points LayerEngine.
      * 
      * @constructor 
      * @subclasses LayerEngine
@@ -1134,10 +1294,23 @@ MOL.modules.ui = function(env) {
         {
             init: function(config) {
                 this._super(config);
+                this._id = null;
             },
 
             // -----------------------------------------------------------------
             // Public methods:
+
+            getId: function() {
+                return this._buildId();
+            },
+            
+            /**
+             * @override LayerEngine.stop()
+             */
+            stop: function() {
+                this._view.remove();
+                this._layerManager.cleanup();
+            },
 
             /**
              * 
@@ -1212,9 +1385,24 @@ MOL.modules.ui = function(env) {
                     bus: this._bus,
                     data: this._data
                 };
+            },
+
+            _buildId: function() {
+                var type = this._model.type,
+                    source = this._model.source,
+                    name = this._model.name;
+                if (this.id) {
+                    return this.id;                    
+                }
+                this.id = [type, source, name.split(' ').join('_')].join('_');
+                return this.id;
             }
+
         }
     );
+
+    // =========================================================================
+    // Modules: UI - LayerManager
     
     /**
      * The LayerManager is responsible for managing the underlying data on the map.
@@ -1247,10 +1435,18 @@ MOL.modules.ui = function(env) {
 
             isVisible: function() {
                 throw 'NotImplementedError';
+            },
+
+            cleanup: function() {
+                throw 'NotImplementedError';
             }
+
         }
 
     );
+
+    // =========================================================================
+    // Modules: UI - RangeLayerManager
     
     env.ui.RangeLayerManager = env.ui.LayerManager.extend(
         {
@@ -1263,6 +1459,10 @@ MOL.modules.ui = function(env) {
 
             // -----------------------------------------------------------------
             // Public methods:
+
+            cleanup: function() {
+                this.hide();
+            },
             
             load: function() {
                 this._load();                
@@ -1353,8 +1553,11 @@ MOL.modules.ui = function(env) {
         }
     );
 
+    // =========================================================================
+    // Modules: UI - PointsLayerManager
+
     /**
-     * A LayerManager for managing points on a Google map.
+     * A points LayerManager for managing points on a Google map.
      *
      * @constructor  
      * @subclasses LayerManager
@@ -1369,6 +1572,10 @@ MOL.modules.ui = function(env) {
 
             // -----------------------------------------------------------------
             // Public methods:
+            
+            cleanup: function() {
+                this.hide();
+            },
 
             load: function() {
                 this._load();                
