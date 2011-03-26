@@ -11,8 +11,10 @@
     <!-- All this JS will be compiled down to a single source in production -->
     <script src="../../../js/lib/jquery-1.5.1.min.js"></script> 
     <script src="../../../js/lib/jquery-ui-1.8.10.custom.min.js"></script> 
-    <script src="../../../js/mol/class.js"></script>
-    <script src="../../../js/mol/mol.sandbox.js?4"></script>
+    <script src="../../../js/lib/underscore-min.js"></script>    
+    <script src="../../../js/lib/backbone-min.js"></script> 
+    <script src="../../../js/lib/class.js"></script>
+    <script src="../../../js/mol.js"></script>
 
     <meta charset="utf-8" /> 
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
@@ -40,26 +42,12 @@
     <meta name="keywords" content="map, map of life, biology, range map, expert map" /> 
   </head>
   <body>
-    <div id="content"></div>
-    <div id="map"></div>
-    <div id="tester"></div>
 	<script type="text/javascript">
         $(document).ready(function() {   
-            MOL('ui', 'log', 'events', 'ajax', function(env) {
-                env.log.enabled = true;
-                var api = new env.ajax.Api();
-                var bus = new env.events.Bus();
-                var mapOptions = {
-                    zoom: 2,
-                    maxZoom: 15,
-                    mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
-                    center: new google.maps.LatLng(0,0),
-                    mapTypeId: google.maps.MapTypeId.TERRAIN
-                };
-                var map = new google.maps.Map($('#map')[0], mapOptions);
-                var mapControl = new env.ui.MapControl(api, bus, map);
-                env.log.info('MOL app initialized');
-            });         
+            <!-- MOL(function(env) { -->
+            <!--    var app = new env.app.Instance({logging: true}); -->
+            <!--    app.run(); -->
+            <!-- }); -->                     
         });
     </script>
   </body>  

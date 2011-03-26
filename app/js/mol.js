@@ -1,250 +1,822 @@
-var MOL = MOL || {};
+/**
+ * This is the global MOL constructor for creating a sandbox environment composed
+ * of modules. Everything that happens within this constructor is protected from
+ * leaking into the global scope.
+ * 
+ */
+function MOL() {
+    var args = Array.prototype.slice.call(arguments),
+        callback = args.pop(),
+        modules = (args[0] && typeof args[0] === "string") ? args : args[0],
+        i;
+    if (!(this instanceof MOL)) {
+        return new MOL(modules, callback);
+    }
+    if (!modules || modules === '*') {
+        modules = [];
+        for (i in MOL.modules) {
+            if (MOL.modules.hasOwnProperty(i)) {
+                modules.push(i);
+            }
+        }
+    }
+    for (i = 0; i < modules.length; i += 1) {
+        MOL.modules[modules[i]](this);
+    }
+    callback(this);
+    return this;
+};
 
-MOL.init = function () {  
+MOL.modules = {};
+
+/**
+ * Logging module that writes log messages to the console and to the Speed 
+ * Tracer API. It contains convenience methods for info(), warn(), error(),
+ * and todo().
+ * 
+ */
+MOL.modules.log = function(mol) {    
+    mol.log = {};
+
+    mol.log.info = function(msg) {
+        mol.log._write('INFO: ' + msg);
+    };
+
+    mol.log.warn = function(msg) {
+        mol.log._write('WARN: ' + msg);
+    };
+
+    mol.log.error = function(msg) {
+        mol.log._write('ERROR: ' + msg);
+    };
+
+    mol.log.todo = function(msg) {
+        mol.log._write('TODO: '+ msg);
+    };
+
+    mol.log._write = function(msg) {
+        var logger = window.console;
+        if (mol.log.enabled) {
+            if (logger && logger.markTimeline) {
+                logger.markTimeline(msg);
+            }
+            console.log(msg);
+        }
+    };
+};
+
+/**
+ * AJAX module for communicating with the server. Contains an Api object that 
+ * can be used to execute requests paired with success and failure callbacks.
+ */
+MOL.modules.ajax = function(mol) {
+    mol.ajax = {};
+
+    mol.ajax.Api = Class.extend(
+        {
+            init: function(bus) {
+                this._bus = bus;
+            },
+
+            execute: function(request, success, failure) {
+                var xhr = null,
+                    self = this;
+                switch (request.action) {
+                case 'load-layer':
+                    this._loadLayer(request, success, failure);
+                    return;
+                case 'search':
+                    xhr = $.post('/api/taxonomy', request.params, 'json');
+                    break;                    
+                case 'rangemap-metadata':
+                    xhr = $.post('/api/tile/metadata/'+ request.params.speciesKey);
+                    break;                    
+                case 'gbif-points':
+                    xhr = $.post('/api/points/gbif/'+ request.params.speciesKey);
+                }
+                if (xhr) {
+                    xhr.success(success);
+                    xhr.error(failure);
+                } else {
+                    failure('Bad request', request);
+                }
+            },
+            
+            _loadLayer: function(request, success, failure) {
+                var layer = request.layer,
+                    name = layer.getName().toLowerCase(),
+                    type = layer.getType().toLowerCase(),
+                    source = layer.getSource().toLowerCase(),
+                    speciesKey = 'animalia/species/' + name.replace(' ', '_'),
+                    xhr = null,
+                    self = this;
+                switch (type) {
+                case 'points':
+                    switch (source) {
+                    case 'gbif':
+                        xhr = $.post('/api/points/gbif/'+ speciesKey);                        
+                        xhr.success(
+                            function(json) {
+                                success(json);
+                                self._bus.trigger(
+                                    mol.events.NEW_LAYER,
+                                    new mol.model.Layer(type, source, name, json)
+                                );
+                            }
+                        );
+                        xhr.error(failure);
+                        break;
+                    case 'vertnet':
+                        break;
+                    }
+                    break;
+                case 'range':
+                    break;
+                }                
+                return null;
+            }
+        }
+    );    
+};
+
+/**
+ * Events module for working with application events. Contains a Bus object that
+ * is used to bind event handlers and to trigger events.
+ */
+MOL.modules.events = function(mol) {
+    mol.events = {};
+
+    // Event types:
+    mol.events.ADD_MAP_CONTROL = 'add_map_control';
+    mol.events.LAYER_CONTROL_ADD_LAYER = 'layer_control_add_layer';
+    mol.events.LAYER_CONTROL_DELETE_LAYER = 'layer_control_delete_layer';
+    mol.events.NEW_LAYER = 'new_layer';
+    mol.events.DELETE_LAYER = 'delete_layer';
+    
+    // Ripped from Backbone.js Events:
+    mol.events.Bus = Class.extend(
+        {
+            bind : function(ev, callback) {
+                var calls = this._callbacks || (this._callbacks = {});
+                var list  = this._callbacks[ev] || (this._callbacks[ev] = []);
+                list.push(callback);
+                return this;
+            },
+            
+            unbind : function(ev, callback) {
+                var calls;
+                if (!ev) {
+                    this._callbacks = {};
+                } else if ((calls = this._callbacks)) {
+                    if (!callback) {
+                        calls[ev] = [];
+                    } else {
+                        var list = calls[ev];
+                        if (!list) return this;
+                        for (var i = 0, l = list.length; i < l; i++) {
+                            if (callback === list[i]) {
+                                list.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+                }
+                return this;
+            },
+            
+            trigger : function(ev) {
+                var list, calls, i, l;
+                if (!(calls = this._callbacks)) return this;
+                if (calls[ev]) {
+                    list = calls[ev].slice(0);
+                    for (i = 0, l = list.length; i < l; i++) {
+                        list[i].apply(this, Array.prototype.slice.call(arguments, 1));
+                    }
+                }
+                if (calls['all']) {
+                    list = calls['all'].slice(0);
+                    for (i = 0, l = list.length; i < l; i++) {
+                        list[i].apply(this, arguments);
+                    }
+                }
+                return this;
+            }
+        }    
+    );
+};
+
+/**
+ * Exceptions module for handling exceptions.
+ */
+MOL.modules.exceptions = function(mol) {
+    mol.exceptions = {};
+    mol.exceptions.NotImplementedError = 'NotImplementedError';
+};
+
+/**
+ * App module for running the app with a given configuration.
+ */
+MOL.modules.app = function(mol) {
+
+    mol.app = {};
+
+    mol.app.Instance = Class.extend(
+        {
+            init: function(config) {
+                mol.log.enabled = config.logging;
+                this._control = new mol.location.Control(config);
+                Backbone.history.start();
+            },
+
+            run: function() {
+                mol.log.todo('App is now running');
+            }
+        }
+    );
+};
+
+/**
+ * Location module for handling browser history and routing. Contains a Control
+ * object used to initialize and start application ui modules and dispatch 
+ * browser location changes.
+ */
+MOL.modules.location = function(mol) {
+    mol.location = {};
+
+    mol.location.Control = Backbone.Controller.extend(
+        {
+            initialize: function(config) {
+                this._bus = config.bus || new mol.events.Bus();
+                this._api = config.api || new mol.ajax.Api(this._bus);
+                this._container = $('body');
+                this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
+                this._mapEngine.start(this._container);
+                this._layerControlEngine = new mol.ui.LayerControl.Engine(this._api, this._bus);
+                this._layerControlEngine.start(this._container);
+            },
+            
+            routes: {
+                ":sandbox": "map"
+            },
+            
+            map: function(query) {
+                this._mapEngine.go('place');
+                this._layerControlEngine.go('place');
+            }
+        }
+    );
+};
+
+
+/**
+ * Model module.
+ */
+MOL.modules.model = function(mol) {
+  
+    mol.model = {};
 
     /**
-     * Event bus.
+     * The layer model.
      */
-    MOL.EventBus = function() {
-        if (!(this instanceof MOL.EventBus)) {
-            return new MOL.EventBus();
-        }
-        _.extend(this, Backbone.Events);
-        return this;
-    };
-    
-    
-    var Map = function( ) {
-        var _self = this;
-        var layers = [];
-        //TODO: Event bus listener to call _self.addController for new controllers
+    mol.model.Layer = Class.extend(
+        {
+            init: function(type, source, name, json) {
+                this._type = type;
+                this._source = source;
+                this._name = name;
+                this._json = json;
+                this._buildId();
+            },
+            
+            getType: function() {
+                return this._type;                
+            },
 
-        _self.addController = function(divId,position){   
-            //var overlayDiv = document.getElementById(divId);
-            _self.map.controls[position].push(divId[0]);
-        };
-        
-        return {
-            init: function(context) {
-                _self.context = context;
-                _self.center = new google.maps.LatLng(0,0);            
-                _self.options = {
+            getSource: function() {
+                return this._source;
+            },
+            
+            getName: function() {
+                return this._name;                
+            },
+            
+            getId: function() {
+                return this._id;                
+            },
+                             
+            _buildId: function() {
+                var type = this._type,
+                    source = this._source,
+                    name = this._name;
+                if (this._id) {
+                    return this._id;                    
+                }
+                this._id = [type, source, name.split(' ').join('_')].join('_');
+                return this._id;
+            }
+        }
+    );
+};
+
+/**
+ * UI module.
+ */
+MOL.modules.ui = function(mol) {
+    
+    mol.ui = {};
+    
+    /**
+     * Interface for UI Engine classes.
+     */
+    mol.ui.Engine = Class.extend(
+        {
+            /**
+             * Starts the engine and provides a container for its display.
+             * 
+             * @param container the container for the engine display 
+             */
+            start: function(container) {
+                throw mol.exceptions.NotImplementedError;
+            },
+            
+            /**
+             * Gives the engine a new place to go based on a browser history
+             * change.
+             * 
+             * @param place the place to go
+             */
+            go: function(place) {
+                throw mol.exceptions.NotImplementedError;
+            }
+        }
+    );
+
+    /**
+     * Base class for DOM elements.
+     */
+    mol.ui.Element = Class.extend(
+        {
+            init: function(element) {
+                this._element = element;
+            },
+            
+            getElement: function() {
+                return this._element;
+            },
+            
+            remove: function() {
+                this._element.remove();
+            }
+        }
+    );
+
+    /**
+     * Base class for Displays.
+     */
+    mol.ui.Display = mol.ui.Element.extend(
+        {
+            init: function(element) {
+                this._super(element);
+            },
+            
+            /**
+             * Sets the engine for this display.
+             * 
+             * @param engine a mol.ui.Engine subclass
+             */
+            setEngine: function(engine) {
+                this._engine = engine;
+            }
+        }
+    );
+};
+
+/**
+ * Map module that wraps a Google Map and gives it the ability to handle app 
+ * level events and perform AJAX calls to the server.
+ * 
+ * Event binding:
+ *     ADD_MAP_CONTROL - Adds a control to the map.
+ *     ADD_LAYER - Displays the layer on the map.
+ * 
+ * Event triggering:
+ *     None
+ */
+MOL.modules.Map = function(mol) { 
+    
+    mol.ui.Map = {};
+    
+    /**
+     * The Map Engine.
+     */
+    mol.ui.Map.Engine = mol.ui.Engine.extend(
+        {
+            /**
+             * Constucts a new Map Engine.
+             *
+             * @param api the mol.ajax.Api for server communication
+             * @param bus the mol.events.Bus for event handling 
+             * @constructor
+             */
+            init: function(api, bus) {
+                this._api = api;
+                this._bus = bus;  
+                this._overlays = {};
+                this._bindEvents();
+            },            
+            
+            /**
+             * Starts the engine and provides a container for its display.
+             * 
+             * @param container the container for the engine display 
+             * @override mol.ui.Engine.start
+             */
+            start: function(container) {
+                var display = new mol.ui.Map.Display();
+                display.setEngine(this);
+                container.append(display.getElement());
+                this._display = display;
+            },
+
+            /**
+             * Gives the engine a new place to go based on a browser history
+             * change.
+             * 
+             * @param place the place to go
+             * @override mol.ui.Engine.go
+             */
+            go: function(place) {
+                mol.log.info('Map.Engine handling browser history change');
+            },
+
+            /**
+             * Private function for binding event handles to the Bus.
+             */
+            _bindEvents: function() {
+                var self = this;
+                this._bus.bind(
+                    mol.events.ADD_MAP_CONTROL,
+                    function(control, position) {
+                        self._display.getMapControls()[position].push(control[0]);
+                    }
+                ); 
+                this._bus.bind(
+                    mol.events.NEW_LAYER,
+                    function(layer) {
+                        self._displayLayer(layer);
+                    }
+                );
+                this._bus.bind(
+                    mol.events.DELETE_LAYER,
+                    function(layerId) {
+                        self._deleteLayer(layerId);
+                    }
+                );
+            },
+
+            /**
+             * Deletes a layer from the map.
+             * 
+             * @param layerId the id of the layer to delete
+             */
+            _deleteLayer: function(layerId) {
+                var overlays = this._overlays[layerId];
+                for (x in overlays) {
+                    overlays[x].setMap(null);
+                    delete overlays[x];
+                }
+                delete this._overlays[layerId];
+                this._overlays[layerId] = null;
+            },
+
+            /**
+             * Displays the layer on the map.
+             * 
+             * @param the layer to display
+             */
+            _displayLayer: function(layer) {
+                var lid = layer.getId(),
+                    type = layer.getType();
+                if (this._overlays[lid]) {
+                    // Duplicate layer.
+                    return;
+                } 
+                switch (type) {
+                case 'points':
+                    this._displayPoints(layer);
+                    break;
+                case 'range':
+                    this._displayRange(layer);
+                    break;
+                }
+            },
+            
+            /**
+             * Private function that displays a points layer on the map.
+             * 
+             * @param layer the points layer to display
+             */
+            _displayPoints: function(layer) {
+                var lid = layer.getId(),
+                    center = null,
+                    marker = null,
+                    circle = null,
+                    coordinate = null,
+                    resources = [],
+                    occurrences = [],
+                    data = layer._json;
+                this._overlays[lid] = [];
+                for (p in data.records.providers) {
+                    resources = data.records.providers[p].resources;
+                    for (r in resources) {
+                        occurrences = resources[r].occurrences;
+                        for (o in occurrences) {
+                            coordinate = occurrences[o].coordinates;
+                            marker = this._createMarker(coordinate);
+                            this._overlays[lid].push(marker);                      
+                            circle = this._createCircle(
+                                marker.getPosition(),
+                                coordinate.coordinateUncertaintyInMeters);                            
+                            if (circle) {
+                                this._overlays[lid].push(circle);
+                            }     
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Private function that creates a Google circle object.
+             * 
+             * @param center the center LatLng of the circle
+             * @param coordinateUncertaintyInMeters the circle radius
+             * @return a new Google circle object
+             */
+            _createCircle: function(center, coordinateUncertaintyInMeters) {          
+                if (coordinateUncertaintyInMeters == null) {
+                    return null;
+                }
+                var map = this._display.getMap(),
+                    radius = parseFloat(coordinateUncertaintyInMeters),
+                    opacity = 0.85,
+                    circle = new google.maps.Circle(
+                        {
+                            map: map,
+                            center: center,
+                            radius: radius,
+                            fillColor: '#CEE3F6',
+                            strokeWeight: 1,                                
+                            zIndex: 5
+                        }
+                    );
+                return circle;
+            },
+            
+            /**
+             * Private function that creates a Google marker object.
+             * 
+             * @param coordinate the coordinate longitude and latitude
+             * @return a new Google marker object
+             */
+            _createMarker: function(coordinate) {
+                var map = this._display.getMap(),
+                    lat = parseFloat(coordinate.decimalLatitude),
+                    lng = parseFloat(coordinate.decimalLongitude),
+                    center = new google.maps.LatLng(lat, lng),
+                    marker = new google.maps.Marker(
+                        { 
+                            position: center,
+                            map: map,
+                            icon: 'http://labs.google.com/ridefinder/images/mm_20_red.png'
+                        }
+                    );
+                return marker;
+            }
+        }
+    );
+
+    /**
+     * The Map Display.
+     */
+    mol.ui.Map.Display = mol.ui.Display.extend(
+        {
+            /**
+             * Constructs a new Map Display.
+             * 
+             * @param config the display configuration
+             * @constructor
+             */
+            init: function(config) {
+                var mapOptions = {
                     zoom: 2,
-                    maxZoom: 20,
-                    center: _self.center,
+                    maxZoom: 15,
+                    mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
+                    center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 };
-                var contextDoc = document.getElementById($(context).attr('id'));
-                _self.map = new google.maps.Map(contextDoc, _self.options);
-
-                // Wires up an event handler for 'add-custom-map-controller' events:
-                MOL.eventBus.bind('add-custom-map-controller', 
-                                  function(divId, position) {
-                                      _self.addController(divId, position);
-                                  });
-                MOL.eventBus.bind('add-new-map-layer', 
-                                  function(layer,id) {
-                                      var tmp = _self.layers.reverse;
-                                      tmp.push({'id': id, 'layer': layer});
-                                      _self.layers = tmp.reverse;
-                                  });
-                MOL.eventBus.bind('reorder-map-layers', 
-                                  function(layerOrder) {
-                                      //layerOrder is an ordered list of layerIds
-                                      var tmp = new Array(_self.layers.length);
-                                      var ct = 0;
-                                      for (var i in layerOrder){
-                                          tmp[ct] = layerOrder[i];
-                                          ct++;
-                                      }
-                                      _self.layers = tmp;
-                                  });
-            }
-        };
-    };
-
-    var LayerStackUI = function(){
-        var _self = this;
-            var id,container,layers,menu,list,position,addController;
-            //TODO: add an event bus listener that will look for new Elements to be added to the (#layers #list)
-        return {
-            init: function(context){
-                /* create widget ui framework here */
-                var options = $('<ul>').attr({'class': 'options list'});
-                
-                var addLayer = $('<a>').attr({'id': 'add_layer', 'href':'javascript:'}).html('Add');
-                var deleteLayer = $('<a>').attr({'id': 'delete_layer', 'href':'javascript:'}).html('Delete')
-                             
-                $(deleteLayer).click(function(){
-                    console.log('delete');
-                    var id = $("#layers .layer.list input:checked");
-                    //TODO: Send event bus a delete for this id
-                });
-                $(addLayer).click(function(){
-                    var layer = new Layer();
-                    layer.init();
-                    //TODO: Send an event bus the Add call, which does a new Layer().init() and appends it to the MOL.layers array
-                });
-                
-                $(options).append(
-                    $('<li>').attr({'class':'option list','id':'add'})
-                        .append(addLayer)
-                );
-                $(options).append(
-                    $('<li>').attr({'class':'option list','id':'delete'})
-                        .append(deleteLayer)
-                );
-                
-                
-                _self.menu = $('<div>').attr({'id':'menu'});
-                $(_self.menu).append(options);
-                
-                _self.list = $('<div>').attr({'id':'list'});
-                
-                _self.layers = $('<div>').attr({'id':'layers'});
-                $(_self.layers).append(_self.menu);
-                $(_self.layers).append(_self.list);
-                
-                
-                _self.container = $('<div>').attr({'id':'widget-container'});
-                $(_self.container).append(_self.layers);
-                
-                _self.id = "widget-container";
-                
-                MOL.eventBus.bind('add-new-stackui-layer', 
-                                  function(layerUI) {
-                                      $(_self.list).prepend($(layerUI));
-                                  });
-                                  
-                // Triggers 'add-custom-map-controller' event on the bus:
-                MOL.eventBus.trigger('add-custom-map-controller', 
-                                     _self.container, 
-                                     google.maps.ControlPosition.TOP_RIGHT);               
-                
-            }
-        };
-    };
-
-    var Layer = function(){
-        var _self = this;
-        var Engine, type, source, name, data;
-        var setType = function(type){
-            _self.type = type;
-            switch ( type ) {
-                case "points":
-                    _self.Engine = new Engines().Points();
-                    if (!_self.source){
-                        //for the future when more soruces are available
-                        _self.Engine.setSource('gbif');
-                    } else {
-                        self.Engine.setSource(_self.source);
-                    }
-                    break;
-                case "range":
-                    _self.Engine = new Engines().Range();
-                    if (!_self.source){
-                        //for the future when more soruces are available
-                        _self.Engine.setSource('mol');
-                    } else {
-                        self.Engine.setSource(_self.source);
-                    }
-                    break;
-            }
-        };
-        
-        return {
-            init: function(){
-                /* populate base Layer stuff here */
-                /* create a UI element to ask what type of layer it is with a direct lister */
-                /* Register the UI element in the Event Bus so that the LayerStackUI sees it and appends it to the stack */
-                if (!_self.type){
-                    var dialog = $('<div class="dialog list" id="add_new_layer_dialog">');
-                    var buttonPoints = $('<button>').attr({"id":"add_points_button","class":"dialog_buttons"}).html('Add Points');
-                    
-                    $(dialog).append(buttonPoints);
-                    
-                    var buttonRange = $('<button>').attr({"id":"add_range_button","class":"dialog_buttons"}).html('Add Range Map');
-                    $(dialog).append(buttonRange);
-                    
-                    $(buttonPoints).click(function(){
-                        _self.setType('points');
-                    });
-                    $(buttonRange).click(function(){
-                        _self.setType('range');
-                    });
-                    
-                    MOL.eventBus.trigger('add-new-stackui-layer', 
-                                         dialog); 
-                    
-                } else {
-                    _self.setType(_self.type);
-                }
-            }
-        };
-    };
-    
-    var Engines = function(){
-        return {
-            Points: function(){
-                //populate all methods of the Points engine
-                var _self = this;
-                var type='points';
-                var source, name;
-                return {
-                    setSource: function(source){
-                        switch ( source ) {
-                            case "gbif":
-                                _self.source = source;
-                                if (!_self.name){
-                                    var dialog = $("div");
-                                    $(dialog).append($('<div id="add_points_dialog" class="dialog_button output">Get GBIF Points<input type="search" id="gbif_points_search_box"><a href="javascript:" id="gbif_points_search">Go</a></div>'));
-                                }else{
-                                    _self.setName(_self.name);
-                                }
-                                break;
-                            }
-                        }
-                    };
+                this._id = 'map';
+                this._super($('<div>').attr({'id': this._id}));
+                $('body').append(this.getElement());
+                this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);             
             },
-            Range: function(){
-                //populate all methods of the Range engine
-                var _self = this;
-                var type='range';
-                var source, name;
-                return {
-                    setSource: function(source){
-                        switch ( source ) {
-                            case "mol":
-                                _self.source = source;
-                                if (!_self.name){
-                                    var dialog = $("div");
-                                    $(dialog).append($('<div id="add_range_dialog" class="dialog_button output">Get MOL Range Map<input type="search" id="mol_range_search_box"><a href="javascript:" id="mol_range_search">Go</a></div></div>'));
-                                }else{
-                                    _self.setName(_self.name);
-                                }
-                                break;
-                            }
-                        }
-                    };
-            }
-        };
-    };
-    
-    MOL = {
-		// constructor
-		Viz: function( context ){
-            var _self = this;
-            _self.context = context;
-            _self.mapdiv = $(context);
-            _self.rangemap = new Map();
-            _self.rangemap.init(_self.mapdiv);
-            _self.layerstackui = new LayerStackUI();
-            _self.layerstackui.init(context);
-        },
-        Widget: function(){
-            /*build stuff different here */
-        },
-        eventBus: new MOL.EventBus()
-    };
 
+            /**
+             * Returns the Google map object.
+             */
+            getMap: function() {
+                return this._map;
+            },
+
+            /**
+             * Returns the Google map controls array.
+             */
+            getMapControls: function() {
+                return this._map.controls;
+            }
+        }
+    );
+};
+
+/**
+ * LayerControl module that presents a widget for adding or deleting layers. 
+ * It can handle app level events and perform AJAX calls to the server.
+ * 
+ * Event binding:
+ *     None
+ * 
+ * Event triggering:
+ *     ADD_LAYER - Triggered when the Add widget is clicked
+ *     DELETE_LAYER - Triggered when the Delete widget is clicked
+ */
+MOL.modules.LayerControl = function(mol) {
+
+    mol.ui.LayerControl = {};
+
+    /**
+     * The LayerControl Engine.
+     */
+    mol.ui.LayerControl.Engine = mol.ui.Engine.extend(
+        {
+            /**
+             * Constructs a new engine.
+             * 
+             * @param api the mol.ajax.Api for server communication
+             * @param bus the mol.events.Bus for event handling 
+             * @constructor
+             */
+            init: function(api, bus) {
+                this._api = api;
+                this._bus = bus;
+            },
+
+            /**
+             * Starts the engine and provides a container for its display.
+             * 
+             * @param container the container for the engine display 
+             * @override mol.ui.Engine.start
+             */
+            start: function(container) {
+                var config = this._displayConfig(),
+                    display = new mol.ui.LayerControl.Display(config),
+                    element = display.getElement(),
+                    position = google.maps.ControlPosition.TOP_RIGHT;
+                this._bus.trigger(mol.events.ADD_MAP_CONTROL, element, position);
+                this._bindDisplay(display);
+            },
+            
+            /**
+             * Gives the engine a new place to go based on a browser history
+             * change.
+             * 
+             * @param place the place to go
+             * @override mol.ui.Engine.go
+             */
+            go: function(place) {
+                mol.log.info('LayerControl.Engine handling browser history change');
+            },
+            
+            /**
+             * Private function that binds the display by setting up click
+             * handlers for the 'Add' and 'Delete' buttons.
+             * 
+             * @param display the mol.ui.LayerControl.Display object to bind 
+             */
+            _bindDisplay: function(display) {
+                var self = this;
+                display.setEngine(this);
+                this._display = display;
+                display.getAddWidget().click(
+                    function(event) {
+                        mol.log.info('LayerControl.Engine handling Add click '
+                                     + 'from LayerControl.Display');
+                        self._bus.trigger(mol.events.LAYER_CONTROL_ADD_LAYER);
+                    }
+                );
+                display.getDeleteWidget().click(
+                    function(event) {
+                        mol.log.info('LayerControl.Engine handling Delete click '
+                                     + 'from LayerControl.Display');
+                        self._bus.trigger(mol.events.LAYER_CONTROL_DELETE_LAYER);
+                    }
+                );
+            },
+
+            /**
+             * Private function that returns a configuration object for the 
+             * mol.ui.LayerControl.Display object.
+             */
+            _displayConfig: function() {
+                return {
+                    text: {
+                        addLayer: 'Add',
+                        deleteLayer: 'Delete',
+                        layers: 'Layers'
+                    }
+                };
+            }
+        }
+    );
+    
+    /**
+     * The LayerControl Display.
+     */
+    mol.ui.LayerControl.Display = mol.ui.Display.extend(
+        {
+
+            /**
+             * Constructs a new LayerControl Display.
+             * 
+             * @param config the display configuration
+             * @constructor
+             */            
+            init: function(config) {
+                this._super($('<div>').attr({'id': 'right-controller'}));                    
+                this._config = config;
+                this._build();
+            },
+
+            /**
+             * Public function that returns the 'Add' widget of this display.
+             */
+            getAddWidget: function() {
+                return this._addLayer;
+            },
+
+            /**
+             * Public function that returns the 'Delete' widget of this display.
+             */
+            getDeleteWidget: function() {
+                return this._deleteLayer;
+            },
+
+            /**
+             * Private function that builds the UI and attaches it to the 
+             * root element of the display.
+             */
+            _build: function() {
+                var element = this.getElement(),
+                    addText = this._config.text.addLayer,
+                    deleteText = this._config.text.deleteLayer,
+                    layersText = this._config.text.layers;
+                
+                // Add Layer widget:
+                this._addLayer = $('<a>')
+                    .attr({'id': 'add_layer', 'href':'javascript:'});                                          
+                this._addLayer.html(addText);
+                
+                // Delete Layer widget:
+                this._deleteLayer = $('<a>')
+                    .attr({'id': 'delete_layer', 'href':'javascript:'});                           
+                this._deleteLayer.html(deleteText);
+                
+                // Options widget wraps Add/Delete layer widgets:
+                this._options = $('<ul>')
+                    .attr({'class': 'options list'});                    
+                this._options
+                    .append($('<li>')
+                            .attr({'class':'option list',
+                                   'id':'menuLabel'})
+                            .html(layersText));  
+                this._options
+                    .append($('<li>')
+                            .attr({'class':'option list',
+                                   'id':'delete'})
+                            .append(this._deleteLayer)); 
+                this._options
+                    .append($('<li>')
+                            .attr({'class':'option list',
+                                   'id':'add'})
+                            .append(this._addLayer));               
+
+                // Menu widget wraps Options widget:
+                this._menu = $('<div>')
+                    .attr({'id':'menu'})
+                    .append(this._options);
+
+                // Appends menu to the root element:
+                element.append(this._menu);
+                    
+            }
+        }
+    );
 };

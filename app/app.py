@@ -50,7 +50,7 @@ class BaseHandler(webapp.RequestHandler):
 
 class SandboxHandler(BaseHandler):
     def get(self):
-        self.push_html('mol.sandbox.html')
+        self.push_html('map.html')
 
 class RangeMap(BaseHandler):
     def get(self):

@@ -491,6 +491,10 @@ MOL.modules.ui = function(env) {
              * over command of the view.
              */
             onAddPointsClick: function() {
+                if (this._view.isShowingAddLayerUi()) {
+                    env.log.todo('Implement MapControlView.isShowingAddLayerUi');
+                    return;
+                }
                 this._model = {type: 'points', source: 'gbif'};
                 this._engine = new env.ui.PointsLayerEngine(this._engineConfig());
             },
@@ -541,16 +545,16 @@ MOL.modules.ui = function(env) {
                         addRangeMap: 'Add range map',
                         addPoints: 'Add points',
                         go: 'Go',
-                        pointsFromGbif: 'Points from GBIF',
-                        errorTitle: 'Layer Error',
-                        errorSource: 'Error Source',
-                        errorDetails: 'Error Details',
-                        infoTitle: 'Layer Info',
-                        infoSource: 'Info Source',
-                        infoDetails: 'Info Details',
-                        sourceTitle: 'Layer Source',
-                        sourceSource: 'Source Source',
-                        sourceDetails: 'Source Details'
+                        pointsFromGbif: 'Search for species',
+                        errorTitle: 'Error title...',
+                        errorSource: 'Error summary...',
+                        errorDetails: 'Error details...',
+                        infoTitle: 'Layer title...',
+                        infoSource: 'Layer summary...',
+                        infoDetails: 'Layer details...',
+                        sourceTitle: 'Source title...',
+                        sourceSource: 'Source summary...',
+                        sourceDetails: 'Source details...'
                     }
                 };
             }
@@ -926,7 +930,8 @@ MOL.modules.ui = function(env) {
                     }
                 );            
             },
-            
+ 
+           
             /**
              * Builds a widget based on type that gets overlaid on the Google
              * map.
@@ -962,9 +967,9 @@ MOL.modules.ui = function(env) {
                         .attr({"id":id + '-layer-info',
                                "class":"info"});                    
                     el = this._infoWidget;
-                    titleText = this._config.text.sourceTitle,
-                    sourceText = this._config.text.sourceSource,
-                    detailsText = this._config.text.sourceDetails;
+                    titleText = this._config.text.infoTitle,
+                    sourceText = this._config.text.infoSource,
+                    detailsText = this._config.text.infoDetails;
                     break;
 
                     case 'source': // ..........................................
@@ -1035,6 +1040,7 @@ MOL.modules.ui = function(env) {
             },
 
             _addToMap: function(element, fade, ms) {
+                element.show();
                 this._mapDiv.prepend(element[0]);
                 setTimeout(
                     function() {
