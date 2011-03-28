@@ -623,6 +623,22 @@ MOL.modules.Map = function(mol) {
                 this._bus = bus;  
                 this._overlays = {};
                 this._bindEvents();
+                this._canvasSupport = false;
+                if ( !!document.createElement('canvas').getContext ) {
+                    this._iconHeight = 120;
+                    this._iconWidth = 120;
+                    this._canvasSupport = true;
+                    this._markerCanvas = new mol.ui.Map.MarkerCanvas(this._iconWidth,this._iconHeight);
+                    this._markerContext = this._markerCanvas.getContext();
+                    this._iconLayers = {
+                        background: new Image(),
+                        foreground: new Image(),
+                        error: new Image(),
+                    }
+                    this._iconLayers.background.src = "/static/pm-background.png";
+                    this._iconLayers.foreground.src = "/static/pm-foreground.png";
+                    this._iconLayers.error.src = "/static/pm-error.png";
+                }
             },            
             
             /**
@@ -760,7 +776,25 @@ MOL.modules.Map = function(mol) {
                     coordinate = null,
                     resources = [],
                     occurrences = [],
-                    data = layer._json;
+                    data = layer._json,
+                    icon = new Image(),
+                    iconUrl = null,
+                    iconErrorUrl = null;
+                /*
+                 * add method to set icon source here, using color
+                 */
+                if (_canvasSupport){
+                    this._markerContext.drawImage(this._iconLayers.background, 0, 0, this._iconWidth, this._iconHeight);
+                    this._markerContext.drawImage(icon, 0, 0, this._iconWidth, this._iconHeight);
+                    this._markerContext.drawImage(this._iconLayers.foreground, 0, 0, this._iconWidth, this._iconHeight);
+                    iconUrl = this._markerCanvas.getDataURL();
+                    this._markerContext.drawImage(this._iconLayers.error, 0, 0, this._iconWidth, this._iconHeight);
+                    iconErrorUrl = this._markerCanvas.getDataURL();
+                } else {
+                    iconUrl = icon.src;
+                    iconErrorUrl = icon.src;
+                }
+                    
                 this._overlays[lid] = [];
                 for (p in data.records.providers) {
                     resources = data.records.providers[p].resources;
@@ -869,6 +903,31 @@ MOL.modules.Map = function(mol) {
             }
         }        
     ),
+
+    /**
+     * The top level placemark canvas container
+     */
+    mol.ui.Map.MarkerCanvas = mol.ui.Element.extend(
+        {
+            init: function(width,height) {
+                this._super('<canvas width='+width+' height='+height+'>');
+                this.setStyleName('mol-MarkerCanvas');
+                this._ctx = this.getElement()[0].getContext("2d");
+                /**
+                this._iconBackground.src = "/static/pm-background.png";
+                this._iconForeground.src = "/static/pm-foreground.png";
+                this._iconError.src = "/static/pm-error.png";
+                this._icon = null;
+                */
+            },
+            getContext: function(){
+                return this._ctx;
+            },
+            getDataURL(){
+                return this.getElement()[0].toDataURL("image/png");
+            }
+        }
+    );
     
     /**
      * The Map Display. It's basically a Google map attached to the 'map' div 
@@ -902,7 +961,8 @@ MOL.modules.Map = function(mol) {
                     LAYERS: '#layers'
                 };
             },          
-
+            
+            
             /**
              * Returns the Google map object.
              */
