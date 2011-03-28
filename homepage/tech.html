@@ -19,6 +19,7 @@
                     </p>
                 </div>
                 <div class="links">
+                    <div class="link label">Key external projects</div>
                     <div class="link"><a href="http://iucn.org">IUCN</a></div>
                     <div class="link"><a href="http://gbif.org">GBIF</a></div>
                     <div class="link"><a href="http://earthengine.googlelabs.com">Google Earth Engine</a></div>
@@ -35,6 +36,11 @@
                         Due to this diversity, MOL is built upon several technologies that enable efficient storage and retrieval of data while not sacrificing utility (e.g. spatial operations).  MOL data storage happens across several tiers; Memcache and the Google App Engine datastore, for example, are used for simple, commonly requested data. Data on the back-end is stored in the file directory, on CouchDB, or in a PostgreSQL-PostGIS database depending on the use-cases for each particular data type.
                     </p>
                 </div>
+                <div class="links">
+                    <div class="link label">Key external projects</div>
+                    <div class="link"><a href="http://code.google.com/appengine/">Google App Engine</a></div>
+                    <div class="link"><a href="http://memcached.org">Memcached</a></div>
+                </div>
             </div>
             <div class="subject third">
                 <h2>Scalability</h2>
@@ -42,6 +48,13 @@
                     <p>
                         With comprehensive data for over 10,000 vertebrate species, the MOL technical architecture needs to scale so that it can handle high volume concurrent user requests in a performant way. To achieve this, the architecture uses a hybrid server design that runs both in the cloud and locally. Servers running in the cloud are called the MOL front-end. These servers have been designed to control all aspects of the application. To maximize throughput, it uses an extensive caching mechanism that stores only commonly requested data. It is built on Google App Engine, allowing the user to experience a very fast and responsive application, even during high-traffic periods. During low-traffic periods, the front-end application runs for less than one dollar a day. Servers running locally are called the MOL back-end. These servers are built on hardware currently at the University of Colorado, with a planned mirror at Yale University. The back-end is responsible for persistent data storage and replication, and long running processes required by MOL. The software deployed on the back-end is streamlined to handle data requests proxied from the front-end. A distributed task queue manages these requests which can be launched from web browsers, APIs, and the front-end.
                     </p>
+                </div>
+                <div class="links">
+                    <div class="link label">Key external projects</div>
+                    <div class="link"><a href="http://couchdb.apache.org/">CouchDB</a></div>
+                    <div class="link"><a href="http://postgresql.org">PostgreSQL</a></div>
+                    <div class="link"><a href="http://postgis.refractions.net/">PostGIS</a></div>
+                    <div class="link"><a href="http://gdal.org">GDAL</a></div>
                 </div>
             </div>
             <div class="subject fourth">
@@ -54,6 +67,11 @@
                         Many components of data are better managed by projects outside MOL.For example, the Global Biodiversity Information Facility (GBIF) has a long history of making point occurrence data across numerous international collections accessible across the web. MOL relies on web-services made available by GBIF, which is temporarily cached on the front end server to increase speed and reliability.   The cached data is then displayed in the MOL user-interface.
                     </p>
                 </div>
+                <div class="links">
+                    <div class="link label">Key external projects</div>
+                    <div class="link"><a href="http://celeryproject.org/">Celery</a></div>
+                    <div class="link"><a href="http://mapnik.org/">Mapnik</a></div>
+                </div>
             </div>
             <div class="subject fifth">
                 <h2>Management</h2>
@@ -62,6 +80,11 @@
                         MOL has diverse management challenges, from managing users and user privileges, managing user-provided quality-flags and data, to managing metadata about data sets and processes run for the MOL users. Every aspect of data management relies on those technological solutions outlined above, primarily scalability and delivery. MOL is exposing all data and metadata through a growing set of web-services that support discovery and data access. By doing so, MOL hopes to allow any user or application to utilize the outputs of the MOL project. While MOL is developing a user-interface that is targeted at expert users who can enhance the quality of species range data, the MOL team hopes that numerous positive (often unpredictable) outcomes will arise by encouraging other projects to build upon this set of data and tools.
                     </p>
                 </div>
+                <div class="links">
+                    <div class="link label">Key external projects</div>
+                    <div class="link"><a href="http://openid.net">OpenID</a></div>
+                    <div class="link"><a href="http://json.org">JSON</a></div>
+                </div>
             </div>
             <div class="subject sixth">
                 <h2>User interface</h2>
@@ -69,6 +92,12 @@
                     <p>
                         The MOL web application facilitates data exploration, visualization, and enhancement. The user interface is built using JavaScript, HTML5, and CSS and communicates with the MOL frontend using AJAX. It is highly modular and supports internationalization. While development is in its very early stages, the MOL web application provides an early glimpse at how users will search, add, and manage species layers in a mapping interface. User interface capabilities that support display and integration of more complex data-types are in development.
                     </p>
+                </div>
+                <div class="links">
+                    <div class="link label">Key external projects</div>
+                    <div class="link"><a href="http://jquery.com">jQuery</a></div>
+                    <div class="link"><a href="http://documentcloud.github.com/backbone/">Backbone.js</a></div>
+                    <div class="link"><a href="http://code.google.com/apis/maps/index.html">Google Maps API</a></div>
                 </div>
             </div>
         </div>

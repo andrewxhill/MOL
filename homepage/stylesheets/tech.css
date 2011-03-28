@@ -28,7 +28,7 @@ div#container .link{
     margin-left: 20px;
     -moz-border-radius: 8px;
     border-radius: 8px;
-    background-color: rgb(37,168,222);
+    background-color: rgba(37,168,222,0.8);
     font-size: 0.9em;
     font-weight: bold;
     -moz-box-shadow: 0 0 5px #666;
@@ -41,7 +41,12 @@ div#container .link a{
     color: #212121; 
 }
 div#container .link:hover{
-    background-color: rgba(37,168,222,0.8);
+    background-color: rgba(37,168,222,0.7);
+}
+div#container .link.label{
+    background-color: #212121;
+    color: #bbb;
+    cursor: default;
 }
 
 div#container .subject.first{
