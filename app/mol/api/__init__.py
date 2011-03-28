@@ -33,12 +33,50 @@ import time
 import wsgiref.util
 import StringIO
 from mol.services import TileService
+from mol.services import png
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
-
+def colorPng(img, r, g, b, isObj=False, memKey=None):
+    val = None
+    if memKey is not None:
+        val = memcache.get(memKey)
+    if val is None:
+        if isObj:
+            imt = png.Reader(bytes=img)
+        else:
+            imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
+        logging.error(dir(imt))
+        logging.error(imt)
+        im = imt.read()
+        planes = im[3]['planes']
+        itr = im[2]
+        ar = list(itr)
+        n = len(ar)
+        row = 0
+        
+        while row < n:
+            ct = planes
+            col = len(ar[row])
+            while ct <= col:
+                if ar[row][ct-1]==255:
+                    ar[row][ct-4] = r
+                    ar[row][ct-3] = g
+                    ar[row][ct-2] = b
+                ct+= planes
+            ar[row] = tuple(ar[row])
+            row+=1
+        
+        f = StringIO.StringIO()
+        w = png.Writer(len(ar[0])/planes, len(ar), alpha=True)
+        w.write(f, ar)
+        val = f.getvalue()
+    if memKey is not None:
+        memcache.set(memKey, val, 12000)
+    return val
+    
 class TileSetMetadata(webapp.RequestHandler):
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
@@ -595,10 +633,31 @@ class LayersTileHandler(BaseHandler):
 
         # Checks memcache for tile and returns it if found:
         memcache_key = "tileurl-%s" % tileurl
+        
+        r,g,b = None,None,None
+        try:
+            r = self._param('r')
+            g = self._param('g')
+            b = self._param('b')
+            r,g,b = int(r),int(g),int(b)
+            memcache_key = "tileurl-%s" % tileurl
+            memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+            band = memcache.get(memk)
+            if band is not None:
+                logging.info('Tile memcache hit: ' + memk)
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(band)
+                return
+        except:
+            pass
+            
         band = memcache.get(memcache_key)
         if band is not None:
             logging.info('Tile memcache hit: ' + memcache_key)
             self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(band, r, g, b, isObj=True, memKey=memk)
             self.response.out.write(band)
             return
 
@@ -609,6 +668,9 @@ class LayersTileHandler(BaseHandler):
             logging.info('Tile datastore hit: ' + tile_key_name)
             memcache.set(memcache_key, tile.band, 60)
             self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(tile.band, r, g, b, isObj=True, memKey=memk)
             self.response.out.write(tile.band)
             return
 
@@ -620,6 +682,9 @@ class LayersTileHandler(BaseHandler):
                 band = result.content
                 memcache.set(memcache_key, band, 60)
                 self.response.headers['Content-Type'] = "image/png"
+                if b is not None:
+                    memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                    band = colorPng(band, r, g, b, isObj=True, memKey=memk)
                 self.response.out.write(band)
             else:
                 logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
@@ -737,9 +802,25 @@ class LayersHandler(BaseHandler):
         except (BadArgumentError), e:
             logging.error('Bad PUT request %s: %s' % (species_key_name, e))
             self.error(400) # Bad request
-
+   
+class ColorImage(BaseHandler):
+    """Handler for the search UI."""
+    def get(self,name):
+        
+        r = int(self.request.get('r', 0))
+        g = int(self.request.get('g', 0))
+        b = int(self.request.get('b', 0))
+        memk = "%s/%s/%s/%s" % (name, r, g, b)
+        
+        val = colorPng(name, r, g, b, isObj=False, memKey=memk)
+        
+        # binary PNG data
+        self.response.headers["Content-Type"] = "image/png"
+        self.response.out.write(val)
+       
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
+          ('/api/colorimage/([^/]+)', ColorImage),
           ('/api/findid/([^/]+)/([^/]+)', FindID),
           ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
           ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
