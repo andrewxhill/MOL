@@ -359,7 +359,7 @@ MOL.modules.ColorSetter = function(mol) {
                     mol.events.GET_NEXT_COLOR,
                     function(type, id) {
                         mol.log.info('ColorSetter.Api.handle(GET_NEXT_COLOR) for ' + id);
-                        var color = new mol.core.ColorSetter.Color(1, 2, 3);
+                        var color = new mol.core.ColorSetter.Color(122, 33, 33);
                         mol.log.info('ColorSetter.Api.trigger(NEXT_COLOR) for ' + color.toString());
                         self._bus.trigger(
                             mol.events.NEXT_COLOR,
@@ -665,8 +665,8 @@ MOL.modules.Map = function(mol) {
                 this._bindEvents();
                 this._canvasSupport = false;
                 if ( !!document.createElement('canvas').getContext ) {
-                    this._iconHeight = 120;
-                    this._iconWidth = 120;
+                    this._iconHeight = 25;
+                    this._iconWidth = 25;
                     this._canvasSupport = true;
                     this._markerCanvas = new mol.ui.Map.MarkerCanvas(this._iconWidth,this._iconHeight);
                     this._markerContext = this._markerCanvas.getContext();
@@ -866,7 +866,7 @@ MOL.modules.Map = function(mol) {
                         occurrences = resources[r].occurrences;
                         for (o in occurrences) {
                             coordinate = occurrences[o].coordinates;
-                            marker = this._createMarker(coordinate);
+                            marker = this._createMarker(coordinate, iconUrl);
                             this._overlays[lid].push(marker);                      
                             circle = this._createCircle(
                                 marker.getPosition(),
@@ -912,16 +912,19 @@ MOL.modules.Map = function(mol) {
              * @param coordinate the coordinate longitude and latitude
              * @return a new Google marker object
              */
-            _createMarker: function(coordinate) {
+            _createMarker: function(coordinate, iconUrl) {
                 var map = this._display.getMap(),
                     lat = parseFloat(coordinate.decimalLatitude),
                     lng = parseFloat(coordinate.decimalLongitude),
                     center = new google.maps.LatLng(lat, lng),
+                    w = this._iconWidth,
+                    h = this._iconHeight,
+                    image = new google.maps.MarkerImage(iconUrl, new google.maps.Size(w, h)),
                     marker = new google.maps.Marker(
                         { 
                             position: center,
                             map: map,
-                            icon: 'http://labs.google.com/ridefinder/images/mm_20_red.png'
+                            icon: image
                         }
                     );
                 return marker;
