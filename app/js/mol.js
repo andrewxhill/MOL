@@ -160,6 +160,7 @@ MOL.modules.events = function(mol) {
     mol.events.SET_LAYER_COLOR = 'set_layer_color';
     mol.events.GET_NEXT_COLOR = 'get_next_color';
     mol.events.NEXT_COLOR = 'next_color';
+    mol.events.COLOR_CHANGE = 'color_change';
     
     /**
      * The event bus.
@@ -709,6 +710,7 @@ MOL.modules.Map = function(mol) {
              */
             _bindEvents: function() {
                 var self = this;
+
                 // Adds a control to the map:
                 this._bus.bind(
                     mol.events.ADD_MAP_CONTROL,
@@ -724,23 +726,25 @@ MOL.modules.Map = function(mol) {
                     }
                 ); 
 
+                // Handles a color change by updating layer color:
+                self._bus.bind(
+                    mol.events.COLOR_CHANGE,
+                    function(color, type, id) {
+                        mol.log.info('Map.Engine.handle(COLOR_CHANGE)');
+                        var layer = self._layers[id];
+                        if (!layer) {
+                            return;
+                        }
+                        self._handleColor(color, type, id, true);
+                    }
+                );
+                
+                // Handles a next color event:
                 self._bus.bind(
                     mol.events.NEXT_COLOR,
                     function(color, type, id) {
                         mol.log.info('Map.Engine.handle(NEXT_COLOR)');
-                        var layer = self._layers[id];
-                        if (type === 'points' && layer && (id === layer.getId())) {
-                            layer.setColor(color);
-                            self._getMarkerIcon(
-                                color, 
-                                function(icon) {
-                                    layer.setIcon(icon);
-                                    self._displayLayer(layer);
-                                }
-                            );                            
-                            delete self._layers[id];
-                            // TODO: trigger LAYER_CHANGE event
-                        }
+                        self._handleColor(color, type, id);                        
                     }
                 );
 
@@ -767,7 +771,43 @@ MOL.modules.Map = function(mol) {
                     }
                 );
             },
+            
+            
+            _updateLayerColor: function(layer) {
+                var overlays = this._overlays[layer.getId()],
+                    urls = this._getIconUrls(layer.getIcon()),
+                    iconUrl = urls.iconUrl,
+                    w = this._iconWidth,
+                    h = this._iconHeight,
+                    overlay = null,
+                    image = new google.maps.MarkerImage(iconUrl, new google.maps.Size(w, h));
+                for (x in overlays) {
+                    overlay = overlays[x];
+                        if (overlay instanceof google.maps.Marker) {
+                            overlay.setIcon(image);
+                        }
+                }
+            },
 
+            _handleColor: function(color, type, id, change) {                
+                var layer = this._layers[id],
+                    self = this;
+                if (type === 'points' && layer && (id === layer.getId())) {
+                    layer.setColor(color);
+                    this._getMarkerIcon(
+                        color, 
+                        function(icon) {
+                            layer.setIcon(icon);
+                            if (change) {
+                                self._updateLayerColor(layer);   
+                            } else {
+                                self._displayLayer(layer);
+                            }
+                        }
+                    );                            
+                }
+            },
+                        
             _getMarkerIcon: function(color, callback) {
                 var icon = new Image(),
                     src = '/api/colorimage/pm-color.png?'
