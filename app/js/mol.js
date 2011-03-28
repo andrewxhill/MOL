@@ -706,7 +706,12 @@ MOL.modules.Map = function(mol) {
                         var layer = self._layers[id];
                         if (type === 'points' && layer && (id === layer.getId())) {
                             layer.setColor(color);
-                            self._displayLayer(layer);
+                            self._getMarkerIconUrl(
+                                color, 
+                                function(iconUrl, iconErrorUrl) {
+                                    self._displayLayer(layer);
+                                }
+                            );
                             delete self._layers[id];
                             // TODO: trigger LAYER_CHANGE event
                         }
