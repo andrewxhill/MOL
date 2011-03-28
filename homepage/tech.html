@@ -10,9 +10,16 @@
         <div id="header">
             <div id="title">The Map of Life <span id="subtitle">Technical Overview</span></div>
         </div>
+        <div id="menu">
+            <div class="link"><a href="#analysis">Analysis</a></div>
+            <div class="link"><a href="#dataDiversity">Data Diversity</a></div>
+            <div class="link"><a href="#scalability">Scalability</a></div>
+            <div class="link"><a href="#dataDelivery">Data Delivery</a></div>
+            <div class="link"><a href="#userInterface">User Interface</a></div>
+        </div>
         <div id="container">
             <div class="subject first">
-                <h2>Analysis</h2>
+                <h2 id="analysis">Analysis</h2>
                 <div class="block">
                     <p class="text">
                         Map of Life (MOL) aims to develop a conceptual and cyberinfrastructure framework 
@@ -33,7 +40,7 @@
                 </div>
             </div>
             <div class="subject second">
-                <h2>Data diversity</h2>
+                <h2 id="dataDiversity">Data diversity</h2>
                 <div class="overview">
                     <p>
                         Map of Life stores and displays multiple different data types, such as: expert opinion range maps; point data from various providers and amateur users; checklist based occurrences; habitat preference data; environmental data layers representing climate, land-cover, terrain; and fine-scale species distributional modeling outputs that integrated the different data.  Each of these data types will require their own optimal storage and visualization solutions.
@@ -49,7 +56,7 @@
                 </div>
             </div>
             <div class="subject third">
-                <h2>Scalability</h2>
+                <h2 id="scalability">Scalability</h2>
                 <div class="overview">
                     <p>
                         With comprehensive data for over 10,000 vertebrate species, the MOL technical architecture needs to scale so that it can handle high volume concurrent user requests in a performant way. To achieve this, the architecture uses a hybrid server design that runs both in the cloud and locally. Servers running in the cloud are called the MOL front-end. These servers have been designed to control all aspects of the application. To maximize throughput, it uses an extensive caching mechanism that stores only commonly requested data. It is built on Google App Engine, allowing the user to experience a very fast and responsive application, even during high-traffic periods. During low-traffic periods, the front-end application runs for less than one dollar a day. Servers running locally are called the MOL back-end. These servers are built on hardware currently at the University of Colorado, with a planned mirror at Yale University. The back-end is responsible for persistent data storage and replication, and long running processes required by MOL. The software deployed on the back-end is streamlined to handle data requests proxied from the front-end. A distributed task queue manages these requests which can be launched from web browsers, APIs, and the front-end.
@@ -64,7 +71,7 @@
                 </div>
             </div>
             <div class="subject fourth">
-                <h2>Data delivery</h2>
+                <h2 id="dataDelivery">Data delivery</h2>
                 <div class="overview">
                     <p>
                         Data delivery has been optimized by relying on the various tiers of data storage. Any data requested from MOL is immediately cached on the front-end server for a limited period of time. This makes frequently requested data delivered as quickly as possible. Alternatively, data that is rarely requested remains on the back-end until its first request, freeing up space in the front-end application.
@@ -93,16 +100,12 @@
                 </div>
             </div>
             <div class="subject sixth">
-                <h2>User interface</h2>
+                <h2 id="userInterface">User interface</h2>
                 <div class="overview">
                     <p>
                         The MOL web application facilitates data exploration, visualization, and enhancement. 
                         The user interface is built using JavaScript, HTML5, and CSS and communicates with 
                         the MOL frontend using AJAX. It is highly modular and supports internationalization. 
-                        While development is in its very early stages, the MOL web application provides an 
-                        early glimpse at how users will search, add, and manage species layers in a mapping 
-                        interface. User interface capabilities that support display and integration of more 
-                        complex data-types are in development.
                     </p>
                     <p>
                         Although development is in very early stages, some elements of the user interface 
@@ -118,6 +121,7 @@
                     <div class="link"><a href="http://jquery.com">jQuery</a></div>
                     <div class="link"><a href="http://documentcloud.github.com/backbone/">Backbone.js</a></div>
                     <div class="link"><a href="http://code.google.com/apis/maps/index.html">Google Maps API</a></div>
+                    <div class="link"><a href="dev.w3.org/html5/spec/Overview.html">HTML5</a></div>
                 </div>
             </div>
         </div>
