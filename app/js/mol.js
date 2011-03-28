@@ -157,6 +157,7 @@ MOL.modules.events = function(mol) {
     mol.events.DELETE_LAYER_CLICK = 'delete_layer_click';
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
+    mol.events.SET_LAYER_COLOR = 'set_layer_color';
     
     /**
      * The event bus.
@@ -288,14 +289,44 @@ MOL.modules.model = function(mol) {
  * Module for core libraries.
  */
 MOL.modules.core = function(mol) {
-    mol.core = {};=
+    mol.core = {};
 };
 
+/**
+ * TODO: Andrew
+ */
 MOL.modules.ColorSetter = function(mol) {
+    
+    mol.core.ColorSetter = {};
+    
+    mol.core.ColorSetter.Color = Class.extend(
+        {
+            init: function(r, g, b) {
+                this._r = r;
+                this._g = g;
+                this._b = b;
+            },
+
+            getRed: function() {
+                return this._r;
+            },
+            
+            getGreen: function() {
+                return this._g;                
+            },
+
+            getBlue: function() {
+                return this._b;
+            }
+        }
+    );
+
     mol.core.ColorSetter.Api = Class.extend(
         {
+            /**
+             * @constructor
+             */
             init: function(config) {
-                // TODO
             }
         }
     );
@@ -618,6 +649,14 @@ MOL.modules.Map = function(mol) {
              */
             _bindEvents: function() {
                 var self = this;
+                // Changes layer color:
+                this._bus.bind(
+                    mol.events.SET_LAYER_COLOR,
+                    function(layerId, color) {
+                        mol.log.info('Map.Engine.handle(SET_LAYER_COLOR)');
+                        self._setLayerColor(layerId, color);
+                    }
+                );
                 // Adds a control to the map:
                 this._bus.bind(
                     mol.events.ADD_MAP_CONTROL,
@@ -647,6 +686,23 @@ MOL.modules.Map = function(mol) {
                         self._deleteLayer(layerId);
                     }
                 );
+            },
+
+            /**
+             * Sets the layer color.
+             * 
+             * @param layerId the id of the layer to color
+             * @param color the mol.core.ColorSetter.Color object
+             */
+            _setLayerColor: function(layerId, color) {
+                var overlays = this._overlays[layerId],
+                    api = null;
+                if (!overlays) {
+                    return;
+                }
+                mol.log.info('Coloring layer ' + layerId);
+                api = new mol.core.ColorSetter.Api();
+                // TODO: Andrew
             },
 
             /**
