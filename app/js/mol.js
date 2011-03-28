@@ -256,7 +256,16 @@ MOL.modules.model = function(mol) {
                 this._name = name;
                 this._json = json;
                 this._color = null;
+                this._icon = null;
                 this._buildId();
+            },
+            
+            getIcon: function() {
+                return this._icon;
+            },
+            
+            setIcon: function(icon) {
+                this._icon = icon;
             },
             
             getType: function() {
@@ -664,8 +673,8 @@ MOL.modules.Map = function(mol) {
                     this._iconLayers = {
                         background: new Image(),
                         foreground: new Image(),
-                        error: new Image(),
-                    }
+                        error: new Image()
+                    };
                     this._iconLayers.background.src = "/static/pm-background.png";
                     this._iconLayers.foreground.src = "/static/pm-foreground.png";
                     this._iconLayers.error.src = "/static/pm-error.png";
@@ -722,7 +731,13 @@ MOL.modules.Map = function(mol) {
                         var layer = self._layers[id];
                         if (type === 'points' && layer && (id === layer.getId())) {
                             layer.setColor(color);
-                            self._displayLayer(layer);
+                            self._getMarkerIcon(
+                                color, 
+                                function(icon) {
+                                    layer.setIcon(icon);
+                                    self._displayLayer(layer);
+                                }
+                            );                            
                             delete self._layers[id];
                             // TODO: trigger LAYER_CHANGE event
                         }
@@ -753,21 +768,16 @@ MOL.modules.Map = function(mol) {
                 );
             },
 
-            /**
-             * Sets the layer color.
-             * 
-             * @param layerId the id of the layer to color
-             * @param color the mol.core.ColorSetter.Color object
-             */
-            _setLayerColor: function(layerId, color) {
-                var overlays = this._overlays[layerId],
-                    api = null;
-                if (!overlays) {
-                    return;
-                }
-                mol.log.info('Coloring layer ' + layerId + ': ' + color.toString());
-                api = new mol.core.ColorSetter.Api();
-                // TODO: Andrew
+            _getMarkerIcon: function(color, callback) {
+                var icon = new Image(),
+                    src = '/api/colorimage/pm-color.png?'
+                          + 'r=' + color.getRed() 
+                          + '&g=' + color.getGreen() 
+                          + '&b=' + color.getBlue();                
+                icon.onload = function() {
+                    callback(icon);
+                };                
+                icon.src = src;
             },
 
             /**
@@ -806,8 +816,30 @@ MOL.modules.Map = function(mol) {
                     this._displayRange(layer);
                     break;
                 }
+            },            
+
+            _getIconUrls: function(icon) {
+                var background = this._iconLayers.background,
+                    foreground = this._iconLayers.foreground,
+                    error = this._iconLayers.error,
+                    ctx = this._markerContext,
+                    canvas = this._markerCanvas,
+                    w = this._iconWidth,
+                    h = this._iconHeight,
+                    url = null,
+                    errorUrl = null;
+                if (!this._canvasSupport) {
+                    return {iconUrl: icon.src, iconErrorUrl: icon.src};
+                }
+                ctx.drawImage(background, 0, 0, w, h);
+                ctx.drawImage(icon, 0, 0, w, h);
+                ctx.drawImage(foreground, 0, 0, w, h);
+                url = canvas.getDataURL();
+                ctx.drawImage(error, 0, 0, w, h);
+                errorUrl = canvas.getDataURL();
+                return {iconUrl: url, iconErrorUrl: errorUrl};
             },
-            
+
             /**
              * Private function that displays a points layer on the map.
              * 
@@ -822,26 +854,11 @@ MOL.modules.Map = function(mol) {
                     resources = [],
                     occurrences = [],
                     data = layer._json,
-                    icon = new Image(),
-                    iconUrl = null,
-                    iconErrorUrl = null;
-                /*
-                 * add method to set icon source here, using color
-                 */
-                if (_canvasSupport){
-                    this._markerContext.drawImage(this._iconLayers.background, 0, 0, this._iconWidth, this._iconHeight);
-                    this._markerContext.drawImage(icon, 0, 0, this._iconWidth, this._iconHeight);
-                    this._markerContext.drawImage(this._iconLayers.foreground, 0, 0, this._iconWidth, this._iconHeight);
-                    iconUrl = this._markerCanvas.getDataURL();
-                    this._markerContext.drawImage(this._iconLayers.error, 0, 0, this._iconWidth, this._iconHeight);
-                    iconErrorUrl = this._markerCanvas.getDataURL();
-                } else {
-                    iconUrl = icon.src;
-                    iconErrorUrl = icon.src;
-                }
-                
-                mol.log.info('Displaying points in color ' + layer.getColor().toString());
-                
+                    icon = layer.getIcon(),
+                    urls = this._getIconUrls(icon),
+                    iconUrl = urls.iconUrl,
+                    iconErrorUrl = urls.iconErrorUrl;
+                mol.log.info('Displaying points: ' + lid);
                 this._overlays[lid] = [];
                 for (p in data.records.providers) {
                     resources = data.records.providers[p].resources;
@@ -960,17 +977,13 @@ MOL.modules.Map = function(mol) {
                 this._super('<canvas width='+width+' height='+height+'>');
                 this.setStyleName('mol-MarkerCanvas');
                 this._ctx = this.getElement()[0].getContext("2d");
-                /**
-                this._iconBackground.src = "/static/pm-background.png";
-                this._iconForeground.src = "/static/pm-foreground.png";
-                this._iconError.src = "/static/pm-error.png";
-                this._icon = null;
-                */
             },
-            getContext: function(){
+
+            getContext: function() {
                 return this._ctx;
             },
-            getDataURL(){
+
+            getDataURL: function(){
                 return this.getElement()[0].toDataURL("image/png");
             }
         }
