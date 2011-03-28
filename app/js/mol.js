@@ -285,6 +285,23 @@ MOL.modules.model = function(mol) {
 };
 
 /**
+ * Module for core libraries.
+ */
+MOL.modules.core = function(mol) {
+    mol.core = {};=
+};
+
+MOL.modules.ColorSetter = function(mol) {
+    mol.core.ColorSetter.Api = Class.extend(
+        {
+            init: function(config) {
+                // TODO
+            }
+        }
+    );
+};
+
+/**
  * UI module.
  */
 MOL.modules.ui = function(mol) {
