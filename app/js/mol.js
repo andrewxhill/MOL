@@ -81,6 +81,7 @@ MOL.modules.ajax = function(mol) {
             execute: function(request, success, failure) {
                 var xhr = null,
                     self = this;
+                mol.log.info('Api handling request: ' + request.action);
                 switch (request.action) {
                 case 'load-layer':
                     this._loadLayer(request, success, failure);
@@ -110,13 +111,17 @@ MOL.modules.ajax = function(mol) {
                     speciesKey = 'animalia/species/' + name.replace(' ', '_'),
                     xhr = null,
                     self = this;
+                mol.log.info('Api sending AJAX request for layer ' + layer.getId());
                 switch (type) {
                 case 'points':
                     switch (source) {
                     case 'gbif':
+
                         xhr = $.post('/api/points/gbif/'+ speciesKey);                        
                         xhr.success(
                             function(json) {
+                                mol.log.info('Api received AJAX response for layer ' 
+                                             + layer.getId() + ' - trigger(NEW_LAYER)');
                                 success(json);
                                 self._bus.trigger(
                                     mol.events.NEW_LAYER,
@@ -171,7 +176,7 @@ MOL.modules.events = function(mol) {
 MOL.modules.exceptions = function(mol) {
     mol.exceptions = {};
     mol.exceptions.NotImplementedError = 'NotImplementedError';
-    mol.exceptions.IllegalArgumentException= 'IllegalArgumentException';
+    mol.exceptions.IllegalArgumentException = 'IllegalArgumentException';
 };
 
 /**
@@ -190,7 +195,7 @@ MOL.modules.app = function(mol) {
             },
 
             run: function() {
-                mol.log.todo('App is now running');
+                mol.log.info('App is now running!');
             }
         }
     );
@@ -332,14 +337,21 @@ MOL.modules.ui = function(mol) {
             },
             
             /**
-             * Removes the element and all event handlers from DOM.
+             * Proxy to JQuery.remove()
              */
             remove: function() {
                 this._element.remove();
             },
 
             /**
-             * Proxy to JQuery.append().
+             * Proxy to JQuery.click()
+             */
+            click: function(handler) {
+                this._element.click(handler);
+            },
+
+            /**
+             * Proxy to JQuery.append()
              */
             append: function(widget) {
                 this._element.append(widget.getElement());
@@ -478,7 +490,7 @@ MOL.modules.ui = function(mol) {
             },
 
              /**
-              * Replaces all instances of the primary style name with newPrimaryStyleName.
+              * Replaces all instances of the primary style name.
               */
             _updatePrimaryAndDependentStyleNames: function(newPrimaryStyle) {
                 var classes = this.getStyleName().split(/\s+/);
@@ -593,9 +605,11 @@ MOL.modules.Map = function(mol) {
                 this._bus.bind(
                     mol.events.ADD_MAP_CONTROL,
                     function(control, type) {
+                        mol.log.info('Map.Engine.handle(ADD_MAP_CONTROL)');
                         var rc = self._display.getRightController();
                         switch (type) {
                         case mol.ui.Map.Display.ControlType.LAYER:
+                            mol.log.info('Map.Engine adding layer control to map');
                             rc.addWidget('LayerControl', control);
                             break;
                         }
@@ -605,6 +619,7 @@ MOL.modules.Map = function(mol) {
                 this._bus.bind(
                     mol.events.NEW_LAYER,
                     function(layer) {
+                        mol.log.info('Map.Engine.handle(NEW_LAYER)');
                         self._displayLayer(layer);
                     }
                 );
@@ -644,6 +659,7 @@ MOL.modules.Map = function(mol) {
                     // Duplicate layer.
                     return;
                 } 
+                mol.log.info('Map.Engine displaying new layer: ' + lid);
                 switch (type) {
                 case 'points':
                     this._displayPoints(layer);
@@ -739,7 +755,8 @@ MOL.modules.Map = function(mol) {
     );
 
     /**
-     * The top level map control container.
+     * The top level map control container. It gets added to the Google map as a
+     * control. 
      */
     mol.ui.Map.RightController = mol.ui.Element.extend(
         {
@@ -777,7 +794,8 @@ MOL.modules.Map = function(mol) {
     ),
     
     /**
-     * The Map Display.
+     * The Map Display. It's basically a Google map attached to the 'map' div 
+     * in the <body> element.
      */
     mol.ui.Map.Display = mol.ui.Display.extend(
         {
@@ -821,7 +839,10 @@ MOL.modules.Map = function(mol) {
             getMapControls: function() {
                 return this._map.controls;
             },
-
+            
+            /**
+             * Returns the right controller.
+             */
             getRightController: function() {
                 return this._rightControl;
             }
@@ -829,30 +850,6 @@ MOL.modules.Map = function(mol) {
     );
 };
 
-/**
- * LayerBuilder module that presents a widget for building a new layer
- * by selecting a type (e.g., points), source (e.g., gbif), and 
- * name (e.g., puma concolor).
- * 
- * Event binding:
- *     None
- * 
- * Event triggering:
- *     
- * AJAX calls:
- * 
- */
-MOL.modules.LayerBuilder = function(mol) {
-    
-    mol.ui.LayerBuilder = {};
-
-    mol.ui.LayerBuilder.Engine = mol.ui.Engine.extend(
-        {
-            // TODO...            
-        }
-    );
-    
-};
 
 /**
  * LayerControl module that presents a map control for adding or deleting layers. 
@@ -900,6 +897,7 @@ MOL.modules.LayerControl = function(mol) {
                 this._bindDisplay(display);
                 // Triggers the ADD_MAP_CONTROL event which causes the display
                 // to get added to the map as a control:
+                mol.log.info('LayerControl.Engine.trigger(ADD_MAP_CONTROL)');
                 bus.trigger(
                     mol.events.ADD_MAP_CONTROL,                     
                     display, 
@@ -914,7 +912,7 @@ MOL.modules.LayerControl = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.info('LayerControl.Engine handling browser history change');
+                mol.log.todo('LayerControl.Engine.go()');
             },
             
             /**
@@ -928,14 +926,16 @@ MOL.modules.LayerControl = function(mol) {
                 this._display = display;
                 display.setEngine(this);                
                 // Adds click handler that triggers an ADD_LAYER_CLICK event:
-                display.getAddLink().getElement().click(
+                display.getAddLink().click(
                     function(event) {
+                        mol.log.info('LayerControl.Display.AddLink.click()');
                         self._bus.trigger(mol.events.ADD_LAYER_CLICK);
                     }
                 );
                 // Adds click handler that triggers a DELETE_LAYER_CLICK event:
-                display.getDeleteLink().getElement().click(
+                display.getDeleteLink().click(
                     function(event) {
+                        mol.log.info('LayerControl.Display.DeleteLink.click()');
                         self._bus.trigger(mol.events.DELETE_LAYER_CLICK);
                     }
                 );
@@ -992,7 +992,7 @@ MOL.modules.LayerControl = function(mol) {
     /**
      * The menu option.
      */
-    mol.ui.LayerControl.MenuOption =  mol.ui.Element.extend(
+    mol.ui.LayerControl.MenuOption = mol.ui.Element.extend(
         {
             init: function(name) {                
                 this._super('<li>');
@@ -1088,7 +1088,35 @@ MOL.modules.LayerControl = function(mol) {
     );
 };
 
-// TODO...
+
+// =============================================================================
+// In progress....
+
+/**
+ * LayerBuilder module that presents a widget for building a new layer
+ * by selecting a type (e.g., points), source (e.g., gbif), and 
+ * name (e.g., puma concolor).
+ * 
+ * Event binding:
+ *     None
+ * 
+ * Event triggering:
+ *     
+ * AJAX calls:
+ * 
+ */
+MOL.modules.LayerBuilder = function(mol) {
+    
+    mol.ui.LayerBuilder = {};
+
+    mol.ui.LayerBuilder.Engine = mol.ui.Engine.extend(
+        {
+            // TODO...            
+        }
+    );
+    
+};
+
 MOL.modules.LayerList = function(mol) {
     
     mol.ui.LayerList = {};

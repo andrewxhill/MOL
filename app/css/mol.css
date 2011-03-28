@@ -55,6 +55,7 @@
 }
 
 .mol-RightController .mol-LayerControl-MenuOptionLink {
+    cursor: pointer;
     text-decoration:none;
     color: #141414;
 }
