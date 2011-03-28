@@ -148,61 +148,21 @@ MOL.modules.events = function(mol) {
 
     // Event types:
     mol.events.ADD_MAP_CONTROL = 'add_map_control';
-    mol.events.LAYER_CONTROL_ADD_LAYER = 'layer_control_add_layer';
-    mol.events.LAYER_CONTROL_DELETE_LAYER = 'layer_control_delete_layer';
+    mol.events.ADD_LAYER_CLICK = 'add_layer_click';
+    mol.events.DELETE_LAYER_CLICK = 'delete_layer_click';
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
     
-    // Ripped from Backbone.js Events:
-    mol.events.Bus = Class.extend(
-        {
-            bind : function(ev, callback) {
-                var calls = this._callbacks || (this._callbacks = {});
-                var list  = this._callbacks[ev] || (this._callbacks[ev] = []);
-                list.push(callback);
-                return this;
-            },
-            
-            unbind : function(ev, callback) {
-                var calls;
-                if (!ev) {
-                    this._callbacks = {};
-                } else if ((calls = this._callbacks)) {
-                    if (!callback) {
-                        calls[ev] = [];
-                    } else {
-                        var list = calls[ev];
-                        if (!list) return this;
-                        for (var i = 0, l = list.length; i < l; i++) {
-                            if (callback === list[i]) {
-                                list.splice(i, 1);
-                                break;
-                            }
-                        }
-                    }
-                }
-                return this;
-            },
-            
-            trigger : function(ev) {
-                var list, calls, i, l;
-                if (!(calls = this._callbacks)) return this;
-                if (calls[ev]) {
-                    list = calls[ev].slice(0);
-                    for (i = 0, l = list.length; i < l; i++) {
-                        list[i].apply(this, Array.prototype.slice.call(arguments, 1));
-                    }
-                }
-                if (calls['all']) {
-                    list = calls['all'].slice(0);
-                    for (i = 0, l = list.length; i < l; i++) {
-                        list[i].apply(this, arguments);
-                    }
-                }
-                return this;
-            }
-        }    
-    );
+    /**
+     * The event bus.
+     */
+    mol.events.Bus = function() {
+        if (!(this instanceof mol.events.Bus)) {
+            return new mol.events.Bus();
+        }
+        _.extend(this, Backbone.Events);
+        return this;
+    };
 };
 
 /**
@@ -211,6 +171,7 @@ MOL.modules.events = function(mol) {
 MOL.modules.exceptions = function(mol) {
     mol.exceptions = {};
     mol.exceptions.NotImplementedError = 'NotImplementedError';
+    mol.exceptions.IllegalArgumentException= 'IllegalArgumentException';
 };
 
 /**
@@ -251,7 +212,7 @@ MOL.modules.location = function(mol) {
                 this._container = $('body');
                 this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
                 this._mapEngine.start(this._container);
-                this._layerControlEngine = new mol.ui.LayerMenu.Engine(this._api, this._bus);
+                this._layerControlEngine = new mol.ui.LayerControl.Engine(this._api, this._bus);
                 this._layerControlEngine.start(this._container);
             },
             
@@ -356,18 +317,40 @@ MOL.modules.ui = function(mol) {
      */
     mol.ui.Element = Class.extend(
         {
+            /**
+             * Constructs a new Element from an element.
+             */
             init: function(element) {
-                this._element = element;
+                this._element = $(element);
             },
             
+            /**
+             * Returns the underlying DOM element object.
+             */
             getElement: function() {
                 return this._element;
             },
             
+            /**
+             * Removes the element and all event handlers from DOM.
+             */
             remove: function() {
                 this._element.remove();
             },
 
+            /**
+             * Proxy to JQuery.append().
+             */
+            append: function(widget) {
+                this._element.append(widget.getElement());
+            },
+
+            /**
+             * Proxy to JQuery.prepend().
+             */
+            prepend: function(widget) {
+                this._element.prepend(widget.getElement());
+            },
 
             /**
              * Gets primary style name.
@@ -392,14 +375,18 @@ MOL.modules.ui = function(mol) {
              * Adds a dependent style name by specifying the style name's suffix.
              */
             addStyleDependentName: function(styleSuffix) {
-                this.addStyleName(this.getPrimaryStyleName() + '-' + styleSuffix);
+                this.addStyleName(this.getStylePrimaryName() + '-' + styleSuffix);
             },         
 
             /**
              * Gets all of the object's style names, as a space-separated list.
              */
             getStyleName: function() {
-                return this.getElement().attr('class').split(/\s+/).join(' ');
+                var classAttr = this.getElement().attr('class');
+                if (!classAttr) {
+                    return '';                    
+                }
+                return classAttr.split(/\s+/).join(' ');
             },
           
             /**
@@ -446,7 +433,7 @@ MOL.modules.ui = function(mol) {
                 }
 
                 // Get the current style string.
-                oldStyle = this.getStyleName(elem);
+                oldStyle = this.getStyleName();
                 idx = oldStyle.indexOf(style);
 
                 // Calculate matching index.
@@ -465,7 +452,7 @@ MOL.modules.ui = function(mol) {
                 if (add) {
                     // Only add the style if it's not already present.
                     if (idx == -1) {
-                        if (oldStyle.length() > 0) {
+                        if (oldStyle.length > 0) {
                             oldStyle += " ";
                         }
                         this.setStyleName(oldStyle + style);
@@ -474,13 +461,13 @@ MOL.modules.ui = function(mol) {
                     // Don't try to remove the style if it's not there.
                     if (idx != -1) {
                         // Get the leading and trailing parts, without the removed name.
-                        begin = oldStyle.substring(0, idx).trim();
-                        end = oldStyle.substring(idx + style.length()).trim();
+                        begin = $.trim(oldStyle.substring(0, idx));
+                        end = $.trim(oldStyle.substring(idx + style.length));
 
                         // Some contortions to make sure we don't leave extra spaces.
-                        if (begin.length() == 0) {
+                        if (begin.length == 0) {
                             newClassName = end;
-                        } else if (end.length() == 0) {
+                        } else if (end.length == 0) {
                             newClassName = begin;
                         } else {
                             newClassName = begin + " " + end;
@@ -492,26 +479,25 @@ MOL.modules.ui = function(mol) {
 
              /**
               * Replaces all instances of the primary style name with newPrimaryStyleName.
-              * 
-              * TODO: Use JQuery here for CB stuff?
               */
-            _updatePrimaryAndDependentStyleNames: function(elem, newPrimaryStyle) {
-                var classes = elem.className.split(/\s+/);
+            _updatePrimaryAndDependentStyleNames: function(newPrimaryStyle) {
+                var classes = this.getStyleName().split(/\s+/);
                 if (!classes) {
                     return;
                 }                
                 var oldPrimaryStyle = classes[0];
-                var oldPrimaryStyleLen = oldPrimaryStyle.length;                
+                var oldPrimaryStyleLen = oldPrimaryStyle.length;
+                var name;                
                 classes[0] = newPrimaryStyle;
                 for (var i = 1, n = classes.length; i < n; i++) {
-                    var name = classes[i];
+                    name = classes[i];
                     if (name.length > oldPrimaryStyleLen
                         && name.charAt(oldPrimaryStyleLen) == '-'
                         && name.indexOf(oldPrimaryStyle) == 0) {
                         classes[i] = newPrimaryStyle + name.substring(oldPrimaryStyleLen);
                     }
                 }
-                elem.className = classes.join(" ");
+                this.setStyleName(classes.join(" "));
             }
         }
     );
@@ -521,6 +507,9 @@ MOL.modules.ui = function(mol) {
      */
     mol.ui.Display = mol.ui.Element.extend(
         {
+            /**
+             * Constructs a new Display with the given DOM element.
+             */
             init: function(element) {
                 this._super(element);
             },
@@ -584,7 +573,6 @@ MOL.modules.Map = function(mol) {
                 container.append(display.getElement());
                 this._display = display;
             },
-
             /**
              * Gives the engine a new place to go based on a browser history
              * change.
@@ -593,7 +581,7 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.info('Map.Engine handling browser history change');
+                mol.log.todo('Map.Engine.go()');
             },
 
             /**
@@ -605,11 +593,10 @@ MOL.modules.Map = function(mol) {
                 this._bus.bind(
                     mol.events.ADD_MAP_CONTROL,
                     function(control, type) {
-                        var div = self._display.getRightControl();
+                        var rc = self._display.getRightController();
                         switch (type) {
                         case mol.ui.Map.Display.ControlType.LAYER:
-                            div.remove(mol.ui.Map.Display.ControlType.LAYER);
-                            div.find('#layer-widget-container').append(control);
+                            rc.addWidget('LayerControl', control);
                             break;
                         }
                     }
@@ -621,7 +608,7 @@ MOL.modules.Map = function(mol) {
                         self._displayLayer(layer);
                     }
                 );
-                // Deletes a layer on the map.
+                // Deletes an existing layer from the map.
                 this._bus.bind(
                     mol.events.DELETE_LAYER,
                     function(layerId) {
@@ -752,10 +739,49 @@ MOL.modules.Map = function(mol) {
     );
 
     /**
+     * The top level map control container.
+     */
+    mol.ui.Map.RightController = mol.ui.Element.extend(
+        {
+            init: function() {
+                this._super('<div>');
+                this.setStyleName('mol-RightController');
+                this._widgets = {};
+            },
+
+            addWidget: function(name, widget) {
+                var wc = new mol.ui.Map.WidgetContainer(name);
+                wc.setWidget(widget);
+                this._widgets[name] = wc;
+                this.getElement().append(wc.getElement());
+            }
+        }
+    );
+
+    /**
+     * The container for Layers, Filters, Tools, and other control widgets on
+     * the map. Its parent is RightController.
+     */
+    mol.ui.Map.WidgetContainer = mol.ui.Element.extend(
+        {
+            init: function(name) {
+                this._super('<div>');
+                this.setStyleName('mol-WidgetContainer');
+                this._name = name;
+            },
+
+            setWidget: function(widget) {
+                this.getElement().append(widget.getElement());
+            }
+        }        
+    ),
+    
+    /**
      * The Map Display.
      */
     mol.ui.Map.Display = mol.ui.Display.extend(
         {
+
             /**
              * Constructs a new Map Display.
              * 
@@ -775,12 +801,8 @@ MOL.modules.Map = function(mol) {
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
                 this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);
-                this._rightControl = $('<div>')
-                    .attr({'id': 'right-controller'})
-                    .append($('<div>')                    
-                            .attr({'id':'layer-widget-container', 
-                                   'class':'widget-container'}));
-                this._map.controls[position].push(this._rightControl[0]);              
+                this._rightControl = new mol.ui.Map.RightController();
+                this._map.controls[position].push(this._rightControl.getElement()[0]);
                 mol.ui.Map.Display.ControlType = {
                     LAYERS: '#layers'
                 };
@@ -800,7 +822,7 @@ MOL.modules.Map = function(mol) {
                 return this._map.controls;
             },
 
-            getRightControl: function() {
+            getRightController: function() {
                 return this._rightControl;
             }
         }
@@ -826,14 +848,14 @@ MOL.modules.LayerBuilder = function(mol) {
 
     mol.ui.LayerBuilder.Engine = mol.ui.Engine.extend(
         {
-            
+            // TODO...            
         }
     );
     
 };
 
 /**
- * LayerMenu module that presents a widget for adding or deleting layers. 
+ * LayerControl module that presents a map control for adding or deleting layers. 
  * It can handle app level events and perform AJAX calls to the server.
  * 
  * Event binding:
@@ -843,14 +865,14 @@ MOL.modules.LayerBuilder = function(mol) {
  *     ADD_LAYER - Triggered when the Add widget is clicked
  *     DELETE_LAYER - Triggered when the Delete widget is clicked
  */
-MOL.modules.LayerMenu = function(mol) {
+MOL.modules.LayerControl = function(mol) {
 
-    mol.ui.LayerMenu = {};
+    mol.ui.LayerControl = {};
 
     /**
-     * The LayerMenu Engine.
+     * The LayerControl Engine.
      */
-    mol.ui.LayerMenu.Engine = mol.ui.Engine.extend(
+    mol.ui.LayerControl.Engine = mol.ui.Engine.extend(
         {
             /**
              * Constructs a new engine.
@@ -872,15 +894,16 @@ MOL.modules.LayerMenu = function(mol) {
              */
             start: function(container) {
                 var config = this._displayConfig(),
-                    display = new mol.ui.LayerMenu.Display(config),
-                    element = display.getElement(),
+                    display = new mol.ui.LayerControl.Display(config),
                     position = google.maps.ControlPosition.TOP_RIGHT,
                     bus = this._bus;
+                this._bindDisplay(display);
+                // Triggers the ADD_MAP_CONTROL event which causes the display
+                // to get added to the map as a control:
                 bus.trigger(
                     mol.events.ADD_MAP_CONTROL,                     
-                    element, 
+                    display, 
                     mol.ui.Map.Display.ControlType.LAYER);
-                this._bindDisplay(display);
             },
             
             /**
@@ -891,34 +914,36 @@ MOL.modules.LayerMenu = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.info('LayerMenu.Engine handling browser history change');
+                mol.log.info('LayerControl.Engine handling browser history change');
             },
             
             /**
              * Private function that binds the display by setting up click
              * handlers for the 'Add' and 'Delete' buttons.
              * 
-             * @param display the mol.ui.LayerMenu.Display object to bind 
+             * @param display the mol.ui.LayerControl.Display object to bind 
              */
             _bindDisplay: function(display) {
                 var self = this;
                 this._display = display;
-                display.setEngine(this);
-                display.getAddWidget().click(
+                display.setEngine(this);                
+                // Adds click handler that triggers an ADD_LAYER_CLICK event:
+                display.getAddLink().getElement().click(
                     function(event) {
-                        self._bus.trigger(mol.events.LAYER_CONTROL_ADD_LAYER);
+                        self._bus.trigger(mol.events.ADD_LAYER_CLICK);
                     }
                 );
-                display.getDeleteWidget().click(
+                // Adds click handler that triggers a DELETE_LAYER_CLICK event:
+                display.getDeleteLink().getElement().click(
                     function(event) {
-                        self._bus.trigger(mol.events.LAYER_CONTROL_DELETE_LAYER);
+                        self._bus.trigger(mol.events.DELETE_LAYER_CLICK);
                     }
                 );
             },
 
             /**
              * Private function that returns a configuration object for the 
-             * mol.ui.LayerMenu.Display object.
+             * mol.ui.LayerControl.Display object.
              */
             _displayConfig: function() {
                 return {
@@ -931,57 +956,100 @@ MOL.modules.LayerMenu = function(mol) {
             }
         }
     );
-    
-    mol.ui.LayerMenu.OptionWidget =  mol.ui.Element.extend(
+
+    /**
+     * The list menu that contains options for adding and deleting layers.
+     */
+    mol.ui.LayerControl.Menu = mol.ui.Element.extend(
         {
             init: function(name) {
-                this._super($('<li>').attr({'class':'option list'}));
-                this.getElement()
-                    .append($('<a>'))
-                    .attr({'href': 'javascript:'})
-                    .html(name);
+                this._super('<ul>');
+                this.setStylePrimaryName('mol-LayerControl-Menu');
+                this._name = name;
+                this._options = {};
+                var label = new mol.ui.LayerControl.MenuOptionLabel(name);
+                this._options[name] = label;
+                this.append(label);
+            },
+
+            buildOptions: function(names) {
+                var name = null,
+                    option = null;
+                for (x in names) {
+                    name = names[x];
+                    option = new mol.ui.LayerControl.MenuOption(name);
+                    this._options[name] = option;
+                    this.append(option);
+                }
+            },
+
+            getOption: function(name) {
+                return this._options[name];
             }
         }
     );
-            
-    mol.ui.LayerMenu.MenuWidget = mol.ui.Element.extend(
+
+    /**
+     * The menu option.
+     */
+    mol.ui.LayerControl.MenuOption =  mol.ui.Element.extend(
         {
-            init: function(names) {
-                this._super($('<div>').attr({'class':'layer-menu'}));
-                this._options = {};
-                var name = null,
-                    element = this.getElement(),
-                    menu = $('<ul>').attr({'class': 'options list'}),
-                    option = null;                    
-                for (x in names) {
-                    name = names[x];
-                    option = new mol.ui.LayerMenu.OptionWidget(name);
-                    this._options[name] = option;
-                    menu.append(option.getElement());
-                }
-                element.append(menu);
+            init: function(name) {                
+                this._super('<li>');
+                this.setStyleName('mol-LayerControl-MenuOption');   
+                this.addStyleName('mol-LayerControl-Menu');   
+                this._link = new mol.ui.LayerControl.MenuOptionLink(name);
+                this.getElement().append(this._link.getElement());
             },
 
-            getOptionWidget: function(name) {
-                return this._options[name].getElement();
+            getLink: function() {
+                return this._link;
             }
         }
     );
     
     /**
-     * The LayerMenu Display.
+     * The menu option link.
      */
-    mol.ui.LayerMenu.Display = mol.ui.Display.extend(
+    mol.ui.LayerControl.MenuOptionLink = mol.ui.Element.extend(
+        {
+            init: function(name) {
+                this._super('<a>');
+                this.setStyleName('mol-LayerControl-MenuOptionLink');
+                this.getElement().html(name);                
+            }
+        }
+    );
+    
+    /**
+     * The menu option label.
+     */
+    mol.ui.LayerControl.MenuOptionLabel = mol.ui.LayerControl.MenuOption.extend(
+        {
+            init: function(name) {
+                this._super(name);
+                this.setStyleName('mol-LayerControl-MenuOptionLabel');
+                this.addStyleName('mol-LayerControl-MenuOption');   
+                this.addStyleName('mol-LayerControl-Menu');   
+            }
+        }
+    );
+            
+    /**
+     * The LayerControl Display.
+     */
+    mol.ui.LayerControl.Display = mol.ui.Display.extend(
         {
             
             /**
-             * Constructs a new LayerMenu Display.
+             * Constructs a new LayerControl Display.
              * 
              * @param config the display configuration
              * @constructor
              */            
             init: function(config) {
-                this._super($('<div>').attr({'id':'layers'}));
+                this._super('<div>');
+                this.addStyleName('mol-LayerControl-Display');
                 this._config = config;
                 this._build();
             },
@@ -989,15 +1057,17 @@ MOL.modules.LayerMenu = function(mol) {
             /**
              * Public function that returns the 'Add' widget of this display.
              */
-            getAddWidget: function() {
-                return this._menuWidget.getOptionWidget(this._config.text.addLayer);
+            getAddLink: function() {
+                var name = this._config.text.addLayer;
+                return this._menu.getOption(name).getLink();
             },
 
             /**
              * Public function that returns the 'Delete' widget of this display.
              */
-            getDeleteWidget: function() {
-                return this._menuWidget.getOptionWidget(this._config.text.deleteLayer);
+            getDeleteLink: function() {
+                var name = this._config.text.deleteLayer;
+                return this._menu.getOption(name).getLink();
             },
 
             /**
@@ -1009,66 +1079,16 @@ MOL.modules.LayerMenu = function(mol) {
                     addText = this._config.text.addLayer,
                     deleteText = this._config.text.deleteLayer,
                     layersText = this._config.text.layers,
-                    names = [layersText, deleteText, addText];
-                this._menuWidget = new mol.ui.LayerMenu.MenuWidget(names);
-                element.append(this._menuWidget.getElement());
-                                            
-                //element.append(this._menuWidget());
-                //element.append(this._listWidget());
-            },
-
-            _listWidget: function() {
-                this._list = $('<div>')
-                    .sortable({items: '.layer', cursor: 'move'});
-                return this._list;
-            },
-
-            _menuWidget: function() {
-                var element = this.getElement(),
-                    addText = this._config.text.addLayer,
-                    deleteText = this._config.text.deleteLayer,
-                    layersText = this._config.text.layers;                
-
-                this._menu = $('<div>').attr({'id':'menu'});                    
-
-                // The Add link:
-                this._addLayer = $('<a>')
-                    .attr({'id': 'add_layer', 'href':'javascript:'});                                          
-                this._addLayer.html(addText);
-                
-                // The Delete link:
-                this._deleteLayer = $('<a>')
-                    .attr({'id': 'delete_layer', 'href':'javascript:'});                           
-                this._deleteLayer.html(deleteText);
-                
-                // The options list:
-                this._options = $('<ul>')
-                    .attr({'class': 'options list'});                    
-                this._options
-                    .append($('<li>')
-                            .attr({'class':'option list',
-                                   'id':'menuLabel'})
-                            .html(layersText));  
-                this._options
-                    .append($('<li>')
-                            .attr({'class':'option list',
-                                   'id':'delete'})
-                            .append(this._deleteLayer)); 
-                this._options
-                    .append($('<li>')
-                            .attr({'class':'option list',
-                                   'id':'add'})
-                            .append(this._addLayer));               
-
-                // Menu wraps the options list:
-                this._menu.append(this._options);
-               
-                return this._menu;
+                    names = [deleteText, addText];
+                this._menu = new mol.ui.LayerControl.Menu(layersText);                    
+                this._menu.buildOptions(names);
+                this.append(this._menu);
             }
         }
     );
 };
 
+// TODO...
 MOL.modules.LayerList = function(mol) {
     
     mol.ui.LayerList = {};
@@ -1108,5 +1128,4 @@ MOL.modules.LayerList = function(mol) {
             }
         }
     );
-    
 };
