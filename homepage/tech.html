@@ -1,0 +1,76 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+        <title>The Map of Life</title> 
+        <link href="/stylesheets/tech.css" media="screen" rel="stylesheet" type="text/css" /> 
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
+    </head>
+    <body>
+        <div id="header">
+            <div id="title">The Map of Life <span id="subtitle">Technical Overview</span></div>
+        </div>
+        <div id="container">
+            <div class="subject first">
+                <h2>Analysis</h2>
+                <div class="block">
+                    <p class="text">
+                        Map of Life (MOL) aims to develop a conceptual and cyberinfrastructure framework for provisioning and improving reliable species geographic range information. To achieve this goal, MOL will provide a diversity of analyses that can be used to improve the knowledge of species ranges and facilitate spatially explicit wiki-style user range map quality control and data upload.  Through web browser applications and APIs running on front-end servers in the cloud, simple analyses will be exposed that allow the user to filter and combine point data, species habitat data, and environmental data to name a few. Longer running analyses will be deployed on either MOL back-end servers or run on external services (e.g. Google Earth Engine).   For example, a user may want to use a modeling algorithm to create a summary species distributional model based at fine-scale on a set of distributional and environmental datasets.   The combination of applications, APIs, and a flexible server architecture allows MOL to deliver data rapidly to consumers while providing a responsive toolkit for improving those data
+                    </p>
+                </div>
+                <div class="links">
+                    <div class="link"><a href="http://iucn.org">IUCN</a></div>
+                    <div class="link"><a href="http://gbif.org">GBIF</a></div>
+                    <div class="link"><a href="http://earthengine.googlelabs.com">Google Earth Engine</a></div>
+                    <div class="link"><a href="http://vernet.org">VertNet</a></div>
+                </div>
+            </div>
+            <div class="subject second">
+                <h2>Data diversity</h2>
+                <div class="overview">
+                    <p>
+                        Map of Life stores and displays multiple different data types, such as: expert opinion range maps; point data from various providers and amateur users; checklist based occurrences; habitat preference data; environmental data layers representing climate, land-cover, terrain; and fine-scale species distributional modeling outputs that integrated the different data.  Each of these data types will require their own optimal storage and visualization solutions.
+                    </p>
+                    <p>
+                        Due to this diversity, MOL is built upon several technologies that enable efficient storage and retrieval of data while not sacrificing utility (e.g. spatial operations).  MOL data storage happens across several tiers; Memcache and the Google App Engine datastore, for example, are used for simple, commonly requested data. Data on the back-end is stored in the file directory, on CouchDB, or in a PostgreSQL-PostGIS database depending on the use-cases for each particular data type.
+                    </p>
+                </div>
+            </div>
+            <div class="subject third">
+                <h2>Scalability</h2>
+                <div class="overview">
+                    <p>
+                        With comprehensive data for over 10,000 vertebrate species, the MOL technical architecture needs to scale so that it can handle high volume concurrent user requests in a performant way. To achieve this, the architecture uses a hybrid server design that runs both in the cloud and locally. Servers running in the cloud are called the MOL front-end. These servers have been designed to control all aspects of the application. To maximize throughput, it uses an extensive caching mechanism that stores only commonly requested data. It is built on Google App Engine, allowing the user to experience a very fast and responsive application, even during high-traffic periods. During low-traffic periods, the front-end application runs for less than one dollar a day. Servers running locally are called the MOL back-end. These servers are built on hardware currently at the University of Colorado, with a planned mirror at Yale University. The back-end is responsible for persistent data storage and replication, and long running processes required by MOL. The software deployed on the back-end is streamlined to handle data requests proxied from the front-end. A distributed task queue manages these requests which can be launched from web browsers, APIs, and the front-end.
+                    </p>
+                </div>
+            </div>
+            <div class="subject fourth">
+                <h2>Data delivery</h2>
+                <div class="overview">
+                    <p>
+                        Data delivery has been optimized by relying on the various tiers of data storage. Any data requested from MOL is immediately cached on the front-end server for a limited period of time. This makes frequently requested data delivered as quickly as possible. Alternatively, data that is rarely requested remains on the back-end until its first request, freeing up space in the front-end application.
+                    </p>
+                    <p>
+                        Many components of data are better managed by projects outside MOL.For example, the Global Biodiversity Information Facility (GBIF) has a long history of making point occurrence data across numerous international collections accessible across the web. MOL relies on web-services made available by GBIF, which is temporarily cached on the front end server to increase speed and reliability.   The cached data is then displayed in the MOL user-interface.
+                    </p>
+                </div>
+            </div>
+            <div class="subject fifth">
+                <h2>Management</h2>
+                <div class="overview">
+                    <p>
+                        MOL has diverse management challenges, from managing users and user privileges, managing user-provided quality-flags and data, to managing metadata about data sets and processes run for the MOL users. Every aspect of data management relies on those technological solutions outlined above, primarily scalability and delivery. MOL is exposing all data and metadata through a growing set of web-services that support discovery and data access. By doing so, MOL hopes to allow any user or application to utilize the outputs of the MOL project. While MOL is developing a user-interface that is targeted at expert users who can enhance the quality of species range data, the MOL team hopes that numerous positive (often unpredictable) outcomes will arise by encouraging other projects to build upon this set of data and tools.
+                    </p>
+                </div>
+            </div>
+            <div class="subject sixth">
+                <h2>User interface</h2>
+                <div class="overview">
+                    <p>
+                        The MOL web application facilitates data exploration, visualization, and enhancement. The user interface is built using JavaScript, HTML5, and CSS and communicates with the MOL frontend using AJAX. It is highly modular and supports internationalization. While development is in its very early stages, the MOL web application provides an early glimpse at how users will search, add, and manage species layers in a mapping interface. User interface capabilities that support display and integration of more complex data-types are in development.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
