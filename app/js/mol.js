@@ -158,6 +158,8 @@ MOL.modules.events = function(mol) {
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
     mol.events.SET_LAYER_COLOR = 'set_layer_color';
+    mol.events.GET_NEXT_COLOR = 'get_next_color';
+    mol.events.NEXT_COLOR = 'next_color';
     
     /**
      * The event bus.
@@ -215,11 +217,12 @@ MOL.modules.location = function(mol) {
             initialize: function(config) {
                 this._bus = config.bus || new mol.events.Bus();
                 this._api = config.api || new mol.ajax.Api(this._bus);
+                this._colorSetter = new mol.core.ColorSetter.Api({bus: this._bus});
                 this._container = $('body');
                 this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
                 this._mapEngine.start(this._container);
                 this._layerControlEngine = new mol.ui.LayerControl.Engine(this._api, this._bus);
-                this._layerControlEngine.start(this._container);
+                this._layerControlEngine.start(this._container);                
             },
             
             routes: {
@@ -252,6 +255,7 @@ MOL.modules.model = function(mol) {
                 this._source = source;
                 this._name = name;
                 this._json = json;
+                this._color = null;
                 this._buildId();
             },
             
@@ -269,6 +273,14 @@ MOL.modules.model = function(mol) {
             
             getId: function() {
                 return this._id;                
+            },
+            
+            getColor: function() {
+                return this._color;                
+            },
+            
+            setColor: function(color) {
+                this._color = color;
             },
                              
             _buildId: function() {
@@ -331,6 +343,24 @@ MOL.modules.ColorSetter = function(mol) {
              * @constructor
              */
             init: function(config) {
+                this._bus = config.bus;
+                this._types = {};
+                var self = this;
+                this._bus.bind(
+                    mol.events.GET_NEXT_COLOR,
+                    function(type, id) {
+                        mol.log.info('ColorSetter.Api.handle(GET_NEXT_COLOR) for ' + id);
+                        var color = new mol.core.ColorSetter.Color(1, 2, 3);
+                        mol.log.info('ColorSetter.Api.trigger(NEXT_COLOR) for ' + color.toString());
+                        self._bus.trigger(
+                            mol.events.NEXT_COLOR,
+                            color,
+                            type,
+                            id
+                        );
+                    }
+                    
+                );
             }
         }
     );
@@ -622,6 +652,7 @@ MOL.modules.Map = function(mol) {
                 this._api = api;
                 this._bus = bus;  
                 this._overlays = {};
+                this._layers = {};
                 this._bindEvents();
             },            
             
@@ -653,14 +684,6 @@ MOL.modules.Map = function(mol) {
              */
             _bindEvents: function() {
                 var self = this;
-                // Changes layer color:
-                this._bus.bind(
-                    mol.events.SET_LAYER_COLOR,
-                    function(layerId, color) {
-                        mol.log.info('Map.Engine.handle(SET_LAYER_COLOR)');
-                        self._setLayerColor(layerId, color);
-                    }
-                );
                 // Adds a control to the map:
                 this._bus.bind(
                     mol.events.ADD_MAP_CONTROL,
@@ -675,14 +698,36 @@ MOL.modules.Map = function(mol) {
                         }
                     }
                 ); 
+
+                self._bus.bind(
+                    mol.events.NEXT_COLOR,
+                    function(color, type, id) {
+                        mol.log.info('Map.Engine.handle(NEXT_COLOR)');
+                        var layer = self._layers[id];
+                        if (type === 'points' && layer && (id === layer.getId())) {
+                            layer.setColor(color);
+                            self._displayLayer(layer);
+                            delete self._layers[id];
+                            // TODO: trigger LAYER_CHANGE event
+                        }
+                    }
+                );
+
                 // Displays a new layer on the map:
                 this._bus.bind(
                     mol.events.NEW_LAYER,
                     function(layer) {
                         mol.log.info('Map.Engine.handle(NEW_LAYER)');
-                        self._displayLayer(layer);
+                        self._layers[layer.getId()] = layer;
+                        mol.log.info('Map.Engine.trigger(GET_NEXT_COLOR)');
+                        self._bus.trigger(
+                            mol.events.GET_NEXT_COLOR,
+                            'points',
+                            layer.getId()
+                        );
                     }
                 );
+                
                 // Deletes an existing layer from the map.
                 this._bus.bind(
                     mol.events.DELETE_LAYER,
@@ -761,6 +806,7 @@ MOL.modules.Map = function(mol) {
                     resources = [],
                     occurrences = [],
                     data = layer._json;
+                mol.log.info('Displaying points in color ' + layer.getColor().toString());
                 this._overlays[lid] = [];
                 for (p in data.records.providers) {
                     resources = data.records.providers[p].resources;
