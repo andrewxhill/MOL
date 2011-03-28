@@ -317,6 +317,10 @@ MOL.modules.ColorSetter = function(mol) {
 
             getBlue: function() {
                 return this._b;
+            },
+
+            toString: function() {
+                return 'Red=' + this._r + ', Green=' + this._g +', Blue=' + this._b;                    
             }
         }
     );
@@ -700,7 +704,7 @@ MOL.modules.Map = function(mol) {
                 if (!overlays) {
                     return;
                 }
-                mol.log.info('Coloring layer ' + layerId);
+                mol.log.info('Coloring layer ' + layerId + ': ' + color.toString());
                 api = new mol.core.ColorSetter.Api();
                 // TODO: Andrew
             },
