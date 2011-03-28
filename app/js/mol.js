@@ -359,7 +359,7 @@ MOL.modules.ColorSetter = function(mol) {
                     mol.events.GET_NEXT_COLOR,
                     function(type, id) {
                         mol.log.info('ColorSetter.Api.handle(GET_NEXT_COLOR) for ' + id);
-                        var color = new mol.core.ColorSetter.Color(122, 33, 33);
+                        var color = new mol.core.ColorSetter.Color(55, 133, 233);
                         mol.log.info('ColorSetter.Api.trigger(NEXT_COLOR) for ' + color.toString());
                         self._bus.trigger(
                             mol.events.NEXT_COLOR,
@@ -665,8 +665,8 @@ MOL.modules.Map = function(mol) {
                 this._bindEvents();
                 this._canvasSupport = false;
                 if ( !!document.createElement('canvas').getContext ) {
-                    this._iconHeight = 25;
-                    this._iconWidth = 25;
+                    this._iconHeight = 20;
+                    this._iconWidth = 20;
                     this._canvasSupport = true;
                     this._markerCanvas = new mol.ui.Map.MarkerCanvas(this._iconWidth,this._iconHeight);
                     this._markerContext = this._markerCanvas.getContext();
