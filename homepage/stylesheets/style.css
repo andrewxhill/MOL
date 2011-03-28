@@ -17,7 +17,7 @@ div#content_middle { float: left; width: 95%; text-align: center; margin-left: a
 div#main_links { width: 690px ; margin-left: auto ; margin-right: auto ; }
 div#button_link { border: none; }
 
-div#block_title { margin-right: 5px; float: left; 
+div#block_title { margin-right: 10px; float: left; 
                   text-align: left; color: #111; 
                   font-size: 46px; line-height: 48px;
                   font-weight: bold;  }
