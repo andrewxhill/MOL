@@ -30,11 +30,6 @@ class ColPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
         self.response.out.write(template.render(path, {}))
 
-class MapPage(webapp.RequestHandler):
-    def get(self):
-        path = os.path.join(os.path.dirname(__file__), 'templates/maptest.html')
-        self.response.out.write(template.render(path, {}))
-
 class MainPage(webapp.RequestHandler):
     def get(self):
         self.response.out.write('hi')
@@ -48,12 +43,14 @@ class BaseHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(open(path, 'r').read())
 
-
-"""remove this after layer widget is developed"""
+''' For testing... '''
+class MapPage(BaseHandler):
+    def get(self):
+        self.push_html('map.html');
 class LayerWidget(BaseHandler):
     def get(self):
         self.push_html('layer.widget.html')
-"""stop"""
+''' For testing... '''
 
 class AdminFlushMemcacheHandler(BaseHandler):
     def get(self):
@@ -100,7 +97,7 @@ application = webapp.WSGIApplication(
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/playground/col', ColPage),
-          ('/playground/map', MapPage),
+          ('/sandbox/map', MapPage),
           ('/admin/flush-memcache', AdminFlushMemcacheHandler),
           ('/hooks/post-commit', GitHubPostReceiveHooksHandler), ],
          debug=True)
