@@ -17,12 +17,14 @@ div#content_middle { float: left; width: 95%; text-align: center; margin-left: a
 div#main_links { width: 690px ; margin-left: auto ; margin-right: auto ; }
 div#button_link { border: none; }
 
-img.main_link { margin: 20px; float: left; width: 280px; height: 80px; border: none; }
-div#block_title { margin-left: 5px; margin-right: 5px; float: left; text-align: center; padding: 1px; color: #111; font-size: 24px; width: 240px; }
+div#block_title { margin-right: 5px; float: left; 
+                  text-align: left; color: #111; 
+                  font-size: 46px; line-height: 48px;
+                  font-weight: bold;  }
 
-div#text_blocks { width: 780px; margin-left: auto; margin-right: auto;}
-/* div#blog, div#about { overflow: hidden; margin: 10px; float: left; text-align: justify; padding: 1px; color: #333; font-size: 18px; height: 300px; width: 400px; } */
-div#blog, div#about, div#code { overflow: hidden; margin: 5px; float: left; text-align: left; padding: 1px; font-size: 16px; height: 295px; width: 240px; }
+div#text_blocks { width: 780px; margin-left: auto; margin-right: auto; 
+                    text-align: justify; 
+                    font-size: 22px; line-height: 24px;}
 
 div.gfc-resultsHeader{ border: none; }
 
