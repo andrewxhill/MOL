@@ -1492,3 +1492,24 @@ MOL.modules.LayerList = function(mol) {
         }
     );
 };
+
+MOL.modules.Search = function(mol) {
+    
+    mol.ui.Search = {};
+
+    mol.ui.Search.Engine = mol.ui.Engine.extend(
+        {
+            
+        }
+    );
+
+    mol.ui.Search.Display = mol.ui.Display.extend(
+        {
+            init: function(config) {
+                this._super('<div>');
+                this.setStyleName('mol-Search-Display');
+                this._config = config;
+            }
+        }
+    );
+};
