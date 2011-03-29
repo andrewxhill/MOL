@@ -1456,7 +1456,7 @@ MOL.modules.LayerList = function(mol) {
             init: function(config) {
                 this._super('<div>');
                 this.setStyleName('mol-LayerList-Display');
-                this._widget = {};
+                this._widgets = {};
             },
 
             /**
