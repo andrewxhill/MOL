@@ -1,8 +1,8 @@
-body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; font-size: 20px;
+body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; font-size: 16px;
     min-width: 760px; margin: 0px; height: 100%; width: 100%; background: #232323; position: relative;}
 div#header { padding-top: 15px; padding-bottom: 15px; width: 100%; height: 70px; color: #fff; font-size: 60px; font-weight: bold;}
 div#header #title{ padding-left: 30px; font-variant: small-caps; float: left}
-div#header #subtitle{ padding-left: 160px; font-variant: small-caps; font-size: 0.4em; }
+div#header #subtitle{ font-variant: small-caps; font-size: 0.3em; }
 
 div#menu {
     position: relative;
@@ -31,55 +31,79 @@ div#container .subject{
     margin-bottom: 20px;
     -moz-border-radius: 35px;
     border-radius: 35px;
-    background-color: #b8fd85; color: #111; 
+    -moz-box-shadow: 0 0 5px rgba(222,222,222,0.5);
+    -webkit-box-shadow: 0 0 5px rgba(222,222,222,0.5);
+    box-shadow: 0 0 5px rgba(222,222,222,0.5);
+    color: #111; 
     float: left;
 }
 div#container .links{
     margin-left: 30px;
 }
-div#container .link{
+div#container .link, div#container .label{
     float: left;
     padding: 3px;
     margin-left: 20px;
     -moz-border-radius: 8px;
     border-radius: 8px;
     background-color: rgba(37,168,222,0.8);
-    font-size: 0.9em;
+    font-size: 0.8em;
     font-weight: bold;
     -moz-box-shadow: 0 0 5px #666;
     -webkit-box-shadow: 0 0 5px #666;
     box-shadow: 0 0 5px #666;
     cursor: pointer;
 }
+
+div#container .subject.first{
+    background-color: #b8fd85; 
+    color: #111; 
+}
+div#container .subject.first .link{
+    background-color: #6AD2DF;
+}
+div#container .subject.second{
+    background-color: #6AD2DF; color: #111; 
+}
+div#container .subject.second .link{
+    background-color: #b8fd85; 
+}
+div#container .subject.third{
+    background-color: #FFC800; color: #111; 
+}
+div#container .subject.third .link{
+    background-color: #6AD2DF;
+}
+div#container .subject.fourth{
+    background-color: #F7AF63; color: #111; 
+}
+div#container .subject.fourth .link{
+    background-color: #b8fd85; 
+}
+div#container .subject.fifth{
+    background-color: #FF6B6B; color: #111; 
+}
+div#container .subject.fifth .link{
+    background-color: #6AD2DF;
+}
+div#container .subject.sixth{
+    background-color: #00BBFF; color: #111; 
+}
+div#container .subject.sixth .link{
+    background-color: #b8fd85; 
+}
 div#container .link a{
     text-decoration: none;
     color: #212121; 
 }
 div#container .link:hover{
-    background-color: rgba(37,168,222,0.7);
+    -moz-box-shadow: 0 0 5px #000;
+    -webkit-box-shadow: 0 0 5px #000;
+    box-shadow: 0 0 5px #000;
 }
-div#container .link.label{
+div#container .label{
     background-color: #212121;
     color: #bbb;
     cursor: default;
-}
-
-div#container .subject.first{
-    background-color: #b8fd85; color: #111; 
-}
-div#container .subject.second{
-    background-color: #6AD2DF; color: #111; 
-}
-div#container .subject.third{
-    background-color: #5CAEA2; color: #111; 
-}
-div#container .subject.fourth{
-    background-color: #5C5237; color: #ddd; 
-}
-div#container .subject.fifth{
-    background-color: #A5460C; color: #ddd; 
-}
-div#container .subject.sixth{
-    background-color: #E68D17; color: #111; 
 }
 
