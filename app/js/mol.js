@@ -666,8 +666,8 @@ MOL.modules.Map = function(mol) {
                 this._bindEvents();
                 this._canvasSupport = false;
                 if ( !!document.createElement('canvas').getContext ) {
-                    this._iconHeight = 20;
-                    this._iconWidth = 20;
+                    this._iconHeight = 15;
+                    this._iconWidth = 15;
                     this._canvasSupport = true;
                     this._markerCanvas = new mol.ui.Map.MarkerCanvas(this._iconWidth,this._iconHeight);
                     this._markerContext = this._markerCanvas.getContext();
