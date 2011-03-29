@@ -110,23 +110,22 @@ MOL.modules.ajax = function(mol) {
                     source = layer.getSource().toLowerCase(),
                     speciesKey = 'animalia/species/' + name.replace(' ', '_'),
                     xhr = null,
+                    bus = this._bus,
+                    LayerEvent = mol.events.LayerEvent,
                     self = this;
                 mol.log.info('Api sending AJAX request for layer ' + layer.getId());
                 switch (type) {
                 case 'points':
                     switch (source) {
                     case 'gbif':
-
                         xhr = $.post('/api/points/gbif/'+ speciesKey);                        
                         xhr.success(
                             function(json) {
-                                mol.log.info('Api received AJAX response for layer ' 
-                                             + layer.getId() + ' - trigger(NEW_LAYER)');
+                                var layer = new mol.model.Layer(type, source, name, json);
+
                                 success(json);
-                                self._bus.trigger(
-                                    mol.events.NEW_LAYER,
-                                    new mol.model.Layer(type, source, name, json)
-                                );
+                                
+                                bus.fireEvent(new LayerEvent({action: 'new', layer: layer}));
                             }
                         );
                         xhr.error(failure);
@@ -151,51 +150,165 @@ MOL.modules.ajax = function(mol) {
 MOL.modules.events = function(mol) {
     mol.events = {};
     
+    /**
+     * Base class for events. Events can be fired on the event bus.
+     */
     mol.events.Event = Class.extend(
         {
-            init: function(type, params) {
+            /**
+             * Constructs a new event.
+             * 
+             * @param type the type of event
+             */
+            init: function(type, action) {
+                var IllegalArgumentException = mol.exceptions.IllegalArgumentException;
+                if (!type) {
+                    throw IllegalArgumentException;
+                }
                 this._type = type;
-                this._params = params;
+                this._action = action;
             },
 
+            /**
+             * Gets the event type.
+             * 
+             * @return the event type string
+             */
             getType: function() {
                 return this._type;
             },
 
-            getParams: function() {
-                return this._params;
+            /**
+             * Gets the action.
+             * 
+             * @return action
+             */
+            getAction: function() {
+                return this._action;
+            }            
+        }
+    );
+
+    /**
+     * Event for colors.
+     */
+    mol.events.ColorEvent = mol.events.Event.extend(
+        {
+            init: function(config) {
+                this._super('ColorEvent', config.action);
+                this._color = config.color;
+                this._category = config.category;
+                this._id = config.id;
+            },
+            
+            getColor: function() {
+                return this._color;
+            },
+            
+            getCategory: function() {
+                return this._category;
+            },
+
+            getId: function() {
+                return this._id;
+            }            
+        }
+    );
+    mol.events.ColorEvent.TYPE = 'ColorEvent';
+
+    /**
+     * Event for layers.
+     */
+    mol.events.LayerEvent = mol.events.Event.extend(
+        {
+            init: function(config) {
+                this._super('LayerEvent', config.action);
+                this._layer = config.layer;
+            },
+
+            getLayer: function() {
+                return this._layer;
             }
         }
     );
+    mol.events.LayerEvent.TYPE = 'LayerEvent';
 
+    /**
+     * Trigger this event if you generate layer control actions such as 'Add' 
+     * or 'Delete'.
+     * 
+     * Supported actions:
+     *     add-click
+     *     delete-click   
+     */
     mol.events.LayerControlEvent = mol.events.Event.extend(
         {
             init: function(action) {
-                this._super('LayerControlEvent-' + action, {});
-            }          
+                this._super('LayerControlEvent', action);
+            }            
         }
     );
-    
-    mol.events.EventHandler = Class.extend(
-        {
-            
-        }
-    );
+    mol.events.LayerControlEvent.TYPE = 'LayerControlEvent';
 
-    mol.events.AddLayerClickEventHandler = mol.events.EventHandler.extend(
+    /**
+     * Trigger this event to add a map control widget on the map at a position.
+     */
+    mol.events.MapControlEvent = mol.events.Event.extend(
         {
-                 
+            /**
+             * Constructs a new MapControlEvent object.
+             * 
+             * @constructor
+             * 
+             * @param div - the div element of the control to display on the map
+             * @param position - the google.maps.ControlPosition
+             * @param action - the action (add, remove)
+             */
+            init: function(div, position, action) {
+                this._super('MapControlEvent');
+                this._div = div;
+                this._position = position;
+                this._action = action;
+            },
+            
+            /**
+             * Gets the widget.
+             * 
+             * @return widget
+             */
+            getDiv: function() {
+                return this._div;
+            },
+
+            /**
+             * Gets the position.
+             * 
+             * @return position
+             */
+            getPosition: function() {
+                return this._position;
+            },
+
+            /**
+             * Gets the action.
+             * 
+             * @return action
+             */
+            getAction: function() {
+                return this._action;
+            }
         }
     );
+    mol.events.MapControlEvent.TYPE = 'MapControlEvent';
 
     
     // Event types:
     mol.events.ADD_MAP_CONTROL = 'add_map_control';
-    mol.events.ADD_LAYER_CLICK = 'add_layer_click';
-    mol.events.DELETE_LAYER_CLICK = 'delete_layer_click';
+
+
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
-    mol.events.SET_LAYER_COLOR = 'set_layer_color';
+//    mol.events.SET_LAYER_COLOR = 'set_layer_color';
     mol.events.GET_NEXT_COLOR = 'get_next_color';
     mol.events.NEXT_COLOR = 'next_color';
     mol.events.COLOR_CHANGE = 'color_change';
@@ -208,10 +321,29 @@ MOL.modules.events = function(mol) {
             return new mol.events.Bus();
         }
         _.extend(this, Backbone.Events);
+
+        /**
+         * Fires an event on the event bus.
+         * 
+         * @param event the event to fire
+         */
         this.fireEvent = function(event) {
-            var type = event.getType(),
-                params = event.getParams();
-            this.trigger(type, params);
+            this.trigger(event.getType(), event);
+        };
+
+        /**
+         * Adds an event handler for an event type.
+         * 
+         * @param type the event type
+         * @param handler the event handler callback function
+         */
+        this.addHandler = function(type, handler) {
+            this.bind(
+                type, 
+                function(event) {
+                    handler(event);
+                }
+            );
         };
         return this;
     };
@@ -403,21 +535,41 @@ MOL.modules.ColorSetter = function(mol) {
             init: function(config) {
                 this._bus = config.bus;
                 this._types = {};
-                var self = this;
-                this._bus.bind(
-                    mol.events.GET_NEXT_COLOR,
-                    function(type, id) {
-                        mol.log.info('ColorSetter.Api.handle(GET_NEXT_COLOR) for ' + id);
-                        var color = new mol.core.ColorSetter.Color(55, 133, 233);
-                        mol.log.info('ColorSetter.Api.trigger(NEXT_COLOR) for ' + color.toString());
-                        self._bus.trigger(
-                            mol.events.NEXT_COLOR,
-                            color,
-                            type,
-                            id
-                        );
+                this._bindEvents();
+            },
+            
+            _bindEvents: function() {
+                var bus = this._bus,
+                    ColorEvent = mol.events.ColorEvent;
+                
+                bus.addHandler(
+                    ColorEvent.TYPE,
+                    function(event) {
+                        var action = event.getAction(),
+                            category = event.getCategory(),
+                            id = event.getId(),
+                            color = null,
+                            config = {
+                                action: 'change',
+                                color: null,
+                                category: category,
+                                id: id
+                            };
+                        
+                        switch (action) {
+         
+                        case 'get':
+                            switch (category) {
+                                
+                            case 'points':
+                                // TODO(andrew): Logic for getting next color.
+                                config.color = new mol.core.ColorSetter.Color(55, 133, 233);
+                                bus.fireEvent(new ColorEvent(config));
+                                break;
+                            }
+                            
+                        }
                     }
-                    
                 );
             }
         }
@@ -736,9 +888,9 @@ MOL.modules.Map = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;  
-                this._overlays = {};
+                this._points = {};
                 this._layers = {};
-                this._bindEvents();
+                this._controlDivs = {};
                 this._canvasSupport = false;
                 if ( !!document.createElement('canvas').getContext ) {
                     this._iconHeight = 15;
@@ -764,11 +916,12 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.start
              */
             start: function(container) {
-                var display = new mol.ui.Map.Display();
-                display.setEngine(this);
-                container.append(display.getElement());
-                this._display = display;
+                this._bindDisplay(new mol.ui.Map.Display(), container);
+                this._addMapControlEventHandler();
+                this._addLayerEventHandler();
+                this._addColorEventHandler();
             },
+
             /**
              * Gives the engine a new place to go based on a browser history
              * change.
@@ -780,115 +933,178 @@ MOL.modules.Map = function(mol) {
                 mol.log.todo('Map.Engine.go()');
             },
 
+            _bindDisplay: function(display, container) {
+                this._display = display;
+                display.setEngine(this);                
+
+                container.append(display.getElement());
+                
+                this._map = display.getMap();
+            },
+
             /**
-             * Private function for binding event handles.
+             * Adds an event handler for new layers.
              */
-            _bindEvents: function() {
-                var self = this;
-
-                // Adds a control to the map:
-                this._bus.bind(
-                    mol.events.ADD_MAP_CONTROL,
-                    function(control, type) {
-                        mol.log.info('Map.Engine.handle(ADD_MAP_CONTROL)');
-                        var rc = self._display.getRightController();
-                        var cc = self._display.getCenterController();
-                        switch (type) {
-                        case mol.ui.Map.Display.ControlType.LAYER:
-                            mol.log.info('Map.Engine adding layer control to right controller');
-                            rc.addWidget('LayerControl', control);
-                            break;
-                        case mol.ui.Map.Display.ControlType.SEARCH:
-                            mol.log.info('Map.Engine adding search control to center controller');
-                            cc.addWidget('LayerControl', control);
-                            break;
-                        }
-                    }
-                ); 
-
-                // Handles a color change by updating layer color:
-                self._bus.bind(
-                    mol.events.COLOR_CHANGE,
-                    function(color, type, id) {
-                        mol.log.info('Map.Engine.handle(COLOR_CHANGE)');
-                        var layer = self._layers[id];
-                        if (!layer) {
-                            return;
-                        }
-                        self._handleColor(color, type, id, true);
-                    }
-                );
+            _addLayerEventHandler: function() {
+                var bus = this._bus,
+                    LayerEvent = mol.events.LayerEvent,
+                    ColorEvent = mol.events.ColorEvent,
+                    deleteLayer = this._deleteLayer,
+                    layers = this._layers;
                 
-                // Handles a next color event:
-                self._bus.bind(
-                    mol.events.NEXT_COLOR,
-                    function(color, type, id) {
-                        mol.log.info('Map.Engine.handle(NEXT_COLOR)');
-                        self._handleColor(color, type, id);                        
-                    }
-                );
+                bus.addHandler(
+                    LayerEvent.TYPE,
+                    function(event) {
+                        var layer = event.getLayer(),
+                            lid = layer.getId(),
+                            action = event.getAction(),
+                            config = {
+                                action: 'get',
+                                category: 'points',
+                                id: lid
+                            };
+                        
+                        switch (action) {
 
-                // Displays a new layer on the map:
-                this._bus.bind(
-                    mol.events.NEW_LAYER,
-                    function(layer) {
-                        mol.log.info('Map.Engine.handle(NEW_LAYER)');
-                        self._layers[layer.getId()] = layer;
-                        mol.log.info('Map.Engine.trigger(GET_NEXT_COLOR)');
-                        self._bus.trigger(
-                            mol.events.GET_NEXT_COLOR,
-                            'points',
-                            layer.getId()
-                        );
-                    }
-                );
-                
-                // Deletes an existing layer from the map.
-                this._bus.bind(
-                    mol.events.DELETE_LAYER,
-                    function(layerId) {
-                        self._deleteLayer(layerId);
+                        case 'new':
+                            layers[lid] = layer;
+                            // We need a layer color before displaying it:
+                            bus.fireEvent(new ColorEvent(config));
+                            break;
+
+                        case 'delete':
+                            deleteLayer(lid);
+                            break;
+                        }                        
                     }
                 );
             },
             
+            /**
+             * Adds an event handler so that displays can be added to the map as
+             * controls simply by firing a MapControlEvent.
+             */
+            _addMapControlEventHandler: function() {
+                var bus = this._bus,
+                    MapControlEvent = mol.events.MapControlEvent,
+                    controls = this._map.controls,
+                    controlDivs = this._controlDivs;
+                                
+                bus.addHandler(
+                    MapControlEvent.TYPE,
+                    function(event) {
+                        var action = event.getAction(),
+                            div = event.getDiv(),
+                            position = event.getPosition();
+
+                        switch (action) {
+
+                        case 'add':
+                            // push(div) returns the length of the controls 
+                            // array. So push(div) - 1 is the div index in the 
+                            // controls array. We need the div index if we want
+                            // to later remove the div control from the map.
+                            controlDivs[div] = controls[position].push(div) - 1;
+                            break;
+
+                        case 'remove':
+                            if (controlDivs[div]) {
+                                controls.removeAt(controlDivs[div]);
+                                delete controlDivs[div];
+                            }                            
+                        }
+                    }
+                );
+            },
+
+            _addColorEventHandler: function() {
+                var ColorEvent = mol.events.ColorEvent,
+                    bus = this._bus,
+                    points = this._points,
+                    layers = this._layers,
+                    self = this;
+                
+                bus.addHandler(
+                    ColorEvent.TYPE,
+                    function(event) {
+                        var color = event.getColor(),
+                            category = event.getCategory(),
+                            layerId = event.getId(),
+                            layer = layers[layerId],
+                            action = event.getAction();
+
+                        // Ignores event since we don't have the layer associated with it:
+                        if (!layer) {
+                            return;
+                        }
+                        
+                        // Sets the layer color:
+                        layer.setColor(color);
+
+                        switch (action) {
+
+                        case 'change':
+                            switch (category) {
+                                
+                            case 'points':
+                                // Gets the point icon based on color and either
+                                // creates the points with new icons or updates 
+                                // icons of existing points.
+                                self._getPointIcon(
+                                    color,
+                                    function(icon) {
+                                        layer.setIcon(icon);                                    
+                                        if (!points[layerId]) {
+                                            self._createPoints(layer);    
+                                        } else {
+                                            self._updateLayerColor(layer);
+                                        }
+                                    }
+                                );
+                                break;
+
+                            case 'range':
+                                // TODO
+                                break;                                
+                            }                           
+                        }
+                    }
+                );                
+            },
             
+            _updateLayer: function(layer) {
+                _updateLayerColor(layer);
+            },
+
             _updateLayerColor: function(layer) {
-                var overlays = this._overlays[layer.getId()],
+                var points = this._points[layer.getId()],
+                    type = layer.getType(),
                     urls = this._getIconUrls(layer.getIcon()),
                     iconUrl = urls.iconUrl,
                     w = this._iconWidth,
                     h = this._iconHeight,
-                    overlay = null,
+                    point = null,
                     image = new google.maps.MarkerImage(iconUrl, new google.maps.Size(w, h));
-                for (x in overlays) {
-                    overlay = overlays[x];
-                        if (overlay instanceof google.maps.Marker) {
-                            overlay.setIcon(image);
-                        }
+                
+                switch (type) {
+
+                case 'points':
+                    for (x in points) {
+                        point = points[x];
+                        if (point instanceof google.maps.Marker) {
+                            point.setIcon(image);
+                        }                        
+                    }
+                    break;
+
+                case 'range':
+                    // TODO
+                    break;
+
                 }
             },
 
-            _handleColor: function(color, type, id, change) {                
-                var layer = this._layers[id],
-                    self = this;
-                if (type === 'points' && layer && (id === layer.getId())) {
-                    layer.setColor(color);
-                    this._getMarkerIcon(
-                        color, 
-                        function(icon) {
-                            layer.setIcon(icon);
-                            if (change) {
-                                self._updateLayerColor(layer);   
-                            } else {
-                                self._displayLayer(layer);
-                            }
-                        }
-                    );                            
-                }
-            },
-                        
-            _getMarkerIcon: function(color, callback) {
+            _getPointIcon: function(color, callback) {
                 var icon = new Image(),
                     src = '/api/colorimage/pm-color.png?'
                           + 'r=' + color.getRed() 
@@ -906,13 +1122,13 @@ MOL.modules.Map = function(mol) {
              * @param layerId the id of the layer to delete
              */
             _deleteLayer: function(layerId) {
-                var overlays = this._overlays[layerId];
-                for (x in overlays) {
-                    overlays[x].setMap(null);
-                    delete overlays[x];
+                var points = this._points[layerId];
+                for (x in points) {
+                    points[x].setMap(null);
+                    delete points[x];
                 }
-                delete this._overlays[layerId];
-                this._overlays[layerId] = null;
+                delete this._points[layerId];
+                this._points[layerId] = null;
             },
 
             /**
@@ -920,20 +1136,21 @@ MOL.modules.Map = function(mol) {
              * 
              * @param the layer to display
              */
-            _displayLayer: function(layer) {
+            _toggleLayer: function(layer, show) {
                 var lid = layer.getId(),
-                    type = layer.getType();
-                if (this._overlays[lid]) {
-                    // Duplicate layer.
-                    return;
-                } 
-                mol.log.info('Map.Engine displaying new layer: ' + lid);
+                    type = layer.getType(),
+                    points = this._points[layerId],
+                    map = show ? this._map : null;
+
                 switch (type) {
+
                 case 'points':
-                    this._displayPoints(layer);
-                    break;
+                    for (x in points) {
+                        points[x].setMap(map);
+                    }
+                    
                 case 'range':
-                    this._displayRange(layer);
+                    // TODO
                     break;
                 }
             },            
@@ -960,12 +1177,7 @@ MOL.modules.Map = function(mol) {
                 return {iconUrl: url, iconErrorUrl: errorUrl};
             },
 
-            /**
-             * Private function that displays a points layer on the map.
-             * 
-             * @param layer the points layer to display
-             */
-            _displayPoints: function(layer) {
+            _createPoints: function(layer) {
                 var lid = layer.getId(),
                     center = null,
                     marker = null,
@@ -978,8 +1190,7 @@ MOL.modules.Map = function(mol) {
                     urls = this._getIconUrls(icon),
                     iconUrl = urls.iconUrl,
                     iconErrorUrl = urls.iconErrorUrl;
-                mol.log.info('Displaying points: ' + lid);
-                this._overlays[lid] = [];
+                this._points[lid] = [];
                 for (p in data.records.providers) {
                     resources = data.records.providers[p].resources;
                     for (r in resources) {
@@ -987,12 +1198,12 @@ MOL.modules.Map = function(mol) {
                         for (o in occurrences) {
                             coordinate = occurrences[o].coordinates;
                             marker = this._createMarker(coordinate, iconUrl);
-                            this._overlays[lid].push(marker);                      
+                            this._points[lid].push(marker);                      
                             circle = this._createCircle(
                                 marker.getPosition(),
                                 coordinate.coordinateUncertaintyInMeters);                            
                             if (circle) {
-                                this._overlays[lid].push(circle);
+                                this._points[lid].push(circle);
                             }     
                         }
                     }
@@ -1053,64 +1264,6 @@ MOL.modules.Map = function(mol) {
     );
 
     /**
-     * The top right map control container. It gets added to the Google map as a
-     * control. 
-     */
-    mol.ui.Map.RightController = mol.ui.Element.extend(
-        {
-            init: function() {
-                this._super('<div>');
-                this.setStyleName('mol-RightController');
-                this._widgets = {};
-            },
-
-            addWidget: function(name, widget) {
-                var wc = new mol.ui.Map.WidgetContainer(name);
-                wc.setWidget(widget);
-                this._widgets[name] = wc;
-                this.getElement().append(wc.getElement());
-            }
-        }
-    );
-
-    /**
-     * The top center map control container. It gets added to the Google map as a
-     * control. 
-     */
-    mol.ui.Map.CenterController = mol.ui.Element.extend(
-        {
-            init: function() {
-                this._super('<div>');
-                this.setStyleName('mol-CenterController');
-                this._widgets = {};
-            },
-
-            addWidget: function(name, widget) {
-                this._widgets[name] = widget;
-                this.append(widget);
-            }
-        }
-    );
-
-    /**
-     * The container for Layers, Filters, Tools, and other control widgets on
-     * the map. Its parent is RightController.
-     */
-    mol.ui.Map.WidgetContainer = mol.ui.Element.extend(
-        {
-            init: function(name) {
-                this._super('<div>');
-                this.setStyleName('mol-WidgetContainer');
-                this._name = name;
-            },
-
-            setWidget: function(widget) {
-                this.getElement().append(widget.getElement());
-            }
-        }        
-    ),
-
-    /**
      * The top level placemark canvas container
      */
     mol.ui.Map.MarkerCanvas = mol.ui.Element.extend(
@@ -1158,20 +1311,6 @@ MOL.modules.Map = function(mol) {
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
                 this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);
-
-                // Adds RightController:
-                this._rightControl = new mol.ui.Map.RightController();
-                this._map.controls[rightPosition].push(this._rightControl.getElement()[0]);
-
-                // Adds CenterController:
-                this._centerControl = new mol.ui.Map.CenterController();
-                this._map.controls[centerPosition].push(this._centerControl.getElement()[0]);
-
-                // Supported control types for the map
-                mol.ui.Map.Display.ControlType = {
-                    LAYERS: 'layers',
-                    SEARCH: 'search'
-                };
             },          
             
             
@@ -1187,21 +1326,7 @@ MOL.modules.Map = function(mol) {
              */
             getMapControls: function() {
                 return this._map.controls;
-            },
-            
-            /**
-             * Returns the right controller.
-             */
-            getRightController: function() {
-                return this._rightControl;
-            },
-            
-            /**
-             * Returns the center controller.
-             */
-            getCenterController: function() {
-                return this._centerControl;
-            }
+            }            
         }
     );
 };
@@ -1247,17 +1372,8 @@ MOL.modules.LayerControl = function(mol) {
              */
             start: function(container) {
                 var config = this._displayConfig(),
-                    display = new mol.ui.LayerControl.Display(config),
-                    position = google.maps.ControlPosition.TOP_RIGHT,
-                    bus = this._bus;
+                    display = new mol.ui.LayerControl.Display(config);
                 this._bindDisplay(display);
-                // Triggers the ADD_MAP_CONTROL event which causes the display
-                // to get added to the map as a control:
-                mol.log.info('LayerControl.Engine.trigger(ADD_MAP_CONTROL)');
-                bus.trigger(
-                    mol.events.ADD_MAP_CONTROL,                     
-                    display, 
-                    mol.ui.Map.Display.ControlType.LAYER);
             },
             
             /**
@@ -1278,21 +1394,26 @@ MOL.modules.LayerControl = function(mol) {
              * @param display the mol.ui.LayerControl.Display object to bind 
              */
             _bindDisplay: function(display) {
-                var self = this;
+                var bus = this._bus,
+                    div = display.getElement()[0],
+                    position = google.maps.ControlPosition.TOP_RIGHT,
+                    LayerControlEvent = mol.events.LayerControlEvent,
+                    MapControlEvent = mol.events.MapControlEvent;
+
                 this._display = display;
                 display.setEngine(this);                
-                // Adds click handler that triggers an ADD_LAYER_CLICK event:
+                
+                bus.fireEvent(new MapControlEvent(div, position, 'add'));
+
                 display.getAddLink().click(
                     function(event) {
-                        var addLayerEvent = new mol.events.AddLayerEvent();
-                        self._bus.fireEvent(addLayerEvent);
+                        bus.fireEvent(new LayerControlEvent('add-click'));
                     }
                 );
-                // Adds click handler that triggers a DELETE_LAYER_CLICK event:
+
                 display.getDeleteLink().click(
                     function(event) {
-                        mol.log.info('LayerControl.Display.DeleteLink.click()');
-                        self._bus.trigger(mol.events.DELETE_LAYER_CLICK);
+                        bus.fireEvent(new LayerControlEvent('delete-click'));
                     }
                 );
             },
@@ -1390,6 +1511,37 @@ MOL.modules.LayerControl = function(mol) {
             }
         }
     );
+
+    /**
+     * The top right map control container. It gets added to the Google map as a
+     * control. 
+     */
+    mol.ui.LayerControl.RightController = mol.ui.Element.extend(
+        {
+            init: function() {
+                this._super('<div>');
+                this.addStyleName('mol-LayerControl-Display');
+            }
+        }
+    );
+
+    /**
+     * The container for Layers, Filters, Tools, and other control widgets on
+     * the map. Its parent is RightController.
+     */
+    mol.ui.LayerControl.WidgetContainer = mol.ui.Element.extend(
+        {
+            init: function() {
+                this._super('<div>');
+                this.setStyleName('mol-WidgetContainer');
+            },
+
+            setWidget: function(widget) {
+                this.append(widget);
+            }
+        }        
+    ),
+
             
     /**
      * The LayerControl Display.
@@ -1405,7 +1557,7 @@ MOL.modules.LayerControl = function(mol) {
              */            
             init: function(config) {
                 this._super('<div>');
-                this.addStyleName('mol-LayerControl-Display');
+                this.setStyleName('mol-RightController');
                 this._config = config;
                 this._build();
             },
@@ -1436,9 +1588,11 @@ MOL.modules.LayerControl = function(mol) {
                     deleteText = this._config.text.deleteLayer,
                     layersText = this._config.text.layers,
                     names = [deleteText, addText];
+                this._widgetContainer = new mol.ui.LayerControl.WidgetContainer();
+                this.append(this._widgetContainer);
                 this._menu = new mol.ui.LayerControl.Menu(layersText);                    
                 this._menu.buildOptions(names);
-                this.append(this._menu);
+                this._widgetContainer.append(this._menu);
             }
         }
     );
@@ -1622,54 +1776,85 @@ MOL.modules.Search = function(mol) {
      */
     mol.ui.Search.Engine = mol.ui.Engine.extend(
         {
+            /**
+             * Constructs the engine.
+             * 
+             * @constructor
+             */
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
             },
 
             /**
-             * Starts the engine and provides a container for its display.
-             * 
-             * @param container the container for the engine display 
+             * Starts the engine by creating and binding the display.
+             *
              * @override mol.ui.Engine.start
              */
             start: function(container) {
-                var display = new mol.ui.Search.Display({}),
-                    bus = this._bus,
-                    self = this;
-                display.setEngine(this);
-                // On ADD_LAYER_CLICK event show/hide the display:
-                this._bus.bind(
-                    mol.events.ADD_LAYER_CLICK,
-                    function() {
-                        var display = self._display;
-                        if (display.isVisible()) {
-                            display.hide();
-                        } else {
-                            display.show();
-                        }
-                    }
-                );
-                // Trigger ADD_MAP_CONTROL so display shows on map:
-                this._bus.trigger(
-                    mol.events.ADD_MAP_CONTROL,
-                    display,
-                    mol.ui.Map.Display.ControlType.SEARCH
-                );
-                display.hide();
-                this._display = display;
+                this._bindDisplay(new mol.ui.Search.Display({}));
             },
 
             /**
              * Gives the engine a new place to go based on a browser history
              * change.
              * 
-             * @param place the place to go
              * @override mol.ui.Engine.go
              */
             go: function(place) {
                 mol.log.todo('Search.Engine.go()');
-            }            
+            },
+             
+            /**
+             * Binds the display.
+             */
+            _bindDisplay: function(display) {                
+                this._display = display;
+                display.setEngine(this);
+
+                display.hide();
+
+                this._addLayerControlEventHandler();                
+
+                // TODO: Set up handlers for DOM elements in the display.
+
+                this._addDisplayToMap();
+            },
+            
+            /**
+             * Fires a MapControlEvent so that the display is attached to
+             * the map as a control in the TOP_LEFT position.
+             */
+            _addDisplayToMap: function() {
+                var MapControlEvent = mol.events.MapControlEvent,
+                    div = this._display.getElement()[0],
+                    position = google.maps.ControlPosition.TOP_CENTER,
+                    action = 'add';
+                bus.fireEvent(new MapControlEvent(div, position, action));     
+            },
+
+            /**
+             * Adds an event handler for LayerControlEvent events so that a
+             * 'add-click' action will show the search display as a control
+             * on the map.
+             */
+            _addLayerControlEventHandler: function() {
+                var display = this._display,
+                    bus = this._bus,
+                    LayerControlEvent = mol.events.LayerControlEvent;
+                
+                bus.addHandler(
+                    LayerControlEvent.TYPE,
+                    function(event) {
+                        var action = event.getAction(),
+                            displayNotVisible = !display.isVisible();               
+                        
+                        if (action === 'add-click' && displayNotVisible) {
+                            display.show();
+                        }
+                    }
+                );
+            }
         }
     );
     
