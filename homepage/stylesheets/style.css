@@ -31,7 +31,7 @@ div#text_blocks #block_title { margin-right: 10px; float: left;
 div#text_blocks { width: 780px; margin-left: auto; margin-right: auto; }
 div#text_blocks p { float: left;
                     text-align: justify; 
-                    font-size: 22px; line-height: 24px;}
+                    font-size: 18px; line-height: 20px;}
 div.gfc-resultsHeader{ border: none; }
 
 dif#footer {width: 90%; margin-top: 20px;}

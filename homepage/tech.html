@@ -2,13 +2,13 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
-        <title>The Map of Life</title> 
+        <title>Map of Life</title> 
         <link href="/stylesheets/tech.css" media="screen" rel="stylesheet" type="text/css" /> 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
     </head>
     <body>
         <div id="header">
-            <div id="title">The Map of Life <span id="subtitle">Technical Overview</span></div>
+            <div id="title">Map of Life <span id="subtitle">Technical Overview</span></div>
         </div>
         <div id="menu">
             <div class="link"><a href="#analysis">Analysis</a></div>
@@ -34,7 +34,6 @@
                     <div class="label">Key external projects</div>
                     <div class="link"><a href="http://iucn.org">IUCN</a></div>
                     <div class="link"><a href="http://gbif.org">GBIF</a></div>
-                    <div class="link"><a href="http://earthengine.googlelabs.com">Google Earth Engine</a></div>
                     <div class="link"><a href="http://vernet.org">VertNet</a></div>
                     <div class="link"><a href="http://catalogueoflife.org">COL</a></div>
                 </div>
@@ -51,8 +50,9 @@
                 </div>
                 <div class="links">
                     <div class="label">Key external projects</div>
-                    <div class="link"><a href="http://code.google.com/appengine/">Google App Engine</a></div>
-                    <div class="link"><a href="http://memcached.org">Memcached</a></div>
+                    <div class="link"><a href="http://postgresql.org">PostgreSQL</a></div>
+                    <div class="link"><a href="http://postgis.refractions.net/">PostGIS</a></div>
+                    <div class="link"><a href="http://earthengine.googlelabs.com">Google Earth Engine</a></div>
                     <div class="link"><a href="http://gdal.org">GDAL</a></div>
                 </div>
             </div>
@@ -60,14 +60,33 @@
                 <h2 id="scalability">Scalability</h2>
                 <div class="overview">
                     <p>
-                        Already now MOL has comprehensive data for over 23,000 vertebrate species ready for inclusion and select data for several hundred thousand plant and animal species is planned to be added over the next year. The MOL technical architecture needs to scale so that it can handle high volume concurrent user requests in a performant way. To achieve this, the architecture uses a hybrid server design that runs both in the cloud and locally. Servers running in the cloud are called the MOL front-end. These servers have been designed to control all aspects of the application. To maximize throughput, it uses an extensive caching mechanism that stores only commonly requested data. It is built on Google App Engine, allowing the user to experience a very fast and responsive application, even during high-traffic periods. During low-traffic periods, the front-end application runs for less than one dollar a day. Servers running locally are called the MOL back-end. These servers are built on hardware currently at the University of Colorado, with a planned mirror at Yale University. The back-end is responsible for persistent data storage and replication, and long running processes required by MOL. The software deployed on the back-end is streamlined to handle data requests proxied from the front-end. A distributed task queue manages these requests which can be launched from web browsers, APIs, and the front-end.
+                        Already now MOL has comprehensive data for over 23,000 vertebrate species 
+                        ready for inclusion, and select data for tens of thousands additional 
+                        animal and plant species is planned to be added over the next years. 
+                        The MOL technical architecture needs to scale so that it can handle 
+                        high volume concurrent user requests in a performant way. To achieve 
+                        this, the architecture uses a hybrid server design that runs both in 
+                        the cloud and locally. Servers running in the cloud are called the MOL 
+                        front-end. These servers have been designed to control all aspects of 
+                        the application. To maximize throughput, it uses an extensive caching 
+                        mechanism that stores only commonly requested data. It is built on Google 
+                        App Engine, allowing the user to experience a very fast and responsive 
+                        application, even during high-traffic periods. During low-traffic periods, 
+                        the front-end application runs for less than one dollar a day. Servers 
+                        running locally are called the MOL back-end. These servers are built on 
+                        hardware currently at the University of Colorado, with a planned mirror 
+                        at Yale University. The back-end is responsible for persistent data storage 
+                        and replication, and long running processes required by MOL. The software 
+                        deployed on the back-end is streamlined to handle data requests proxied 
+                        from the front-end. A distributed task queue manages these requests which 
+                        can be launched from web browsers, APIs, and the front-end.
                     </p>
                 </div>
                 <div class="links">
                     <div class="label">Key external projects</div>
+                    <div class="link"><a href="http://code.google.com/appengine/">Google App Engine</a></div>
+                    <div class="link"><a href="http://memcached.org">Memcached</a></div>
                     <div class="link"><a href="http://couchdb.apache.org/">CouchDB</a></div>
-                    <div class="link"><a href="http://postgresql.org">PostgreSQL</a></div>
-                    <div class="link"><a href="http://postgis.refractions.net/">PostGIS</a></div>
                     <div class="link"><a href="http://nginx.net/">Nginx</a></div>
                 </div>
             </div>
@@ -130,7 +149,7 @@
                     <div class="link"><a href="http://documentcloud.github.com/backbone/">Backbone.js</a></div>
                     <div class="link"><a href="http://code.google.com/apis/maps/index.html">Google Maps API</a></div>
                     <div class="link"><a href="http://dev.w3.org/html5/spec/Overview.html">HTML5</a></div>
-                    <div class="link"><a href="www.css3.info/">CSS3</a></div>
+                    <div class="link"><a href="http://www.css3.info/">CSS3</a></div>
                 </div>
             </div>
         </div>
