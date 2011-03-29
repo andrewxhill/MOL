@@ -150,7 +150,45 @@ MOL.modules.ajax = function(mol) {
  */
 MOL.modules.events = function(mol) {
     mol.events = {};
+    
+    mol.events.Event = Class.extend(
+        {
+            init: function(type, params) {
+                this._type = type;
+                this._params = params;
+            },
 
+            getType: function() {
+                return this._type;
+            },
+
+            getParams: function() {
+                return this._params;
+            }
+        }
+    );
+
+    mol.events.LayerControlEvent = mol.events.Event.extend(
+        {
+            init: function(action) {
+                this._super('LayerControlEvent-' + action, {});
+            }          
+        }
+    );
+    
+    mol.events.EventHandler = Class.extend(
+        {
+            
+        }
+    );
+
+    mol.events.AddLayerClickEventHandler = mol.events.EventHandler.extend(
+        {
+                 
+        }
+    );
+
+    
     // Event types:
     mol.events.ADD_MAP_CONTROL = 'add_map_control';
     mol.events.ADD_LAYER_CLICK = 'add_layer_click';
@@ -170,6 +208,11 @@ MOL.modules.events = function(mol) {
             return new mol.events.Bus();
         }
         _.extend(this, Backbone.Events);
+        this.fireEvent = function(event) {
+            var type = event.getType(),
+                params = event.getParams();
+            this.trigger(type, params);
+        };
         return this;
     };
 };
@@ -1241,8 +1284,8 @@ MOL.modules.LayerControl = function(mol) {
                 // Adds click handler that triggers an ADD_LAYER_CLICK event:
                 display.getAddLink().click(
                     function(event) {
-                        mol.log.info('LayerControl.Display.AddLink.click()');
-                        self._bus.trigger(mol.events.ADD_LAYER_CLICK);
+                        var addLayerEvent = new mol.events.AddLayerEvent();
+                        self._bus.fireEvent(addLayerEvent);
                     }
                 );
                 // Adds click handler that triggers a DELETE_LAYER_CLICK event:
