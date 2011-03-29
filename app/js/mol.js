@@ -437,6 +437,30 @@ MOL.modules.ui = function(mol) {
             },
             
             /**
+             * Proxies to JQuery.
+             */
+            isVisible: function() {
+                if (!this._element.is(':visible')) {
+                    return false;
+                }
+                return true;
+            },
+
+            /**
+             * Proxies to JQuery.show()
+             */
+            show: function() {
+                this._element.show();
+            },
+            
+            /**
+             * Proxies to JQuery.hide()
+             */
+            hide: function() {
+                this._element.hide();                
+            },
+
+            /**
              * Proxy to JQuery.remove()
              */
             remove: function() {
@@ -1571,11 +1595,25 @@ MOL.modules.Search = function(mol) {
                     bus = this._bus,
                     self = this;
                 display.setEngine(this);
+                // On ADD_LAYER_CLICK event show/hide the display:
+                this._bus.bind(
+                    mol.events.ADD_LAYER_CLICK,
+                    function() {
+                        var display = self._display;
+                        if (display.isVisible()) {
+                            display.hide();
+                        } else {
+                            display.show();
+                        }
+                    }
+                );
+                // Trigger ADD_MAP_CONTROL so display shows on map:
                 this._bus.trigger(
                     mol.events.ADD_MAP_CONTROL,
                     display,
                     mol.ui.Map.Display.ControlType.SEARCH
                 );
+                display.hide();
                 this._display = display;
             },
 
