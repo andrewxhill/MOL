@@ -220,10 +220,15 @@ MOL.modules.location = function(mol) {
                 this._api = config.api || new mol.ajax.Api(this._bus);
                 this._colorSetter = new mol.core.ColorSetter.Api({bus: this._bus});
                 this._container = $('body');
+
                 this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
                 this._mapEngine.start(this._container);
+
                 this._layerControlEngine = new mol.ui.LayerControl.Engine(this._api, this._bus);
                 this._layerControlEngine.start(this._container);                
+
+                this._searchEngine = new mol.ui.Search.Engine(this._api, this._bus);
+                this._searchEngine.start(this._container);
             },
             
             routes: {
@@ -418,6 +423,9 @@ MOL.modules.ui = function(mol) {
              * Constructs a new Element from an element.
              */
             init: function(element) {
+                if (!element) {
+                    element = '<div>';
+                }
                 this._element = $(element);
             },
             
@@ -428,6 +436,30 @@ MOL.modules.ui = function(mol) {
                 return this._element;
             },
             
+            /**
+             * Proxies to JQuery.
+             */
+            isVisible: function() {
+                if (!this._element.is(':visible')) {
+                    return false;
+                }
+                return true;
+            },
+
+            /**
+             * Proxies to JQuery.show()
+             */
+            show: function() {
+                this._element.show();
+            },
+            
+            /**
+             * Proxies to JQuery.hide()
+             */
+            hide: function() {
+                this._element.hide();                
+            },
+
             /**
              * Proxy to JQuery.remove()
              */
@@ -717,10 +749,15 @@ MOL.modules.Map = function(mol) {
                     function(control, type) {
                         mol.log.info('Map.Engine.handle(ADD_MAP_CONTROL)');
                         var rc = self._display.getRightController();
+                        var cc = self._display.getCenterController();
                         switch (type) {
                         case mol.ui.Map.Display.ControlType.LAYER:
-                            mol.log.info('Map.Engine adding layer control to map');
+                            mol.log.info('Map.Engine adding layer control to right controller');
                             rc.addWidget('LayerControl', control);
+                            break;
+                        case mol.ui.Map.Display.ControlType.SEARCH:
+                            mol.log.info('Map.Engine adding search control to center controller');
+                            cc.addWidget('LayerControl', control);
                             break;
                         }
                     }
@@ -973,7 +1010,7 @@ MOL.modules.Map = function(mol) {
     );
 
     /**
-     * The top level map control container. It gets added to the Google map as a
+     * The top right map control container. It gets added to the Google map as a
      * control. 
      */
     mol.ui.Map.RightController = mol.ui.Element.extend(
@@ -989,6 +1026,25 @@ MOL.modules.Map = function(mol) {
                 wc.setWidget(widget);
                 this._widgets[name] = wc;
                 this.getElement().append(wc.getElement());
+            }
+        }
+    );
+
+    /**
+     * The top center map control container. It gets added to the Google map as a
+     * control. 
+     */
+    mol.ui.Map.CenterController = mol.ui.Element.extend(
+        {
+            init: function() {
+                this._super('<div>');
+                this.setStyleName('mol-CenterController');
+                this._widgets = {};
+            },
+
+            addWidget: function(name, widget) {
+                this._widgets[name] = widget;
+                this.append(widget);
             }
         }
     );
@@ -1053,15 +1109,25 @@ MOL.modules.Map = function(mol) {
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.TERRAIN
                 },
-                    position = google.maps.ControlPosition.TOP_RIGHT;
+                    rightPosition = google.maps.ControlPosition.TOP_RIGHT,
+                    centerPosition = google.maps.ControlPosition.TOP_CENTER;
                 this._id = 'map';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
                 this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);
+
+                // Adds RightController:
                 this._rightControl = new mol.ui.Map.RightController();
-                this._map.controls[position].push(this._rightControl.getElement()[0]);
+                this._map.controls[rightPosition].push(this._rightControl.getElement()[0]);
+
+                // Adds CenterController:
+                this._centerControl = new mol.ui.Map.CenterController();
+                this._map.controls[centerPosition].push(this._centerControl.getElement()[0]);
+
+                // Supported control types for the map
                 mol.ui.Map.Display.ControlType = {
-                    LAYERS: '#layers'
+                    LAYERS: 'layers',
+                    SEARCH: 'search'
                 };
             },          
             
@@ -1085,6 +1151,13 @@ MOL.modules.Map = function(mol) {
              */
             getRightController: function() {
                 return this._rightControl;
+            },
+            
+            /**
+             * Returns the center controller.
+             */
+            getCenterController: function() {
+                return this._centerControl;
             }
         }
     );
@@ -1493,20 +1566,77 @@ MOL.modules.LayerList = function(mol) {
     );
 };
 
+/**
+ * Search module has a display used as a map control. It allows users to search
+ * for layers to add to the map.
+ */
 MOL.modules.Search = function(mol) {
     
     mol.ui.Search = {};
 
+    /**
+     * The search engine.
+     */
     mol.ui.Search.Engine = mol.ui.Engine.extend(
         {
-            
+            init: function(api, bus) {
+                this._api = api;
+                this._bus = bus;
+            },
+
+            /**
+             * Starts the engine and provides a container for its display.
+             * 
+             * @param container the container for the engine display 
+             * @override mol.ui.Engine.start
+             */
+            start: function(container) {
+                var display = new mol.ui.Search.Display({}),
+                    bus = this._bus,
+                    self = this;
+                display.setEngine(this);
+                // On ADD_LAYER_CLICK event show/hide the display:
+                this._bus.bind(
+                    mol.events.ADD_LAYER_CLICK,
+                    function() {
+                        var display = self._display;
+                        if (display.isVisible()) {
+                            display.hide();
+                        } else {
+                            display.show();
+                        }
+                    }
+                );
+                // Trigger ADD_MAP_CONTROL so display shows on map:
+                this._bus.trigger(
+                    mol.events.ADD_MAP_CONTROL,
+                    display,
+                    mol.ui.Map.Display.ControlType.SEARCH
+                );
+                display.hide();
+                this._display = display;
+            },
+
+            /**
+             * Gives the engine a new place to go based on a browser history
+             * change.
+             * 
+             * @param place the place to go
+             * @override mol.ui.Engine.go
+             */
+            go: function(place) {
+                mol.log.todo('Search.Engine.go()');
+            }            
         }
     );
-
+    
+    /**
+     * The search display.
+     */
     mol.ui.Search.Display = mol.ui.Display.extend(
         {
             init: function(config) {
-                this._super('<div>');
+                this._super('<div>Search.Display</div>');
                 this.setStyleName('mol-Search-Display');
                 this._config = config;
             }
