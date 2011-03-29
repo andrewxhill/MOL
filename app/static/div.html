@@ -63,6 +63,16 @@
     outline: none;
 }
 
+.mol-CenterController .mol-LayerControl-DataType {
+    width: 95%;
+    padding-left: 5%;
+}
+.mol-CenterController .mol-LayerControl-DataType .selectLabel{
+    float: left;
+    padding-top: 5px;
+    margin-right: 10px;
+}
+
 .mol-CenterController .mol-LayerControl-Search {
     width: 95%;
     padding-left: 5%;
@@ -149,6 +159,12 @@
   <div class="mol-CenterController">
    
     <button id="cancelAll">X</button>
+    
+    <div class="mol-LayerControl-DataType widgetTheme">
+          <div class="selectLabel">Select</div>
+          <button class="range">Range Map</button>
+          <button class="points">Occ. Points</button>
+    </div>
     
     <div class="mol-LayerControl-Search widgetTheme">
       <select name="searchSource" class="searchSource">
