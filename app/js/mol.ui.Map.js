@@ -95,12 +95,15 @@ MOL.modules.Map = function(mol) {
                     Control = mol.ui.Map.Control;
                 
                 this._rightControl = new Control('RightControl');
+                controls[TOP_RIGHT].clear();
                 controls[TOP_RIGHT].push(this._rightControl.getDiv());
                                 
                 this._centerTopControl = new Control('CenterTopControl');
+                controls[TOP_CENTER].clear();
                 controls[TOP_CENTER].push(this._centerTopControl.getDiv());
 
                 this._leftBottomControl = new Control('LeftBottomControl');
+                controls[BOTTOM_LEFT].clear();
                 controls[BOTTOM_LEFT].push(this._leftBottomControl.getDiv());                
             },
 
@@ -496,8 +499,7 @@ MOL.modules.Map = function(mol) {
              */
             addDisplay: function(display, position) {
                 var DisplayPosition = mol.ui.Map.Control.DisplayPosition,
-                    div = this.findChild(position),
-                    innerHtml = display.getInnerHtml();
+                    div = this.findChild(position);
 
                 switch (position) {
                 
@@ -509,9 +511,8 @@ MOL.modules.Map = function(mol) {
                     this.append(display);
                     break;
 
-                default:                    
-                    div.setInnerHtml(innerHtml);
-                    var ih = div.getInnerHtml();
+                default:            
+                    div.append(display);
                 }
             },
 
