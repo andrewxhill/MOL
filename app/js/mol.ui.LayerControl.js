@@ -64,12 +64,20 @@ MOL.modules.LayerControl = function(mol) {
                     div = display.getElement()[0],
                     position = google.maps.ControlPosition.TOP_RIGHT,
                     LayerControlEvent = mol.events.LayerControlEvent,
-                    MapControlEvent = mol.events.MapControlEvent;
+                    MapControlEvent = mol.events.MapControlEvent,
+                    ControlPosition = mol.ui.Map.Control.ControlPosition,
+                    DisplayPosition = mol.ui.Map.Control.DisplayPosition,
+                    config = {
+                        display: display,
+                        displayPosition: DisplayPosition.TOP,
+                        controlPosition: ControlPosition.TOP_RIGHT,
+                        action: 'add'
+                    };
 
                 this._display = display;
                 display.setEngine(this);                
                 
-                bus.fireEvent(new MapControlEvent(div, position, 'add'));
+                bus.fireEvent(new MapControlEvent(config));
 
                 display.getAddLink().click(
                     function(event) {

@@ -81,6 +81,27 @@ MOL.modules.Map = function(mol) {
                 container.append(display.getElement());
                 
                 this._map = display.getMap();
+
+                this._addControls();
+            },
+
+            _addControls: function() {
+                var map = this._map,
+                    controls = map.controls,
+                    ControlPosition = google.maps.ControlPosition,
+                    TOP_RIGHT = ControlPosition.TOP_RIGHT,
+                    TOP_CENTER = ControlPosition.TOP_CENTER,
+                    BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
+                    Control = mol.ui.Map.Control;
+                
+                this._rightControl = new Control('RightControl');
+                controls[TOP_RIGHT].push(this._rightControl.getDiv());
+                                
+                this._centerTopControl = new Control('CenterTopControl');
+                controls[TOP_CENTER].push(this._centerTopControl.getDiv());
+
+                this._leftBottomControl = new Control('LeftBottomControl');
+                controls[BOTTOM_LEFT].push(this._leftBottomControl.getDiv());                
             },
 
             /**
@@ -129,30 +150,50 @@ MOL.modules.Map = function(mol) {
                 var bus = this._bus,
                     MapControlEvent = mol.events.MapControlEvent,
                     controls = this._map.controls,
-                    controlDivs = this._controlDivs;
+                    controlDivs = this._controlDivs,
+                    ControlPosition = mol.ui.Map.Control.ControlPosition,
+                    TOP_RIGHT = ControlPosition.TOP_RIGHT,
+                    CENTER_TOP = ControlPosition.CENTER_TOP,
+                    BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
+                    topRightControl = this._rightControl,
+                    centerTopControl = this._centerTopControl,
+                    leftBottomControl = this._leftBottomControl;
                                 
                 bus.addHandler(
                     MapControlEvent.TYPE,
                     function(event) {
                         var action = event.getAction(),
-                            div = event.getDiv(),
-                            position = event.getPosition();
+                            display = event.getDisplay(),
+                            controlPosition = event.getControlPosition(),
+                            displayPosition = event.getDisplayPosition(),
+                            control = null;
 
                         switch (action) {
 
                         case 'add':
-                            // push(div) returns the length of the controls 
-                            // array. So push(div) - 1 is the div index in the 
-                            // controls array. We need the div index if we want
-                            // to later remove the div control from the map.
-                            controlDivs[div] = controls[position].push(div) - 1;
-                            break;
+                            switch (controlPosition) {
+                                
+                            case TOP_RIGHT:
+                                control = topRightControl;
+                                break;
+                                
+                            case CENTER_TOP:
+                                control = centerTopControl;
+                                break;
+
+                            case BOTTOM_LEFT:
+                                control = leftBottomControl;
+                                break;
+                            }
+
+                            control.addDisplay(display, displayPosition);
 
                         case 'remove':
-                            if (controlDivs[div]) {
-                                controls.removeAt(controlDivs[div]);
-                                delete controlDivs[div];
-                            }                            
+                            // if (controlDivs[div]) {
+                            //     controls.removeAt(controlDivs[div]);
+                            //     delete controlDivs[div];
+                            // }                           
+                            
                         }
                     }
                 );
@@ -429,28 +470,24 @@ MOL.modules.Map = function(mol) {
     mol.ui.Map.Control = mol.ui.Display.extend(
         {
             init: function(name) {
-                var DisplayPosition = this.DisplayPosition,
+                var DisplayPosition = mol.ui.Map.Control.DisplayPosition,
                     TOP = DisplayPosition.TOP,
                     MIDDLE = DisplayPosition.MIDDLE,
                     BOTTOM = DisplayPosition.BOTTOM;
 
                 this._super();
 
-                this.setInnerHtml(html(name));
+                this.setInnerHtml(this._html(name));
 
-                this.setStylePrimaryName('mol-Map-' + name);
+                this.setStyleName('mol-Map-' + name);
 
-                this.findChild(TOP).addStyleDependentName('.' + TOP);
-                this.findChild(MIDDLE).addStyleDependentName('.' + MIDDLE);
-                this.findChild(BOTTOM).addStyleDependentName('.' + BOTTOM);
+                this.findChild(TOP).setStyleName("TOP");
+                this.findChild(MIDDLE).setStyleName("MIDDLE");
+                this.findChild(BOTTOM).setStyleName("BOTTOM");
             },
-            
-            DisplayPosition: {
-                FIRST: '.FIRST',
-                TOP: '.TOP',
-                MIDDLE: '.MIDDLE',
-                BOTTOM: '.BOTTOM',
-                LAST: '.LAST'
+                       
+            getDiv: function() {
+                return this.getElement()[0];                
             },
             
             /**
@@ -458,8 +495,9 @@ MOL.modules.Map = function(mol) {
              * @param position - the mol.ui.Map.Control.DisplayPosition
              */
             addDisplay: function(display, position) {
-                var DisplayPosition = this.DisplayPosition,
-                    div = this.findChild(position);
+                var DisplayPosition = mol.ui.Map.Control.DisplayPosition,
+                    div = this.findChild(position),
+                    innerHtml = display.getInnerHtml();
 
                 switch (position) {
                 
@@ -471,8 +509,9 @@ MOL.modules.Map = function(mol) {
                     this.append(display);
                     break;
 
-                default:
-                    div.setInnerHtml(display.getInnerHtml());
+                default:                    
+                    div.setInnerHtml(innerHtml);
+                    var ih = div.getInnerHtml();
                 }
             },
 
@@ -486,32 +525,19 @@ MOL.modules.Map = function(mol) {
         }
     );
 
-    mol.ui.Map.RightControl = mol.ui.Control.extend(    
-        {
-            init: function() {
-                this._super('RightControl');
-            }
-        }
-    );
+    mol.ui.Map.Control.DisplayPosition = {
+        FIRST: '.FIRST',
+        TOP: '.TOP',
+        MIDDLE: '.MIDDLE',
+        BOTTOM: '.BOTTOM',
+        LAST: '.LAST'
+    };
 
-    mol.ui.Map.CenterTopControl = mol.ui.Control.extend(    
-        {
-            init: function() {
-                this._super('CenterTopControl');
-            }
-        }
-    );
-
-    mol.ui.Map.LeftControl = mol.ui.Control.extend(    
-        {
-            init: function() {
-                this._super('LeftControl');
-            }
-        }
-    );
-
-
-
+    mol.ui.Map.Control.ControlPosition = {
+        TOP_RIGHT: 'TOP_RIGHT',
+        CENTER_TOP: 'CENTER_TOP',
+        LEFT_BOTTOM: 'LEFT_BOTTOM'        
+    };
 
 
     /**

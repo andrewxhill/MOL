@@ -64,7 +64,7 @@ MOL.modules.ui = function(mol) {
              * Proxies to JQuery to find child element.
              */
             findChild: function(identfier){
-                return this._element.find(identfier);
+                return new mol.ui.Element(this._element.find(identfier));
             },
 
             /**
@@ -85,7 +85,8 @@ MOL.modules.ui = function(mol) {
              * Proxies to JQuery.
              */
             getInnerHtml: function() {
-                this._element.html();
+                var html = this._element.html();
+                return html;
             },
 
             /**
