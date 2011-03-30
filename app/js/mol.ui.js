@@ -52,7 +52,14 @@ MOL.modules.ui = function(mol) {
             getElement: function() {
                 return this._element;
             },
-            
+
+            /**
+             * Proxies to JQuery.
+             */
+            setInnerHtml: function(html) {
+                this._element.html(html);
+            },
+
             /**
              * Proxies to JQuery.
              */
