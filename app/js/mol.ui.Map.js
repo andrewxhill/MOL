@@ -32,22 +32,6 @@ MOL.modules.Map = function(mol) {
                 this._points = {};
                 this._layers = {};
                 this._controlDivs = {};
-                this._canvasSupport = false;
-                if ( !!document.createElement('canvas').getContext ) {
-                    this._iconHeight = 15;
-                    this._iconWidth = 15;
-                    this._canvasSupport = true;
-                    this._markerCanvas = new mol.ui.Map.MarkerCanvas(this._iconWidth,this._iconHeight);
-                    this._markerContext = this._markerCanvas.getContext();
-                    this._iconLayers = {
-                        background: new Image(),
-                        foreground: new Image(),
-                        error: new Image()
-                    };
-                    this._iconLayers.background.src = "/static/pm-background.png";
-                    this._iconLayers.foreground.src = "/static/pm-foreground.png";
-                    this._iconLayers.error.src = "/static/pm-error.png";
-                }
             },            
             
             /**
@@ -57,7 +41,12 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.start
              */
             start: function(container) {
+                var MarkerCanvas = mol.ui.Map.MarkerCanvas;
+
                 this._bindDisplay(new mol.ui.Map.Display(), container);
+
+                this._markerCanvas = new MarkerCanvas(15, 15);
+
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
                 this._addColorEventHandler();
@@ -265,18 +254,22 @@ MOL.modules.Map = function(mol) {
                 var points = this._points[layer.getId()],
                     type = layer.getType(),
                     urls = this._getIconUrls(layer.getIcon()),
+                    markerCanvas = this._markerCanvas,
                     iconUrl = urls.iconUrl,
-                    w = this._iconWidth,
-                    h = this._iconHeight,
+                    w = markerCanvas.getIconWidth(),
+                    h = markerCanvas.getIconHeight(),
                     point = null,
-                    image = new google.maps.MarkerImage(iconUrl, new google.maps.Size(w, h));
+                    MarkerImage = google.maps.MarkerImage,
+                    Size = google.maps.Size,
+                    Marker = google.maps.Marker,
+                    image = new MarkerImage(iconUrl, new Size(w, h));
                 
                 switch (type) {
 
                 case 'points':
                     for (x in points) {
                         point = points[x];
-                        if (point instanceof google.maps.Marker) {
+                        if (point instanceof Marker) {
                             point.setIcon(image);
                         }                        
                     }
@@ -341,24 +334,26 @@ MOL.modules.Map = function(mol) {
             },            
 
             _getIconUrls: function(icon) {
-                var background = this._iconLayers.background,
-                    foreground = this._iconLayers.foreground,
-                    error = this._iconLayers.error,
-                    ctx = this._markerContext,
-                    canvas = this._markerCanvas,
-                    w = this._iconWidth,
-                    h = this._iconHeight,
+                var markerCanvas = this._markerCanvas,
+                    canvasSupport = markerCanvas.canvasSupport(),
+                    icons = markerCanvas.getIcons(),
+                    background = icons.background,
+                    foreground = icons.foreground,
+                    error = icons.error,
+                    ctx = markerCanvas.getContext(),
+                    w = markerCanvas.getIconWidth(),
+                    h = markerCanvas.getIconHeight(),
                     url = null,
                     errorUrl = null;
-                if (!this._canvasSupport) {
+                if (!canvasSupport) {
                     return {iconUrl: icon.src, iconErrorUrl: icon.src};
                 }
                 ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(icon, 0, 0, w, h);
                 ctx.drawImage(foreground, 0, 0, w, h);
-                url = canvas.getDataURL();
+                url = markerCanvas.getDataURL();
                 ctx.drawImage(error, 0, 0, w, h);
-                errorUrl = canvas.getDataURL();
+                errorUrl = markerCanvas.getDataURL();
                 return {iconUrl: url, iconErrorUrl: errorUrl};
             },
 
@@ -433,10 +428,13 @@ MOL.modules.Map = function(mol) {
                     lat = parseFloat(coordinate.decimalLatitude),
                     lng = parseFloat(coordinate.decimalLongitude),
                     center = new google.maps.LatLng(lat, lng),
-                    w = this._iconWidth,
-                    h = this._iconHeight,
-                    image = new google.maps.MarkerImage(iconUrl, new google.maps.Size(w, h)),
-                    marker = new google.maps.Marker(
+                    w = this._markerCanvas.getIconHeight(),
+                    h = this._markerCanvas.getIconWidth(),
+                    MarkerImage = google.maps.MarkerImage,
+                    Size = google.maps.Size,
+                    Marker = google.maps.Marker,
+                    image = new MarkerImage(iconUrl, new Size(w, h)),
+                    marker = new Marker(
                         { 
                             position: center,
                             map: map,
@@ -458,24 +456,41 @@ MOL.modules.Map = function(mol) {
                 
                 this._canvasSupport = !!document.createElement('canvas').getContext;
 
-                if (this._canvasSupport) {
-                    this._iconHeight = 15;
-                    this._iconWidth = 15;
-                    this._canvasSupport = true;
-                    this._markerCanvas = new MarkerCanvas(this._iconWidth, this._iconHeight);
-                    this._markerContext = this._markerCanvas.getContext();
-                    this._iconLayers = {
-                        background: new Image(),
-                        foreground: new Image(),
-                        error: new Image()
-                    };
-                    this._iconLayers.background.src = "/static/pm-background.png";
-                    this._iconLayers.foreground.src = "/static/pm-foreground.png";
-                    this._iconLayers.error.src = "/static/pm-error.png";
-                    this._super('<canvas width='+width+' height='+height+'>');
-                    this.setStyleName('mol-MarkerCanvas');
-                    this._ctx = this.getElement()[0].getContext("2d");
+                if (!this._canvasSupport) {
+                    this._super();
+                    return;
                 }
+
+                this._iconHeight = width;
+                this._iconWidth = height;
+
+                this._super('<canvas width=' + this._iconWidth + 
+                            ' height=' + this._iconHeight + '>');
+
+                this.setStyleName('mol-MarkerCanvas');
+
+                this._ctx = this.getElement()[0].getContext("2d");
+
+                this._iconLayers = {
+                    background: new Image(),
+                    foreground: new Image(),
+                    error: new Image()
+                };
+                this._iconLayers.background.src = "/static/pm-background.png";
+                this._iconLayers.foreground.src = "/static/pm-foreground.png";
+                this._iconLayers.error.src = "/static/pm-error.png";
+            },
+            
+            getIconWidth: function() {
+                return this._iconWidth;
+            },
+            
+            getIconHeight: function() {                
+                return this._iconHeight;
+            },
+
+            getIcons: function() {
+                return this._iconLayers;
             },
             
             canvasSupport: function() {
