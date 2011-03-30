@@ -84,6 +84,13 @@ MOL.modules.ui = function(mol) {
             /**
              * Proxies to JQuery.
              */
+            getInnerHtml: function() {
+                this._element.html();
+            },
+
+            /**
+             * Proxies to JQuery.
+             */
             isVisible: function() {
                 if (!this._element.is(':visible')) {
                     return false;

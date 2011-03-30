@@ -425,6 +425,95 @@ MOL.modules.Map = function(mol) {
         }
     );
     
+
+    mol.ui.Map.Control = mol.ui.Display.extend(
+        {
+            init: function(name) {
+                var DisplayPosition = this.DisplayPosition,
+                    TOP = DisplayPosition.TOP,
+                    MIDDLE = DisplayPosition.MIDDLE,
+                    BOTTOM = DisplayPosition.BOTTOM;
+
+                this._super();
+
+                this.setInnerHtml(html(name));
+
+                this.setStylePrimaryName('mol-Map-' + name);
+
+                this.findChild(TOP).addStyleDependentName('.' + TOP);
+                this.findChild(MIDDLE).addStyleDependentName('.' + MIDDLE);
+                this.findChild(BOTTOM).addStyleDependentName('.' + BOTTOM);
+            },
+            
+            DisplayPosition: {
+                FIRST: '.FIRST',
+                TOP: '.TOP',
+                MIDDLE: '.MIDDLE',
+                BOTTOM: '.BOTTOM',
+                LAST: '.LAST'
+            },
+            
+            /**
+             * @param display - the mol.ui.Display to add
+             * @param position - the mol.ui.Map.Control.DisplayPosition
+             */
+            addDisplay: function(display, position) {
+                var DisplayPosition = this.DisplayPosition,
+                    div = this.findChild(position);
+
+                switch (position) {
+                
+                case DisplayPosition.FIRST:
+                    this.prepend(display);
+                    break;
+
+                case DisplayPosition.LAST:
+                    this.append(display);
+                    break;
+
+                default:
+                    div.setInnerHtml(display.getInnerHtml());
+                }
+            },
+
+            _html: function(name) {
+                return '<div id="' + name + '">' +
+                       '    <div class="TOP"></div>' +
+                       '    <div class="MIDDLE"></div>' +
+                       '    <div class="BOTTOM"></div>' +
+                       '</div>';
+            }
+        }
+    );
+
+    mol.ui.Map.RightControl = mol.ui.Control.extend(    
+        {
+            init: function() {
+                this._super('RightControl');
+            }
+        }
+    );
+
+    mol.ui.Map.CenterTopControl = mol.ui.Control.extend(    
+        {
+            init: function() {
+                this._super('CenterTopControl');
+            }
+        }
+    );
+
+    mol.ui.Map.LeftControl = mol.ui.Control.extend(    
+        {
+            init: function() {
+                this._super('LeftControl');
+            }
+        }
+    );
+
+
+
+
+
     /**
      * The Map Display. It's basically a Google map attached to the 'map' div 
      * in the <body> element.

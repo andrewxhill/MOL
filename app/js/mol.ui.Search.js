@@ -75,11 +75,11 @@ MOL.modules.Search = function(mol) {
                     }
                 );
   
-                // dispaly.getCloseButton().click(
-                //     function(event) {
-                //         mol.log.info('Search.Display.CloseButton.click()');
-                //     }
-                // );
+                dispaly.getCloseButton().click(
+                    function(event) {
+                        display.hide();
+                    }
+                );
   
                 // display.getSelectRangeButton().click(
                 //     function(event) {
