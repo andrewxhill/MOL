@@ -155,8 +155,32 @@
 .mol-CenterController .mol-LayerControl-Results .result a{
     color: #212121;
 }
-.mol-CenterController .mol-LayerControl-Results .result input[type=checkbox] {
-  }
+
+.mol-CenterController .mol-LayerControl-Results .result .buttonContainer {
+	width:24px;
+	height:24px;
+    position: relative;
+}
+.mol-CenterController .mol-LayerControl-Results .result .checkbox {
+    opacity: 0.0;
+	position:absolute;
+	left:0;
+	z-index:100;
+    float: left;
+	width:24px;
+	height:24px;
+    
+}
+.mol-CenterController .mol-LayerControl-Results .result .customCheck:after{
+	content:url('/static/unchecked.png');
+	position:absolute;
+    left: 0;
+}
+
+.mol-CenterController .mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
+	content:url('/static/checked.png');
+}
+
 .mol-CenterController .mol-LayerControl-Results .navigation button{
     float: right;
     margin-right: 5px;
@@ -201,17 +225,26 @@
         <ul class="result widgetTheme">
             <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
-            <input type="checkbox" class="addResult" name="result-1">
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
         </ul>
         <ul class="result widgetTheme">
             <div class="resultName">Puma yagouaroundi <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
-            <input type="checkbox" class="addResult" name="result-1">
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
         </ul>
         <ul class="result widgetTheme">
             <div class="resultName">Smilisca puma <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
-            <input type="checkbox" class="addResult" name="result-1">
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
         </ul>
       </ol>
       <div class="navigation">
