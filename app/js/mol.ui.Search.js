@@ -190,7 +190,7 @@ MOL.modules.Search = function(mol) {
         {
             init: function(config) {
                 this._super();
-                this.setInnerHtml(this._html())
+                this.setInnerHtml(this._html());
                 this._config = config;
             },
             getRestartButtion: function(){
@@ -238,7 +238,7 @@ MOL.modules.Search = function(mol) {
             },
             _html: function(){
                 return  '<button id="restart">restart</button>' +
-                        '<button id="cancelAll">close</button>' +' +
+                        '<button id="cancelAll">close</button>' +
                         '<div class="mol-LayerControl-DataType widgetTheme">' +
                         '      <div class="selectLabel">Select</div>' +
                         '      <button class="rangeTypeSelect">Range Map</button>' +
