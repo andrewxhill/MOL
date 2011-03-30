@@ -131,7 +131,7 @@ MOL.modules.Search = function(mol) {
                 return this.findChild('.nextPage');
             },
             getNewResult: function(){
-                _result = this._super('<ul class="result widgetTheme">' +
+                var _result = this._super('<ul class="result widgetTheme">' +
                           '        <div class="resultName">name' +
                           '            <div class="resultNomial">(author)</div>' +
                           '            <br/>' +
