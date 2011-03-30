@@ -132,23 +132,23 @@ MOL.modules.Search = function(mol) {
             },
             getNewResult: function(){
                 var _result = this._super('<ul class="result widgetTheme">' +
-                          '        <div class="resultName">name' +
-                          '            <div class="resultNomial">(author)</div>' +
-                          '            <br/>' +
-                          '            <div class="resultAuthor">(author)</div>' +
-                          '        </div>' +
-                          '        <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
-                          '        <div class="buttonContainer"> ' +
-                          '            <input type="checkbox" class="checkbox" /> ' +
-                          '            <span class="customCheck"></span> ' +
-                          '        </div> ' +
-                          '    </ul>');
+                          '    <div class="resultName">name' +
+                          '        <div class="resultNomial">(name)</div>' +
+                          '        <br/>' +
+                          '        <div class="resultAuthor">(author)</div>' +
+                          '    </div>' +
+                          '    <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
+                          '    <div class="buttonContainer"> ' +
+                          '        <input type="checkbox" class="checkbox" /> ' +
+                          '        <span class="customCheck"></span> ' +
+                          '    </div> ' +
+                          '</ul>');
                 this.findChild('.mol-LayerControl-Results .searchResults').append(_result);
                 return _result;
             },
             _html: function(){
                 return  '<button id="restart">restart</button>' +
-                        '<button id="cancelAll">close</button>' +' +
+                        '<button id="cancelAll">close</button>' +
                         '<div class="mol-LayerControl-DataType widgetTheme">' +
                         '      <div class="selectLabel">Select</div>' +
                         '      <button class="rangeTypeSelect">Range Map</button>' +
