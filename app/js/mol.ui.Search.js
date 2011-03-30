@@ -27,8 +27,8 @@ MOL.modules.Search = function(mol) {
              * @override mol.ui.Engine.start
              */
             start: function(container) {
-                //this._bindDisplay(new mol.ui.Search.Display({}));
-                this._bindDisplay(container);
+                this._bindDisplay(new mol.ui.Search.Display({}));
+                //this._bindDisplay(container);
             },
 
             /**
@@ -193,7 +193,7 @@ MOL.modules.Search = function(mol) {
                 this.setInnerHtml(this._html());
                 this._config = config;
             },
-            getRestartButtion: function(){
+            getRestartButton: function(){
                 return this.findChild('#restart');
             },
             getCloseButton: function(){
