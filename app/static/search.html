@@ -10,13 +10,7 @@
     color: #141414;
     font-size: 14px;
 }
-.mol-CenterController .widgetTheme {
-    float: left;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    height: auto;
-    text-align: left;
+.widgetTheme{
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -32,7 +26,6 @@
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
-    outline: none;
 }
 button{
     float: left;
@@ -60,29 +53,20 @@ button#cancelAll{
     font-size: 0.9em;
     color: rgb(240, 90, 100);
 }
+button#restart{
+    float: left;
+    margin-left: 5px;
+}
+button#restart img{
+    height: 12px;
+}
 
 
 .mol-LayerControl-Search {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 2px 5px 2px 5px;
     margin-bottom: 5px;
     float: left;
     position: relative;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.37, rgba(184, 233, 133,0.65)),
-        color-stop(0.69, rgba(92,194,7,0.65))
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        rgba(184, 253, 133,0.65) 37%,
-        rgba(92,214,7,0.65) 69%
-    );
-    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
-    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
-    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
     -moz-border-radius: 4px;
     border-radius: 4px;
 }
@@ -113,33 +97,37 @@ button#cancelAll{
     float: left;
     margin-right: 5px;
 }
-button#restart{
-    float: left;
-    margin-left: 5px;
-}
-button#restart img{
-    height: 12px;
-}
 .mol-LayerControl-Results{
     list-style-type: none;
     width: 100%;
     float: left;
-    padding: 0;
-    margin: 0;
-}
-.mol-LayerControl-Results .result {
-    list-style-type: none;
-    margin-bottom: 5px;
-}
-.mol-LayerControl-Results .result div{
-    float: left;
-    padding: 0;
+    padding: 5px;
     margin: 0;
     text-align: left;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    outline: none;
+    position: relative;
+}
+.mol-LayerControl-Results ol{
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    float: left;
+    padding-top: 10px;
+    position: relative;
+}
+.mol-LayerControl-Results ul {
+    margin-bottom: 5px;
+    text-align: left;
+    width: 100%;
+    float: left;
+    position: relative;
 }
 .mol-LayerControl-Results .result div.resultName{
     width: 58%;
-    margin-left: 5%;
+    float: left;
 }
 .mol-LayerControl-Results .result .resultAuthor{
     font-size: 0.8em;
@@ -149,6 +137,7 @@ button#restart img{
     width: 25%;
     font-size: 0.9em;
     padding-top: 1%;
+    float: left;
 }
 .mol-LayerControl-Results .result a{
     color: #212121;
@@ -157,6 +146,7 @@ button#restart img{
 	width:24px;
 	height:24px;
     position: relative;
+    float: left;
 }
 .mol-LayerControl-Results .result .checkbox {
     opacity: 0.0;
@@ -169,6 +159,13 @@ button#restart img{
     cursor: pointer;
     
 }
+.mol-LayerControl-Results .break{
+    float: left;
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px solid rgba(11,11,11,0.3);
+    margin-bottom: 2px;
+}
 .mol-LayerControl-Results .result .customCheck:after{
 	content:url('/static/unchecked.png');
 	position:absolute;
@@ -177,18 +174,23 @@ button#restart img{
 .mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
 	content:url('/static/checked.png');
 }
+.mol-LayerControl-Results .navigation{
+    width: 100%;
+    float: right;
+    margin-top: 5px;
+    margin-right: 8px;
+}
 .mol-LayerControl-Results .navigation button{
     float: right;
-    margin-right: 5px;
+    margin-right: 8px;
 }
-
     </style>
   </head>
   <body>
   <div class="mol-CenterController">
    
     <button id="cancelAll">x</button>
-   <div class="mol-LayerControl-Search">
+   <div class="mol-LayerControl-Search widgetTheme">
       <div class="title">Search:</div>
       <select name="source" class="source">
           <option value='{source:"MOL",type:"range"}'>MOL Range Maps</option>
@@ -201,8 +203,8 @@ button#restart img{
     <img src="/static/reload.png" />
    </button>
    
-    <div class="mol-LayerControl-Results widgetTheme">
-      <ol class="searchResults">
+    <div class="mol-LayerControl-Results">
+      <ol class="searchResults widgetTheme">
         <ul class="result">
             <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
@@ -211,6 +213,7 @@ button#restart img{
                 <span class="customCheck"></span> 
             </div> 
         </ul>
+        <div class="break"></div>
         <ul class="result">
             <div class="resultName">Puma yagouaroundi <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
@@ -219,6 +222,8 @@ button#restart img{
                 <span class="customCheck"></span> 
             </div> 
         </ul>
+        <div class="break"></div>
+        <ul class="result">
             <div class="resultName">Smilisca puma <br/><div class="resultAuthor">(author)</div></div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
             <div class="buttonContainer"> 
@@ -226,11 +231,11 @@ button#restart img{
                 <span class="customCheck"></span> 
             </div> 
         </ul>
-        <ul class="navigation">
+      </ol>
+        <div class="navigation">
           <button class="addAll">Add</button>
           <button class="nextPage">Next Page</button>
-        </ul>
-      </ol>
+        </div>
     </div>
     
     

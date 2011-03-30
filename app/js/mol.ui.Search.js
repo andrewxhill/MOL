@@ -47,8 +47,8 @@ MOL.modules.Search = function(mol) {
             _bindDisplay: function(display) {                
                 var config = {                    
                         text : {
-                            restart: 'refart',
-                            close: 'close', 
+                            restart: '',
+                            close: '', 
                             select: 'Select',
                             range: 'Range',
                             points: 'Points',
@@ -71,7 +71,7 @@ MOL.modules.Search = function(mol) {
                 
                 // Restart button:
                 widget = display.getRestartButton();
-                widget.text(config.text.restart);
+                //widget.text(config.text.restart);
                 widget.click(
                     function(event) {
                         // TODO
@@ -80,7 +80,7 @@ MOL.modules.Search = function(mol) {
                 
                 // Close button:
                 widget = display.getCloseButton();
-                widget.text(config.text.close);
+                //widget.text(config.text.close);
                 widget.click(
                     function(event) {
                         display.hide();
@@ -215,22 +215,19 @@ MOL.modules.Search = function(mol) {
                 this._config = config;
             },
             getRestartButton: function(){
-                return this.findChild('#restart');
+                return this.findChild('#searchRestart');
             },
             getCloseButton: function(){
-                return this.findChild('#cancelAll');
+                return this.findChild('#searchCancel');
             },
-            getSelectButton: function(){
-                return this.findChild('.mol-LayerControl-DataType');
-            }, 
             getTypeSelectBox: function(){
-                return this.findChild('.searchSource');
+                return this.findChild('.source');
             }, 
             getSearchBox: function(){
-                return this.findChild('.searchValue');
+                return this.findChild('.value');
             }, 
             getGoButton: function() {
-                return this.findChild('.searchExecute');
+                return this.findChild('.execute');
             },
             getSearchWidget: function(){
                 return this.findChild('.mol-LayerControl-Search');
@@ -239,53 +236,49 @@ MOL.modules.Search = function(mol) {
                 return this.findChild('.mol-LayerControl-Loading');
             },
             getNextButton: function(){
-                return this.findChild('.addAll');
-            },
-            getAddButton: function(){
                 return this.findChild('.nextPage');
             },
+            getAddButton: function(){
+                return this.findChild('.addAll');
+            },
             getNewResult: function(){
-                var _result = this._super('<ul class="result widgetTheme">' +
-                          '    <div class="resultName">name' +
-                          '        <div class="resultNomial">(name)</div>' +
-                          '        <br/>' +
-                          '        <div class="resultAuthor">(author)</div>' +
-                          '    </div>' +
-                          '    <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
-                          '    <div class="buttonContainer"> ' +
-                          '        <input type="checkbox" class="checkbox" /> ' +
-                          '        <span class="customCheck"></span> ' +
-                          '    </div> ' +
-                          '</ul>');
+                var _result = this._super('<ul class="result">' +
+                                '    <div class="resultName">' +
+                                '        <div class="resultNomial"></div>' +
+                                '        <br/>' +
+                                '        <div class="resultAuthor"></div>' +
+                                '    </div>' +
+                                '    <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
+                                '    <div class="buttonContainer"> ' +
+                                '        <input type="checkbox" class="checkbox" /> ' +
+                                '        <span class="customCheck"></span> ' +
+                                '    </div> ' +
+                                '</ul>');
                 this.findChild('.mol-LayerControl-Results .searchResults').append(_result);
                 return _result;
             },
             _html: function(){
-                return  '<button id="restart">restart</button>' +
-                        '<button id="cancelAll">close</button>' +
-                        '<div class="mol-LayerControl-DataType widgetTheme">' +
-                        '      <div class="selectLabel">Select</div>' +
-                        '      <button class="rangeTypeSelect">Range Map</button>' +
-                        '      <button class="pointsTypeSelect">Occ. Points</button>' +
-                        '</div>' +
-                        '<div class="mol-LayerControl-Search widgetTheme">' +
-                        '  <select name="searchSource" class="searchSource">' +
-                        '      <option value="MOL">MOL</option>' +
-                        '  </select>' +
-                        '  <input class="searchValue" type="text" />' +
-                        '  <button class="searchExecute">Go</button>' +
-                        '</div>' +
-                        '<div class="mol-LayerControl-Loading widgetTheme">' +
-                        '    <div><img src="/static/loading-small.gif" /></div> <div>Searching...</div>' +
-                        '</div>' +
-                        '<div class="mol-LayerControl-Results">' +
-                        '  <ol class="searchResults">' +
-                        '  </ol>' +
-                        '  <div class="navigation">' +
-                        '      <button class="addAll">Add</button>' +
-                        '      <button class="nextPage">Next Page</button>' +
-                        '  </div>' +
-                        '</div>';
+                return '<button id="searchCancel">x</button>' +
+                       '<div class="mol-LayerControl-Search widgetTheme">' +
+                       '   <div class="title">Search:</div>' +
+                       '   <select name="source" class="source">' +
+                       '       <option value="range: MOL">MOL Range Maps</option>' +
+                       '       <option value="points: GBIF">GBIF Occ Points</option>' +
+                       '   </select>' +
+                       '   <input class="value" type="text" />' +
+                       '   <button class="execute">Go</button>' +
+                       '</div>' +
+                       '<button id="searchRestart">' +
+                       '   <img src="/static/reload.png" />' +
+                       '</button>' +
+                       '<div class="mol-LayerControl-Results">' +
+                       '   <ol class="searchResults widgetTheme">' +
+                       '   </ol>' +
+                       '    <div class="navigation">' +
+                       '        <button class="addAll">Add</button>' +
+                       '        <button class="nextPage">Next Page</button>' +
+                       '    </div>' +
+                       '</div>';
             }
         }
     );
