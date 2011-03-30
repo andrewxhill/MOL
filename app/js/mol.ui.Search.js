@@ -130,6 +130,22 @@ MOL.modules.Search = function(mol) {
             getAddButton: function(){
                 return this.findChild('.nextPage');
             },
+            getNewResult: function(){
+                _result = this._super('<ul class="result widgetTheme">' +
+                          '        <div class="resultName">name' +
+                          '            <div class="resultNomial">(author)</div>' +
+                          '            <br/>' +
+                          '            <div class="resultAuthor">(author)</div>' +
+                          '        </div>' +
+                          '        <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
+                          '        <div class="buttonContainer"> ' +
+                          '            <input type="checkbox" class="checkbox" /> ' +
+                          '            <span class="customCheck"></span> ' +
+                          '        </div> ' +
+                          '    </ul>');
+                this.findChild('.mol-LayerControl-Results .searchResults').append(_result);
+                return _result;
+            },
             _html: function(){
                 return  '<button id="restart">restart</button>' +
                         '<button id="cancelAll">close</button>' +' +
@@ -150,14 +166,6 @@ MOL.modules.Search = function(mol) {
                         '</div>' +
                         '<div class="mol-LayerControl-Results">' +
                         '  <ol class="searchResults">' +
-                        '    <ul class="result widgetTheme">' +
-                        '        <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>' +
-                        '        <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
-                        '        <div class="buttonContainer"> ' +
-                        '            <input type="checkbox" class="checkbox" /> ' +
-                        '            <span class="customCheck"></span> ' +
-                        '        </div> ' +
-                        '    </ul>' +
                         '  </ol>' +
                         '  <div class="navigation">' +
                         '      <button class="addAll">Add</button>' +
