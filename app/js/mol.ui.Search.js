@@ -45,21 +45,22 @@ MOL.modules.Search = function(mol) {
              * Binds the display.
              */
             _bindDisplay: function(display) {                
-                var config = {
-                    text : {
-                        restart: 'restart',
-                        close: 'close', 
-                        select: 'Select',
-                        range: 'Range',
-                        points: 'Points',
-                        types: ['GBIF', 'MOL'],
-                        go: 'Go',
-                        searching: 'Searching',
-                        info: 'more info',
-                        next: 'Next Page',
-                        add: 'Add'
-                    }
-                };
+                var config = {                    
+                        text : {
+                            restart: 'restart!',
+                            close: 'close', 
+                            select: 'Select',
+                            range: 'Range',
+                            points: 'Points',
+                            types: ['GBIF', 'MOL'],
+                            go: 'Go',
+                            searching: 'Searching',
+                            info: 'more info',
+                            next: 'Next Page',
+                            add: 'Add'
+                        }                    
+                },
+                widget = null;
 
                 this._display = display;
                 display.setEngine(this);
@@ -68,14 +69,19 @@ MOL.modules.Search = function(mol) {
 
                 this._addLayerControlEventHandler();                
                 
-               
-                display.getRestartButton().click(
+                // Restart button:
+                widget = display.getRestartButton();
+                widget.text(config.text.restart);
+                widget.click(
                     function(event) {
-                        mol.log.info('Search.Display.RestartButton.click()');
+                        // TODO
                     }
                 );
-  
-                display.getCloseButton().click(
+                
+                // Close button:
+                widget = display.getCloseButton();
+                widget.text(config.text.close);
+                widget.click(
                     function(event) {
                         display.hide();
                     }
