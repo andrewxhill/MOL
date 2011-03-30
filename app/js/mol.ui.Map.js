@@ -453,10 +453,33 @@ MOL.modules.Map = function(mol) {
      */
     mol.ui.Map.MarkerCanvas = mol.ui.Element.extend(
         {
-            init: function(width,height) {
-                this._super('<canvas width='+width+' height='+height+'>');
-                this.setStyleName('mol-MarkerCanvas');
-                this._ctx = this.getElement()[0].getContext("2d");
+            init: function(width, height) {
+                var MarkerCanvas = mol.ui.Map.MarkerCanvas;
+                
+                this._canvasSupport = !!document.createElement('canvas').getContext;
+
+                if (this._canvasSupport) {
+                    this._iconHeight = 15;
+                    this._iconWidth = 15;
+                    this._canvasSupport = true;
+                    this._markerCanvas = new MarkerCanvas(this._iconWidth, this._iconHeight);
+                    this._markerContext = this._markerCanvas.getContext();
+                    this._iconLayers = {
+                        background: new Image(),
+                        foreground: new Image(),
+                        error: new Image()
+                    };
+                    this._iconLayers.background.src = "/static/pm-background.png";
+                    this._iconLayers.foreground.src = "/static/pm-foreground.png";
+                    this._iconLayers.error.src = "/static/pm-error.png";
+                    this._super('<canvas width='+width+' height='+height+'>');
+                    this.setStyleName('mol-MarkerCanvas');
+                    this._ctx = this.getElement()[0].getContext("2d");
+                }
+            },
+            
+            canvasSupport: function() {
+                return this._canvasSupport;
             },
 
             getContext: function() {
@@ -561,9 +584,8 @@ MOL.modules.Map = function(mol) {
                     mapTypeControlOptions: {position: google.maps.ControlPosition.BOTTOM_LEFT},
                     center: new google.maps.LatLng(0,0),
                     mapTypeId: google.maps.MapTypeId.TERRAIN
-                },
-                    rightPosition = google.maps.ControlPosition.TOP_RIGHT,
-                    centerPosition = google.maps.ControlPosition.TOP_CENTER;
+                };
+
                 this._id = 'map';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
