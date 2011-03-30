@@ -27,7 +27,8 @@ MOL.modules.Search = function(mol) {
              * @override mol.ui.Engine.start
              */
             start: function(container) {
-                this._bindDisplay(new mol.ui.Search.Display({}));
+                //this._bindDisplay(new mol.ui.Search.Display({}));
+                this._bindDisplay(container);
             },
 
             /**
@@ -44,14 +45,82 @@ MOL.modules.Search = function(mol) {
              * Binds the display.
              */
             _bindDisplay: function(display) {                
+                var config = {
+                    text : {
+                        restart: 'restart',
+                        close: 'close', 
+                        select: 'Select',
+                        range: 'Range',
+                        points: 'Points',
+                        types: ['GBIF', 'MOL'],
+                        go: 'Go',
+                        searching: 'Searching',
+                        info: 'more info',
+                        next: 'Next Page',
+                        add: 'Add'
+                    }
+                };
+
                 this._display = display;
                 display.setEngine(this);
 
                 display.hide();
 
                 this._addLayerControlEventHandler();                
+                
+               
+                display.getRestartButton().click(
+                    function(event) {
+                        mol.log.info('Search.Display.RestartButton.click()');
+                    }
+                );
+  
+                // dispaly.getCloseButton().click(
+                //     function(event) {
+                //         mol.log.info('Search.Display.CloseButton.click()');
+                //     }
+                // );
+  
+                // display.getSelectRangeButton().click(
+                //     function(event) {
+                //         mol.log.info('Search.Display.RangeButton.click()');
+                //     }
+                // );
+  
+                // display.getSelectPointsButton().click(
+                //     function(event) {
+                //         mol.log.info('Search.Display.SelectPointsButton.click()');
+                //     }
+                // );
+  
+                // display.getTypeSelectBox().change(
+                //     function(event) {
+                //         var selection = display.getTypeSelectBox().val();
+                //         mol.log.info('Search.Display.TypeSelectBox.change() - ' + selection);
+                //     }
+                // );
 
-                // TODO: Set up handlers for DOM elements in the display.
+                // display.getTypeSelectBox().click(
+                //     function(event) {
+                //         mol.log.info('Search.Display.CloseButton.click()');
+                //     }
+                // );
+  
+                // display.getSearchBox().click(
+                //     function(event) {
+                //         mol.log.info('Search.Display.SearchBox.click()');
+                        
+                //     }
+                // );
+  
+                // display.getGoButton().click(
+                //     function(event) {
+                //         var query = display.getSearchBox().getText();
+                //         mol.log.info('Search.Display.GoButton.click() with search: ' + query);                       
+                //     }
+                // );
+
+                // display.getSearchWidget();
 
                 this._addDisplayToMap();
             },
@@ -89,6 +158,27 @@ MOL.modules.Search = function(mol) {
                         }
                     }
                 );
+            }
+        }
+    );
+
+    /**
+     * Mock search display for testing engine
+     */
+    mol.ui.Search.MockDisplay = mol.ui.Display.extend(
+        {
+            restartButton: {
+                click: function(handler) {
+                    this.restartButtonClickHandler = handler;
+                },
+                
+                test: function() {
+                    this.restartButtonClickHandler();
+                }
+            },
+            
+            getRestartButton: function() {
+                return this.restartButton;
             }
         }
     );
