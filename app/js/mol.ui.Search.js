@@ -99,9 +99,71 @@ MOL.modules.Search = function(mol) {
     mol.ui.Search.Display = mol.ui.Display.extend(
         {
             init: function(config) {
-                this._super('<div>Search.Display</div>');
-                this.setStyleName('mol-Search-Display');
+                this._super();
+                this.setInnerHtml(this._html())
                 this._config = config;
+            },
+            getRestartButtion: function(){
+                return this.findChild('#restart');
+            },
+            getCloseButton: function(){
+                return this.findChild('#cancelAll');
+            },
+            getSelectButton: function(){
+                return this.findChild('.mol-LayerControl-DataType');
+            }, 
+            getTypeSelectBox: function(){
+                return this.findChild('.searchSource');
+            }, 
+            getSearchBox: function(){
+                return this.findChild('.searchValue');
+            }, 
+            getGoButton: function() {
+                return this.findChild('.searchExecute');
+            },
+            getSearchWidget: function(){
+                return this.findChild('.mol-LayerControl-Search');
+            },
+            getNextButton: function(){
+                return this.findChild('.addAll');
+            },
+            getAddButton: function(){
+                return this.findChild('.nextPage');
+            },
+            _html: function(){
+                return  '<button id="restart">restart</button>' +
+                        '<button id="cancelAll">close</button>' +' +
+                        '<div class="mol-LayerControl-DataType widgetTheme">' +
+                        '      <div class="selectLabel">Select</div>' +
+                        '      <button class="rangeTypeSelect">Range Map</button>' +
+                        '      <button class="pointsTypeSelect">Occ. Points</button>' +
+                        '</div>' +
+                        '<div class="mol-LayerControl-Search widgetTheme">' +
+                        '  <select name="searchSource" class="searchSource">' +
+                        '      <option value="MOL">MOL</option>' +
+                        '  </select>' +
+                        '  <input class="searchValue" type="text" />' +
+                        '  <button class="searchExecute">Go</button>' +
+                        '</div>' +
+                        '<div class="mol-LayerControl-Loading widgetTheme">' +
+                        '    <div><img src="/static/loading-small.gif" /></div> <div>Searching...</div>' +
+                        '</div>' +
+                        '<div class="mol-LayerControl-Results">' +
+                        '  <ol class="searchResults">' +
+                        '    <ul class="result widgetTheme">' +
+                        '        <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>' +
+                        '        <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>' +
+                        '        <div class="buttonContainer"> ' +
+                        '            <input type="checkbox" class="checkbox" /> ' +
+                        '            <span class="customCheck"></span> ' +
+                        '        </div> ' +
+                        '    </ul>' +
+                        '  </ol>' +
+                        '  <div class="navigation">' +
+                        '      <button class="addAll">Add</button>' +
+                        '      <button class="nextPage">Next Page</button>' +
+                        '  </div>' +
+                        '</div>';
             }
         }
     );
