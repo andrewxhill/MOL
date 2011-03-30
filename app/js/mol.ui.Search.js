@@ -75,11 +75,11 @@ MOL.modules.Search = function(mol) {
                     }
                 );
   
-                // dispaly.getCloseButton().click(
-                //     function(event) {
-                //         mol.log.info('Search.Display.CloseButton.click()');
-                //     }
-                // );
+                display.getCloseButton().click(
+                    function(event) {
+                        display.hide();
+                    }
+                );
   
                 // display.getSelectRangeButton().click(
                 //     function(event) {
@@ -131,10 +131,17 @@ MOL.modules.Search = function(mol) {
              */
             _addDisplayToMap: function() {
                 var MapControlEvent = mol.events.MapControlEvent,
-                    div = this._display.getElement()[0],
-                    position = google.maps.ControlPosition.TOP_CENTER,
-                    action = 'add';
-                bus.fireEvent(new MapControlEvent(div, position, action));     
+                    display = this._display,
+                    DisplayPosition = mol.ui.Map.Control.DisplayPosition,
+                    ControlPosition = mol.ui.Map.Control.ControlPosition,
+                    action = 'add',
+                    config = {
+                        display: display,
+                        action: action,
+                        displayPosition: DisplayPosition.TOP,
+                        controlPosition: ControlPosition.CENTER_TOP
+                    };
+                bus.fireEvent(new MapControlEvent(config));     
             },
 
             /**

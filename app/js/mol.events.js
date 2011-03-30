@@ -115,15 +115,17 @@ MOL.modules.events = function(mol) {
              * 
              * @constructor
              * 
-             * @param div - the div element of the control to display on the map
-             * @param position - the google.maps.ControlPosition
+             * @param div - the div element of the display to add to map control
+             * @param controlPosition - mol.ui.Map.Control.ControlPosition
+             * @param displayPosition - mol.ui.Map.Control.DisplayPosition
              * @param action - the action (add, remove)
              */
-            init: function(div, position, action) {
+            init: function(config) {
                 this._super('MapControlEvent');
-                this._div = div;
-                this._position = position;
-                this._action = action;
+                this._display = config.display;
+                this._controlPosition = config.controlPosition;
+                this._displayPosition = config.displayPosition;
+                this._action = config.action;
             },
             
             /**
@@ -131,17 +133,24 @@ MOL.modules.events = function(mol) {
              * 
              * @return widget
              */
-            getDiv: function() {
-                return this._div;
+            getDisplay: function() {
+                return this._display;
             },
 
             /**
-             * Gets the position.
+             * Gets the control position.
              * 
-             * @return position
+             * @return controlPosition
              */
-            getPosition: function() {
-                return this._position;
+            getControlPosition: function() {
+                return this._controlPosition;
+            },
+
+            /**
+             * Gets the display position within the control.
+             */
+            getDisplayPosition: function() {
+                return this._displayPosition;                
             },
 
             /**
