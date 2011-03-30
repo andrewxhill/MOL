@@ -52,7 +52,21 @@ MOL.modules.ui = function(mol) {
             getElement: function() {
                 return this._element;
             },
+            
+            /**
+             * Proxies to JQuery.
+             */
+            change: function(handler) {
+                this._element.change(handler);
+            },
 
+            /**
+             * Proxies to JQuery.
+             */
+            val: function() {
+                return this._element.val();
+            },
+            
             /**
              * Proxies to JQuery.
              */
