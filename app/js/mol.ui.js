@@ -67,11 +67,25 @@ MOL.modules.ui = function(mol) {
                 return new mol.ui.Element(this._element.find(identfier));
             },
 
+            text: function(text) {
+                if (text) {
+                    this._element.text(text);
+                    return true;
+                } else {
+                    return this._element.text();
+                }
+            },
+
             /**
              * Proxies to JQuery.
              */
-            val: function() {
-                return this._element.val();
+            val: function(val) {
+                if (val) {
+                    this._element.val(val);
+                    return true;
+                } else {
+                    return this._element.val();    
+                }                
             },
             
             /**
