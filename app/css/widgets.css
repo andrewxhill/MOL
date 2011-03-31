@@ -131,17 +131,17 @@ button:hover{
  * search, results
  */
  
-button#cancelAll{
+button#searchCancel{
     margin: 5px;
     margin-right: 5px;
     float: left;
     font-size: 0.9em;
     color: rgb(240, 90, 100);
 }
-button#restart{
+button#searchRestart{
     float: left;
 }
-button#restart img{
+button#searchRestart img{
     height: 12px;
 }
 .mol-LayerControl-Search {

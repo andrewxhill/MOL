@@ -207,14 +207,11 @@ MOL.modules.Search = function(mol) {
                 this._config = config;
             },
             getRestartButton: function(){
-                return this.findChild('#restart');
+                return this.findChild('#searchRestart');
             },
             getCloseButton: function(){
-                return this.findChild('#cancelAll');
+                return this.findChild('#searchCancel');
             },
-            getSelectButton: function(){
-                return this.findChild('.mol-LayerControl-DataType');
-            }, 
             getTypeSelectBox: function(){
                 return this.findChild('.source');
             }, 
@@ -250,7 +247,7 @@ MOL.modules.Search = function(mol) {
                 return _result;
             },
             _html: function(){
-                return '<button id="cancelAll">x</button>' +
+                return '<button id="searchCancel">x</button>' +
                        '<div class="mol-LayerControl-Search widgetTheme">' +
                        '   <div class="title">Search:</div>' +
                        '   <select name="source" class="source">' +
@@ -260,12 +257,16 @@ MOL.modules.Search = function(mol) {
                        '   <input class="value" type="text" />' +
                        '   <button class="execute">Go</button>' +
                        '</div>' +
-                       '<button id="restart">' +
+                       '<button id="searchRestart">' +
                        '   <img src="/static/reload.png" />' +
                        '</button>' +
                        '<div class="mol-LayerControl-Results">' +
                        '   <ol class="searchResults widgetTheme">' +
                        '   </ol>' +
+                       '    <div class="navigation">' +
+                       '        <button class="addAll">Add</button>' +
+                       '        <button class="nextPage">Next Page</button>' +
+                       '    </div>' +
                        '</div>';
             }
         }
