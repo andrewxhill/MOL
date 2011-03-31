@@ -2,9 +2,9 @@
 <html> 
   <head> 
     <style>
-.mol-CenterController{
+.mol-TopLeftController{
     margin-top: 5px;
-	width: 450px;
+	width: 550px;
     font-family: Arial, sans-serif;
     font-weight:700;
     color: #141414;
@@ -14,7 +14,7 @@
         <link href="/css/widgets.css" media="screen" rel="stylesheet" type="text/css" /> 
   </head>
   <body>
-  <div class="mol-CenterController">
+  <div class="mol-TopLeftController">
    <div class="mainSearchNavigation">
        <button id="searchCancel">
             <img src="/static/cancel.png" />
@@ -26,18 +26,37 @@
    
    <div class="mol-LayerControl-Search widgetTheme">
       <div class="title">Search:</div>
-      <select name="source" class="source">
-          <option value='{source:"MOL",type:"range"}'>MOL Range Maps</option>
-          <option value='{source:"GBIF",type:"points"}'>GBIF Occ Points</option>
-      </select>
       <input class="value" type="text" />
       <button class="execute">Go</button>
    </div>
    
     <div class="mol-LayerControl-Results">
+      <div class="filters">
+        <div class="filter widgetTheme">
+            <div class="filterName">Names</div>
+            <div class="option"><a href="/static/dead_link.html">Puma concolor</a></div>
+            <div class="option"><a href="/static/dead_link.html">Puma yagouaroundi</a></div>
+            <div class="option"><a href="/static/dead_link.html">Smilisca puma</a></div>
+        </div>
+        <div class="filter widgetTheme">
+            <div class="filterName">Types</div>
+            <div class="option"><a href="/static/dead_link.html">Ranges</a></div>
+            <div class="option"><a href="/static/dead_link.html">Points</a></div>
+        </div>
+        <div class="filter widgetTheme">
+            <div class="filterName">Sources</div>
+            <div class="option"><a href="/static/dead_link.html">GBIF</a></div>
+            <div class="option"><a href="/static/dead_link.html">MOL</a></div>
+        </div>
+      </div>
       <ol class="searchResults widgetTheme">
         <ul class="result">
-            <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultSource" ><button ><img class="source GBIF" src="/static/maps/search/gbif.png"></button></div>
+            <div class="resultType" ><button ><img class="type Points" src="/static/maps/search/placemark.png"></button></div>
+            <div class="resultName">
+                <div class="resultNomial" >Puma concolor </div>
+                <div class="resultAuthor">(author)</div>
+            </div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
             <div class="buttonContainer"> 
                 <input type="checkbox" class="checkbox" /> 
@@ -46,7 +65,12 @@
         </ul>
         <div class="break"></div>
         <ul class="result">
-            <div class="resultName">Puma yagouaroundi <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultSource" ><button ><img class="source MOL" src="/static/maps/search/mol.png"></button></div>
+            <div class="resultType" ><button ><img class="type Range" src="/static/maps/search/range.png"></button></div>
+            <div class="resultName">
+                <div class="resultNomial" >Puma concolor </div>
+                <div class="resultAuthor">(author)</div>
+            </div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
             <div class="buttonContainer"> 
                 <input type="checkbox" class="checkbox" /> 
@@ -55,7 +79,40 @@
         </ul>
         <div class="break"></div>
         <ul class="result">
-            <div class="resultName">Smilisca puma <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultSource" ><button ><img class="source GBIF" src="/static/maps/search/gbif.png"></button></div>
+            <div class="resultType" ><button ><img class="type Points" src="/static/maps/search/placemark.png"></button></div>
+            <div class="resultName">
+                <div class="resultNomial" >Puma yagouaroundi </div>
+                <div class="resultAuthor">(author)</div>
+            </div>
+            <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
+        </ul>
+        <div class="break"></div>
+        <ul class="result">
+            <div class="resultSource" ><button ><img class="source MOL" src="/static/maps/search/mol.png"></button></div>
+            <div class="resultType" ><button ><img class="type Range" src="/static/maps/search/range.png"></button></div>
+            <div class="resultName">
+                <div class="resultNomial" >Puma yagouaroundi </div>
+                <div class="resultAuthor">(author)</div>
+            </div>
+            <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
+        </ul>
+        <div class="break"></div>
+        <ul class="result">
+            <div class="resultSource" ><button ><img class="source GBIF" src="/static/maps/search/gbif.png"></button></div>
+            <div class="resultType" ><button ><img class="type Points" src="/static/maps/search/placemark.png"></button></div>
+            <div class="resultName">
+                <div class="resultNomial" >Smilisca puma </div>
+                <div class="resultAuthor">(author)</div>
+            </div>
             <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
             <div class="buttonContainer"> 
                 <input type="checkbox" class="checkbox" /> 
