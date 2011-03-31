@@ -106,6 +106,7 @@ div#container #top .topQuote .aboutLink{
 div#container #top .topQuote .aboutLink a{
     color: #3a0082;
     font-style: italic;
+    font-size: 0.9em;
 }
 div#container #top .topBackground img { 
     position: absolute;
