@@ -28,7 +28,23 @@
                         eleph.onload = function(){
                             $('.topBackground').html(eleph);
                         }
-                    },1000);
+                    },700);
+                });
+                $('#demoLink').mouseenter(function(){
+                    var toby = new Image();
+                    toby.src="/images/turtle.gif?n="+Math.random();
+                    toby.onload = function(){
+                        $('#turtle').html(toby);
+                    }
+                });
+                $('#demoLink').mouseleave(function(){
+                    setTimeout(function(){
+                        var toby = new Image();
+                        toby.src="/images/turtle-reverse.gif?n="+Math.random();
+                        toby.onload = function(){
+                            $('#turtle').html(toby);
+                        }
+                    },700);
                 });
                 
                 $('#blog').gFeed({ 
@@ -51,7 +67,7 @@
             <div id="menu">
                 <div class="item"><a href="/" class="current">Home</a></div>
                 <div class="item" id="techLink"><a href="/tech.html">Tech</a></div>
-                <div class="item"><a href="/demo.html">Demo</a></div>
+                <div class="item" id="demoLink"><a href="/demo.html">Demo</a></div>
                 <div class="item"><a href="/people.html">People</a></div>
             </div>
         </div>
@@ -68,7 +84,7 @@
                     <div class="topBackground" ><img src="/images/tech-reverse.gif"></div>
                 </div>
                 <div id="middle">
-                    <img class="turtle" src="/images/turtle.png">
+                    <div id="turtle"><img class="turtle" src="/images/turtle.png"></div>
                     <img class="placemark small" src="/images/placemark.png">
                     <img class="placemark medium" src="/images/placemark.png">
                     <img class="placemark big" src="/images/placemark.png">
