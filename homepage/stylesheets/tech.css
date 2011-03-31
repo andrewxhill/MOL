@@ -1,21 +1,19 @@
 body { 
     font-family: 'Coda', sans-serif;
-    font-size: 16px;
+    font-size: 12px;
     min-width: 800px; margin: 0px; height: 100%; width: 100%; 
     background: #394050; position: relative;}
 
 div#header { 
     position: absolute;
-    font-size: 12px;
-    min-width: 800px;
+    width: 800px;
     color: #fff; 
     background: #394050; 
-    width: 800px;
     left: 50%;
     margin-left: -430px;
     padding-top: 10px; 
     padding-bottom: 8px; 
-    height: 40px; 
+    height: 50px; 
 }
 div#header #title{ 
     font-family: 'Ubuntu', san-sarif;
@@ -50,7 +48,7 @@ div#header #menu .item a{
     color: #394050;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    font-size: 0.8em;
+    font-size: 0.9em;
     font-weight: bold;
     -moz-box-shadow: 0px px 10px rgba(183,233,163,0.6);
     -webkit-box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
@@ -75,16 +73,16 @@ div#submenu {
     position: relative;
     float: left;
     width: 100%;
-    margin-top: 60px;
+    margin-top: 70px;
     margin-bottom: 10px;
     padding: 10px;
-    padding-left: 140px;
-    font-size: 1em;
+    padding-left: 15%;
+    font-size: 1.4em;
     background-color: #6AD2DF; color: #111; 
 }
 div#submenu .link{
     float: left;
-    margin-left: 25px;
+    margin-left: 45px;
 }
 div#submenu .link a{
     color: #ddd;
@@ -96,6 +94,7 @@ div#container {
     width:700px;
     left: 50%;
     margin-left: -350px;
+    font-size: 1.5em;
 }
 div#container .subject{
     width: 100%;
