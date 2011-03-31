@@ -1,0 +1,154 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+        <title>Map of Life</title> 
+        <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" /> 
+        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQQVdp0qK6LIdtUMkyJyGau2FAr6Q"></script> 
+        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQnqYmZFNw176Z9eGZLF4M7kSq-MhQPJ1PZw_xe7fLxFc65vo_OiMHM5A"></script> 
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+        <script src="/javascript/gfeed.js" type="text/javascript"></script> 
+        <script src="/javascript/gritter.min.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            function addOverlay(map){
+                var BlueMarble = new google.maps.ImageMapType({
+                    getTileUrl: function(coord, zoom) {
+                        var x = coord.x;
+                        x ^= (coord.x>>zoom<<zoom); 
+                        if (x < 0){
+                            x += Math.pow(2,zoom);
+                        } else if (x >= Math.pow(2,zoom)){
+                            x -= Math.pow(2,zoom);
+                        }
+                        var url = "http://s3.amazonaws.com/com.modestmaps.bluemarble/" + zoom + "-r" + coord.y + "-c" + x + ".jpg"
+                        return url;
+                    },
+                    tileSize: new google.maps.Size(256, 256),
+                    isPng: true
+                });
+                map.overlayMapTypes.push(BlueMarble);
+             
+            }
+            
+            function gritterModal(){
+                $.gritter.add({
+                title: "We're not ready yet",
+                text: "The Map of Life is busy getting a large set of base layers and processes developed for our launch. You can follow our <a href='http://mol.colorado.edu/blog'>Blog</a> to stay up to date with our progress.",
+                //image: '/static/images/icons/phylobox-80.png',
+                sticky: false, 
+                time: 4000
+                });
+            }
+            function initialize() {
+                //var uLat = google.loader.ClientLocation.latitude;
+                //var uLon =  google.loader.ClientLocation.longitude;
+                var myLatlng = new google.maps.LatLng(30, 50);
+                var myOptions = {
+                    center: myLatlng,
+                    zoom: 2,
+                    disableDefaultUI: true,
+                    disableDoubleClickZoom: true,
+                    draggable: false
+                }
+                var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                addOverlay(map);
+                
+              
+                $('#blog').gFeed({ 
+                    url: 'http://mol.colorado.edu/blog/?feed=rss2&a=3',
+                    tabs: false,
+                    max: 2
+                }); 
+                
+                $('#code').gFeed({ 
+                    url: 'https://github.com/andrewxhill/MOL/commits/modularize.atom',
+                    tabs: false,
+                    max: 3
+                }); 
+                
+                $(".main_link").click(function() {
+                    gritterModal();
+                });
+                
+                $(".main_link").hover(function() {
+                        $(this).css({ "opacity": 0.85});
+                    }, function() {
+                        $(this).css({ "opacity": 1.0});
+                });
+                
+                
+                
+            }
+               
+            function loadScript() {
+              var script = document.createElement("script");
+              script.type = "text/javascript";
+              script.src = "http://maps.google.com/maps/api/js?sensor=false&callback=initialize";
+              document.body.appendChild(script);
+            }
+              
+            window.onload = loadScript;
+        </script>
+    </head>
+    <body>
+        <div id="header"><div id="title">Map of Life</div></div>
+        <div id="container">
+            <div id="content_top">An infrastructure for integrating global species distribution knowledge</div>
+            <div id="map_canvas"></div> 
+            <div id="content_middle">
+                <div id="text_blocks">
+                    <div id="block">
+                        <div id="block_title">VISION</div>
+                        <p>
+                        The geography of life on Earth lies at the heart of the
+                            interaction between nature and human society with its need for natural
+                            resources. As disasters such as hurricanes or oil spills strike or the
+                            climate changes, knowledge about the geography of biological diversity
+                            – the types of species inhabiting a certain area – is essential for
+                            informed and targeted action. Geographic data on species’
+                            distributions are critical for governments, agencies and companies
+                            seeking to make sound decisions about land management, health and
+                            climate change policies or species conservation. Geographic range maps
+                            are displayed in nature programs, zoos, and field guides to the
+                            broader public worldwide and have myriad uses from basic science to
+                            resource management, development and education.  Yet to date the
+                            availability and quality of species range maps remains shockingly
+                            dispersed and limited – in stark contrast with meter-level resolution
+                            remotely sensed environmental information which is accessible
+                            globally.  The time is now right to mobilize and, most importantly,
+                            integrate species distribution information at global scale for
+                            scientists and the public. The proposed “Map of Life” project will
+                            host all available types of information about species distributions,
+                            provide model-based integration, quantify uncertainty in individual
+                            and integrated data types, and implement user feedback.
+                        </p>
+                    </div>
+                    <div id="block">
+                        <div id="block_title">MOL PRODUCTS</div>
+                        <p>
+                        MOL will mobilize and integrate all key information
+                            about species’ ranges that is currently spread over different research
+                            domains: expert opinion maps, surveys over defined extents, point
+                            observations (e.g. aggregated by GBIF) and voucher specimens, expert
+                            habitat preferences, and others.  Combined with high resolution
+                            (30-100m) remotely sensed data, a full statistical model-based
+                            integration will be performed that allows for different data types to
+                            complement each other.   The end result will be a knowledge-base of
+                            initially tens and ultimately hundreds of thousands of species
+                            distribution maps, along with a set of tools for querying, accessing,
+                            modifying, downloading and summarizing them. Maps will be easily
+                            re-provisioned in other applications such as Encyclopedia of Life
+                            (<a href="http://eol.org">eol.org</a>).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <div id="footer_links">
+                <a href="http://sites.google.com/site/robgur/">Guralnick Lab</a> | <a href="http://yale.edu/jetz">Jetz Lab</a>
+            </div>
+        </div>
+    </body>
+</html>      

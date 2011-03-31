@@ -1,140 +1,231 @@
-body { font-family: ‘Palatino Linotype’, ‘Book Antiqua’, Palatino, serif; 
-    min-width: 860px; margin: 0px; height: 100%; width: 100%; background: #232323; }
-div#header { padding-top: 15px; padding-bottom: 15px; width: 100%; height: 70px; color: #fff; font-size: 60px; font-weight: bold;}
-div#header #title{ padding-left: 30px; font-variant: small-caps; }
+body { 
+    font-family: 'Coda', sans-serif;
+    font-size: 12px;
+    min-width: 800px; margin: 0px; height: 100%; width: 100%; 
+    color: #fff; 
+    background: #394050; 
+    position:relative;}
 
-div#container { 
-float: left; width: 100%; height: 100%;
-background-color: #b8fd85; color: #111; 
+div#header { 
+    position: absolute;
+    width: 800px;
+    left: 50%;
+    margin-left: -430px;
+    padding-top: 10px; 
+    padding-bottom: 8px; 
+    height: 40px; 
 }
-
-div#content_top{ text-align: center; padding: 10px; font-size: 22px;}
-
-div#map_canvas { float: left; width: 100%; height: 200px; padding: 0px; margin: 0px;}
-
-
-div#content_middle { float: left; width: 95%; text-align: center; margin-left: auto; margin-right: auto; padding: 10px; font-size: 22px;}
-div#main_links { width: 690px ; margin-left: auto ; margin-right: auto ; }
-div#button_link { border: none; }
-
-
-div#text_blocks #block{
-    width: 370px;
-    padding: 10px;
+div#header #title{ 
+    font-family: 'Ubuntu', san-sarif;
+    padding-left: 30px; 
+    width: 225px;
+    font-weight: bold; 
+    font-size: 40px;
+    line-height: 40px;
     float: left;
 }
-div#text_blocks #block_title { margin-right: 10px; float: left; 
-                  text-align: left; color: #111; 
-                  font-size: 28px; line-height: 30px;
-                  font-weight: bold;  }
+div#header #subtitle{ 
+    font-family: 'Ubuntu', san-sarif;
+    float: left;
+    width: 280px;
+    line-height: 20px;
+    margin-top: 18px;
+    font-style: italic;
+}
+div#header #menu{ 
+    float: right;
+    width: 250px;
+    margin-right: 10px;
+}
+div#header #menu .item a{ 
+    float: left;
+    width: 50px;
+    height: 18px;
+    margin: 5px;
+    padding-top: 4px;
+    text-align: center;
+    background-color: #fff; 
+    color: #394050;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    -moz-box-shadow: 0px px 10px rgba(183,233,163,0.6);
+    -webkit-box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+    box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+}
+div#header #menu .item a:hover{ 
+    -moz-box-shadow: 0px 6px 6px rgba(183,253,133,0.2);
+    -webkit-box-shadow: 0px 6px 6px rgba(183,253,133,0.2);
+    box-shadow: 0px 6px 6px rgba(183,253,133,0.2);
+}
+div#header #menu .item a.current{ 
+    -moz-box-shadow: 0px 6px 6px rgba(183,233,163,0.6);
+    -webkit-box-shadow: 0px 6px 6px rgba(183,233,163,0.6);
+    box-shadow: 0px 8px 6px rgba(183,233,163,0.6);
+    color: #111;
+}
+div#header #menu .item a{ 
+    text-decoration: none;
+    color: #394050;
+}
+div#container { 
+    font-family: 'Ubuntu', san-sarif;
+    float: left; width: 100%; height: 80%;
+    min-height: 300px;
+    margin-top: 60px;
+    position: relative;
+}
 
-div#text_blocks { width: 780px; margin-left: auto; margin-right: auto; }
-div#text_blocks p { float: left;
-                    text-align: justify; 
-                    font-size: 18px; line-height: 20px;}
-div.gfc-resultsHeader{ border: none; }
 
-dif#footer {width: 90%; margin-top: 20px;}
+div#container #top {
+    width: 100%;
+    float: left;
+    height: 150px;
+    margin-bottom: 10px;
+    background-color: #b8fd85; color: #111; 
+}
+
+div#container #top .topQuote{
+    position: absolute;
+    left: 50%;
+    margin-left: -300px;
+    width: 480px;
+    height: 125px;
+    margin-top: 15px;
+    font-size: 1.3em;
+    text-align: justify;
+    color: #3a0082;
+}
+div#container #top .topQuote .aboutLink{
+    float: right;
+    margin-right: 120px;
+    margin-top: 10px;
+}
+div#container #top .topQuote .aboutLink a{
+    color: #3a0082;
+    font-style: italic;
+}
+div#container #top .topBackground img { 
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 150px;
+}
+div#middle { 
+    position: relative;
+    float:left;
+    width: 680px;
+    left: 50%;
+    margin-left: -380px;
+    padding: 10px 0px 8px 30px;
+    height: 120px; 
+    color: #ddd;
+}
+
+div#middle img{ 
+    float: left;
+    margin-left: 20px;
+}
+div#middle img.big{ 
+    height: 90px;
+}
+div#middle img.medium{ 
+    height: 70px;
+    margin-top: 20px;
+}
+div#middle img.small{ 
+    height: 50px;
+    margin-top: 40px;
+}
+div#middle img.smallest{ 
+    height: 30px;
+    margin-top: 60px;
+}
+div#middle img.turtle{ 
+    height: 30px;
+    margin-top: 60px;
+}
+div#middle .horizontalDivider{
+    height: 90px;
+    float: left;
+    width: 1px;
+    margin: 5px 20px 10px 20px;
+}
+div#middle .middleQuote{
+    font-size: 1.2em;
+    height: 90px;
+    margin-top: 5px;
+}
+div#content{ 
+    position: relative;
+    float: left;
+    width: 100%;
+}
+div#content .wrapper{ 
+    position: relative;
+    float: left;
+    width: 800px;
+    left: 50%;
+    margin-left: -400px;
+    margin-bottom: 10px;
+}
+div#content .wrapper .details{ 
+    width: 100%;
+    color: #fff;
+    height: 110px;
+}
+div#content .wrapper .details .pretitle{ 
+    font-style: italic;
+    color: #ccc;
+}
+div#content .wrapper .details .title{ 
+    font-weight: 500;
+    font-size: 1.9em;
+}
+div#content .wrapper .details .description{ 
+    font-weight: 200;
+    font-size: 1.0em;
+    padding: 5px 0 5px 0;
+}
+div#content .wrapper #left{ 
+    float: left;
+    width: 495px;
+    padding: 5px;
+    background-color: rgba(33,33,33,0.2); 
+    color: #111; 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+}
+div#content .wrapper #blog{ 
+    height: 400px;
+    color: #fff;
+}
+div#content .wrapper #blog a{ 
+    color: #b8fd85;
+}
+div#content .wrapper #right{ 
+    float: left;
+    width: 260px;
+    padding: 5px;
+    margin-left: 20px;
+    background-color: rgba(33,33,33,0.2); 
+    color: #111; 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+}
+div#content .wrapper #code{ 
+    height: 400px;
+    color: #fff;
+}
+div#content .wrapper #code a{ 
+    color: #b8fd85;
+}
+dif#footer {float: left; width: 100%; margin-bottom: 30px; height: 40px;}
 div#footer_links { float: right; text-align: left; padding-right: 20px; padding-right: 20px; height: auto; color: #fff; }
 div#footer_links a { font-size: 12px; color: #aaa; padding-right: 8px; padding-left: 8px; line-height: 150%; text-decoration: underline;}
+ 
+ 
 
-
-/* GRITTER STYLES */
-/* ie6 trash */
-* html #gritter-notice-wrapper {
-	position:absolute; 
-}
-* html .gritter-top {
-	margin-bottom:-10px;
-}
-* html .gritter-item {
-	padding-bottom:0;
-}
-* html .gritter-bottom {
-	margin-bottom:0;
-}
-* html .gritter-close {
-	background:url(../images/gritter-close-ie6.gif);
-	width:22px;
-	height:22px;
-	top:7px;
-	left:7px;
-}
-
-/* the norm */
-#gritter-notice-wrapper {
-    background: #1d1d1d;
-    filter: alpha(opacity=85);
-    opacity: 0.85;
-	-moz-opacity:0.85;
-	-khtml-opacity: 0.85;
-	position:fixed;
-	top:140px;
-	left:20px;
-	width:701px;
-	z-index:9999;
-}
-.gritter-item-wrapper {
-	position:relative;
-	margin:0 0 10px 0;
-	background:url('.'); /* ie7/8 fix */ 
-}
-.gritter-top {
-	background:url(../images/gritter.png) no-repeat left -30px;
-	height:10px;
-}
-.hover .gritter-top {
-	background-position:right -30px;
-}
-.gritter-bottom {
-	background:url(../images/gritter.png) no-repeat left bottom;
-	height:8px;
-	margin:0;
-}
-.hover .gritter-bottom {
-	background-position: bottom right;
-}
-.gritter-item {
-	display:block;
-	background:url(../images/gritter.png) no-repeat left -40px;
-	color:#eee;
-	padding:2px 11px 8px 11px;
-	font-size: 24px;
-	font-family:verdana;
-}
-.hover .gritter-item {
-	background-position:right -40px;
-}
-.gritter-item p {
-	padding:0;
-	margin:0;
-}
-.gritter-close {
-	position:absolute;
-	top:5px;
-	left:3px;
-	background:url(../images/gritter.png) no-repeat left top;
-	cursor:pointer;
-	width:30px;
-	height:30px;
-}
-.gritter-title {
-	font-size:34px;
-	font-weight:bold;
-	padding:0 0 7px 0;
-	display:block;
-	text-shadow:1px 1px #000; /* Not supported by IE :( */
-}
-.gritter-image {
-	width:48px;
-	height:48px;
-	float:left;
-}
-.gritter-with-image,
-.gritter-without-image {
-	padding:0 0 5px 0;
-}
-.gritter-with-image {
-	width:220px;
-	float:right;
-}
