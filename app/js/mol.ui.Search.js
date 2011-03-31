@@ -99,34 +99,42 @@ MOL.modules.Search = function(mol) {
                 //     }
                 // );
   
-                // display.getTypeSelectBox().change(
-                //     function(event) {
-                //         var selection = display.getTypeSelectBox().val();
-                //         mol.log.info('Search.Display.TypeSelectBox.change() - ' + selection);
-                //     }
-                // );
+                widget = display.getTypeSelectBox();
+                widget.hide();
+                widget.change(
+                    function(event) {
+                        var selection = display.getTypeSelectBox().val();
+                        mol.log.info('Search.Display.TypeSelectBox.change() - ' + selection);
+                    }
+                );
 
                 // display.getTypeSelectBox().click(
                 //     function(event) {
                 //         mol.log.info('Search.Display.CloseButton.click()');
                 //     }
                 // );
+                
+                widget = display.getSearchBox();
+                widget.hide();
+                widget.click(
+                    function(event) {
+                        mol.log.info('Search.Display.SearchBox.click()');                        
+                    }
+                );
   
-                // display.getSearchBox().click(
-                //     function(event) {
-                //         mol.log.info('Search.Display.SearchBox.click()');
-                        
-                //     }
-                // );
-  
-                // display.getGoButton().click(
-                //     function(event) {
-                //         var query = display.getSearchBox().getText();
-                //         mol.log.info('Search.Display.GoButton.click() with search: ' + query);                       
-                //     }
-                // );
+                widget = display.getGoButton();
+                widget.hide();
+                widget.click(
+                    function(event) {
+                        var query = display.getSearchBox().getText();
+                        mol.log.info('Search.Display.GoButton.click() with search: ' + query);                       
+                    }
+                );
 
-                // display.getSearchWidget();
+                display.getSearchWidget().hide();
+                display.getLoadingWidget().hide();
+                display.getNextButton().hide();
+                display.getAddButton().hide();
 
                 this._addDisplayToMap();
             },
@@ -223,6 +231,9 @@ MOL.modules.Search = function(mol) {
             },
             getSearchWidget: function(){
                 return this.findChild('.mol-LayerControl-Search');
+            },
+            getLoadingWidget: function(){
+                return this.findChild('.mol-LayerControl-Loading');
             },
             getNextButton: function(){
                 return this.findChild('.nextPage');
