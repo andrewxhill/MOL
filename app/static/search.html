@@ -1,0 +1,239 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <style>
+.mol-CenterController{
+    margin-top: 5px;
+	width: 450px;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    color: #141414;
+    font-size: 14px;
+}
+.mol-CenterController .widgetTheme {
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    height: auto;
+    text-align: left;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    outline: none;
+}
+button{
+    float: left;
+    width: auto;
+    margin: 2px;
+    font-size: 1.1em;
+    font-weight:700;
+    color: rgb(240, 240, 260);
+    background-color: rgba(25, 25, 25, 0.75);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+button:hover{
+    background-color: rgba(25, 25, 25, 1.0);
+    cursor: pointer;
+}
+button#cancelAll{
+    margin: 5px;
+    margin-right: 5px;
+    float: left;
+    font-size: 0.9em;
+    color: rgb(240, 90, 100);
+}
+
+
+.mol-LayerControl-Search {
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 5px;
+    float: left;
+    position: relative;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+.mol-LayerControl-Search .title{
+    float: left;
+    line-height: 25px;
+    font-size: 1.1em;
+}
+.mol-LayerControl-Search .source{
+    float: left;
+    padding-top: 3px;
+    font-weight: 600;
+    color: rgba(25, 25, 25, 0.85);
+    background-color: rgba(25, 25, 25, 0.01);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+
+.mol-LayerControl-Search .value{
+    float: left;
+    margin-right: 2px;
+}
+.mol-LayerControl-Search .execute{
+    float: left;
+    margin-right: 5px;
+}
+button#restart{
+    float: left;
+    margin-left: 5px;
+}
+button#restart img{
+    height: 12px;
+}
+.mol-LayerControl-Results{
+    list-style-type: none;
+    width: 100%;
+    float: left;
+    padding: 0;
+    margin: 0;
+}
+.mol-LayerControl-Results .result {
+    list-style-type: none;
+    margin-bottom: 5px;
+}
+.mol-LayerControl-Results .result div{
+    float: left;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+.mol-LayerControl-Results .result div.resultName{
+    width: 58%;
+    margin-left: 5%;
+}
+.mol-LayerControl-Results .result .resultAuthor{
+    font-size: 0.8em;
+    margin-top: -4px;
+}
+.mol-LayerControl-Results .result div.resultLink{
+    width: 25%;
+    font-size: 0.9em;
+    padding-top: 1%;
+}
+.mol-LayerControl-Results .result a{
+    color: #212121;
+}
+.mol-LayerControl-Results .result .buttonContainer {
+	width:24px;
+	height:24px;
+    position: relative;
+}
+.mol-LayerControl-Results .result .checkbox {
+    opacity: 0.0;
+	position:absolute;
+	left:0;
+	z-index:100;
+    float: left;
+	width:24px;
+	height:24px;
+    cursor: pointer;
+    
+}
+.mol-LayerControl-Results .result .customCheck:after{
+	content:url('/static/unchecked.png');
+	position:absolute;
+    left: 0;
+}
+.mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
+	content:url('/static/checked.png');
+}
+.mol-LayerControl-Results .navigation button{
+    float: right;
+    margin-right: 5px;
+}
+
+    </style>
+  </head>
+  <body>
+  <div class="mol-CenterController">
+   
+    <button id="cancelAll">x</button>
+   <div class="mol-LayerControl-Search">
+      <div class="title">Search:</div>
+      <select name="source" class="source">
+          <option value='{source:"MOL",type:"range"}'>MOL Range Maps</option>
+          <option value='{source:"GBIF",type:"points"}'>GBIF Occ Points</option>
+      </select>
+      <input class="value" type="text" />
+      <button class="execute">Go</button>
+   </div>
+   <button id="restart">
+    <img src="/static/reload.png" />
+   </button>
+   
+    <div class="mol-LayerControl-Results widgetTheme">
+      <ol class="searchResults">
+        <ul class="result">
+            <div class="resultName">Puma concolor <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
+        </ul>
+        <ul class="result">
+            <div class="resultName">Puma yagouaroundi <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
+        </ul>
+            <div class="resultName">Smilisca puma <br/><div class="resultAuthor">(author)</div></div>
+            <div class="resultLink"><a href="/static/dead_link.html">more info</a></div>
+            <div class="buttonContainer"> 
+                <input type="checkbox" class="checkbox" /> 
+                <span class="customCheck"></span> 
+            </div> 
+        </ul>
+        <ul class="navigation">
+          <button class="addAll">Add</button>
+          <button class="nextPage">Next Page</button>
+        </ul>
+      </ol>
+    </div>
+    
+    
+  </div>
+</body>
+    
