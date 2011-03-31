@@ -247,7 +247,14 @@ MOL.modules.Search = function(mol) {
                 return _result;
             },
             _html: function(){
-                return '<button id="searchCancel">x</button>' +
+                return '<div class="mainSearchNavigation">' +
+                       '    <button id="searchCancel">' +
+                       '         <img src="/static/cancel.png" />' +
+                       '    </button>' +
+                       '    <button id="searchRestart">' +
+                       '         <img src="/static/reload.png" />' +
+                       '    </button>' +
+                       '</div>' +
                        '<div class="mol-LayerControl-Search widgetTheme">' +
                        '   <div class="title">Search:</div>' +
                        '   <select name="source" class="source">' +
@@ -257,9 +264,6 @@ MOL.modules.Search = function(mol) {
                        '   <input class="value" type="text" />' +
                        '   <button class="execute">Go</button>' +
                        '</div>' +
-                       '<button id="searchRestart">' +
-                       '   <img src="/static/reload.png" />' +
-                       '</button>' +
                        '<div class="mol-LayerControl-Results">' +
                        '   <ol class="searchResults widgetTheme">' +
                        '   </ol>' +

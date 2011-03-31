@@ -131,17 +131,31 @@ button:hover{
  * search, results
  */
  
-button#searchCancel{
-    margin: 5px;
+.mainSearchNavigation{
+    position: relative;
+    float: left;
     margin-right: 5px;
-    float: left;
-    font-size: 0.9em;
-    color: rgb(240, 90, 100);
+    width: 13px;
 }
-button#searchRestart{
+.mainSearchNavigation button#searchCancel,
+.mainSearchNavigation button#searchRestart{
     float: left;
+    margin: 0px;
+    margin-top: 1px;
+    padding: 0px;
+    width: 13px;
+    height: 13px;
+    font-size: 0.2em;
+    font-weight:100;
+    -moz-box-shadow: 0px 0px 0px #000;
+    -webkit-box-shadow: 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px #000;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
-button#searchRestart img{
+.mainSearchNavigation button#searchCancel img,
+.mainSearchNavigation button#searchRestart img{
+    width: 12px;
     height: 12px;
 }
 .mol-LayerControl-Search {
@@ -167,8 +181,6 @@ button#searchRestart img{
     -moz-box-shadow: 2px 2px 5px #000;
     -webkit-box-shadow: 2px 2px 5px #000;
     box-shadow: 2px 2px 5px #222;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
     border: none;
 }
 
@@ -183,7 +195,7 @@ button#searchRestart img{
 .mol-LayerControl-Results{
     float: left;
     width: 84%;
-    margin-left: 7%;
+    margin-left: 19px;
     list-style-type: none;
     text-align: left;
     -moz-border-radius: 5px;
@@ -199,6 +211,8 @@ button#searchRestart img{
     float: left;
     padding-top: 10px;
     position: relative;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 .mol-LayerControl-Results ul {
     margin-bottom: 5px;
@@ -259,10 +273,11 @@ button#searchRestart img{
 .mol-LayerControl-Results .navigation{
     width: 100%;
     float: right;
+    padding: 0px;
+    margin: 0px;
     margin-top: 5px;
-    margin-right: 8px;
 }
 .mol-LayerControl-Results .navigation button{
     float: right;
-    margin-right: 8px;
+    margin-left: 8px;
 }
