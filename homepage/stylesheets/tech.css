@@ -10,15 +10,16 @@ div#header {
     color: #fff; 
     background: #394050; 
     left: 50%;
-    margin-left: -430px;
+    margin-left: -400px;
     padding-top: 10px; 
     padding-bottom: 8px; 
     height: 50px; 
 }
 div#header #title{ 
     font-family: 'Ubuntu', san-sarif;
-    padding-left: 30px; 
-    width: 225px;
+    padding-left: 5px; 
+    padding-right: 5px; 
+    width: 245px;
     font-weight: bold; 
     font-size: 40px;
     line-height: 40px;
