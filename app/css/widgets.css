@@ -1,0 +1,263 @@
+/* BEGIN Shared Styles
+ * */
+
+/* sets defaults for units within a widget background greed fade theme, 
+ * as well as min-height and 100% width */
+.widgetTheme {
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    min-height: 30px;
+    height: auto;
+    padding-top: 8px;
+    margin-bottom: 8px;
+    text-align: left;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    outline: none;
+}
+
+button{
+    width: auto;
+    margin: 2px;
+    font-size: 1.1em;
+    font-weight:700;
+    color: rgb(240, 240, 260);
+    background-color: rgba(25, 25, 25, 0.75);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+button:hover{
+    background-color: rgba(25, 25, 25, 1.0);
+    cursor: pointer;
+}
+button#cancelAll{
+    margin: 5px;
+    float: right;
+    font-size: 0.8em;
+    color: rgb(240, 90, 100);
+}
+button#restart{
+    margin: 5px;
+    float: left;
+    font-size: 0.8em;
+    color: rgb(90, 230, 100);
+}
+ 
+/* BEGIN Layers Widget
+ * Add, Delete
+ * Layer Stack
+ */
+
+.mol-LayerControl-Menu {
+    list-style-type: none;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+}
+
+.mol-LayerControl-Display {
+    float: right;
+    width: 70%;
+}
+
+.mol-LayerControl-MenuOption {
+    font-size: 12px;
+    float: right;
+    margin: 0px;
+    padding-top: 0px;
+    padding-right: 6px;
+    padding-left: 6px;
+    padding-bottom: 0px;
+    line-height: 170%;
+    text-align: center;
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
+    border: 1px solid rgb(135, 165, 149);
+    border-right: none;
+}
+
+.mol-LayerControl-MenuOptionLink {
+    cursor: pointer;
+    text-decoration:none;
+    color: #141414;
+}
+
+.mol-LayerControl-MenuOptionLabel {
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(35, 35, 35,0.75)),
+        color-stop(0.69, rgba(66,66,66,0.75))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(35, 35, 35,0.75) 37%,
+        rgba(66,66,66,0.75) 69%
+    );
+    border: 1px solid rgb(73, 73, 73);
+    color: rgb(240, 240, 260);
+    width: 40px;
+}
+
+.hidden {
+    display: none;
+}
+
+.inline {
+    display: inline;
+}
+
+.block {
+    display: block;
+}
+
+
+/* BEGIN SEARCH UI
+ * search, results
+ */
+ 
+ .mol-LayerControl-DataType {
+    width: 95%;
+    padding-left: 5%;
+}
+.mol-LayerControl-DataType .selectLabel{
+    float: left;
+    padding-top: 5px;
+    margin-right: 12px;
+}
+.mol-LayerControl-Search {
+    width: 95%;
+    padding-left: 5%;
+}
+.mol-LayerControl-Search .searchSource{
+    width: 80px;
+    margin: 2px;
+    font-size: 1.1em;
+    font-weight:700;
+    color: rgba(25, 25, 25, 0.85);
+    background-color: rgba(25, 25, 25, 0.01);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+.mol-LayerControl-Search .searchValue{
+    outline: none; 
+    -webkit-box-shadow: 0px 0px 5px rgb(188, 33, 255);  
+    -moz-box-shadow: 0px 0px 5px rgb(188, 33, 255);  
+    box-shadow: 0px 0px 5px rgb(188, 33, 255);  
+    width: 130px;
+}
+.mol-LayerControl-Loading {
+    padding-left: 20%;
+    width: 80%;
+}
+.mol-LayerControl-Loading img{
+    height: 20px;
+}
+.mol-LayerControl-Loading div{
+    float: left;
+    margin-left: 10px;
+}
+.mol-LayerControl-Results {
+    float: left;
+    list-style-type: none;
+    width: 100%;
+}
+.mol-LayerControl-Results .searchResults {
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+.mol-LayerControl-Results .result {
+    margin-bottom: 5px;
+}
+.mol-LayerControl-Results .result div{
+    float: left;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+.mol-LayerControl-Results .result div.resultName{
+    width: 58%;
+    margin-left: 5%;
+}
+.mol-LayerControl-Results .result .resultAuthor{
+    font-size: 0.8em;
+    margin-top: -4px;
+}
+.mol-LayerControl-Results .result div.resultLink{
+    width: 25%;
+    font-size: 0.9em;
+    padding-top: 1%;
+}
+.mol-LayerControl-Results .result a{
+    color: #212121;
+}
+.mol-LayerControl-Results .result .buttonContainer {
+	width:24px;
+	height:24px;
+    position: relative;
+}
+.mol-LayerControl-Results .result .checkbox {
+    opacity: 0.0;
+	position:absolute;
+	left:0;
+	z-index:100;
+    float: left;
+	width:24px;
+	height:24px;
+    cursor: pointer;
+    
+}
+.mol-LayerControl-Results .result .customCheck:after{
+	content:url('/static/unchecked.png');
+	position:absolute;
+    left: 0;
+}
+.mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
+	content:url('/static/checked.png');
+}
+.mol-LayerControl-Results .navigation button{
+    float: right;
+    margin-right: 5px;
+}
