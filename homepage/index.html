@@ -14,37 +14,51 @@
         <script src="/javascript/gritter.min.js" type="text/javascript"></script> 
         <script type="text/javascript">
             $(document).ready(function() { 
+                var elUp = false;
+                var tobyHide = false;
                 $('#techLink').mouseenter(function(){
-                    var eleph = new Image();
-                    eleph.src="/images/tech.gif?n="+Math.random();
-                    eleph.onload = function(){
-                        $('.topBackground').html(eleph);
+                    if ( !elUp) {
+                        elUp = true;
+                        var eleph = new Image();
+                        eleph.src="/images/tech.gif?n="+Math.random();
+                        eleph.onload = function(){
+                            $('.topBackground').html(eleph);
+                        }
                     }
                 });
                 $('#techLink').mouseleave(function(){
                     setTimeout(function(){
-                        var eleph = new Image();
-                        eleph.src="/images/tech-reverse.gif?n="+Math.random();
-                        eleph.onload = function(){
-                            $('.topBackground').html(eleph);
+                        if (elUp) {
+                            var eleph = new Image();
+                            eleph.src="/images/tech-reverse.gif?n="+Math.random();
+                            eleph.onload = function(){
+                                $('.topBackground').html(eleph);
+                                elUp = false;
+                            }
                         }
                     },700);
                 });
                 $('#demoLink').mouseenter(function(){
-                    var toby = new Image();
-                    toby.src="/images/turtle.gif?n="+Math.random();
-                    toby.onload = function(){
-                        $('#turtle').html(toby);
+                    if (!tobyHide){
+                        tobyHide = true;
+                        var toby = new Image();
+                        toby.src="/images/turtle.gif?n="+Math.random();
+                        toby.onload = function(){
+                            $('#turtle').html(toby);
+                        }
                     }
                 });
                 $('#demoLink').mouseleave(function(){
                     setTimeout(function(){
-                        var toby = new Image();
-                        toby.src="/images/turtle-reverse.gif?n="+Math.random();
-                        toby.onload = function(){
-                            $('#turtle').html(toby);
+                        if (tobyHide){
+                            var toby = new Image();
+                            toby.src="/images/turtle-reverse.gif?n="+Math.random();
+                            toby.onload = function(){
+                                $('#turtle').html(toby);
+                                tobyHide = false;
+                            }
                         }
-                    },700);
+                    },8000);
                 });
                 
                 $('#blog').gFeed({ 
