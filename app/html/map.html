@@ -1,37 +1,38 @@
 <!DOCTYPE html>
 <html>
-  <head>   
+  <head>    
+    <link href="http://fonts.googleapis.com/css?family=Josefin+Sans" rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="../../../css/mol.css">
+    <link rel="stylesheet" href="../../../css/center-controller.css">
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+    <!-- All this JS will be compiled down to a single source in production -->
+    <script src="../../../js/lib/jquery-1.5.1.min.js"></script> 
+    <script src="../../../js/lib/jquery-ui-1.8.10.custom.min.js"></script> 
+    <script src="../../../js/lib/underscore-min.js"></script>    
+    <script src="../../../js/lib/backbone-min.js"></script> 
+    <script src="../../../js/lib/class.js"></script>
+    <script src="../../../js/mol.js"></script>
+
+    <meta charset="utf-8" /> 
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
     <style type="text/css"> 
-      body {font-family: Arial, sans-serif; color: #141414; font-weight:700; }
-      #RightControl { margin-right: 5px; width: 290px; }
-      #RightControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #RightControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #RightControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #CenterTopControl { margin-right: 5px; width: 290px;  }
-      #CenterTopControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #CenterTopControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #CenterTopControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #LeftBottomControl { margin-left: 5px; margin-bottom: 2px; width: 290px;  }
-      #LeftBottomControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #LeftBottomControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
-      #LeftBottomControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+      html { height: 100% }
+      body { height: 100%; margin: 0px; padding: 0px }
+      #map { height: 100% }
     </style> 
+    <meta name="description" content="Map of Life - Range Map." /> 
+    <meta name="keywords" content="map, map of life, biology, range map, expert map" /> 
   </head>
   <body>
-    <div id="RightControl">
-        <div class="TOP"></div>
-        <div class="MIDDLE"></div>
-        <div class="BOTTOM"></div>
-    </div>
-    <div id="CenterTopControl">
-        <div class="TOP"></div>
-        <div class="MIDDLE"></div>
-        <div class="BOTTOM"></div>
-    </div>
-    <div id="LeftBottomControl">
-        <div class="TOP"></div>
-        <div class="MIDDLE"></div>
-        <div class="BOTTOM"></div>
-    </div>
+	<script type="text/javascript">
+        $(document).ready(function() {   
+            MOL.src.load();
+            <!-- MOL(function(env) { -->
+            <!--    var app = new env.app.Instance({logging: true}); -->
+            <!--    app.run(); -->
+            <!-- }); -->                     
+        });
+    </script>
   </body>  
 </html>
