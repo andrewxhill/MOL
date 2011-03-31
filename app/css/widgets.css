@@ -216,6 +216,9 @@ button:hover{
     margin-bottom: 2px;
     font-weight: normal;
 }
+.mol-LayerControl-Results .filters .filter .option a.selected{
+    text-decoration: underline;
+}
 .mol-LayerControl-Results ol{
     list-style-type: none;
     padding: 5px;
