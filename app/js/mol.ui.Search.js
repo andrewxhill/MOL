@@ -7,6 +7,178 @@ MOL.modules.Search = function(mol) {
     mol.ui.Search = {};
 
     /**
+     * Wraps a search response and surfaces an API for accessing data from it.
+     */
+    mol.ui.Search.Result = Class.extend(
+        {
+            init: function(response) {
+                this._response = response;
+            },
+
+            /**
+             * Gets layer names that satisfy a name, source, and type combined 
+             * constraint. 
+             *
+             * @param name the layer name
+             * @param source the layer source
+             * @param type the layer type
+             * @param profile the profile to test  
+             * 
+             */
+            getLayers: function(name, source, type, profile) {
+                var response = this._response,
+                    currentProfile = profile ? profile : 'nameProfile',
+                    nameProfile = name ? response.names[name] : null,
+                    sourceProfile = source ? response.sources[source] : null,
+                    typeProfile = type ? response.types[type] : null,
+                    profileSatisfied = false;
+                
+                switch (currentProfile) {
+                    
+                case 'nameProfile':
+                    if (!name) {
+                        return this.getLayers(name, source, type, 'sourceProfile');
+                    }
+
+                    if (nameProfile) {                                                
+                        if (!source && !type) {
+                            return nameProfile.layers;
+                        }                         
+                        if (source && type) {
+                            if (this._exists(source, nameProfile.sources) &&
+                                this._exists(type, nameProfile.types)) {
+                                return _.intersect(
+                                    nameProfile.layers, 
+                                    this.getLayers(name, source, type, 'sourceProfile'));
+                            }
+                        } 
+                        if (source && !type) {
+                            mol.log.info('source no type');
+                            if (this._exists(source, nameProfile.sources)) {
+                                mol.log.info('return intersect(name.layers, sourceprofile');
+                                return _.intersect(
+                                   nameProfile.layers, 
+                                   this.getLayers(name, source, type, 'sourceProfile'));
+                            }
+                        } 
+                        if (!source && type) {
+                            if (this._exists(type, nameProfile.types)) {
+                                return _.intersect(
+                                    nameProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));
+                            }
+                        }                            
+                    } 
+                    return [];                        
+                    
+                case 'sourceProfile':
+                    if (!source) {
+                        return this.getLayers(name, source, type, 'typeProfile');
+                    }
+                    
+                    if (sourceProfile) {                        
+                        if (!name && !type) {
+                            return sourceProfile.layers;
+                        }                         
+                        if (name && type) {
+                            if (this._exists(name, sourceProfile.names) &&
+                                this._exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                            }    
+                        }                        
+                        if (name && !type) {
+                            if (this._exists(name, sourceProfile.names)) {
+                                mol.log.info('returning source layers');
+                                return sourceProfile.layers;
+                            }
+                        }                         
+                        if (!name && type) {
+                            if (this._exists(type, sourceProfile.types)) {
+                                return _.intersect(
+                                    sourceProfile.layers, 
+                                    this.getLayers(name, source, type, 'typeProfile'));                                
+                            }
+                        }                        
+                    } 
+                    return [];
+
+                case 'typeProfile':
+                    if (!type) {
+                        return [];
+                    }
+                    
+                    if (typeProfile) {
+                        if (!name && !source) {
+                            return typeProfile.layers;
+                        }
+                        if (name && source) {
+                            if ( this._exists(name, typeProfile.names) &&
+                                 this._exists(source, typeProfile.sources)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                         
+                        if (name && !source) {
+                            if (this._exists(name, typeProfile.names)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                         
+                        if (!name && source) {
+                            if (this._exists(source, typeProfile.sources)) {
+                                return typeProfile.layers;
+                            }                            
+                        }                        
+                    }                    
+                    return [];
+                } 
+                return [];
+            },
+
+            getLayer: function(layer) {
+                return this._response.layers[layer];
+            },
+            
+            getTypeKeys: function() {
+                var x = this._typeKeys,
+                    types = this._response.types;
+                return x ? x : (this._typeKeys = _.keys(types));                
+            },
+
+            getType: function(type) {
+                return this._response.types[type];
+            },
+
+            getSourceKeys: function() {
+                var x = this._sourceKeys,
+                    sources = this._response.sources;
+                return x ? x : (this._sourceKeys = _.keys(sources));
+            },
+            
+            getSource: function(source) {
+                return this._response.sources[source];
+            },
+            
+            getNameKeys: function() {
+                var x = this._nameKeys,
+                    names = this._response.names;
+                return x ? x : (this._nameKeys = _.keys(names));
+            },
+
+            getName: function(name) {
+                return this._response.names[name];
+            },
+
+            /**
+             * Returns true if the name exists in the array, false otherwise.
+             */
+            _exists: function(name, array) {
+                return _.indexOf(array, name) != -1;
+            }
+        }
+    );
+
+    /**
      * The search engine.
      */
     mol.ui.Search.Engine = mol.ui.Engine.extend(
@@ -56,7 +228,8 @@ MOL.modules.Search = function(mol) {
                 var widget = null,
                     result = null,
                     option = null,
-                    optionsHtml = '';
+                    optionsHtml = '',
+                    self = this;
 
                 this._display = display;
                 display.setEngine(this);
@@ -73,21 +246,7 @@ MOL.modules.Search = function(mol) {
                 widget.text(text.go);
                 widget.click(
                     function(event) {
-                        var query = display.getSearchBox().val();
-                        mol.log.info('Search: ' + query);   
-                        // TODO: api call
-                        display.getSearchResults().show();
-                        result = display.getNewResult();
-                        result.getCheckbox().click(
-                            function(event) {
-                                mol.log.info('Result selected');
-                            }
-                        );
-                        result.getInfoLink().click(
-                            function(event) {
-                                mol.log.info('More info clicked');
-                            }
-                        );
+                        self._onGoButtonClick();
                     }
                 );
 
@@ -120,6 +279,34 @@ MOL.modules.Search = function(mol) {
                 this._addDisplayToMap();
             },
             
+            _onGoButtonClick: function() {
+                var query = this._display.getSearchBox().val(),
+                    LayerAction = mol.ajax.LayerAction,
+                    action = new LayerAction('search', {query: query}),
+                    ActionCallback = mol.ajax.ActionCallback,
+                    api = this._api,
+                    callback = null,
+                    Result = mol.ui.Search.Result,
+                    result = null;
+                
+                callback = new ActionCallback(
+                    function(response) {
+                        result = new Result(response);
+                        mol.log.info(
+                            'Results for ' + query + ': ' 
+                                + 'Names=' + result.getNameKeys() + ', ' 
+                                + 'Sources=' + result.getSourceKeys() + ', '
+                                + 'Types=' + result.getTypeKeys()
+                        );
+                    },
+                    function(error) {
+                        mol.log.error(error);
+                    }
+                );
+
+                api.execute(action, callback);
+            },
+
             _setSearchSelectBoxOptions: function(selectBox, options) {
                 var option = null,
                     html = '';
@@ -199,7 +386,7 @@ MOL.modules.Search = function(mol) {
     /**
      * A search result display.
      */
-    mol.ui.Search.Result = mol.ui.Display.extend(
+    mol.ui.Search.LayerWidget = mol.ui.Display.extend(
         {
             init: function() {
                 this._super(this._html());
@@ -313,8 +500,8 @@ MOL.modules.Search = function(mol) {
             },
 
             getNewResult: function(){
-                var Result = mol.ui.Search.Result,
-                    r = new Result();
+                var LayerWidget = mol.ui.Search.LayerWidget,
+                    r = new LayerWidget();
                 this.findChild('.mol-LayerControl-Results .searchResults').append(r);
                 return r;
             },

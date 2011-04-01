@@ -32,20 +32,29 @@ MOL.modules = {};
 
 MOL.src = {};
 
+MOL.src.makeId = function() {
+    var text = "",
+        possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for( var i=0; i < 5; i++ ) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+};
+
 MOL.src.files = [
-    'mol.app.js', 
-    'mol.events.js', 
-    'mol.ajax.js', 
-    'mol.log.js', 
-    'mol.exceptions.js', 
-    'mol.location.js', 
-    'mol.model.js', 
-    'mol.ui.js',
-    'mol.ui.ColorSetter.js', 
-    'mol.ui.LayerControl.js', 
-    'mol.ui.LayerList.js', 
-    'mol.ui.Map.js', 
-    'mol.ui.Search.js'
+    'mol.app.js?id=' + MOL.src.makeId(), 
+    'mol.events.js?id=' + MOL.src.makeId(), 
+    'mol.ajax.js?id=' + MOL.src.makeId(), 
+    'mol.log.js?id=' + MOL.src.makeId(), 
+    'mol.exceptions.js?id=' + MOL.src.makeId(), 
+    'mol.location.js?id=' + MOL.src.makeId(), 
+    'mol.model.js?id=' + MOL.src.makeId(), 
+    'mol.ui.js?id=' + MOL.src.makeId(),
+    'mol.ui.ColorSetter.js?id=' + MOL.src.makeId(), 
+    'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
+    'mol.ui.LayerList.js?id=' + MOL.src.makeId(), 
+    'mol.ui.Map.js?id=' + MOL.src.makeId(), 
+    'mol.ui.Search.js?id=' + MOL.src.makeId()
 ];
 
 /**

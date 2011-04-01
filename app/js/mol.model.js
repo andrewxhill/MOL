@@ -5,6 +5,42 @@ MOL.modules.model = function(mol) {
   
     mol.model = {};
 
+    mol.model.Model = Class.extend(
+        {           
+            init: function(props) {
+                this._props = props;
+            },
+
+            get: function(name) {
+                return this._props[name];
+            },
+
+            toJson: function() {
+                return JSON.stringify(this._props);
+            }
+        }
+    );
+
+    mol.model.LayerSource = mol.model.Model.extend(
+        {
+            init: function(props) {
+                this._super(props);
+            },
+
+            getId: function() {
+                return this.get('id');
+            },
+
+            getNames: function() {
+                return this.get('names');
+            },
+
+            getTypes: function() {
+                return this._get('types');
+            }
+        }
+    );
+
     /**
      * The layer model.
      */
@@ -19,7 +55,15 @@ MOL.modules.model = function(mol) {
                 this._icon = null;
                 this._buildId();
             },
-            
+
+            hasPoints: function() {
+                // TODO                
+            },
+
+            hasRange: function() {
+                // TODO
+            },
+
             getIcon: function() {
                 return this._icon;
             },
