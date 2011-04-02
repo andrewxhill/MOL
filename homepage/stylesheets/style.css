@@ -82,7 +82,7 @@ div#container {
 div#container #top {
     width: 100%;
     float: left;
-    height: 180px;
+    height: 195px;
     margin-bottom: 10px;
     background-color: #b8fd85; color: #111; 
 }
@@ -95,6 +95,16 @@ div#container #top .topQuote{
     height: 125px;
     margin-top: 15px;
     font-size: 1.6em;
+    text-align: justify;
+    color: #3a0082;
+}
+div#container #top .demoText{
+    position: absolute;
+    left: 50%;
+    margin-left: -400px;
+    width: 800px;
+    margin-top: 15px;
+    font-size: 1.3em;
     text-align: justify;
     color: #3a0082;
 }
@@ -117,14 +127,25 @@ div#container #top .topBackground img {
 div#middle { 
     position: relative;
     float:left;
-    width: 720px;
+    width: 740px;
     left: 50%;
     margin-left: -400px;
     padding: 25px 0px 35px 30px;
     height: 120px; 
     color: #ddd;
 }
-
+div#middle .demoCol{
+    float: left;
+    width: 230px;
+    padding: 5px;
+    margin-left: 5px;
+    background-color: rgba(33,33,33,0.2); 
+    color: #111; 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #fff;
+}
 div#middle img{ 
     float: left;
     margin-left: 20px;
@@ -164,6 +185,135 @@ div#content{
     float: left;
     width: 100%;
 }
+
+/* Begin people.png styles */
+div#content .person{
+    position: relative;
+    float: left;
+    width: 46%;
+    padding: 1%;
+    margin: 1%;
+    background-color: rgba(33,33,33,0.2); 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #fff;
+    font-size: 1.2em;
+    text-align: justify;
+}
+div#content .person .name{
+    float: left;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 2px;
+}
+div#content .person .description{
+    float: left;
+    margin-left: 1%;
+    margin-right: 1%;
+    width: 50%
+}
+div#content .person.top{
+    width: 96%;
+    font-size: 1.3em;
+}
+div#content .person img{
+    padding: 1%;
+    float: left;
+    height: 250px;
+}
+div#content .person.top img{
+    width: 45%;
+    height: auto;
+    float: left;
+}
+div#content .person img.right{
+    float: right;
+}
+div#content .person a{
+    color: #ccc;
+    margin-left: 10px;
+    margin-top: 5px;
+    float: right;
+}
+
+/* Begin About.html styles */
+div#content .vision{
+    position: relative;
+    float: left;
+    width: 480px;
+    padding: 5px;
+    height: 390px;
+    background-color: rgba(106,210,223,0.8); 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #111;
+    font-size: 1.2em;
+}
+div#content .friends{
+    position: relative;
+    float: left;
+    width: 290px;
+    padding: 5px;
+    height: 390px;
+    margin-left: 10px;
+    background-color: rgba(33,33,33,0.2); 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #fff;
+    font-size: 1.2em;
+    text-align: justify;
+    -moz-box-shadow: 0px px 10px rgba(183,233,163,0.6);
+    -webkit-box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+    box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+}
+div#content .friends a{
+    float: left;
+    width: 90%;
+    padding: 4px 1px 4px 1px;
+    margin-left: 5%;
+    margin-top: 8px;
+    background-color: #b8fd85; color: #111; 
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    text-align: center;
+    -moz-box-shadow: 0px px 10px rgba(183,233,163,0.6);
+    -webkit-box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+    box-shadow: 0px 0px 10px rgba(183,233,163,0.6);
+}
+div#content .products{
+    position: relative;
+    float: left;
+    padding: 5px;
+    width: 790px;
+    margin-top: 10px; 
+    background-color: rgba(106,210,223,0.8); 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #111;
+    font-size: 1.2em;
+}
+div#content .demoCol {
+    position: relative;
+    width: 250px;
+    margin-right: 2px;
+    margin-left: 3px;
+    float: left;
+    padding: 5px;
+    background-color: rgba(33,33,33,0.2); 
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    overflow-y: hidden;
+    color: #fff;
+    font-size: 1.2em;
+}
+div#content .demoCol img{
+    width: 250px;
+}
+/* Generic styles */
 div#content .wrapper{ 
     position: relative;
     float: left;

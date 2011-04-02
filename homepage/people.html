@@ -6,42 +6,7 @@
         <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" /> 
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Coda">
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
-        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQQVdp0qK6LIdtUMkyJyGau2FAr6Q"></script> 
-        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQnqYmZFNw176Z9eGZLF4M7kSq-MhQPJ1PZw_xe7fLxFc65vo_OiMHM5A"></script> 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
-        <script src="/javascript/gfeed.js" type="text/javascript"></script> 
-        <script src="/javascript/gritter.min.js" type="text/javascript"></script> 
         <script type="text/javascript">
-            $(document).ready(function() { 
-                $('#techLink').mouseenter(function(){
-                    var eleph = new Image();
-                    eleph.src="/images/tech.gif?n="+Math.random();
-                    eleph.onload = function(){
-                        $('.topBackground').html(eleph);
-                    }
-                });
-                $('#techLink').mouseleave(function(){
-                    setTimeout(function(){
-                        var eleph = new Image();
-                        eleph.src="/images/tech-reverse.gif?n="+Math.random();
-                        eleph.onload = function(){
-                            $('.topBackground').html(eleph);
-                        }
-                    },1000);
-                });
-                
-                $('#blog').gFeed({ 
-                    url: 'http://mappinglife.wordpress.com/feed/',
-                    tabs: false,
-                    max: 3
-                }); 
-                $('#code').gFeed({ 
-                    url: 'https://github.com/andrewxhill/MOL/commits/master.atom',
-                    tabs: false,
-                    max: 6
-                }); 
-            });
         </script>
     </head>
     <body>
@@ -56,14 +21,87 @@
             </div>
         </div>
             <div id="container">
-                <div id="top">
-                    <div class="topQuote"> 
-                        Here we'll have stuff about our team.
-                    </div>
-                </div>
-                <div id="middle">
-                </div>
                 <div id="content">
+                    <div class="wrapper">
+                        <div class="person top">
+                            <img class="right" src="/images/people/walter.jpg">
+                            <div class="name">Walter Jetz</div>
+                            <div class="description">
+                                Walter's work is interdisciplinary and combines elements of biogeography, 
+                                community ecology, landscape ecology, macroecology, global change 
+                                ecology, evolution, comparative biology, biodiversity informatics 
+                                and conservation. We use mostly terrestrial vertebrates and plants 
+                                as study systems. In its sum, our research attempts to integrate 
+                                across scales of geography and ecological organization - from global 
+                                to local assemblages.
+                            </div>
+                            <div class="links">
+                                <a href="http://http//www.yale.edu/jetz/">Walter's Homepage</a>
+                            </div>
+                        </div>
+                        <div class="person top">
+                            <img src="/images/people/rob.jpg">
+                            <div class="name">Robert Guralnick</div>
+                            <div class="description">
+                                Rob is a biodiversity scientist who studies spatiotemporal 
+                                changes in genetic and species diversity. I take an integrative 
+                                approach to global change biology and students in my lab range from 
+                                occupancy and to spatial ecological modelers, to landscape geneticists, 
+                                to systematists. The diversity in lab is also its strength -- we 
+                                continue to discover that the interesting questions are the integrative 
+                                ones that require multiple lines of evidence.  Rob hobbies are working 
+                                and biking.
+                            </div>
+                            <div class="links">
+                                <a href="https://sites.google.com/site/robgur/">Rob's Homepage</a>
+                            </div>
+                        </div>
+                        <div class="person">
+                            <img src="/images/people/john.jpg">
+                            <div class="name">John Wieczorek</div>
+                            <div class="description">
+                            </div>
+                            <div class="links">
+                                <a href="">John's Homepage</a>
+                            </div>
+                        </div>
+                        <div class="person">
+                            <img src="/images/people/dan.jpg">
+                            <div class="name">Dan Rosauer</div>
+                            <div class="description">
+                            </div>
+                            <div class="links">
+                                <a href="">Dan's Homepage</a>
+                            </div>
+                        </div>
+                        <div class="person">
+                            <img src="/images/people/aaron.jpg">
+                            <div class="name">Aaron Steele</div>
+                            <div class="description">
+                                Aaron got a CS degree from Berkeley and currently works there as an
+                                information architect. When not running or running after Noah, he
+                                helps design and write code for MOL web apps, servers, and APIs. Aaron
+                                enjoys reading self-introductions written in the third person.
+                            </div>
+                            <div class="links">
+                                <a href="https://aaron.io">Aaron's Homepage</a>
+                            </div>
+                        </div>
+                        <div class="person">
+                            <img class="right" src="/images/people/andrew.jpg">
+                            <div class="name">Andrew Hill</div>
+                            <div class="description">
+                                Andrew is working on his Ph.D. in the Guralnick lab where he has been 
+                                since the mid-2000's. 
+                                Most of his work revolves around an enthusiasm for automated 
+                                informatics frameworks to help understand the world's biodiversity. 
+                                He has an affinity for caffiene and mostly avoids sunlight.
+                            </div>
+                            <div class="links">
+                                <a href="http://biodiversity.colorado.edu">Andrew's Homepage</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         <div id="footer"> 

@@ -6,42 +6,7 @@
         <link href="/stylesheets/style.css" media="screen" rel="stylesheet" type="text/css" /> 
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Coda">
         <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu">
-        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BT2yXp_ZAY8_ufC3CFXhHIE1NvwkxQQVdp0qK6LIdtUMkyJyGau2FAr6Q"></script> 
-        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAAhejF1IRVaCyeCqxIQjT19BQnqYmZFNw176Z9eGZLF4M7kSq-MhQPJ1PZw_xe7fLxFc65vo_OiMHM5A"></script> 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script> 
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
-        <script src="/javascript/gfeed.js" type="text/javascript"></script> 
-        <script src="/javascript/gritter.min.js" type="text/javascript"></script> 
         <script type="text/javascript">
-            $(document).ready(function() { 
-                $('#techLink').mouseenter(function(){
-                    var eleph = new Image();
-                    eleph.src="/images/tech.gif?n="+Math.random();
-                    eleph.onload = function(){
-                        $('.topBackground').html(eleph);
-                    }
-                });
-                $('#techLink').mouseleave(function(){
-                    setTimeout(function(){
-                        var eleph = new Image();
-                        eleph.src="/images/tech-reverse.gif?n="+Math.random();
-                        eleph.onload = function(){
-                            $('.topBackground').html(eleph);
-                        }
-                    },1000);
-                });
-                
-                $('#blog').gFeed({ 
-                    url: 'http://mappinglife.wordpress.com/feed/',
-                    tabs: false,
-                    max: 3
-                }); 
-                $('#code').gFeed({ 
-                    url: 'https://github.com/andrewxhill/MOL/commits/master.atom',
-                    tabs: false,
-                    max: 6
-                }); 
-            });
         </script>
     </head>
     <body>
@@ -57,11 +22,57 @@
         </div>
             <div id="container">
                 <div id="top">
-                    <div class="topQuote"> 
-                        Here we'll have a demo soon.
+                    <div class="demoText"> 
+                        The following are screen shots of a soon to be released 
+                        early demonstration of Map of Life that provides initial 
+                        and very simple, core functionality.  In this first demo 
+                        release, Map of Life will provide the means to search 
+                        on a common or scientific name and get a list of results 
+                        based on the Catalog of Life database (<a href="http://www.catalogueoflife.org/">http://www.catalogueoflife.org/</a>).  
+                        A user can select to display a set of available expert opinion 
+                        range maps based on their results set.  A user may use 
+                        familar mapping controls to zoom in and out to view the 
+                        range map.  That same user can also choose to examine other 
+                        kinds of distributional knowledge about where taxa are found; 
+                        for example point occurrences from species repositories such as VertNet, 
+                        or areas where species have been surveyed.  Stay tuned for the 
+                        working demonstration!
                     </div>
                 </div>
-                <div id="middle">
+                <div id="content">
+                    <div class="wrapper">
+                        <div class="demoCol">
+                            <div class="image">
+                                <a href="/images/demo/range.png"><img src="/images/demo/range-thumb.png" ></a>
+                            </div>
+                            <div class="caption">
+                                Range Maps: One of the primary forms of data in MOL is the species range map. 
+                                The project will be developing new ways for exploring and visualizing 
+                                this data on the web.
+                            </div>
+                        </div>
+                        <div class="demoCol">
+                            <div class="image">
+                                <a href="/images/demo/search.png"><img src="/images/demo/search-thumb.png" ></a>
+                            </div>
+                            <div class="caption">
+                                Search: The diversity of data MOL plans to make available for mapping and 
+                                analysis will require new methods of accessing this data 
+                                through searching and filtering data.
+                            </div>
+                        </div>
+                        <div class="demoCol">
+                            <div class="image">
+                                <a href="/images/demo/ui.png"><img src="/images/demo/ui-thumb.png"></a>
+                            </div>
+                            <div class="caption">
+                                A big part of MOL will be a web-interface to access maps, analysis results, 
+                                and explore data. We are building much of this user interface and client 
+                                technology from the ground up.
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
                 <div id="content">
                 </div>
@@ -71,7 +82,7 @@
                 <a href="/">Home</a>
                 <a href="/about.html">About</a>
                 <a href="http://mappinglife.wordpress.com/">Blog</a>
-                <a href="http://http://www.yale.edu/jetz/">Jetz Lab</a>
+                <a href="http://www.yale.edu/jetz/">Jetz Lab</a>
                 <a href="http://sites.google.com/site/robgur/">Guralnick Lab</a>
                 <a href="http://github.com/andrewxhill/MOL">GitHub</a>
             </div> 
