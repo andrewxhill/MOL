@@ -3,6 +3,22 @@
  */
 MOL.modules.exceptions = function(mol) {
     mol.exceptions = {};
-    mol.exceptions.NotImplementedError = 'NotImplementedError';
-    mol.exceptions.IllegalArgumentException = 'IllegalArgumentException';
+    
+    mol.exceptions.Error = Class.extend(
+        {
+            init: function(msg) {
+                this._msg = msg;
+            },
+
+            getMessage: function() {
+                return this._msg;
+            }
+        }
+    );
+
+    mol.exceptions.NotImplementedError = mol.exceptions.Error.extend(
+    );
+
+    mol.exceptions.IllegalArgumentException = mol.exceptions.Error.extend(
+    );
 };

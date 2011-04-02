@@ -817,7 +817,109 @@ class ColorImage(BaseHandler):
         # binary PNG data
         self.response.headers["Content-Type"] = "image/png"
         self.response.out.write(val)
-       
+        
+        
+class WebAppHandler(BaseHandler):
+    def get(self):
+        self.post();
+
+    def post(self):
+        action = self.request.get('action', None)
+        
+        if not action:
+            self.error(400) # Bad request
+            return
+
+        action = simplejson.loads(action)
+        actionName = action.get('name')
+        actionType = action.get('type')
+        actionParams = action.get('params')
+
+        response = {
+            'LayerAction': {
+                'search': lambda actionParams: self._layerSearch(actionParams)
+                }
+            }[actionName][actionType](actionParams)
+
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(simplejson.dumps(response))
+
+    def _layerSearch(self, params):
+        return {    
+            "query": {
+                "search": "Puma",
+                "offset": 0,
+                "limit": 10,
+                "source": None,
+                "type": None,
+                "advancedOption1": "foo",
+                "advancedOption2": "bar"
+                },
+            
+            "types": {
+                "points": {
+                    "names": ["Puma concolor"],
+                    "sources": ["GBIF"],
+                    "layers": ["Puma concolor"]
+                    },
+                "range": {
+                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
+                    "sources": ["MOL"],
+                    "layers": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"]
+                    }        
+                },
+            
+            "sources": {
+                "GBIF": {
+                    "names": ["Puma concolor"],
+                    "types": ["points"],
+                    "layers": ["Puma concolor"]
+                    },        
+                "MOL": {
+                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["range"],
+                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"]
+                    }
+                },
+            
+            "names": {
+                "Puma concolor": {
+                    "sources": ["GBIF", "MOL"],
+                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["points", "range"]
+                    },
+                "Puma yagouaroundi": {
+                    "sources": ["MOL"],
+                    "layers": ["Puma yagouaroundi"],
+                    "types": ["range"]            
+                    },    
+                "Smilisca puma": {
+                    "sources": ["MOL"],
+                    "layers": ["Smilisca puma"],
+                    "types": ["range"]
+                    }
+                },
+            
+            "layers": {
+                "Puma concolor": {
+                    "source": "GBIF",
+                    "type": "points",
+                    "otherStuff": "blah blah"
+                    },                
+                "Puma yagouaroundi": {
+                    "source": "MOL",
+                    "type": "range",
+                    "otherStuff": "blah blah"
+                    },       
+                "Smilisca puma": {
+                    "source": "MOL",
+                    "type": "range",
+                    "otherStuff": "blah blah"
+                    }    
+                }
+            }
+    
+
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/colorimage/([^/]+)', ColorImage),
@@ -828,7 +930,9 @@ application = webapp.WSGIApplication(
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
-          ('/layers', LayersHandler), ],
+          ('/layers', LayersHandler), 
+          ('/api/webapp', WebAppHandler),
+          ],
 
          debug=True)
 
