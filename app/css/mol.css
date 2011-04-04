@@ -1,6 +1,8 @@
 body {font-family: Arial, sans-serif; color: #141414; font-weight:700; }
 /* Set up RightControl defaults */
-.mol-Map-RightControl { margin-right: 5px; width: 290px; }
+.mol-Map-RightControl { margin-right: 5px; width: 290px; 
+    -webkit-user-select: none;
+    cursor:not-allowed; /*makes it even more obvious*/}
 .mol-Map-RightControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 .mol-Map-RightControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 .mol-Map-RightControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
@@ -17,6 +19,20 @@ body {font-family: Arial, sans-serif; color: #141414; font-weight:700; }
 .mol-Map-LeftBottomControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 .mol-Map-LeftBottomControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 
+.mol-Map-TopLeftControl {
+    margin-top: 5px;
+	width: 550px;
+    height: auto;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    color: #141414;
+    font-size: 14px;
+    -webkit-user-select: none;
+    cursor:not-allowed; /*makes it even more obvious*/
+}
+.mol-Map-TopLeftControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+.mol-Map-TopLeftControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+.mol-Map-TopLeftControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 
 
 .mol-WidgetContainer {

@@ -139,8 +139,7 @@ button:hover{
 .mainSearchNavigation button#searchCancel,
 .mainSearchNavigation button#searchRestart{
     float: left;
-    margin: 0px;
-    margin-top: 1px;
+    margin: 1px;
     padding: 0px;
     width: 13px;
     height: 13px;
