@@ -14,15 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from google.appengine.api import apiproxy_stub, apiproxy_stub_map
+from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
+import logging
 from math import ceil
 from mol.db import Tile, TileUpdate, TileSetIndex
 import cStringIO
 import os
 import png
 import re
+import urllib
 from google.appengine.api.datastore_errors import BadKeyError
 
 def constant(f):
@@ -78,25 +80,31 @@ class LayerService(object):
     def search(self, query):
         sources = query.get('sources', [])
         types = query.get('types', [])
-        services = LayerServiceProvider.getServices(sources, types)        
+        providers = self._get_providers(sources, types)        
+        self.results = []
         rpcs = []
 
-        for service in services:
-            url = service.geturl(query)
+        for provider in providers:
+            url = provider.geturl(query)
             rpc = urlfetch.create_rpc()
-            rpc.callback = self._create_layer_search_callback(service, rpc)
+            rpc.callback = self._create_layer_search_callback(provider, rpc)
             urlfetch.make_fetch_call(rpc, url)
             rpcs.append(rpc)
         
         for rpc in rpcs:
             rpc.wait()
+
+        return self.results;
     
     def _get_providers(self, sources, types):
-        for source in sources:
-            pass
-            
-    def _create_layer_search_callback(self, service, rpc):
-        return lambda: service.getprofile(rpc.get_result())
+        return [self.providers[LayerSource.GBIF]]
+
+    def _handle_layer_search_callback(self, provider, rpc):
+        profile = provider.getprofile(rpc.get_result())
+        self.results.append(profile)
+
+    def _create_layer_search_callback(self, provider, rpc):
+        return lambda: self._handle_layer_search_callback(provider, rpc)
 
 class LayerProvider(object):
     """An abstract base class for the Layer service."""
@@ -122,12 +130,6 @@ class LayerProvider(object):
         return self._sources
     sources = property(getSources)
 
-
-class LayerServiceProvider(object):
-    
-    def getServices(self, profile):
-        pass
-
 class GbifLayerProvider(LayerProvider):
     
     def __init__(self):
@@ -137,11 +139,11 @@ class GbifLayerProvider(LayerProvider):
     
     def geturl(self, query):
         params = urllib.urlencode({
-                format: query.get('format', 'darwin'),
-                coordinatestatus: True,
-                maxresults: query.get('limit', 200),
-                startindex: query.get('start', 0),
-                scientificname: query.get('sciname')})
+                'format': query.get('format', 'darwin'),
+                'coordinatestatus': True,
+                'maxresults': query.get('limit', 200),
+                'startindex': query.get('start', 0),
+                'scientificname': query.get('sciname')})
         return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
 
     def getdata(self, query):
@@ -155,6 +157,83 @@ class GbifLayerProvider(LayerProvider):
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
             self.error(404) 
+
+    def getprofile(self, content):
+        # TODO(andrew): parse xml into profile
+        return {    
+            "query": {
+                "search": "Puma",
+                "offset": 0,
+                "limit": 10,
+                "source": None,
+                "type": None,
+                "advancedOption1": "foo",
+                "advancedOption2": "bar"
+                },
+            
+            "types": {
+                "points": {
+                    "names": ["Puma concolor"],
+                    "sources": ["GBIF"],
+                    "layers": ["Puma concolor"]
+                    },
+                "range": {
+                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
+                    "sources": ["MOL"],
+                    "layers": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"]
+                    }        
+                },
+            
+            "sources": {
+                "GBIF": {
+                    "names": ["Puma concolor"],
+                    "types": ["points"],
+                    "layers": ["Puma concolor"]
+                    },        
+                "MOL": {
+                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["range"],
+                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"]
+                    }
+                },
+            
+            "names": {
+                "Puma concolor": {
+                    "sources": ["GBIF", "MOL"],
+                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["points", "range"]
+                    },
+                "Puma yagouaroundi": {
+                    "sources": ["MOL"],
+                    "layers": ["Puma yagouaroundi"],
+                    "types": ["range"]            
+                    },    
+                "Smilisca puma": {
+                    "sources": ["MOL"],
+                    "layers": ["Smilisca puma"],
+                    "types": ["range"]
+                    }
+                },
+            
+            "layers": {
+                "Puma concolor": {
+                    "source": "GBIF",
+                    "type": "points",
+                    "otherStuff": "blah blah"
+                    },                
+                "Puma yagouaroundi": {
+                    "source": "MOL",
+                    "type": "range",
+                    "otherStuff": "blah blah"
+                    },       
+                "Smilisca puma": {
+                    "source": "MOL",
+                    "type": "range",
+                    "otherStuff": "blah blah"
+                    }    
+                }
+            }
+
     
 # class AbstractLayerService(object):
 #     """An abstract base class for the Layer service."""

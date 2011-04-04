@@ -33,6 +33,7 @@ import time
 import wsgiref.util
 import StringIO
 from mol.service import TileService
+from mol.service import LayerService
 from mol.service import png
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
@@ -820,6 +821,10 @@ class ColorImage(BaseHandler):
         
         
 class WebAppHandler(BaseHandler):
+    
+    def __init__(self):
+        self.layer_service = LayerService()
+        
     def get(self):
         self.post();
 
@@ -833,8 +838,9 @@ class WebAppHandler(BaseHandler):
         action = simplejson.loads(action)
         a_name = action.get('name')
         a_type = action.get('type')
-        a_query = action.get('query')
-
+        a_query = action.get('params')
+        logging.info('name=%s, type=%s, query=%s' % (a_name, a_type, a_query))
+        
         response = {
             'LayerAction': {
                 'search': lambda x: self._layer_search(x)
@@ -845,7 +851,8 @@ class WebAppHandler(BaseHandler):
         self.response.out.write(simplejson.dumps(response))
         
     def _layer_search(self, query):
-        return self._test_profile()
+        # TODO(aaron): Merge list of profiles.
+        return self.layer_service.search(query)[0]
 
     def _test_profile(self):
         return {    
