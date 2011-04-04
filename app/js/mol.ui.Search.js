@@ -239,7 +239,7 @@ MOL.modules.Search = function(mol) {
                 display.hide();
                 display.getNextButton().hide();
                 display.getAddButton().hide();
-                display.getFiltersWidget().hide();
+                //display.getFiltersWidget().hide();
                 display.getResultsWidget().hide();
                 display.getNavigationWidget().hide();
 
@@ -298,27 +298,24 @@ MOL.modules.Search = function(mol) {
                         fw.getFilterName().text('Names');
                         for (k in nameKeys) {
                             fo = fw.getNewOption();
-                            fw.getNewOption();
                             key = nameKeys[k];
-                            fw.text(key);
+                            fo.text(key);
                         }
 
                         fw = display.getNewFilter();
                         fw.getFilterName().text('Sources');
                         for (k in sourceKeys) {
                             fo = fw.getNewOption();
-                            fw.getNewOption();
                             key = sourceKeys[k];
-                            fw.text(key);
+                            fo.text(key);
                         }
 
                         fw = display.getNewFilter();
                         fw.getFilterName().text('Types');
                         for (k in typeKeys) {
                             fo = fw.getNewOption();
-                            fw.getNewOption();
                             key = typeKeys[k];
-                            fw.text(key);
+                            fo.text(key);
                         }
 
                         mol.log.info(
@@ -481,7 +478,7 @@ MOL.modules.Search = function(mol) {
             },
             
             _option: function(){
-                return '<div class="option"><a href="/static/dead_link.html">link</a></div>';
+                return '<div><a href="/static/dead_link.html"></a></div>';
             },
             
             _html: function() {
