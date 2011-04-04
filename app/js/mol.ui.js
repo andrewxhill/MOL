@@ -59,12 +59,29 @@ MOL.modules.ui = function(mol) {
             change: function(handler) {
                 this._element.change(handler);
             },
+            
+            attr: function(name, val) {
+                if (val) {
+                    return this._element.attr(name, val);
+                } else {
+                    return this._element.attr(name);
+                }
+            },
 
             /**
              * Proxies to JQuery to find child element.
              */
             findChild: function(identfier){
                 return new mol.ui.Element(this._element.find(identfier));
+            },
+
+            findChildren: function(id) {
+                var children = this._element.find(id),
+                    elements = [];
+                for (x in children) {
+                    elements.push(new mol.ui.Element(children[x]));
+                }
+                return elements;
             },
 
             text: function(text) {
