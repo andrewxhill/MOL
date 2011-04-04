@@ -147,6 +147,7 @@ class GbifLayerProvider(LayerProvider):
         return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
 
     def getdata(self, query):
+        """
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, self.geturl(query))
 
@@ -157,7 +158,8 @@ class GbifLayerProvider(LayerProvider):
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
             self.error(404) 
-
+        """
+        return self.getprofile("")
     def getprofile(self, content):
         # TODO(andrew): parse xml into profile
         return {    
@@ -175,12 +177,12 @@ class GbifLayerProvider(LayerProvider):
                 "points": {
                     "names": ["Puma concolor"],
                     "sources": ["GBIF"],
-                    "layers": ["Puma concolor"]
+                    "layers": [0]
                     },
                 "range": {
                     "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
                     "sources": ["MOL"],
-                    "layers": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"]
+                    "layers": [1,2,3]
                     }        
                 },
             
@@ -188,48 +190,57 @@ class GbifLayerProvider(LayerProvider):
                 "GBIF": {
                     "names": ["Puma concolor"],
                     "types": ["points"],
-                    "layers": ["Puma concolor"]
+                    "layers": [0]
                     },        
                 "MOL": {
                     "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
                     "types": ["range"],
-                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"]
+                    "layers": [1,2,3]
                     }
                 },
             
             "names": {
                 "Puma concolor": {
                     "sources": ["GBIF", "MOL"],
-                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "layers": [0,1],
                     "types": ["points", "range"]
                     },
                 "Puma yagouaroundi": {
                     "sources": ["MOL"],
-                    "layers": ["Puma yagouaroundi"],
+                    "layers": [2],
                     "types": ["range"]            
                     },    
                 "Smilisca puma": {
                     "sources": ["MOL"],
-                    "layers": ["Smilisca puma"],
+                    "layers": [3],
                     "types": ["range"]
                     }
                 },
             
             "layers": {
-                "Puma concolor": {
-                    "source": "GBIF",
-                    "type": "points",
-                    "otherStuff": "blah blah"
+                0 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "GBIF",
+                     "type": "points",
+                     "otherStuff": "blah blah"
+                    }, 
+                1 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
                     },                
-                "Puma yagouaroundi": {
-                    "source": "MOL",
-                    "type": "range",
-                    "otherStuff": "blah blah"
+                2 : {"name": "Puma yagouaroundi",
+                     "name2" : "R. Guralnick", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
                     },       
-                "Smilisca puma": {
-                    "source": "MOL",
-                    "type": "range",
-                    "otherStuff": "blah blah"
+                3:  {"name": "Smilisca puma",
+                     "name2" : "A. Steele", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
                     }    
                 }
             }
