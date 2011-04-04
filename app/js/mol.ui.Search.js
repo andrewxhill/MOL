@@ -267,16 +267,6 @@ MOL.modules.Search = function(mol) {
                         display.hide();
                     }
                 );
-                
-                // Search select box:
-                //widget = display.getSearchSelectBox();
-                //this._setSearchSelectBoxOptions(widget, text.selections);
-                //widget.change(
-                //    function(event) {
-                //        var selection = display.getSearchSelectBox().val();
-                //        mol.log.info(selection + ' selected');
-                //    }
-                //);
                   
                 this._addDisplayToMap();
             },
@@ -288,12 +278,49 @@ MOL.modules.Search = function(mol) {
                     ActionCallback = mol.ajax.ActionCallback,
                     api = this._api,
                     callback = null,
-                    Result = mol.ui.Search.Result,
-                    result = null;
+                    display = this._display;
+
                 
                 callback = new ActionCallback(
                     function(response) {
-                        result = new Result(response);
+                        var FilterWidget = mol.ui.Search.FilterWidget,
+                            fw = null,
+                            fo = null,
+                            Result = mol.ui.Search.Result,
+                            result = new Result(response),
+                            nameKeys = result.getNameKeys(),
+                            typeKeys = result.getTypeKeys(),
+                            sourceKeys = result.getSourceKeys(),
+                            key = null;
+
+                        
+                        fw = display.getNewFilter();
+                        fw.getFilterName().text('Names');
+                        for (k in nameKeys) {
+                            fo = fw.getNewOption();
+                            fw.getNewOption();
+                            key = nameKeys[k];
+                            fw.text(key);
+                        }
+
+                        fw = display.getNewFilter();
+                        fw.getFilterName().text('Sources');
+                        for (k in sourceKeys) {
+                            fo = fw.getNewOption();
+                            fw.getNewOption();
+                            key = sourceKeys[k];
+                            fw.text(key);
+                        }
+
+                        fw = display.getNewFilter();
+                        fw.getFilterName().text('Types');
+                        for (k in typeKeys) {
+                            fo = fw.getNewOption();
+                            fw.getNewOption();
+                            key = typeKeys[k];
+                            fw.text(key);
+                        }
+
                         mol.log.info(
                             'Results for ' + query + ': ' 
                                 + 'Names=' + result.getNameKeys() + ', ' 
@@ -307,17 +334,6 @@ MOL.modules.Search = function(mol) {
                 );
 
                 api.execute(action, callback);
-            },
-
-            _setSearchSelectBoxOptions: function(selectBox, options) {
-                var option = null,
-                    html = '';
-                for (x in options) {
-                    option = options[x];
-                    html += '<option value="' + option + '">' 
-                        + option + '</option>';
-                }
-                selectBox.setInnerHtml(html);
             },
 
             /**
@@ -407,13 +423,13 @@ MOL.modules.Search = function(mol) {
             },
             
             getSourceButton: function() {
-                var x = this._sourceButton
+                var x = this._sourceButton,
                     s = '.source';
                 return x ? x : (this._sourceButton = this.findChild(s));
             },
             
             getTypeButton: function() {
-                var x = this._typeButton
+                var x = this._typeButton,
                     s = '.source';
                 return x ? x : (this._typeButton = this.findChild(s));
             },
@@ -457,9 +473,11 @@ MOL.modules.Search = function(mol) {
             },
             
             getNewOption: function() {
-                var option = new _option();
+                var option = new mol.ui.Element();
+                option.setStyleName('option');
+                option.setInnerHtml(this._option());
                 this.append(option);
-                return option
+                return option.findChild('a');
             },
             
             _option: function(){
@@ -555,7 +573,7 @@ MOL.modules.Search = function(mol) {
             getNewFilter: function(){
                 var FilterWidget = mol.ui.Search.FilterWidget,
                     r = new FilterWidget();
-                this.findChild('.mol-LayerControl-Results .filters').append(r);
+                this.findChild('.filters').append(r);
                 return r;
             },
 
