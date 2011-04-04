@@ -112,6 +112,14 @@ MOL.modules.ui = function(mol) {
                 }
                 return true;
             },
+            
+            /**
+             * Proxies to JQuery UI.
+             */
+            disableSelection: function() {
+                this._element.selectable({ disabled: true });
+                return true;
+            },
 
             /**
              * Proxies to JQuery.show()

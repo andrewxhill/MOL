@@ -239,7 +239,7 @@ MOL.modules.Search = function(mol) {
                 display.hide();
                 display.getNextButton().hide();
                 display.getAddButton().hide();
-                display.getFiltersWidget().hide();
+                //display.getFiltersWidget().hide();
                 display.getResultsWidget().hide();
                 display.getNavigationWidget().hide();
 
