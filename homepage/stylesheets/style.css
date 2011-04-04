@@ -209,9 +209,10 @@ div#content .person .name{
 }
 div#content .person .description{
     float: left;
-    margin-left: 1%;
-    margin-right: 1%;
-    width: 50%
+    margin-left: 2%;
+    margin-right: 2%;
+    width: 50%;
+    min-height: 200px;
 }
 div#content .person.top{
     width: 96%;
@@ -220,7 +221,9 @@ div#content .person.top{
 div#content .person img{
     padding: 1%;
     float: left;
-    height: 250px;
+    min-width: 39%;
+    max-width: 40%;
+    max-height: 250px;
 }
 div#content .person.top img{
     width: 45%;
@@ -231,10 +234,10 @@ div#content .person img.right{
     float: right;
 }
 div#content .person a{
-    color: #ccc;
-    margin-left: 10px;
+    color: #fff;
+    margin-left: 1px;
     margin-top: 5px;
-    float: right;
+    float: left;
 }
 
 /* Begin About.html styles */
