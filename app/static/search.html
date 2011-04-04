@@ -2,7 +2,7 @@
 <html> 
   <head> 
     <style>
-.mol-TopLeftController{
+.mol-TopLeftControl{
     margin-top: 5px;
 	width: 550px;
     font-family: Arial, sans-serif;
@@ -14,7 +14,12 @@
         <link href="/css/widgets.css" media="screen" rel="stylesheet" type="text/css" /> 
   </head>
   <body>
-  <div class="mol-TopLeftController">
+  <div class="mol-TopLeftControl">
+   <div class="mol-LayerControl-Search widgetTheme">
+      <div class="title">Search:</div>
+      <input class="value" type="text" />
+      <button class="execute">Go</button>
+   </div>
    <div class="mainSearchNavigation">
        <button id="searchCancel">
             <img src="/static/cancel.png" />
@@ -24,11 +29,6 @@
        </button>
    </div>
    
-   <div class="mol-LayerControl-Search widgetTheme">
-      <div class="title">Search:</div>
-      <input class="value" type="text" />
-      <button class="execute">Go</button>
-   </div>
    
     <div class="mol-LayerControl-Results">
       <div class="filters">

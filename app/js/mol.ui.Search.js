@@ -239,7 +239,9 @@ MOL.modules.Search = function(mol) {
                 display.hide();
                 display.getNextButton().hide();
                 display.getAddButton().hide();
-                display.getSearchResults().hide();
+                display.getFiltersWidget().hide();
+                display.getResultsWidget().hide();
+                display.getNavigationWidget().hide();
 
                 // Go button
                 widget = display.getGoButton();
@@ -267,14 +269,14 @@ MOL.modules.Search = function(mol) {
                 );
                 
                 // Search select box:
-                widget = display.getSearchSelectBox();
-                this._setSearchSelectBoxOptions(widget, text.selections);
-                widget.change(
-                    function(event) {
-                        var selection = display.getSearchSelectBox().val();
-                        mol.log.info(selection + ' selected');
-                    }
-                );
+                //widget = display.getSearchSelectBox();
+                //this._setSearchSelectBoxOptions(widget, text.selections);
+                //widget.change(
+                //    function(event) {
+                //        var selection = display.getSearchSelectBox().val();
+                //        mol.log.info(selection + ' selected');
+                //    }
+                //);
                   
                 this._addDisplayToMap();
             },
@@ -332,7 +334,7 @@ MOL.modules.Search = function(mol) {
                         display: display,
                         action: action,
                         displayPosition: DisplayPosition.TOP,
-                        controlPosition: ControlPosition.CENTER_TOP
+                        controlPosition: ControlPosition.TOP_LEFT
                     };
                 bus.fireEvent(new MapControlEvent(config));     
             },
@@ -386,7 +388,7 @@ MOL.modules.Search = function(mol) {
     /**
      * A search result display.
      */
-    mol.ui.Search.LayerWidget = mol.ui.Display.extend(
+    mol.ui.Search.ResultWidget = mol.ui.Display.extend(
         {
             init: function() {
                 this._super(this._html());
@@ -403,21 +405,71 @@ MOL.modules.Search = function(mol) {
                     s = '.info';
                 return x ? x : (this._infoLink = this.findChild(s));
             },
+            
+            getSourceButton: function() {
+                var x = this._sourceButton
+                    s = '.source';
+                return x ? x : (this._sourceButton = this.findChild(s));
+            },
+            
+            getTypeButton: function() {
+                var x = this._typeButton
+                    s = '.source';
+                return x ? x : (this._typeButton = this.findChild(s));
+            },
 
             _html: function() {
-                return  '<ul class="result">' +
-                    '    <div class="resultName">' +
-                    '        <div class="resultNomial">Pumanator</div>' +
-                    '        <div class="resultAuthor">Hill</div>' +
-                    '    </div>' +
-                    '    <div class="resultLink">' +
-                    '      <a href="/static/dead_link.html" class="info">more info</a>' +
-                    '   </div>' +
-                    '    <div class="buttonContainer"> ' +
-                    '        <input type="checkbox" class="checkbox" /> ' +
-                    '        <span class="customCheck"></span> ' +
-                    '    </div> ' +
-                    '</ul>';
+                return '<ul class="result">' + 
+                       '        <div class="resultSource" ><button ><img class="source GBIF" src="/static/maps/search/gbif.png"></button></div>' + 
+                       '        <div class="resultType" ><button ><img class="type Points" src="/static/maps/search/placemark.png"></button></div>' + 
+                       '        <div class="resultName">' + 
+                       '            <div class="resultNomial" >Puma concolor </div>' + 
+                       '            <div class="resultAuthor">(author)</div>' + 
+                       '        </div>' + 
+                       '        <div class="resultLink"><a href="/static/dead_link.html" class="info">more info</a></div>' + 
+                       '        <div class="buttonContainer"> ' + 
+                       '            <input type="checkbox" class="checkbox" /> ' + 
+                       '            <span class="customCheck"></span> ' + 
+                       '        </div> ' + 
+                       '    </ul>' + 
+                       '<div class="break"></div>';
+            }
+        }
+    );
+                       
+    /**
+     * A search filter display
+     */
+    mol.ui.Search.FilterWidget = mol.ui.Display.extend(
+        {
+            init: function() {
+                this._super(this._html());
+                this._filterName = null;
+            },
+            
+            getFilterName: function(n) {
+                var s = '.filterName';
+                if (!this._filterName){
+                    this._filterName = this.findChild(s);
+                }
+                return this._filterName ;
+                    
+            },
+            
+            getNewOption: function() {
+                var option = new _option();
+                this.append(option);
+                return option
+            },
+            
+            _option: function(){
+                return '<div class="option"><a href="/static/dead_link.html">link</a></div>';
+            },
+            
+            _html: function() {
+                return  '<div class="filter widgetTheme">' + 
+                        '    <div class="filterName">Names</div>' + 
+                        '</div>';
             }
         }
     );
@@ -439,6 +491,24 @@ MOL.modules.Search = function(mol) {
                 return x ? x : (this.searchWidget = this.findChild(s));
             },
 
+            getFiltersWidget: function(){
+                var x = this._filtersWidget,
+                    s = '.mol-LayerControl-Results .filters';
+                return x ? x : (this._filtersWidget = this.findChild(s));
+            },
+
+            getResultsWidget: function(){
+                var x = this._resultsWidget,
+                    s = '.mol-LayerControl-Results .searchResults';
+                return x ? x : (this._resultsWidget = this.findChild(s));
+            },
+            getNavigationWidget: function(){
+                var x = this._navigationWidget,
+                    s = '.mol-LayerControl-Results .navigation';
+                return x ? x : (this._navigationWidget = this.findChild(s));
+            },
+
+
             getCloseButton: function(){
                 var x = this._closeButton,
                     s = '#searchCancel';
@@ -449,18 +519,6 @@ MOL.modules.Search = function(mol) {
                 var x = this._restartButton,
                     s = '#searchRestart';
                 return x ? x : (this._restartButton = this.findChild(s));
-            },
-
-            getSearchText: function() {
-                var x = this._searchText,
-                    s = '.title';
-                return x ? x : (this._searchText = this.findChild(s));
-            },
-
-            getSearchSelectBox: function() {
-                var x = this._searchSelectBox,
-                    s = '.source';                    
-                return x ? x : (this._searchSelectBox = this.findChild(s));
             },
 
             getSearchBox: function(){
@@ -474,13 +532,7 @@ MOL.modules.Search = function(mol) {
                     s = '.execute';
                 return x ? x : (this._goButton = this.findChild(s));
             },
-
-            getMoreInfoText: function() {
-                var x = this._moreInfoText,
-                    s = '.resultLink';
-                return x ? x : (this._moreInfoText = this.findChild(s));
-            },            
-
+            
             getNextButton: function() {
                 var x = this._nextButton,
                     s = '.nextPage';
@@ -492,45 +544,44 @@ MOL.modules.Search = function(mol) {
                     s = '.addAll';
                 return x ? x : (this._addButton = this.findChild(s));
             },
-
-            getSearchResults: function() {
-                var x = this._searchResultsWidget,
-                    s = '.searchResults';
-                return x ? x : (this.searchResultsWidget = this.findChild(s));
-            },
-
+            
             getNewResult: function(){
-                var LayerWidget = mol.ui.Search.LayerWidget,
-                    r = new LayerWidget();
+                var ResultWidget = mol.ui.Search.ResultWidget,
+                    r = new ResultWidget();
                 this.findChild('.mol-LayerControl-Results .searchResults').append(r);
+                return r;
+            },
+            
+            getNewFilter: function(){
+                var FilterWidget = mol.ui.Search.FilterWidget,
+                    r = new FilterWidget();
+                this.findChild('.mol-LayerControl-Results .filters').append(r);
                 return r;
             },
 
             _html: function(){
-                return '<div class="mainSearchNavigation">' +
-                       '    <button id="searchCancel">' +
-                       '         <img src="/static/cancel.png" />' +
-                       '    </button>' +
-                       '    <button id="searchRestart">' +
-                       '         <img src="/static/reload.png" />' +
-                       '    </button>' +
-                       '</div>' +
-                       '<div class="mol-LayerControl-Search widgetTheme">' +
-                       '   <div class="title">Search:</div>' +
-                       '   <select name="source" class="source">' +
-                       '       <option value="range: MOL">MOL Range Maps</option>' +
-                       '       <option value="points: GBIF">GBIF Occ Points</option>' +
-                       '   </select>' +
-                       '   <input class="value" type="text" />' +
-                       '   <button class="execute">Go</button>' +
-                       '</div>' +
-                       '<div class="mol-LayerControl-Results">' +
-                       '   <ol class="searchResults widgetTheme">' +
-                       '   </ol>' +
-                       '    <div class="navigation">' +
-                       '        <button class="addAll">Add</button>' +
-                       '        <button class="nextPage">Next Page</button>' +
-                       '    </div>' +
+                return '<div class="mol-LayerControl-Search widgetTheme">' + 
+                       '  <div class="title">Search:</div>' + 
+                       '  <input class="value" type="text" />' + 
+                       '  <button class="execute">Go</button>' + 
+                       '</div>' + 
+                       '<div class="mainSearchNavigation">' + 
+                       '   <button id="searchCancel">' + 
+                       '        <img src="/static/cancel.png" />' + 
+                       '   </button>' + 
+                       '   <button id="searchRestart">' + 
+                       '        <img src="/static/reload.png" />' + 
+                       '   </button>' + 
+                       '</div>' + 
+                       '<div class="mol-LayerControl-Results">' + 
+                       '  <div class="filters">' + 
+                       '  </div>' + 
+                       '  <ol class="searchResults widgetTheme">' + 
+                       '  </ol>' + 
+                       '    <div class="navigation">' + 
+                       '      <button class="addAll">Add</button>' + 
+                       '      <button class="nextPage">Next Page</button>' + 
+                       '    </div>' + 
                        '</div>';
             }
         }

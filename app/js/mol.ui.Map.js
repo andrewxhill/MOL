@@ -81,6 +81,7 @@ MOL.modules.Map = function(mol) {
                     TOP_RIGHT = ControlPosition.TOP_RIGHT,
                     TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
+                    TOP_LEFT = ControlPosition.TOP_LEFT,
                     Control = mol.ui.Map.Control;
                 
                 this._rightControl = new Control('RightControl');
@@ -91,6 +92,10 @@ MOL.modules.Map = function(mol) {
                 controls[TOP_CENTER].clear();
                 controls[TOP_CENTER].push(this._centerTopControl.getDiv());
 
+                this._leftTopControl = new Control('TopLeftControl');
+                controls[TOP_LEFT].clear();
+                controls[TOP_LEFT].push(this._leftTopControl.getDiv());  
+                
                 this._leftBottomControl = new Control('LeftBottomControl');
                 controls[BOTTOM_LEFT].clear();
                 controls[BOTTOM_LEFT].push(this._leftBottomControl.getDiv());                
@@ -145,9 +150,11 @@ MOL.modules.Map = function(mol) {
                     controlDivs = this._controlDivs,
                     ControlPosition = mol.ui.Map.Control.ControlPosition,
                     TOP_RIGHT = ControlPosition.TOP_RIGHT,
-                    CENTER_TOP = ControlPosition.CENTER_TOP,
+                    TOP_CENTER = ControlPosition.TOP_CENTER,
                     BOTTOM_LEFT = ControlPosition.BOTTOM_LEFT,
+                    TOP_LEFT = ControlPosition.TOP_LEFT,
                     topRightControl = this._rightControl,
+                    leftTopControl = this._leftTopControl,
                     centerTopControl = this._centerTopControl,
                     leftBottomControl = this._leftBottomControl;
                                 
@@ -169,8 +176,12 @@ MOL.modules.Map = function(mol) {
                                 control = topRightControl;
                                 break;
                                 
-                            case CENTER_TOP:
+                            case TOP_CENTER:
                                 control = centerTopControl;
+                                break;
+
+                            case TOP_LEFT:
+                                control = leftTopControl;
                                 break;
 
                             case BOTTOM_LEFT:
@@ -555,6 +566,7 @@ MOL.modules.Map = function(mol) {
             },
 
             _html: function(name) {
+                console.log(name);
                 return '<div id="' + name + '">' +
                        '    <div class="TOP"></div>' +
                        '    <div class="MIDDLE"></div>' +
@@ -574,7 +586,8 @@ MOL.modules.Map = function(mol) {
 
     mol.ui.Map.Control.ControlPosition = {
         TOP_RIGHT: 'TOP_RIGHT',
-        CENTER_TOP: 'CENTER_TOP',
+        TOP_CENTER: 'TOP_CENTER',
+        TOP_LEFT: 'TOP_LEFT',
         LEFT_BOTTOM: 'LEFT_BOTTOM'        
     };
 
