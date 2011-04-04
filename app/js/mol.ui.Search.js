@@ -278,7 +278,8 @@ MOL.modules.Search = function(mol) {
                     ActionCallback = mol.ajax.ActionCallback,
                     api = this._api,
                     callback = null,
-                    display = this._display;
+                    display = this._display,
+                    self = this;
 
                 
                 callback = new ActionCallback(
@@ -291,7 +292,9 @@ MOL.modules.Search = function(mol) {
                             nameKeys = result.getNameKeys(),
                             typeKeys = result.getTypeKeys(),
                             sourceKeys = result.getSourceKeys(),
-                            key = null;
+                            key = null,
+                            layers = [];
+                            
 
                         
                         fw = display.getNewFilter();
@@ -300,6 +303,14 @@ MOL.modules.Search = function(mol) {
                             fo = fw.getNewOption();
                             key = nameKeys[k];
                             fo.text(key);
+                            fo.click(
+                                function(event) {
+                                    var name = event.target.innerHTML;
+                                    layers = result.getLayers(name, null, null);
+                                    mol.log.info(name + ' clicked with layers = ' + layers);
+                                    //self._displayPage(result, layers);
+                                }
+                            );
                         }
 
                         fw = display.getNewFilter();
@@ -308,6 +319,14 @@ MOL.modules.Search = function(mol) {
                             fo = fw.getNewOption();
                             key = sourceKeys[k];
                             fo.text(key);
+                            fo.click(
+                                function(event) {
+                                    var source = event.target.innerHTML;
+                                    layers = result.getLayers(null, source, null);
+                                    mol.log.info(source + ' clicked with layers = ' + layers);
+                                    //self._displayPage(result, layers);
+                                }
+                            );
                         }
 
                         fw = display.getNewFilter();
@@ -316,6 +335,14 @@ MOL.modules.Search = function(mol) {
                             fo = fw.getNewOption();
                             key = typeKeys[k];
                             fo.text(key);
+                            fo.click(
+                                function(event) {
+                                    var type = event.target.innerHTML;
+                                    layers = result.getLayers(null, null, type);
+                                    mol.log.info(type + ' clicked with layers = ' + layers);
+                                    //self._displayPage(result, layers);
+                                }
+                            );
                         }
 
                         mol.log.info(
@@ -474,11 +501,11 @@ MOL.modules.Search = function(mol) {
                 option.setStyleName('option');
                 option.setInnerHtml(this._option());
                 this.append(option);
-                return option.findChild('a');
+                return option;
             },
             
             _option: function(){
-                return '<div><a href="/static/dead_link.html"></a></div>';
+                return '<div></div>';
             },
             
             _html: function() {

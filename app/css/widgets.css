@@ -208,15 +208,17 @@ button:hover{
     margin-bottom: 5px;
     font-size: 1.1em;
 }
-.mol-LayerControl-Results .filters .filter .option a{
+.mol-LayerControl-Results .filters .filter .option {
     color: #6622ee;
     text-decoration: none;
     margin-left: 10px;
     margin-bottom: 2px;
     font-weight: normal;
+    cursor: pointer;
 }
 .mol-LayerControl-Results .filters .filter .option a.selected{
     text-decoration: underline;
+    cursor: pointer;
 }
 .mol-LayerControl-Results ol{
     position: relative;
