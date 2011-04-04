@@ -33,6 +33,7 @@ import time
 import wsgiref.util
 import StringIO
 from mol.service import TileService
+from mol.service import LayerService
 from mol.service import png
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
@@ -820,6 +821,10 @@ class ColorImage(BaseHandler):
         
         
 class WebAppHandler(BaseHandler):
+    
+    def __init__(self):
+        self.layer_service = LayerService()
+        
     def get(self):
         self.post();
 
@@ -833,8 +838,9 @@ class WebAppHandler(BaseHandler):
         action = simplejson.loads(action)
         a_name = action.get('name')
         a_type = action.get('type')
-        a_query = action.get('query')
-
+        a_query = action.get('params')
+        logging.info('name=%s, type=%s, query=%s' % (a_name, a_type, a_query))
+        
         response = {
             'LayerAction': {
                 'search': lambda x: self._layer_search(x)
@@ -845,83 +851,8 @@ class WebAppHandler(BaseHandler):
         self.response.out.write(simplejson.dumps(response))
         
     def _layer_search(self, query):
-        return self._test_profile()
-
-    def _test_profile(self):
-        return {    
-            "query": {
-                "search": "Puma",
-                "offset": 0,
-                "limit": 10,
-                "source": None,
-                "type": None,
-                "advancedOption1": "foo",
-                "advancedOption2": "bar"
-                },
-            
-            "types": {
-                "points": {
-                    "names": ["Puma concolor"],
-                    "sources": ["GBIF"],
-                    "layers": ["Puma concolor"]
-                    },
-                "range": {
-                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
-                    "sources": ["MOL"],
-                    "layers": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"]
-                    }        
-                },
-            
-            "sources": {
-                "GBIF": {
-                    "names": ["Puma concolor"],
-                    "types": ["points"],
-                    "layers": ["Puma concolor"]
-                    },        
-                "MOL": {
-                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
-                    "types": ["range"],
-                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"]
-                    }
-                },
-            
-            "names": {
-                "Puma concolor": {
-                    "sources": ["GBIF", "MOL"],
-                    "layers": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
-                    "types": ["points", "range"]
-                    },
-                "Puma yagouaroundi": {
-                    "sources": ["MOL"],
-                    "layers": ["Puma yagouaroundi"],
-                    "types": ["range"]            
-                    },    
-                "Smilisca puma": {
-                    "sources": ["MOL"],
-                    "layers": ["Smilisca puma"],
-                    "types": ["range"]
-                    }
-                },
-            
-            "layers": {
-                "Puma concolor": {
-                    "source": "GBIF",
-                    "type": "points",
-                    "otherStuff": "blah blah"
-                    },                
-                "Puma yagouaroundi": {
-                    "source": "MOL",
-                    "type": "range",
-                    "otherStuff": "blah blah"
-                    },       
-                "Smilisca puma": {
-                    "source": "MOL",
-                    "type": "range",
-                    "otherStuff": "blah blah"
-                    }    
-                }
-            }
-    
+        # TODO(aaron): Merge list of profiles.
+        return self.layer_service.search(query)[0]
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
