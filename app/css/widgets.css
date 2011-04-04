@@ -134,7 +134,6 @@ button:hover{
 .mainSearchNavigation{
     position: relative;
     float: left;
-    margin-right: 5px;
     width: 13px;
 }
 .mainSearchNavigation button#searchCancel,
@@ -176,10 +175,10 @@ button:hover{
 .mol-LayerControl-Search .value{
     float: left;
     margin-right: 2px;
-    width: 74%;
+    width: 66%;
 }
 .mol-LayerControl-Search .execute{
-    float: left;
+    float: right;
     margin-right: 5px;
     width: 50px;
 }
@@ -204,6 +203,7 @@ button:hover{
 .mol-LayerControl-Results .filters .filter{
     padding: 4px;
     margin: 0px 0px 5px 0px;
+    font-size: 12px;
 }
 .mol-LayerControl-Results .filters .filter .filterName{
     margin-bottom: 5px;
@@ -220,10 +220,11 @@ button:hover{
     text-decoration: underline;
 }
 .mol-LayerControl-Results ol{
+    position: relative;
     list-style-type: none;
     padding: 5px;
     margin: 0px;
-    width: 65%;
+    width: 61%;
     float: left;
     padding-top: 10px;
     position: relative;
@@ -305,7 +306,7 @@ button:hover{
     padding: 0px;
     margin: 0px;
     margin-top: 5px;
-    margin-right: 10px;
+    margin-right: 6%;
 }
 .mol-LayerControl-Results .navigation button{
     float: right;

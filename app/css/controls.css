@@ -15,3 +15,16 @@
 #mol-Map-LeftBottomControl .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 #mol-Map-LeftBottomControl .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
 #mol-Map-LeftBottomControl .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+
+#mol-Map-TopLeftController {
+    margin-top: 5px;
+	width: 600px;
+    height: auto;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    color: #141414;
+    font-size: 14px;
+}
+#mol-Map-TopLeftController .TOP { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+#mol-Map-TopLeftController .MIDDLE { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
+#mol-Map-TopLeftController .BOTTOM { position: relative; float: left; width: 100%; height: auto; margin-bottom: 5px; }
