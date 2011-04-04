@@ -32,8 +32,8 @@ import pickle
 import time
 import wsgiref.util
 import StringIO
-from mol.services import TileService
-from mol.services import png
+from mol.service import TileService
+from mol.service import png
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
@@ -831,20 +831,23 @@ class WebAppHandler(BaseHandler):
             return
 
         action = simplejson.loads(action)
-        actionName = action.get('name')
-        actionType = action.get('type')
-        actionParams = action.get('params')
+        a_name = action.get('name')
+        a_type = action.get('type')
+        a_query = action.get('query')
 
         response = {
             'LayerAction': {
-                'search': lambda actionParams: self._layerSearch(actionParams)
+                'search': lambda x: self._layer_search(x)
                 }
-            }[actionName][actionType](actionParams)
+            }[a_name][a_type](a_query)
 
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(simplejson.dumps(response))
+        
+    def _layer_search(self, query):
+        return self._test_profile()
 
-    def _layerSearch(self, params):
+    def _test_profile(self):
         return {    
             "query": {
                 "search": "Puma",
