@@ -237,11 +237,11 @@ MOL.modules.Search = function(mol) {
                 this._addLayerControlEventHandler();                
 
                 display.hide();
-                display.getNextButton().hide();
-                display.getAddButton().hide();
+                //display.getNextButton().hide();
+                //display.getAddButton().hide();
                 //display.getFiltersWidget().hide();
-                display.getResultsWidget().hide();
-                display.getNavigationWidget().hide();
+                display.getResultsContainer().hide();
+                //display.getNavigationWidget().hide();
 
                 // Go button
                 widget = display.getGoButton();
@@ -300,7 +300,7 @@ MOL.modules.Search = function(mol) {
                 //    key = nameKeys[k];
                 //    fo.text(key);
                 //}
-                display.getResultsWidget().show();
+                display.getResultsContainer().show();
             },
             
             _onGoButtonClick: function() {
@@ -584,21 +584,11 @@ MOL.modules.Search = function(mol) {
                 return x ? x : (this.searchWidget = this.findChild(s));
             },
 
-            getFiltersWidget: function(){
-                var x = this._filtersWidget,
-                    s = '.mol-LayerControl-Results .filters';
-                return x ? x : (this._filtersWidget = this.findChild(s));
-            },
 
-            getResultsWidget: function(){
-                var x = this._resultsWidget,
-                    s = '.mol-LayerControl-Results .searchResults';
-                return x ? x : (this._resultsWidget = this.findChild(s));
-            },
-            getNavigationWidget: function(){
-                var x = this._navigationWidget,
-                    s = '.mol-LayerControl-Results .navigation';
-                return x ? x : (this._navigationWidget = this.findChild(s));
+            getResultsContainer: function(){
+                var x = this._resultsContainer,
+                    s = '.mol-LayerControl-Results';
+                return x ? x : (this._resultsContainer = this.findChild(s));
             },
 
 
@@ -671,10 +661,10 @@ MOL.modules.Search = function(mol) {
                        '  </div>' + 
                        '  <ol class="searchResults widgetTheme">' + 
                        '  </ol>' + 
-                       '    <div class="navigation">' + 
-                       '      <button class="addAll">Add</button>' + 
-                       '      <button class="nextPage">Next Page</button>' + 
-                       '    </div>' + 
+                       '  <div class="navigation">' + 
+                       '     <button class="addAll">Add</button>' + 
+                       '     <button class="nextPage">More</button>' + 
+                       '  </div>' + 
                        '</div>';
             }
         }
