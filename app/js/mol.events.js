@@ -76,6 +76,7 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LayerEvent = mol.events.Event.extend(
         {
+
             init: function(config) {
                 this._super('LayerEvent', config.action);
                 this._layer = config.layer;

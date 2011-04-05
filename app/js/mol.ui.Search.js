@@ -144,6 +144,7 @@ MOL.modules.Search = function(mol) {
             getLayer: function(layer) {
                 return this._response.layers[layer];
             },
+
             getKeys: function(id) {
                 var res;
                 switch(id.toLowerCase()){
@@ -215,6 +216,7 @@ MOL.modules.Search = function(mol) {
                 this._nameFilter = null;
                 this._sourceFilter = null;
                 this._typeFilter = null;
+                this._resultWidgets = [];
             },
 
             /**
@@ -276,6 +278,14 @@ MOL.modules.Search = function(mol) {
                     }
                 );
 
+                // Add button:
+                widget = display.getAddButton();
+                widget.click(
+                    function(event) {
+                        self._onAddButtonClick();
+                    }
+                );
+
                 // Restart button:
                 widget = display.getRestartButton();
                 widget.click(
@@ -294,16 +304,51 @@ MOL.modules.Search = function(mol) {
                   
                 this._addDisplayToMap();
             },
+
+            _onAddButtonClick: function() {
+                var resultWidgets = this._resultWidgets || [],
+                    rw = null,
+                    result = null,
+                    bus = this._bus,
+                    LayerEvent = mol.events.LayerEvent,
+                    Layer = mol.model.Layer,
+                    layer = null,
+                    event = null,
+                    config = {
+                        layer: layer
+                    };
+
+                mol.log.info('Handling add button click');
+                
+                for (x in resultWidgets) {
+                    result = resultWidgets[x];
+                    rw = result.widget;
+                    layer = new Layer(result.type, result.source, result.name);
+                    config = {
+                        action: 'add',
+                        layer: layer
+                    };
+                    if (rw.findChild('.checkbox').isChecked()) {
+                        event = new LayerEvent(config);
+                        bus.fireEvent(event);
+                    }
+                }
+            },
             
             _displayPage: function(layers) {
                 var display = this._display;
-                display.clearResult()
+
+                display.clearResult();
+
                 for (r in layers){
                     var res = layers[r],
                         fw = display.getNewResult(),
                         typeImg = fw.getTypeImg(),
-                        sourceImg = fw.getSourceImg();
-                        
+                        sourceImg = fw.getSourceImg(),
+                        resultWidgets = this._resultWidgets || [];
+                    
+                    resultWidgets.push({widget:fw, source:res.source, type:res.type, name:res.name});
+
                     fw.getName().text(res.name);
                     fw.getAuthor().text(res.name2);
                     fw.getInfoLink().attr("attr","/static/dead_link.html");
@@ -327,6 +372,7 @@ MOL.modules.Search = function(mol) {
                 //}
                 display.getResultsContainer().show();
             },
+
             _createNewFilter: function(name, data){
                 var allTypes,
                     display = this._display,
@@ -366,9 +412,11 @@ MOL.modules.Search = function(mol) {
                 );
                 allTypes.addStyleName("selected");
             },
+
             _processFilterValue: function(key,value){
-                var layers = new Array()
+                var layers = new Array(),
                     self = this;
+
                 key = key.toLowerCase();
                 console.log([self._nameFilter,self._sourceFilter,self._typeFilter]);
                 switch(key){
@@ -394,6 +442,7 @@ MOL.modules.Search = function(mol) {
                 
                 this._displayPage(layers);
             },
+
             _onGoButtonClick: function() {
                 var query = this._display.getSearchBox().val(),
                     LayerAction = mol.ajax.LayerAction,
@@ -470,26 +519,6 @@ MOL.modules.Search = function(mol) {
         }
     );
 
-    /**
-     * Mock search display for testing engine
-     */
-    mol.ui.Search.MockDisplay = mol.ui.Display.extend(
-        {
-            restartButton: {
-                click: function(handler) {
-                    this.restartButtonClickHandler = handler;
-                },
-                
-                test: function() {
-                    this.restartButtonClickHandler();
-                }
-            },
-            
-            getRestartButton: function() {
-                return this.restartButton;
-            }
-        }
-    );
 
     /**
      * A search result display.

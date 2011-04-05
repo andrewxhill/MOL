@@ -128,6 +128,13 @@ MOL.modules.ui = function(mol) {
                 }
                 return true;
             },
+
+            isChecked: function() {
+                if (!this._element.is(':checked')) {
+                    return false;
+                }
+                return true;
+            },
             
             /**
              * Proxies to JQuery UI.
