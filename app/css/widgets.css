@@ -208,6 +208,7 @@ button:hover{
     margin-bottom: 5px;
     font-size: 1.1em;
 }
+
 .mol-LayerControl-Results .filters .filter .option {
     color: #6622ee;
     text-decoration: none;
@@ -216,10 +217,16 @@ button:hover{
     font-weight: normal;
     cursor: pointer;
 }
-.mol-LayerControl-Results .filters .filter .option a.selected{
+
+.mol-LayerControl-Results .filters .filter .option .selected {
     text-decoration: underline;
     cursor: pointer;
 }
+
+.mol-LayerControl-Results .filters .filter .option .hidden {
+    visibility: hidden;
+}
+
 .mol-LayerControl-Results ol{
     position: relative;
     list-style-type: none;
