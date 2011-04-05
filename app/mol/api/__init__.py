@@ -852,7 +852,91 @@ class WebAppHandler(BaseHandler):
         
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.
-        return self.layer_service.search(query)[0]
+        # return self.layer_service.search(query)[0]
+        return {    
+            "query": {
+                "search": "Puma",
+                "offset": 0,
+                "limit": 10,
+                "source": None,
+                "type": None,
+                "advancedOption1": "foo",
+                "advancedOption2": "bar"
+                },
+            
+            "types": {
+                "points": {
+                    "names": ["Puma concolor"],
+                    "sources": ["GBIF"],
+                    "layers": [0]
+                    },
+                "range": {
+                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
+                    "sources": ["MOL"],
+                    "layers": [1,2,3]
+                    }        
+                },
+            
+            "sources": {
+                "GBIF": {
+                    "names": ["Puma concolor"],
+                    "types": ["points"],
+                    "layers": [0]
+                    },        
+                "MOL": {
+                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["range"],
+                    "layers": [1,2,3]
+                    }
+                },
+            
+            "names": {
+                "Puma concolor": {
+                    "sources": ["GBIF", "MOL"],
+                    "layers": [0,1],
+                    "types": ["points", "range"]
+                    },
+                "Puma yagouaroundi": {
+                    "sources": ["MOL"],
+                    "layers": [2],
+                    "types": ["range"]            
+                    },    
+                "Smilisca puma": {
+                    "sources": ["MOL"],
+                    "layers": [3],
+                    "types": ["range"]
+                    }
+                },
+            
+            "layers": {
+                0 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "GBIF",
+                     "type": "points",
+                     "otherStuff": "blah blah"
+                    }, 
+                1 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
+                    },                
+                2 : {"name": "Puma yagouaroundi",
+                     "name2" : "R. Guralnick", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
+                    },       
+                3:  {"name": "Smilisca puma",
+                     "name2" : "A. Steele", 
+                     "source": "MOL",
+                     "type": "range",
+                     "otherStuff": "blah blah"
+                    }    
+                }
+            }
+
+
 
 
 application = webapp.WSGIApplication(
