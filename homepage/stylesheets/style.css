@@ -200,6 +200,7 @@ div#content .person{
     color: #fff;
     font-size: 1.2em;
     text-align: justify;
+    min-height: 272px;
 }
 div#content .person .name{
     float: left;
@@ -217,6 +218,7 @@ div#content .person .description{
 div#content .person.top{
     width: 96%;
     font-size: 1.3em;
+    min-height: 200px;
 }
 div#content .person img{
     padding: 1%;
