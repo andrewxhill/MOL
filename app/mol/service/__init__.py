@@ -147,7 +147,6 @@ class GbifLayerProvider(LayerProvider):
         return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
 
     def getdata(self, query):
-        """
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, self.geturl(query))
 
@@ -158,8 +157,8 @@ class GbifLayerProvider(LayerProvider):
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
             self.error(404) 
-        """
-        return self.getprofile("")
+            return None
+
     def getprofile(self, content):
         # TODO(andrew): parse xml into profile
         return {    
