@@ -76,12 +76,11 @@ MOL.modules.ui = function(mol) {
             },
 
             findChildren: function(id) {
-                var children = this._element.find(id),
-                    elements = [];
-                for (x in children) {
-                    elements.push(new mol.ui.Element(children[x]));
-                }
-                return elements;
+                var res = new Array();
+                this._element.children(id).each(function(c,v){
+                    res.push(new mol.ui.Element(v));
+                });
+                return res;
             },
 
             text: function(text) {
