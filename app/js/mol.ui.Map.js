@@ -528,7 +528,8 @@ MOL.modules.Map = function(mol) {
                     BOTTOM = DisplayPosition.BOTTOM;
 
                 this._super();
-
+                this.disableSelection();
+                
                 this.setInnerHtml(this._html(name));
 
                 this.setStyleName('mol-Map-' + name);

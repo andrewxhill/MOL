@@ -271,6 +271,28 @@ MOL.modules.Search = function(mol) {
                 this._addDisplayToMap();
             },
             
+            _displayPage: function(layers) {
+                var display = this._display;
+                console.log(layers);
+                for (r in layers){
+                    var res = layers[r];
+                    fw = display.getNewResult();
+                    fw.getName().text(res.name);
+                    fw.getAuthor().text(res.name2);
+                    ///fw.getInfoLink().attr("attr","/static/dead_link.html");
+                    ///TODO: andrew
+                    ///get source, type button imgs
+                    ///set attr img src
+                }
+                //fw.getFilterName().text('Names');
+                //for (k in nameKeys) {
+                //    fo = fw.getNewOption();
+                //    key = nameKeys[k];
+                //    fo.text(key);
+                //}
+                display.getResultsWidget().show();
+            },
+            
             _onGoButtonClick: function() {
                 var query = this._display.getSearchBox().val(),
                     LayerAction = mol.ajax.LayerAction,
@@ -280,7 +302,6 @@ MOL.modules.Search = function(mol) {
                     callback = null,
                     display = this._display,
                     self = this;
-
                 
                 callback = new ActionCallback(
                     function(response) {
@@ -293,7 +314,10 @@ MOL.modules.Search = function(mol) {
                             typeKeys = result.getTypeKeys(),
                             sourceKeys = result.getSourceKeys(),
                             key = null,
-                            layers = [];
+                            layers = [],
+                            a = null;
+
+                        self._displayPage(response.layers);
                         
                         filter = display.getNewFilter();
                         filter.getFilterName().text('Names');
@@ -443,14 +467,25 @@ MOL.modules.Search = function(mol) {
                     s = '.source';
                 return x ? x : (this._typeButton = this.findChild(s));
             },
+            
+            getName: function() {
+                var x = this._name,
+                    s = '.resultNomial';
+                return x ? x : (this._name = this.findChild(s));
+            },
+            getAuthor: function() {
+                var x = this._author,
+                    s = '.resultAuthor';
+                return x ? x : (this._author = this.findChild(s));
+            },
 
             _html: function() {
                 return '<ul class="result">' + 
-                       '        <div class="resultSource" ><button ><img class="source GBIF" src="/static/maps/search/gbif.png"></button></div>' + 
-                       '        <div class="resultType" ><button ><img class="type Points" src="/static/maps/search/placemark.png"></button></div>' + 
+                       '        <div class="resultSource" ><button ><img class="source" src="/static/maps/search/gbif.png"></button></div>' + 
+                       '        <div class="resultType" ><button ><img class="type" src="/static/maps/search/placemark.png"></button></div>' + 
                        '        <div class="resultName">' + 
-                       '            <div class="resultNomial" >Puma concolor </div>' + 
-                       '            <div class="resultAuthor">(author)</div>' + 
+                       '            <div class="resultNomial" ></div>' + 
+                       '            <div class="resultAuthor"></div>' + 
                        '        </div>' + 
                        '        <div class="resultLink"><a href="/static/dead_link.html" class="info">more info</a></div>' + 
                        '        <div class="buttonContainer"> ' + 
@@ -584,7 +619,7 @@ MOL.modules.Search = function(mol) {
             getNewResult: function(){
                 var ResultWidget = mol.ui.Search.ResultWidget,
                     r = new ResultWidget();
-                this.findChild('.mol-LayerControl-Results .searchResults').append(r);
+                this.findChild('.searchResults').append(r);
                 return r;
             },
             
