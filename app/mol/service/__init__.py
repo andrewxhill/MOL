@@ -155,7 +155,9 @@ class GbifLayerProvider(LayerProvider):
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
             self.error(404) 
-        return self.getprofile("")
+
+            return None
+
     def getprofile(self, content):
         # TODO(andrew): parse xml into profile
         return {    
