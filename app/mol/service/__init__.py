@@ -83,7 +83,6 @@ class LayerService(object):
         providers = self._get_providers(sources, types)        
         self.results = []
         rpcs = []
-        """
         for provider in providers:
             url = provider.geturl(query)
             rpc = urlfetch.create_rpc()
@@ -94,8 +93,6 @@ class LayerService(object):
         for rpc in rpcs:
             rpc.wait()
         return self.results
-        """
-        return providers[0].getprofile("")
     
     def _get_providers(self, sources, types):
         return [self.providers[LayerSource.GBIF]]
@@ -148,7 +145,6 @@ class GbifLayerProvider(LayerProvider):
         return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
 
     def getdata(self, query):
-        """
         rpc = urlfetch.create_rpc()
         urlfetch.make_fetch_call(rpc, self.geturl(query))
 
@@ -159,7 +155,6 @@ class GbifLayerProvider(LayerProvider):
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
             self.error(404) 
-        """
         return self.getprofile("")
     def getprofile(self, content):
         # TODO(andrew): parse xml into profile

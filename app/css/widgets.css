@@ -218,7 +218,7 @@ button:hover{
     cursor: pointer;
 }
 
-.mol-LayerControl-Results .filters .filter .option .selected {
+.mol-LayerControl-Results .filters .filter .option.selected {
     text-decoration: underline;
     cursor: pointer;
 }
