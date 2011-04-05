@@ -237,11 +237,11 @@ MOL.modules.Search = function(mol) {
                 this._addLayerControlEventHandler();                
 
                 display.hide();
-                display.getNextButton().hide();
-                display.getAddButton().hide();
+                //display.getNextButton().hide();
+                //display.getAddButton().hide();
                 //display.getFiltersWidget().hide();
-                display.getResultsWidget().hide();
-                display.getNavigationWidget().hide();
+                display.getResultsContainer().hide();
+                //display.getNavigationWidget().hide();
 
                 // Go button
                 widget = display.getGoButton();
@@ -273,13 +273,23 @@ MOL.modules.Search = function(mol) {
             
             _displayPage: function(layers) {
                 var display = this._display;
-                console.log(layers);
                 for (r in layers){
-                    var res = layers[r];
-                    fw = display.getNewResult();
+                    var res = layers[r],
+                        fw = display.getNewResult(),
+                        typeImg = fw.getTypeImg(),
+                        sourceImg = fw.getSourceImg();
+                        
                     fw.getName().text(res.name);
                     fw.getAuthor().text(res.name2);
-                    ///fw.getInfoLink().attr("attr","/static/dead_link.html");
+                    fw.getInfoLink().attr("attr","/static/dead_link.html");
+                    sourceImg.attr("src","/static/maps/search/" + res.source + ".png");
+                    sourceImg.click(function(){
+                        console.log('TODO: send source info to LeftBottom Modal');
+                    });
+                    typeImg.attr("src","/static/maps/search/" + res.type + ".png");
+                    typeImg.click(function(){
+                        console.log('TODO: send type info to LeftBottom Modal');
+                    });
                     ///TODO: andrew
                     ///get source, type button imgs
                     ///set attr img src
@@ -290,7 +300,7 @@ MOL.modules.Search = function(mol) {
                 //    key = nameKeys[k];
                 //    fo.text(key);
                 //}
-                display.getResultsWidget().show();
+                display.getResultsContainer().show();
             },
             
             _onGoButtonClick: function() {
@@ -478,11 +488,21 @@ MOL.modules.Search = function(mol) {
                     s = '.resultAuthor';
                 return x ? x : (this._author = this.findChild(s));
             },
+            getSourceImg: function() {
+                var x = this._source,
+                    s = '.source';
+                return x ? x : (this._source = this.findChild(s));
+            },
+            getTypeImg: function() {
+                var x = this._type,
+                    s = '.type';
+                return x ? x : (this._type = this.findChild(s));
+            },
 
             _html: function() {
                 return '<ul class="result">' + 
-                       '        <div class="resultSource" ><button ><img class="source" src="/static/maps/search/gbif.png"></button></div>' + 
-                       '        <div class="resultType" ><button ><img class="type" src="/static/maps/search/placemark.png"></button></div>' + 
+                       '        <div class="resultSource" ><button ><img class="source" src=""></button></div>' + 
+                       '        <div class="resultType" ><button ><img class="type" src=""></button></div>' +
                        '        <div class="resultName">' + 
                        '            <div class="resultNomial" ></div>' + 
                        '            <div class="resultAuthor"></div>' + 
@@ -562,21 +582,11 @@ MOL.modules.Search = function(mol) {
                 return x ? x : (this.searchWidget = this.findChild(s));
             },
 
-            getFiltersWidget: function(){
-                var x = this._filtersWidget,
-                    s = '.mol-LayerControl-Results .filters';
-                return x ? x : (this._filtersWidget = this.findChild(s));
-            },
 
-            getResultsWidget: function(){
-                var x = this._resultsWidget,
-                    s = '.mol-LayerControl-Results .searchResults';
-                return x ? x : (this._resultsWidget = this.findChild(s));
-            },
-            getNavigationWidget: function(){
-                var x = this._navigationWidget,
-                    s = '.mol-LayerControl-Results .navigation';
-                return x ? x : (this._navigationWidget = this.findChild(s));
+            getResultsContainer: function(){
+                var x = this._resultsContainer,
+                    s = '.mol-LayerControl-Results';
+                return x ? x : (this._resultsContainer = this.findChild(s));
             },
 
 
@@ -649,10 +659,10 @@ MOL.modules.Search = function(mol) {
                        '  </div>' + 
                        '  <ol class="searchResults widgetTheme">' + 
                        '  </ol>' + 
-                       '    <div class="navigation">' + 
-                       '      <button class="addAll">Add</button>' + 
-                       '      <button class="nextPage">Next Page</button>' + 
-                       '    </div>' + 
+                       '  <div class="navigation">' + 
+                       '     <button class="addAll">Add</button>' + 
+                       '     <button class="nextPage">More</button>' + 
+                       '  </div>' + 
                        '</div>';
             }
         }

@@ -30,10 +30,6 @@ class ColPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
         self.response.out.write(template.render(path, {}))
 
-class MainPage(webapp.RequestHandler):
-    def get(self):
-        self.response.out.write('hi')
-
 class BaseHandler(webapp.RequestHandler):
     def render_template(self, file, template_args):
         path = os.path.join(os.path.dirname(__file__), "html", file)
@@ -42,6 +38,26 @@ class BaseHandler(webapp.RequestHandler):
     def push_html(self, file):
         path = os.path.join(os.path.dirname(__file__), "html", file)
         self.response.out.write(open(path, 'r').read())
+
+class PeoplePage(BaseHandler):
+    def get(self):
+        self.push_html('people.html')
+        
+class TechPage(BaseHandler):
+    def get(self):
+        self.push_html('tech.html')
+        
+class DemoPage(BaseHandler):
+    def get(self):
+        self.push_html('demo.html')
+        
+class AboutPage(BaseHandler):
+    def get(self):
+        self.push_html('about.html')
+        
+class MainPage(BaseHandler):
+    def get(self):
+        self.push_html('home.html')
 
 ''' For testing... '''
 class MapPage(BaseHandler):
@@ -92,6 +108,10 @@ class RangeMapHandler(BaseHandler):
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
+          ('/about', AboutPage),
+          ('/tech', TechPage),
+          ('/demo', DemoPage),
+          ('/people', PeoplePage),
           ('/search', SearchHandler),
           ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),

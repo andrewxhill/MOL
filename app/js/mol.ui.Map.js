@@ -567,7 +567,6 @@ MOL.modules.Map = function(mol) {
             },
 
             _html: function(name) {
-                console.log(name);
                 return '<div id="' + name + '">' +
                        '    <div class="TOP"></div>' +
                        '    <div class="MIDDLE"></div>' +
