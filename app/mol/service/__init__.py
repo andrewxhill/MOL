@@ -83,7 +83,7 @@ class LayerService(object):
         providers = self._get_providers(sources, types)        
         self.results = []
         rpcs = []
-
+        """
         for provider in providers:
             url = provider.geturl(query)
             rpc = urlfetch.create_rpc()
@@ -93,8 +93,9 @@ class LayerService(object):
         
         for rpc in rpcs:
             rpc.wait()
-
-        return self.results;
+        return self.results
+        """
+        return providers[0].getprofile("")
     
     def _get_providers(self, sources, types):
         return [self.providers[LayerSource.GBIF]]

@@ -352,6 +352,7 @@ MOL.modules.Search = function(mol) {
                             option.text(key);
                             option.click(
                                 function(event) {
+                                    console.log(this);
                                     // TODO
                                 }
                             );
