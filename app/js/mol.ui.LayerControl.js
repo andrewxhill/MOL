@@ -112,7 +112,7 @@ MOL.modules.LayerControl = function(mol) {
                         controlPosition: ControlPosition.TOP_RIGHT
                     };
                 bus.fireEvent(new MapControlEvent(config));     
-            },
+            }
         }
     );
     
@@ -121,8 +121,7 @@ MOL.modules.LayerControl = function(mol) {
             init: function() {
                 this._super(this._html());
             },
-<<<<<<< HEAD
-=======
+
             getName: function() {
                 var x = this._layerName,
                     s = '.layerNomial';
@@ -148,7 +147,7 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.info';
                 return x ? x : (this._layerInfoLink = this.findChild(s));
             },  
->>>>>>> 75279c15b17b4c78615fad7020b7f10e2ac9b1ac
+
             _html: function() {
                 return  '<div id="points_GBIF_Puma_concolor" class="layer widgetTheme">' +
                         '    <div class="layerToggle">' +
@@ -159,11 +158,7 @@ MOL.modules.LayerControl = function(mol) {
                         '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
-<<<<<<< HEAD
-                        '    <button class="source"><img class="source" src="/static/maps/search/GBIF.png"></button>' +
-=======
                         '    <button class="source"><img class="source" src=""></button>' +
->>>>>>> 75279c15b17b4c78615fad7020b7f10e2ac9b1ac
                         '    <button class="info">i</button>' +
                         '</div>';
             }
