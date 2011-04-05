@@ -316,72 +316,62 @@ MOL.modules.Search = function(mol) {
                 callback = new ActionCallback(
                     function(response) {
                         var FilterWidget = mol.ui.Search.FilterWidget,
-                            fw = null,
-                            fo = null,
+                            filter = null,
+                            option = null,
                             Result = mol.ui.Search.Result,
                             result = new Result(response),
                             nameKeys = result.getNameKeys(),
                             typeKeys = result.getTypeKeys(),
                             sourceKeys = result.getSourceKeys(),
                             key = null,
+                            layers = [],
                             a = null;
+
                         self._displayPage(response.layers);
                         
-                        fw = display.getNewFilter();
-                        fw.getFilterName().text('Names');
+                        filter = display.getNewFilter();
+                        filter.getFilterName().text('Names');
+                        filter.attr('id', 'Names');
                         for (k in nameKeys) {
-                            fo = fw.getNewOption();
+                            option = filter.getNewOption();
                             key = nameKeys[k];
-                            fo.text(key);
-                            fo.click(
+                            option.text(key);
+                            option.click(
                                 function(event) {
-                                    var name = event.target.innerHTML;
-                                    layers = result.getLayers(name, null, null);
-                                    mol.log.info(name + ' clicked with layers = ' + layers);
-                                    //self._displayPage(result, layers);
+                                    // TODO
                                 }
                             );
                         }
 
-                        fw = display.getNewFilter();
-                        fw.getFilterName().text('Sources');
+                        filter = display.getNewFilter();
+                        filter.getFilterName().text('Sources');
+                        filter.attr('id', 'Sources');
                         for (k in sourceKeys) {
-                            fo = fw.getNewOption();
+                            option = filter.getNewOption();
                             key = sourceKeys[k];
-                            fo.text(key);
-                            fo.click(
+                            option.text(key);
+                            option.click(
                                 function(event) {
-                                    var source = event.target.innerHTML;
-                                    layers = result.getLayers(null, source, null);
-                                    mol.log.info(source + ' clicked with layers = ' + layers);
-                                    //self._displayPage(result, layers);
+                                    // TODO
                                 }
                             );
                         }
 
-                        fw = display.getNewFilter();
-                        fw.getFilterName().text('Types');
+                        filter = display.getNewFilter();
+                        filter.getFilterName().text('Types');
+                        filter.attr('id', 'Types');
                         for (k in typeKeys) {
-                            fo = fw.getNewOption();
+                            option = filter.getNewOption();
                             key = typeKeys[k];
-                            fo.text(key);
-                            fo.click(
+                            option.text(key);
+                            option.click(
                                 function(event) {
-                                    var type = event.target.innerHTML;
-                                    layers = result.getLayers(null, null, type);
-                                    mol.log.info(type + ' clicked with layers = ' + layers);
-                                    //self._displayPage(result, layers);
+                                    // TODO
                                 }
                             );
                         }
-
-                        mol.log.info(
-                            'Results for ' + query + ': ' 
-                                + 'Names=' + result.getNameKeys() + ', ' 
-                                + 'Sources=' + result.getSourceKeys() + ', '
-                                + 'Types=' + result.getTypeKeys()
-                        );
                     },
+
                     function(error) {
                         mol.log.error(error);
                     }
@@ -537,7 +527,11 @@ MOL.modules.Search = function(mol) {
                 this._super(this._html());
                 this._filterName = null;
             },
-            
+
+            getOptions: function() {
+                return this.findChild('.option');
+            },
+
             getFilterName: function(n) {
                 var s = '.filterName';
                 if (!this._filterName){
@@ -576,6 +570,10 @@ MOL.modules.Search = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
+            },
+            
+            getFilters: function(id) {
+                return this.findChild('#' + id);
             },
             
             getSearchWidget: function(){

@@ -854,6 +854,7 @@ class WebAppHandler(BaseHandler):
         # TODO(aaron): Merge list of profiles.
         return self.layer_service.search(query)[0]
 
+
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/colorimage/([^/]+)', ColorImage),
