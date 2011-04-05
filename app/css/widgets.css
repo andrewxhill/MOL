@@ -47,56 +47,32 @@ button:hover{
  */
 
 .mol-LayerControl-Menu {
+    width: 100%;
+    float: left;
     list-style-type: none;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.37, rgba(184, 233, 133,0.65)),
-        color-stop(0.69, rgba(92,194,7,0.65))
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        rgba(184, 253, 133,0.65) 37%,
-        rgba(92,214,7,0.65) 69%
-    );
-    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
-    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
-    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    font-size: 0.8em;
 }
-
-.mol-LayerControl-Display {
-    float: right;
-    width: 70%;
+.mol-LayerControl-Menu .button:hover{
+    color: #555;
+    cursor: pointer;
 }
-
-.mol-LayerControl-MenuOption {
-    font-size: 12px;
+.mol-LayerControl-Menu div{
     float: right;
-    margin: 0px;
-    padding-top: 0px;
-    padding-right: 6px;
-    padding-left: 6px;
-    padding-bottom: 0px;
-    line-height: 170%;
     text-align: center;
+    padding: 5px;
+    width: 60px;
+}
+.mol-LayerControl-Menu div.add{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
-    -moz-border-radius-bottomleft: 3px;
-    border-bottom-left-radius: 3px;
-    border: 1px solid rgb(135, 165, 149);
-    border-right: none;
 }
-
-.mol-LayerControl-MenuOptionLink {
-    cursor: pointer;
-    text-decoration:none;
-    color: #141414;
-}
-
-.mol-LayerControl-MenuOptionLabel {
-    -moz-border-radius: 3px;
-    border-radius: 3px;
+.mol-LayerControl-Menu div.label{
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+    border: 1px solid rgb(73, 73, 73);
+    border-bottom: 0px solid rgb(73, 73, 73);
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -109,22 +85,55 @@ button:hover{
         rgba(35, 35, 35,0.75) 37%,
         rgba(66,66,66,0.75) 69%
     );
-    border: 1px solid rgb(73, 73, 73);
-    color: rgb(240, 240, 260);
-    width: 40px;
+    color: #fff;
+}
+.mol-LayerControl-Layers {
+    width: 100%;
+    float: left;
+    position: relative;
+}
+.mol-LayerControl-Layers .layer{
+    width: 100%;
+    float: left;
+    margin-top: 5px;
+    padding: 2px;
+}
+.mol-LayerControl-Layers .layer .layerToggle{
+    float: left;
+    width: 10%;
+}
+.mol-LayerControl-Layers .layer .layerName{
+    float: left;
+    width: 50%;
+}
+.mol-LayerControl-Layers .layer .layerNomial{
+    float: left;
+}
+.mol-LayerControl-Layers .layer .layerAuthor{
+    float: left;
+    font-size: 0.8em;
+}
+.mol-LayerControl-Layers .layer .source{
+    float: left;
+    width: 10%;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.mol-LayerControl-Layers .layer .source img{
+    height: 18px;
+    width: 18px;
+}
+.mol-LayerControl-Layers .layer .info{
+    float: left;
+    width: 10%;
+    font-style: italic;
+    font-size: 1.2em;
+}
+.mol-LayerControl-Layers .layer .toggle{
+    float: left;
+    width: 10%;
 }
 
-.hidden {
-    display: none;
-}
-
-.inline {
-    display: inline;
-}
-
-.block {
-    display: block;
-}
 
 
 /* BEGIN SEARCH UI

@@ -313,7 +313,6 @@ MOL.modules.Search = function(mol) {
                     LayerEvent = mol.events.LayerEvent,
                     Layer = mol.model.Layer,
                     layer = null,
-                    event = null,
                     config = {
                         layer: layer
                     };
@@ -329,8 +328,7 @@ MOL.modules.Search = function(mol) {
                         layer: layer
                     };
                     if (rw.findChild('.checkbox').isChecked()) {
-                        event = new LayerEvent(config);
-                        bus.fireEvent(event);
+                        bus.fireEvent(new LayerEvent(config));
                     }
                 }
             },

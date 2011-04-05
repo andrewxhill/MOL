@@ -53,14 +53,16 @@ MOL.modules.LayerControl = function(mol) {
             _bindDisplay: function(display, text) {                
                 var self = this,
                     LayerControlEvent = mol.events.LayerControlEvent,
-                    LayerEvent = mol.events.LayerEvent;
+                    LayerEvent = mol.events.LayerEvent,
+                    widget = null;
+
 
                 this._display = display;
                 display.setEngine(this);            
                 
                 // Restart button:
-                add = display.getAddButton();
-                add.click(
+                widget = display.getAddButton();
+                widget.click(
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                     }
@@ -71,15 +73,21 @@ MOL.modules.LayerControl = function(mol) {
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
-                        var action = event.getAction(),                            
+                        var action = event.getAction(),
                             layer = event.getLayer(),
-                            widget = null;
+                            layerUi = null,
+                            display = self._display;
                     
-                        switch (type) {
-                            
+                        switch (action) {
+
                         case 'add':
                             // widget = display.addControl();
                             // TODO: set widget props/callbacks
+                            mol.log.info('Adding layer control to right controller');
+                            layerUi = display.getNewLayer();
+                            layerUi.getName().text(layer.name);
+                            layerUi.getAuthor().text(layer.name2);
+                            layerUi.getSource().attr("src","/static/maps/search/"+ layer.source +".png");
                             mol.log.info('Adding layer control to right controller');
                             break;
                         }
@@ -113,6 +121,34 @@ MOL.modules.LayerControl = function(mol) {
             init: function() {
                 this._super(this._html());
             },
+<<<<<<< HEAD
+=======
+            getName: function() {
+                var x = this._layerName,
+                    s = '.layerNomial';
+                return x ? x : (this._layerName = this.findChild(s));
+            },  
+            getAuthor: function() {
+                var x = this._layerAuthor,
+                    s = '.layerAuthor';
+                return x ? x : (this._layerAuthor = this.findChild(s));
+            }, 
+            getToggle: function() {
+                var x = this._layerToggle,
+                    s = '.toggle';
+                return x ? x : (this._layerToggle = this.findChild(s));
+            },  
+            getSource: function() {
+                var x = this._layerSource,
+                    s = '.source';
+                return x ? x : (this._layerSource = this.findChild(s));
+            },  
+            getInfoLink: function() {
+                var x = this._layerInfoLink,
+                    s = '.info';
+                return x ? x : (this._layerInfoLink = this.findChild(s));
+            },  
+>>>>>>> 75279c15b17b4c78615fad7020b7f10e2ac9b1ac
             _html: function() {
                 return  '<div id="points_GBIF_Puma_concolor" class="layer widgetTheme">' +
                         '    <div class="layerToggle">' +
@@ -123,7 +159,11 @@ MOL.modules.LayerControl = function(mol) {
                         '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
+<<<<<<< HEAD
                         '    <button class="source"><img class="source" src="/static/maps/search/GBIF.png"></button>' +
+=======
+                        '    <button class="source"><img class="source" src=""></button>' +
+>>>>>>> 75279c15b17b4c78615fad7020b7f10e2ac9b1ac
                         '    <button class="info">i</button>' +
                         '</div>';
             }
