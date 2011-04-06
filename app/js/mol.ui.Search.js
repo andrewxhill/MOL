@@ -449,7 +449,8 @@ MOL.modules.Search = function(mol) {
                     api = this._api,
                     callback = null,
                     display = this._display,
-                    self = this;
+                    self = this,
+                    fn = null;
                 
                 callback = new ActionCallback(
                     function(response) {
@@ -457,6 +458,7 @@ MOL.modules.Search = function(mol) {
                             filterNames = ['Names','Sources','Types'];
                         self._result = new Result(response),
                         self._displayPage(response.layers);
+                        display.clearFilters();
                         for (i in filterNames){
                             fn = filterNames[i];
                             self._createNewFilter(fn,response);
@@ -647,6 +649,15 @@ MOL.modules.Search = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
+            },
+            
+            clearFilters: function() {
+                _.each(
+                    this.findChild('.filters').findChildren('.filter'),
+                    function(element) {
+                        element.remove();
+                    }
+                );
             },
             
             getFilters: function(id) {
