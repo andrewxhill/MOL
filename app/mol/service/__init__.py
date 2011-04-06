@@ -83,6 +83,7 @@ class LayerService(object):
         providers = self._get_providers(sources, types)        
         self.results = []
         rpcs = []
+
         for provider in providers:
             url = provider.geturl(query)
             rpc = urlfetch.create_rpc()
