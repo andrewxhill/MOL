@@ -93,33 +93,37 @@ button:hover{
     position: relative;
 }
 .mol-LayerControl-Layers .layer{
-    width: 100%;
+    width: 97%;
     float: left;
-    margin-top: 5px;
+    margin-top: 3px;
     padding: 2px;
+    border: 3px solid rgba(0,0,0,0.01);
+    cursor: pointer;
 }
-.mol-LayerControl-Layers .layer .layerToggle{
-    float: left;
-    width: 10%;
+.mol-LayerControl-Layers .layer.selected{
+    border: 3px solid rgba(255,122,122,0.9);
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
-    width: 50%;
+    width: 60%;
+    margin-left: 5px;
+    pointer-events: none;
 }
 .mol-LayerControl-Layers .layer .layerNomial{
     float: left;
+    width: 100%;
 }
 .mol-LayerControl-Layers .layer .layerAuthor{
     float: left;
     font-size: 0.8em;
 }
-.mol-LayerControl-Layers .layer .source{
+.mol-LayerControl-Layers .layer .type{
     float: left;
     width: 10%;
     padding-top: 2px;
     padding-bottom: 2px;
 }
-.mol-LayerControl-Layers .layer .source img{
+.mol-LayerControl-Layers .layer img.type{
     height: 18px;
     width: 18px;
 }
@@ -140,38 +144,14 @@ button:hover{
  * search, results
  */
  
-.mainSearchNavigation{
-    position: relative;
-    float: left;
-    width: 13px;
-}
-.mainSearchNavigation button#searchCancel,
-.mainSearchNavigation button#searchRestart{
-    float: left;
-    margin: 1px;
-    padding: 0px;
-    width: 13px;
-    height: 13px;
-    font-size: 0.2em;
-    font-weight:100;
-    -moz-box-shadow: 0px 0px 0px #000;
-    -webkit-box-shadow: 0px 0px 0px #000;
-    box-shadow: 0px 0px 0px #000;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-}
-.mainSearchNavigation button#searchCancel img,
-.mainSearchNavigation button#searchRestart img{
-    width: 12px;
-    height: 12px;
-}
 .mol-LayerControl-Search {
-    padding: 2px 5px 2px 5px;
+    float: left;
+    position: relative;
+    height: 30px;
+    width: 95%;
     margin-bottom: 5px;
     margin-right: 5px;
-    float: left;
-    position: relative;
-    width: 92%;
+    padding: 3px 5px 2px 5px;
     -moz-border-radius: 4px;
     border-radius: 4px;
 }
@@ -182,13 +162,21 @@ button:hover{
 }
 .mol-LayerControl-Search .value{
     float: left;
-    margin-right: 2px;
+    margin-right: 5px;
     width: 66%;
 }
 .mol-LayerControl-Search .execute{
-    float: right;
-    margin-right: 5px;
+    float: left;
+    margin-left: 12px;
     width: 50px;
+}
+.mol-LayerControl-Search .cancel{
+    width: 25px;
+    margin-left: 12px;
+    padding-top: 2px;
+}
+.mol-LayerControl-Search .cancel img{
+    width: 100%;
 }
 .mol-LayerControl-Results{
     float: left;
@@ -317,7 +305,7 @@ button:hover{
 .mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
 	content:url('/static/checked.png');
 }
-.mol-LayerControl-Results .navigation{
+.mol-LayerControl-Results .pageNavigation{
     width: 50%;
     float: right;
     padding: 0px;
@@ -325,7 +313,7 @@ button:hover{
     margin-top: 5px;
     margin-right: 6%;
 }
-.mol-LayerControl-Results .navigation button{
+.mol-LayerControl-Results .pageNavigation button{
     float: right;
     margin-left: 8px;
     font-size: 0.9em;
