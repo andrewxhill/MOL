@@ -311,6 +311,10 @@ MOL.modules.Search = function(mol) {
                     result = null,
                     bus = this._bus,
                     LayerEvent = mol.events.LayerEvent,
+                    LayerAction = mol.ajax.LayerAction,
+                    ActionCallback = mol.ajax.ActionCallback,
+                    callback = null,
+                    action = null,
                     Layer = mol.model.Layer,
                     layer = null,
                     config = {
@@ -322,13 +326,23 @@ MOL.modules.Search = function(mol) {
                 for (x in resultWidgets) {
                     result = resultWidgets[x];
                     rw = result.widget;
-                    layer = new Layer(result.type, result.source, result.name);
-                    config = {
-                        action: 'add',
-                        layer: layer
-                    };
+                    
                     if (rw.findChild('.checkbox').isChecked()) {
-                        bus.fireEvent(new LayerEvent(config));
+                        action = new LayerAction('get-points', {layerName:result.name});
+                        callback = new ActionCallback(
+                            function(response) {
+                                layer = new Layer(result.type, result.source, result.name, response);
+                                config = {
+                                    action: 'add',
+                                    layer: layer
+                                };            
+                                bus.fireEvent(new LayerEvent(config));                               
+                            },
+                            function(error) {
+                                mol.log.error(error);
+                            }
+                        );
+                        api.execute(action, callback);
                     }
                 }
             },

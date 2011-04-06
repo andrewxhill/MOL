@@ -125,7 +125,7 @@ MOL.modules.Map = function(mol) {
                         
                         switch (action) {
 
-                        case 'new':
+                        case 'add':
                             layers[lid] = layer;
                             // We need a layer color before displaying it:
                             bus.fireEvent(new ColorEvent(config));

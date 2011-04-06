@@ -843,12 +843,20 @@ class WebAppHandler(BaseHandler):
         
         response = {
             'LayerAction': {
-                'search': lambda x: self._layer_search(x)
+                'search': lambda x: self._layer_search(x),
+                'get-points': lambda x: self._layer_get_points(x)
                 }
             }[a_name][a_type](a_query)
 
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(simplejson.dumps(response))
+
+    def _layer_get_points(self, query):
+        name = query.get('layerName').replace(' ', '_')
+        url = 'http://mol-lab.appspot.com/api/points/gbif/animalia/species/%s' % name
+        result = urlfetch.fetch(url)
+        if result.status_code == 200:
+            return result.content
         
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.

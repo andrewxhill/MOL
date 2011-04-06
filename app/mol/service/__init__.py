@@ -151,6 +151,7 @@ class GbifLayerProvider(LayerProvider):
         try:
             result = rpc.get_result() 
             if result.status_code == 200:
+                # TODO: Convert XML to JSON format.
                 return self.getprofile(result.content)
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (resource, str(e)))
