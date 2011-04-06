@@ -77,6 +77,8 @@ MOL.modules.LayerControl = function(mol) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
                             layerId = layer.getId(),
+                            layerSource = layer.getSource(),
+                            layerName = layer.getName(),
                             layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display;
@@ -85,14 +87,14 @@ MOL.modules.LayerControl = function(mol) {
 
                         case 'add':
                             if (_.indexOf(layerIds, layerId) > -1) {
+                                // Duplicate layer.
                                 return;
                             }
                             layerIds.push(layerId);
                             layerUi = display.getNewLayer();
-                            layerUi.getName().text(layer.name);
-                            layerUi.getAuthor().text(layer.name2);
-                            layerUi.getSource().attr("src","/static/maps/search/"+ layer.source +".png");
-                            mol.log.info('Adding layer control to right controller');
+                            layerUi.getName().text(layerName);
+                            //layerUi.getAuthor().text(layer.name2);
+                            layerUi.getSource().attr("src","/static/maps/search/"+ layerSource +".png");
                             break;
                         }
                     }
@@ -159,7 +161,7 @@ MOL.modules.LayerControl = function(mol) {
                         '    </div>' +
                         '    <div class="layerName">' +
                         '        <div class="layerNomial">Smilisca puma</div>' +
-                        '        <div class="layerAuthor">A. Steele</div>' +
+                        '        <div class="layerAuthor"></div>' +
                         '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
                         '    <button class="source"><img class="source" src=""></button>' +
