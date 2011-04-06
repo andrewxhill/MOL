@@ -285,20 +285,16 @@ MOL.modules.Search = function(mol) {
                         self._onAddButtonClick();
                     }
                 );
-
-                // Restart button:
-                widget = display.getRestartButton();
-                widget.click(
-                    function(event) {
-                        // TODO
-                    }
-                );
                 
                 // Close button:
                 widget = display.getCloseButton();
                 widget.click(
                     function(event) {
                         display.hide();
+                        display.clearFilters();
+                        display.clearResults();
+                        display.getResultsContainer().hide();
+                        //console.log('close');
                     }
                 );
                   
@@ -336,8 +332,11 @@ MOL.modules.Search = function(mol) {
             _displayPage: function(layers) {
                 var display = this._display;
 
-                display.clearResult();
-
+                display.clearResults();
+                //display.clearFilters();
+                if (layers.length==0){
+                    fw = display.noMatches();
+                }
                 for (r in layers){
                     var res = layers[r],
                         fw = display.getNewResult(),
@@ -416,7 +415,6 @@ MOL.modules.Search = function(mol) {
                     self = this;
 
                 key = key.toLowerCase();
-                console.log([self._nameFilter,self._sourceFilter,self._typeFilter]);
                 switch(key){
                     case "names":
                         self._nameFilter = value;
@@ -430,11 +428,8 @@ MOL.modules.Search = function(mol) {
                     default:
                         break;
                 }
-                console.log([self._nameFilter,self._sourceFilter,self._typeFilter]);
                 var tmp = this._result.getLayers(self._nameFilter,self._sourceFilter,self._typeFilter);
-                console.log(tmp);
                 for (v in tmp){
-                    console.log(v);
                     layers.push(this._result.getLayer(tmp[v]));
                 }
                 
@@ -680,14 +675,8 @@ MOL.modules.Search = function(mol) {
 
             getCloseButton: function(){
                 var x = this._closeButton,
-                    s = '#searchCancel';
+                    s = '.cancel';
                 return x ? x : (this._closeButton = this.findChild(s));
-            },
-
-            getRestartButton: function(){
-                var x = this._restartButton,
-                    s = '#searchRestart';
-                return x ? x : (this._restartButton = this.findChild(s));
             },
 
             getSearchBox: function(){
@@ -714,13 +703,24 @@ MOL.modules.Search = function(mol) {
                 return x ? x : (this._addButton = this.findChild(s));
             },
             
-            clearResult: function(){
+            clearResults: function(){
                 this.findChild('.searchResults').setInnerHtml("");
+            },
+            
+            clearFilters: function(){
+                this.findChild('.filters').setInnerHtml("");
             },
             
             getNewResult: function(){
                 var ResultWidget = mol.ui.Search.ResultWidget,
                     r = new ResultWidget();
+                this.findChild('.searchResults').append(r);
+                return r;
+            },
+            noMatches: function(){
+                var r = new mol.ui.Element('<ul class="result">' + 
+                                           '    <i>No matches</a>' + 
+                                           '</ul>') ;
                 this.findChild('.searchResults').append(r);
                 return r;
             },
@@ -735,23 +735,16 @@ MOL.modules.Search = function(mol) {
             _html: function(){
                 return '<div class="mol-LayerControl-Search widgetTheme">' + 
                        '  <div class="title">Search:</div>' + 
-                       '  <input class="value" type="text" />' + 
+                       '  <input class="value" type="text">' + 
                        '  <button class="execute">Go</button>' + 
-                       '</div>' + 
-                       '<div class="mainSearchNavigation">' + 
-                       '   <button id="searchCancel">' + 
-                       '        <img src="/static/cancel.png" />' + 
-                       '   </button>' + 
-                       '   <button id="searchRestart">' + 
-                       '        <img src="/static/reload.png" />' + 
-                       '   </button>' + 
+                       '  <button class="cancel"><img src="/static/cancel.png" ></button>' + 
                        '</div>' + 
                        '<div class="mol-LayerControl-Results">' + 
                        '  <div class="filters">' + 
                        '  </div>' + 
                        '  <ol class="searchResults widgetTheme">' + 
                        '  </ol>' + 
-                       '  <div class="navigation">' + 
+                       '  <div class="pageNavigation">' + 
                        '     <button class="addAll">Add</button>' + 
                        '     <button class="nextPage">More</button>' + 
                        '  </div>' + 

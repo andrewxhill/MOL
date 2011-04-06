@@ -215,6 +215,10 @@ div#content .person .description{
     width: 50%;
     min-height: 200px;
 }
+div#content .person .description.full{
+    width: 95%;
+}
+
 div#content .person.top{
     width: 96%;
     font-size: 1.3em;
@@ -356,7 +360,7 @@ div#content .wrapper #left{
     overflow-y: hidden;
 }
 div#content .wrapper #blog{ 
-    height: 400px;
+    height: 285px;
     color: #fff;
 }
 div#content .wrapper #blog a{ 
@@ -374,15 +378,17 @@ div#content .wrapper #right{
     overflow-y: hidden;
 }
 div#content .wrapper #code{ 
-    height: 400px;
+    height: 285px;
     color: #fff;
 }
 div#content .wrapper #code a{ 
     color: #b8fd85;
 }
-dif#footer {float: left; width: 800px; left: 50%; margin-left: -400px; margin-bottom: 30px; height: 40px;}
-div#footer_links { float: right; width: 60%; text-align: left; padding-right: 20px; padding-right: 20px; height: auto; color: #fff; }
-div#footer_links a { font-size: 1.1em; color: #aaa; padding-right: 8px; padding-left: 8px; line-height: 150%; text-decoration: underline;}
+div#footer {float: left; position: relative; width: 800px; left: 50%; margin-left: -400px; margin-bottom: 30px; height: 40px;}
+div#footer #footer_links { float: right; width: 500px; text-align: left; margin-right: 10px; height: auto; color: #fff; }
+div#footer #footer_links a { font-size: 1.1em; color: #aaa; padding-right: 8px; padding-left: 8px; line-height: 150%; text-decoration: underline;}
  
+div#footer #footer_imgs { float: right; width: 200px; margin-right: 50px; height: auto; color: #fff; }
+div#footer #footer_imgs img{ float: right; height: 32px; padding-right: 10px; opacity: 0.7;}
  
 

@@ -69,6 +69,13 @@ MOL.modules.ui = function(mol) {
             },
 
             /**
+             * Proxies to JQuery to find parent element.
+             */
+            getParent: function(){
+                return new mol.ui.Element(this._element.parent());
+            },
+            
+            /**
              * Proxies to JQuery to find child element.
              */
             findChild: function(identfier){

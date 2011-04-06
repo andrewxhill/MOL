@@ -77,7 +77,7 @@ MOL.modules.LayerControl = function(mol) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
                             layerId = layer.getId(),
-                            layerSource = layer.getSource(),
+                            layerType = layer.getType(),
                             layerName = layer.getName(),
                             layerIds = self._layerIds,
                             layerUi = null,
@@ -94,7 +94,14 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
                             //layerUi.getAuthor().text(layer.name2);
-                            layerUi.getSource().attr("src","/static/maps/search/"+ layerSource +".png");
+                            layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
+                            layerUi.click(function(e){
+                                ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
+                                for (y in ch){
+                                    ch[y].removeStyleName('selected');
+                                }
+                                new mol.ui.Element(e.target).addStyleName('selected');
+                            });
                             break;
                         }
                     }
@@ -143,10 +150,10 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.toggle';
                 return x ? x : (this._layerToggle = this.findChild(s));
             },  
-            getSource: function() {
-                var x = this._layerSource,
-                    s = '.source';
-                return x ? x : (this._layerSource = this.findChild(s));
+            getType: function() {
+                var x = this._layerType,
+                    s = '.type';
+                return x ? x : (this._layerType = this.findChild(s));
             },  
             getInfoLink: function() {
                 var x = this._layerInfoLink,
@@ -155,16 +162,13 @@ MOL.modules.LayerControl = function(mol) {
             },  
 
             _html: function() {
-                return  '<div id="points_GBIF_Puma_concolor" class="layer widgetTheme">' +
-                        '    <div class="layerToggle">' +
-                        '        <input type="radio" name="active-layer">' +
-                        '    </div>' +
+                return  '<div class="layer widgetTheme">' +
+                        '    <button><img class="type" src="/static/maps/search/points.png"></button>' +
                         '    <div class="layerName">' +
                         '        <div class="layerNomial">Smilisca puma</div>' +
-                        '        <div class="layerAuthor"></div>' +
+                        '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
-                        '    <button class="source"><img class="source" src=""></button>' +
                         '    <button class="info">i</button>' +
                         '</div>';
             }
