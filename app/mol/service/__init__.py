@@ -20,6 +20,8 @@ from google.appengine.ext import db
 import logging
 from math import ceil
 from mol.db import Tile, TileUpdate, TileSetIndex
+from xml.etree import ElementTree as etree
+import datetime
 import cStringIO
 import os
 import png
@@ -152,96 +154,109 @@ class GbifLayerProvider(LayerProvider):
         try:
             result = rpc.get_result() 
             if result.status_code == 200:
-                # TODO: Convert XML to JSON format.
-                return self.getprofile(result.content)
+                return result.content
         except (urlfetch.DownloadError), e:
-            logging.error('GBIF request: %s (%s)' % (resource, str(e)))
-            self.error(404) 
-
+            logging.error('GBIF request: %s (%s)' % (rpc, str(e)))
+            #self.error(404) 
             return None
+            
+    def xmltojson(self,xmldata,url):
+        NSXML = "http://portal.gbif.org/ws/response/gbif"
+        TOXML = "http://rs.tdwg.org/ontology/voc/TaxonOccurrence#"
+        xml = etree.iterparse(cStringIO.StringIO(xmldata), ("start", "end"))
+        out = {"publishers":[]}
+        provider, resource, occurrence = {"resources": []}, {"occurrences": []}, {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
+        p, r, o = True, False, False
+        pct, rct, oct = 0, 0, 0
+        for action, element in xml:
+            logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
+            if "{%s}TaxonOccurrence" % TOXML == element.tag:
+                if action=="start":
+                    p, r, o = False, False, True
+                    #logging.error(o)
+                elif action=="end":
+                    oct+=1
+                    resource['occurrences'].append(occurrence)
+                    occurrence = {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
 
-    def getprofile(self, content):
-        # TODO(andrew): parse xml into profile
+            elif "{%s}dataResource" % NSXML == element.tag:
+                if action=="start":
+                    p, r, o = False, True, False
+                elif action=="end":
+                    rct+=1
+                    provider['resources'].append(resource)
+                    resource = {'occurrences':[]}
+
+            elif "{%s}dataProvider" % NSXML == element.tag:
+                if action=="start":
+                    p, r, o = True, False, False
+                elif action=="end":
+                    pct+=1
+                    out["publishers"].append(provider)
+                    provider = {"resources": []}
+
+            elif p or r:
+                if "{%s}name" % NSXML == element.tag:
+                    if p:
+                        provider['name'] = element.text
+                    elif r:
+                        resource['name'] = element.text
+            elif o:
+                if element.tag in ["{%s}decimalLatitude" % TOXML, "{%s}decimalLongitude" % TOXML]:
+                    try:
+                        occurrence["coordinates"][str(element.tag).split("}")[1]] = float(element.text)
+                    except:
+                        occurrence["coordinates"][str(element.tag).split("}")[1]] = None
+                elif "{%s}coordinateUncertaintyInMeters" % TOXML == element.tag:
+                    try:
+                        occurrence["coordinates"]["coordinateUncertaintyInMeters"] = float(element.text)
+                        assert occurrence["coordinates"]["coordinateUncertaintyInMeters"] > 0
+                    except:
+                        occurrence["coordinates"]["coordinateUncertaintyInMeters"] = None
+
+        return {"source": "GBIF", "sourceUrl": url, "accessDate": str(datetime.datetime.now()), "totalPublishers": pct, "totalResources": rct, "totalRecords": oct, "records": out}
+        
+    def getprofile(self, query, url, content):
         return {    
             "query": {
-                "search": "Puma",
-                "offset": 0,
-                "limit": 10,
-                "source": None,
-                "type": None,
-                "advancedOption1": "foo",
-                "advancedOption2": "bar"
+                "search": query.get('sciname'),
+                "offset": query.get('start', 0),
+                "limit": query.get('limit', 200),
+                "source": url,
+                "type": "points",
+                "advancedOptions": {"coordinatestatus": True}
                 },
             
             "types": {
                 "points": {
-                    "names": ["Puma concolor"],
+                    "names": [query.get('sciname')],
                     "sources": ["GBIF"],
                     "layers": [0]
-                    },
-                "range": {
-                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
-                    "sources": ["MOL"],
-                    "layers": [1,2,3]
-                    }        
+                    }      
                 },
             
             "sources": {
                 "GBIF": {
-                    "names": ["Puma concolor"],
+                    "names": [query.get('sciname')],
                     "types": ["points"],
                     "layers": [0]
-                    },        
-                "MOL": {
-                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
-                    "types": ["range"],
-                    "layers": [1,2,3]
-                    }
+                    }, 
                 },
             
             "names": {
-                "Puma concolor": {
-                    "sources": ["GBIF", "MOL"],
-                    "layers": [0,1],
-                    "types": ["points", "range"]
+                query.get('sciname'): {
+                    "sources": ["GBIF"],
+                    "layers": [0],
+                    "types": ["points"]
                     },
-                "Puma yagouaroundi": {
-                    "sources": ["MOL"],
-                    "layers": [2],
-                    "types": ["range"]            
-                    },    
-                "Smilisca puma": {
-                    "sources": ["MOL"],
-                    "layers": [3],
-                    "types": ["range"]
-                    }
                 },
             
             "layers": {
-                0 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
+                0 : {"name" : query.get('sciname'),
+                     "name2" : query.get('name2'), 
                      "source": "GBIF",
                      "type": "points",
-                     "otherStuff": "blah blah"
-                    }, 
-                1 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
-                     "source": "MOL",
-                     "type": "range",
-                     "otherStuff": "blah blah"
-                    },                
-                2 : {"name": "Puma yagouaroundi",
-                     "name2" : "R. Guralnick", 
-                     "source": "MOL",
-                     "type": "range",
-                     "otherStuff": "blah blah"
-                    },       
-                3:  {"name": "Smilisca puma",
-                     "name2" : "A. Steele", 
-                     "source": "MOL",
-                     "type": "range",
-                     "otherStuff": "blah blah"
-                    }    
+                    } 
                 }
             }
 

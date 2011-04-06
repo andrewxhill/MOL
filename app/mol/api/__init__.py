@@ -34,6 +34,9 @@ import wsgiref.util
 import StringIO
 from mol.service import TileService
 from mol.service import LayerService
+from mol.service import GbifLayerProvider
+from mol.service import LayerType
+from mol.service import LayerService
 from mol.service import png
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
@@ -945,6 +948,25 @@ class WebAppHandler(BaseHandler):
             }
 
 
+        
+class GBIFTest(BaseHandler):
+    def __init__(self):
+        self.p = GbifLayerProvider()
+        
+    def get(self):
+        self.post();
+
+    def post(self):
+        q = 'Puma concolor'
+        a = 'Hill AW'
+        qd = {'sciname': q, 'limit': 1, 'name2': a}
+        url = self.p.geturl(qd)
+        data = self.p.getdata(qd)
+        jsn = self.p.xmltojson(data,url)
+        prf = self.p.getprofile(qd, url, jsn)
+        #prof = self.p.getprofile(data)
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(simplejson.dumps(prf))
 
 
 application = webapp.WSGIApplication(
@@ -959,6 +981,7 @@ application = webapp.WSGIApplication(
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/layers', LayersHandler), 
           ('/api/webapp', WebAppHandler),
+          ('/api/gbif', GBIFTest),
           ],
 
          debug=True)
