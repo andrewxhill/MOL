@@ -26,6 +26,7 @@ MOL.modules.LayerControl = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
+                this._layerIds = [];
             },
 
             /**
@@ -75,15 +76,18 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
+                            layerId = layer.getId(),
+                            layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display;
                     
                         switch (action) {
 
                         case 'add':
-                            // widget = display.addControl();
-                            // TODO: set widget props/callbacks
-                            mol.log.info('Adding layer control to right controller');
+                            if (_.indexOf(layerIds, layerId) > -1) {
+                                return;
+                            }
+                            layerIds.push(layerId);
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layer.name);
                             layerUi.getAuthor().text(layer.name2);
