@@ -979,11 +979,11 @@ class GBIFTest(BaseHandler):
         qd = {'sciname': q, 'limit': 1, 'name2': a}
         url = self.p.geturl(qd)
         data = self.p.getdata(qd)
-        jsn = self.p.xmltojson(data,url)
-        prf = self.p.getprofile(qd, url, jsn)
+        #jsn = self.p.xmltojson(data,url)
+        prf = self.p.getprofile(qd, url, data)
         #prof = self.p.getprofile(data)
         self.response.headers["Content-Type"] = "application/json"
-        self.response.out.write(simplejson.dumps(prf))
+        self.response.out.write(simplejson.dumps(data))
 
 
 application = webapp.WSGIApplication(
