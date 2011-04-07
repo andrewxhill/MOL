@@ -309,6 +309,7 @@ MOL.modules.Search = function(mol) {
                     LayerAction = mol.ajax.LayerAction,
                     callback = null,
                     action = null,
+                    display = this._display,
                     layer = null,
                     isChecked = false,
                     config = {
@@ -316,6 +317,7 @@ MOL.modules.Search = function(mol) {
                     };
 
                 mol.log.info('Handling add button click');
+                display.getAddButton().attr('disabled', 'disabled');
                 
                 for (x in resultWidgets) {
                     result = resultWidgets[x];
@@ -348,7 +350,8 @@ MOL.modules.Search = function(mol) {
                     Layer = mol.model.Layer,
                     layer = null,
                     action = null,
-                    config = {};
+                    config = {},
+                    display = this._display;
 
                 action = new LayerAction('get-points', {layerName:result.name});
                 return new ActionCallback(
@@ -357,6 +360,7 @@ MOL.modules.Search = function(mol) {
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
+                        display.getAddButton().attr('disabled', '');
                     },
                     function(error) {
                         mol.log.error(error);
