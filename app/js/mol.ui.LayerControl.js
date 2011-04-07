@@ -55,7 +55,8 @@ MOL.modules.LayerControl = function(mol) {
                 var self = this,
                     LayerControlEvent = mol.events.LayerControlEvent,
                     LayerEvent = mol.events.LayerEvent,
-                    widget = null;
+                    widget = null,
+                    bus = this._bus;
 
 
                 this._display = display;
@@ -81,7 +82,10 @@ MOL.modules.LayerControl = function(mol) {
                             layerName = layer.getName(),
                             layerIds = self._layerIds,
                             layerUi = null,
-                            display = self._display;
+                            display = self._display,
+                            LayerEvent = mol.events.LayerEvent,
+                            ch = null,
+                            widget = null;
                     
                         switch (action) {
 
@@ -102,6 +106,21 @@ MOL.modules.LayerControl = function(mol) {
                                 }
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });
+                            
+                            widget = layerUi.getToggle();
+                            widget.setChecked(true);
+                            widget.click(
+                                function(event) {
+                                    bus.fireEvent(
+                                        new LayerEvent(
+                                            {
+                                                action: widget.isChecked() ? 'checked': 'unchecked',
+                                                layer: layer
+                                            }
+                                        )
+                                    );
+                                }
+                            );
                             break;
                         }
                     }

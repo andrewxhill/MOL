@@ -136,6 +136,10 @@ MOL.modules.ui = function(mol) {
                 return true;
             },
 
+            setChecked: function(checked) {
+                this.attr('checked', checked);
+            },
+
             isChecked: function() {
                 if (!this._element.is(':checked')) {
                     return false;

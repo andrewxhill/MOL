@@ -109,7 +109,8 @@ MOL.modules.Map = function(mol) {
                     LayerEvent = mol.events.LayerEvent,
                     ColorEvent = mol.events.ColorEvent,
                     deleteLayer = this._deleteLayer,
-                    layers = this._layers;
+                    layers = this._layers,
+                    self = this;
                 
                 bus.addHandler(
                     LayerEvent.TYPE,
@@ -134,6 +135,16 @@ MOL.modules.Map = function(mol) {
                         case 'delete':
                             deleteLayer(lid);
                             break;
+
+                        case 'checked':
+                            mol.log.todo('Handle layer checked event');
+                            self._toggleLayer(layers[lid], true);
+                            break;
+                            
+                        case 'unchecked':
+                            mol.log.todo('Handle layer unchecked event');
+                            self._toggleLayer(layers[lid], false);
+                            break;                            
                         }                        
                     }
                 );
@@ -328,7 +339,7 @@ MOL.modules.Map = function(mol) {
             _toggleLayer: function(layer, show) {
                 var lid = layer.getId(),
                     type = layer.getType(),
-                    points = this._points[layerId],
+                    points = this._points[lid],
                     map = show ? this._map : null;
 
                 switch (type) {
@@ -382,8 +393,8 @@ MOL.modules.Map = function(mol) {
                     iconUrl = urls.iconUrl,
                     iconErrorUrl = urls.iconErrorUrl;
                 this._points[lid] = [];
-                for (p in data.records.providers) {
-                    resources = data.records.providers[p].resources;
+                for (p in data.records.publishers) {
+                    resources = data.records.publishers[p].resources;
                     for (r in resources) {
                         occurrences = resources[r].occurrences;
                         for (o in occurrences) {
