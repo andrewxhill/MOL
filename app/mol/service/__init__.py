@@ -91,6 +91,7 @@ class LayerService(object):
         providers = self._get_providers(sources, types)        
         self.results = []
         rpcs = []
+
         for provider in providers:
             url = provider.geturl(query)
             rpc = urlfetch.create_rpc()
@@ -154,12 +155,13 @@ class GbifLayerProvider(LayerProvider):
 
     def getdata(self, query):
         rpc = urlfetch.create_rpc()
-        urlfetch.make_fetch_call(rpc, self.geturl(query))
+        url = self.geturl(query)
+        urlfetch.make_fetch_call(rpc, url)
 
         try:
             result = rpc.get_result() 
             if result.status_code == 200:
-                return result.content
+                return self.xmltojson(result.content, url)
         except (urlfetch.DownloadError), e:
             logging.error('GBIF request: %s (%s)' % (rpc, str(e)))
             #self.error(404) 

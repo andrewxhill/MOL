@@ -827,6 +827,7 @@ class WebAppHandler(BaseHandler):
     
     def __init__(self):
         self.layer_service = LayerService()
+        self.gbif = GbifLayerProvider()
         
     def get(self):
         self.post();
@@ -846,12 +847,20 @@ class WebAppHandler(BaseHandler):
         
         response = {
             'LayerAction': {
-                'search': lambda x: self._layer_search(x)
+                'search': lambda x: self._layer_search(x),
+                'get-points': lambda x: self._layer_get_points(x)
                 }
             }[a_name][a_type](a_query)
 
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(simplejson.dumps(response))
+
+    def _layer_get_points(self, query):
+        # TODO: Use self.layer_service()
+        sciname = query.get('layerName')
+        content = self.gbif.getdata({'sciname':sciname})
+        logging.info(content)
+        return content
         
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.

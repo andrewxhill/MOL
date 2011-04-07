@@ -306,29 +306,68 @@ MOL.modules.Search = function(mol) {
                     rw = null,
                     result = null,
                     bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent,
-                    Layer = mol.model.Layer,
+                    LayerAction = mol.ajax.LayerAction,
+                    callback = null,
+                    action = null,
+                    display = this._display,
                     layer = null,
+                    isChecked = false,
                     config = {
                         layer: layer
                     };
 
                 mol.log.info('Handling add button click');
+                display.getAddButton().attr('disabled', 'disabled');
                 
                 for (x in resultWidgets) {
                     result = resultWidgets[x];
                     rw = result.widget;
-                    layer = new Layer(result.type, result.source, result.name);
-                    config = {
-                        action: 'add',
-                        layer: layer
-                    };
-                    if (rw.findChild('.checkbox').isChecked()) {
-                        bus.fireEvent(new LayerEvent(config));
+                    isChecked = rw.findChild('.checkbox').isChecked();
+                    
+                    if (!isChecked) {
+                        continue;
+                    }
+
+                    switch (result.type) {
+                    
+                    case 'points':
+                        action = new LayerAction('get-points', {layerName:result.name});
+                        callback = this._layerActionCallback(result);
+                        api.execute(action, callback);    
+                        break;
+
+                    case 'range':
+                        mol.log.todo('TODO: range map visibility toggle');
+                        break;
                     }
                 }
             },
             
+            _layerActionCallback: function(result) {
+                var LayerAction = mol.ajax.LayerAction,
+                    ActionCallback = mol.ajax.ActionCallback,
+                    LayerEvent = mol.events.LayerEvent,
+                    Layer = mol.model.Layer,
+                    layer = null,
+                    action = null,
+                    config = {},
+                    display = this._display;
+
+                action = new LayerAction('get-points', {layerName:result.name});
+                return new ActionCallback(
+                    function(response) {
+                        layer = new Layer(result.type, result.source, result.name, response);
+                        config.action = 'add';
+                        config.layer = layer;
+                        bus.fireEvent(new LayerEvent(config));                               
+                        display.getAddButton().attr('disabled', '');
+                    },
+                    function(error) {
+                        mol.log.error(error);
+                    }
+                );
+            },
+
             _displayPage: function(layers) {
                 var display = this._display;
 
