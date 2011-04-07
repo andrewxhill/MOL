@@ -65,6 +65,9 @@ class LayerType(object):
     @constant
     def POLYGON():
         return 'polygon'
+    @constant
+    def ECOREGION():
+        return 'ecoregion'
 
 class LayerSource(object):
     @constant
@@ -73,6 +76,9 @@ class LayerSource(object):
     @constant
     def MOL():
         return 'mol'
+    @constant
+    def WWF():
+        return 'wwf'
     
 class LayerService(object):
 
@@ -255,6 +261,73 @@ class GbifLayerProvider(LayerProvider):
                      "name2" : query.get('name2'), 
                      "source": "GBIF",
                      "type": "points",
+                     "count": content["records"]
+                    } 
+                }
+            }
+
+
+class EcoregionLayerProvider(LayerProvider):
+    
+    def __init__(self):
+        types = [LayerType.ECOREGION]
+        sources = [LayerSource.WWF]
+        super(GbifLayerProvider, self).__init__(types, sources)        
+        
+    def getdata(self, query):
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, self.geturl(query))
+
+        try:
+            result = rpc.get_result() 
+            if result.status_code == 200:
+                return result.content
+        except (urlfetch.DownloadError), e:
+            logging.error('GBIF request: %s (%s)' % (rpc, str(e)))
+            #self.error(404) 
+            return None
+            
+    def getprofile(self, query, url, content):
+        return {    
+            "query": {
+                "search": query.get('sciname'),
+                "offset": query.get('start', 0),
+                "limit": query.get('limit', 200),
+                "source": url,
+                "type": "points",
+                "advancedOptions": {"coordinatestatus": True}
+                },
+            
+            "types": {
+                "points": {
+                    "names": [query.get('sciname')],
+                    "sources": ["GBIF"],
+                    "layers": [0]
+                    }      
+                },
+            
+            "sources": {
+                "GBIF": {
+                    "names": [query.get('sciname')],
+                    "types": ["points"],
+                    "layers": [0]
+                    }, 
+                },
+            
+            "names": {
+                query.get('sciname'): {
+                    "sources": ["GBIF"],
+                    "layers": [0],
+                    "types": ["points"]
+                    },
+                },
+            
+            "layers": {
+                0 : {"name" : query.get('sciname'),
+                     "name2" : query.get('name2'), 
+                     "source": "GBIF",
+                     "type": "points",
+                     "count": content["records"]
                     } 
                 }
             }

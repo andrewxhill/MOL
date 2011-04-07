@@ -877,7 +877,12 @@ class WebAppHandler(BaseHandler):
                     "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
                     "sources": ["MOL"],
                     "layers": [1,2,3]
-                    }        
+                    },  
+                "ecoregions": {
+                    "names": ["Puma concolor"],
+                    "sources": ["WWF"],
+                    "layers": [4]
+                    },      
                 },
             
             "sources": {
@@ -890,14 +895,19 @@ class WebAppHandler(BaseHandler):
                     "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
                     "types": ["range"],
                     "layers": [1,2,3]
+                    },
+                "WWF": {
+                    "names": ["Puma concolor"],
+                    "types": ["ecoregions"],
+                    "layers": [4]
                     }
                 },
             
             "names": {
                 "Puma concolor": {
-                    "sources": ["GBIF", "MOL"],
-                    "layers": [0,1],
-                    "types": ["points", "range"]
+                    "sources": ["GBIF", "MOL", "WWF"],
+                    "layers": [0,1,4],
+                    "types": ["points", "range", "ecoregions"]
                     },
                 "Puma yagouaroundi": {
                     "sources": ["MOL"],
@@ -916,26 +926,32 @@ class WebAppHandler(BaseHandler):
                      "name2" : "A. Hill", 
                      "source": "GBIF",
                      "type": "points",
-                     "otherStuff": "blah blah"
+                     "info": "blah blah"
                     }, 
                 1 : {"name" : "Puma concolor",
                      "name2" : "A. Hill", 
                      "source": "MOL",
                      "type": "range",
-                     "otherStuff": "blah blah"
+                     "info": "blah blah"
                     },                
                 2 : {"name": "Puma yagouaroundi",
                      "name2" : "R. Guralnick", 
                      "source": "MOL",
                      "type": "range",
-                     "otherStuff": "blah blah"
+                     "info": "blah blah"
                     },       
                 3:  {"name": "Smilisca puma",
                      "name2" : "A. Steele", 
                      "source": "MOL",
                      "type": "range",
-                     "otherStuff": "blah blah"
-                    }    
+                     "info": "blah blah"
+                    },       
+                4:  {"name" : "Puma concolor",
+                     "name2" : "WWF Ecoregions", 
+                     "source": "WWF",
+                     "type": "ecoregions",
+                     "info": "blah blah"
+                    },
                 }
             }
 
