@@ -97,7 +97,7 @@ class ApiController(BaseController):
                 bbox = (float(lowx), float(lowy), float(highx), float(highy))
                 logging.info('Tiling %s with bbox: %s' % (region_id,str(bbox)))      
                 
-                tile_dir =  app_globals.ECOTILE_DIR.rstrip('/') + "/" + region_id +"/"
+                tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + region_id +"/")
                     
                 if not os.path.isdir(tile_dir):
                     os.mkdir(tile_dir)
@@ -106,7 +106,7 @@ class ApiController(BaseController):
                                            mapfile,
                                            tile_dir,
                                            zoom,
-                                           zoom+1,
+                                           zoom,
                                            "MOL-ECOREGION",
                                            num_threads=app_globals.TILE_QUEUE_THREADS)
                 response.status = 200   
