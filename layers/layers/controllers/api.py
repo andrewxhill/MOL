@@ -88,7 +88,9 @@ class ApiController(BaseController):
                 response.status = 200
                 
                 tmp_xml = open(app_globals.MAP_XML, 'r').read().replace('layer_name', region_id)
-                mapfile = os.path.join(app_globals.ECOSHP_DIR , region_id , '.xml')
+                mapfile = os.path.join(app_globals.ECOSHP_DIR , region_id + '.xml')
+                open(mapfile, "w+").write(tmp_xml)
+                
                 bbox = (float(lowx), float(lowy), float(highx), float(highy))
                 GenerateTiles.render_tiles(bbox,
                                            mapfile,
