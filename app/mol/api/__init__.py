@@ -965,26 +965,125 @@ class WebAppHandler(BaseHandler):
             }
 
 
+class EcoregionTileHandler(BaseHandler):
+    def get(self, region_id):
+        '''Handles a PNG map tile request according to the Google XYZ tile
+        addressing scheme described here:
         
-class GBIFTest(BaseHandler):
-    def __init__(self):
-        self.p = GbifLayerProvider()
+        Required query string parameters:
+            z - integer zoom level
+            y - integer latitude pixel coordinate
+            x - integer longitude pixel coordinate
+        '''
+        region_id, ext = os.path.splitext(region_id)
+        logging.info('REGION ID ' + region_id)
+        # Returns a 404 if there's no TileSetIndex for the species id since we
+        # need it to calculate bounds and for the remote tile URL:
+        # TODO: create region metadata datastore
+        #metadata = TileSetIndex.get_by_key_name(species_key_name)
+        metadata = True
+        # Returns a 404 if the requested region_id doesn't exist:
+        if metadata is None:
+            self.error(404) # Not found
+            return
+            
+        # Returns a 400 if the required query string parameters are invalid:
+        try:
+            zoom = self._param('z')
+            x = self._param('x')
+            y = self._param('y')
+        except (BadArgumentError), e:
+            logging.error('Bad request params: ' + str(e))
+            self.error(400) # Bad request
+            return
+
+        # Returns a 404 if the request isn't within bounds of the region:
+        within_bounds = True; # TODO: Calculate if within bounds.
+        if not within_bounds:
+            self.error(404) # Not found
+            return
+
+        # Builds the tile image URL which is also the memcache key. It's of the
+        # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
+        #tileurl = metadata.remoteLocation
+        tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/NT1404?zoom={z}&x={x}&y={y}"
         
-    def get(self):
-        self.post();
+        tileurl = tileurl.replace('{z}', zoom)
+        tileurl = tileurl.replace('{x}', x)
+        tileurl = tileurl.replace('{y}', y)
+        
+        logging.info('Tile URL ' + tileurl)
+        
+        # Starts an async fetch of tile in case we get a memcache/datastore miss:
+        # TODO: Optimization would be to async fetch the 8 surrounding tiles.
+        rpc = urlfetch.create_rpc()
+        #urlfetch.make_fetch_call(rpc, tileurl, payload=q)
+        urlfetch.make_fetch_call(rpc, tileurl)
 
-    def post(self):
-        q = 'Puma concolor'
-        a = 'Hill AW'
-        qd = {'sciname': q, 'limit': 1, 'name2': a}
-        url = self.p.geturl(qd)
-        data = self.p.getdata(qd)
-        #jsn = self.p.xmltojson(data,url)
-        prf = self.p.getprofile(qd, url, data)
-        #prof = self.p.getprofile(data)
-        self.response.headers["Content-Type"] = "application/json"
-        self.response.out.write(simplejson.dumps(data))
-
+        # Checks memcache for tile and returns it if found:
+        memcache_key = "tileurl-%s" % tileurl
+        
+        r,g,b = None,None,None
+        try:
+            r = self._param('r')
+            g = self._param('g')
+            b = self._param('b')
+            r,g,b = int(r),int(g),int(b)
+            memcache_key = "tileurl-%s" % tileurl
+            memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+            band = memcache.get(memk)
+            band = None
+            if band is not None:
+                logging.info('Tile memcache hit: ' + memk)
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(band)
+                return
+        except:
+            pass
+        
+        band = memcache.get(memcache_key)
+        if band is not None:
+            logging.info('Tile memcache hit: ' + memcache_key)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                logging.info('colored')
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(band)
+            return
+        
+        # Checks datastore for tile and returns if found:
+        """
+        tile_key_name = os.path.join(species_key_name, zoom, y, x)
+        tile = Tile.get_by_key_name(tile_key_name)
+        if tile is not None:
+            logging.info('Tile datastore hit: ' + tile_key_name)
+            memcache.set(memcache_key, tile.band, 60)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(tile.band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(tile.band)
+            return
+        """
+        # Gets downloaded tile from async rpc request and returns it or a 404:
+        try:
+            result = rpc.get_result() # This call blocks.
+            if result.status_code == 200:
+                logging.info('Tile downloaded: ' + tileurl)
+                band = result.content
+                memcache.set(memcache_key, band, 60)
+                self.response.headers['Content-Type'] = "image/png"
+                if b is not None:
+                    memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                    band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+                self.response.out.write(band)
+            else:
+                logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+        except (urlfetch.DownloadError), e:
+            logging.error('%s - %s' % (tileurl, str(e)))            
+            self.error(404) # Not found
 
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
@@ -996,9 +1095,9 @@ application = webapp.WSGIApplication(
           ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
+          ('/api/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
           ('/layers', LayersHandler), 
           ('/api/webapp', WebAppHandler),
-          ('/api/gbif', GBIFTest),
           ],
 
          debug=True)
