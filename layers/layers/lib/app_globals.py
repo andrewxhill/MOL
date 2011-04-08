@@ -23,6 +23,7 @@ class Globals(object):
         self.SRC_DIR = "/ftp/new/"
         self.DST_DIR = "/ftp/archive/"
         self.MAP_XML = "/ftp/tile/mapfile.xml"
+        self.ECO_MAP_XML = "/ftp/ecoregion/tile/mapfile.xml"
         #self.GAE_URL = "http://localhost:8080/"
         self.GAE_URL = "http://prototype.mol-lab.appspot.com/"        
         self.VALID_ID_SERVICE_URL = "%sapi/validkey" % self.GAE_URL
