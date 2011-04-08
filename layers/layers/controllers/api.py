@@ -82,7 +82,7 @@ class ApiController(BaseController):
             lowy = request.GET['lowy']
             highx = request.GET['highx']
             highy = request.GET['highy']
-            shp = os.path.join(app_globals.ECOSHP_DIR, region_id, '.shp')        
+            shp = os.path.join(app_globals.ECOSHP_DIR, region_id + '.shp')        
             if os.path.exists(shp):
                 logging.info('Sending tiling job to queue : ' + shp)
                 response.status = 200
