@@ -69,7 +69,7 @@ class ApiController(BaseController):
             logging.info('Tile not found : ' + png)        
             response.status = 404
             
-        elif str(method).lower() == 'tilefarea':
+        elif str(method).lower() == 'tilearea':
             '''This action returns PNG data with the response header Content-Type 
             set to image/png with a 200 status code. It handles URLs of the form:
             
