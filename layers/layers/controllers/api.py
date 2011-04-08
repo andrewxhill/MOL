@@ -92,6 +92,8 @@ class ApiController(BaseController):
                 open(mapfile, "w+").write(tmp_xml)
                 
                 bbox = (float(lowx), float(lowy), float(highx), float(highy))
+                logging.info('Tiling %s found : %s' + (region_id,bbox))      
+                
                 GenerateTiles.render_tiles(bbox,
                                            mapfile,
                                            app_globals.ECOTILE_DIR.rstrip('/') + "/",
