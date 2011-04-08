@@ -50,7 +50,7 @@ class ApiController(BaseController):
         response.status = 404
         
         
-    def ecoregion(self, method, region_id, zoom):
+    def ecoregion(self, method, region_id):
         '''This action returns PNG data with the response header Content-Type 
         set to image/png with a 200 status code. It handles URLs of the form:
         
@@ -61,7 +61,8 @@ class ApiController(BaseController):
         if str(method).lower() == 'tile':
             x = request.GET['x']
             y = request.GET['y']
-            png = os.path.join(app_globals.ECOTILE_DIR, region_id, zoom, x, y + '.png')        
+            z = request.GET['zoom']
+            png = os.path.join(app_globals.ECOTILE_DIR, region_id, z, x, y + '.png')        
             if os.path.exists(png):
                 logging.info('Returning tile : ' + png)
                 response.headers['Content-Type'] = 'image/png'
@@ -82,27 +83,33 @@ class ApiController(BaseController):
             lowy = request.GET['lowy']
             highx = request.GET['highx']
             highy = request.GET['highy']
-            zoom = int(zoom)
+            zoom = int(request.GET['zoom'])
             shp = os.path.join(app_globals.ECOSHP_DIR, region_id + '.shp')        
             if os.path.exists(shp):
                 logging.info('Sending tiling job to queue : ' + shp)
                 response.status = 200
                 
                 tmp_xml = open(app_globals.ECO_MAP_XML, 'r').read().replace('layer_name', region_id) 
-                mapfile = app_globals.ECOSHP_DIR +'/'+ region_id + '.mapfile.xml')
-                logging.info('Creating mapfile: %s' + (mapfile))     
+                mapfile = str(app_globals.ECOSHP_DIR +'/'+ region_id + '.mapfile.xml')
+                logging.info('Creating mapfile: %s' % (mapfile))     
                 open(mapfile, "w+").write(tmp_xml)
                 
                 bbox = (float(lowx), float(lowy), float(highx), float(highy))
-                logging.info('Tiling %s found : %s' % (region_id,str(bbox)))      
+                logging.info('Tiling %s with bbox: %s' % (region_id,str(bbox)))      
                 
+                tile_dir =  app_globals.ECOTILE_DIR.rstrip('/') + "/" + region_id +"/"
+                    
+                if not os.path.isdir(tile_dir):
+                    os.mkdir(tile_dir)
+                    
                 GenerateTiles.render_tiles(bbox,
                                            mapfile,
-                                           app_globals.ECOTILE_DIR.rstrip('/') + "/",
+                                           tile_dir,
                                            zoom,
                                            zoom+1,
                                            "MOL-ECOREGION",
-                                           num_threads=app_globals.TILE_QUEUE_THREADS )
-                                   
+                                           num_threads=app_globals.TILE_QUEUE_THREADS)
+                response.status = 200   
+                return
             logging.info('Region not found : ' + shp)        
             response.status = 404

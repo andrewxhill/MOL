@@ -102,6 +102,7 @@ class RenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(render_size, render_size)
         mapnik.render(self.m, im)
+        print tile_uri
         im.save(tile_uri, 'png')
 
 
@@ -122,7 +123,7 @@ class RenderThread:
                 self.render_tile(tile_uri, x, y, z)
             bytes = os.stat(tile_uri)[6]
             empty = ''
-            if bytes == 103:
+            if bytes == 334:
                 empty = " Empty Tile "
                 os.remove(tile_uri)
             self.printLock.acquire()
