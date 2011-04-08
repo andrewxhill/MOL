@@ -100,7 +100,7 @@ class ApiController(BaseController):
                                            mapfile,
                                            app_globals.ECOTILE_DIR.rstrip('/') + "/",
                                            zoom,
-                                           zoom+1
+                                           zoom+1,
                                            "MOL-ECOREGION",
                                            num_threads=app_globals.TILE_QUEUE_THREADS )
                                    
