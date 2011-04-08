@@ -380,11 +380,13 @@ MOL.modules.Search = function(mol) {
                 }
                 for (r in layers){
                     var res = layers[r],
-                        typeImg = fw.getTypeImg(),
-                        sourceImg = fw.getSourceImg(),
+                        typeImg = fw ? fw.getTypeImg() : null,
+                        sourceImg = fw ? fw.getSourceImg() : null,
                         resultWidgets = this._resultWidgets || [];
                     
-                    fw = display.getNewResult(),
+                    fw = display.getNewResult();
+                    typeImg = fw.getTypeImg();
+                    sourceImg = fw.getSourceImg();
 
                     resultWidgets.push({widget:fw, source:res.source, type:res.type, name:res.name});
 
