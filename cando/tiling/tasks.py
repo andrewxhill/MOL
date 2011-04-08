@@ -154,3 +154,43 @@ class LayerProcessingThread(Task):
         # Notifies queue that this formerly enqueued task is complete:
         logging.info('Task complete')
 
+
+
+class EcoregionProcessingThread(Task):
+    def run(self, fulpath, outpath, zoom, lowx, lowy, highx, highy):
+        """Tiles a shapefile specified in the task and registers metadata with
+        GAE.
+
+        Arguments:
+            task - an item from the queue expected to have shapfile path
+        """
+        self.g = Globals()
+        ERR_DIR "/ftp/ecoregion/error"
+        ECO_DIR "/ftp/ecoregion/tile"
+        logging.info('Starting new task')
+        # Executes the job      
+        layer = None
+        # Sets the error log file:
+        tail = os.path.split(fullpath)[1]
+        root = os.path.splitext(tail)[0]
+        errpath = os.path.join(ERR_DIR, '%s.log' % root)
+        self.errlog = open(errpath, 'a+')
+        
+        bbox = (float(lowx), float(lowy), float(highx), float(highy))
+        
+        GenerateTiles.render_tiles(bbox,
+                                   fullpath,
+                                   ECO_DIR.rstrip('/') + "/",
+                                   zoom,
+                                   zoom,
+                                   "MOL-ECOREGION",
+                                   num_threads=g.TILE_QUEUE_THREADS )
+                                                          
+        logging.info('Layer created: ' + fullpath)
+        logging.info('Layers tiled in ' + ECO_DIR)
+        logging.info('Layer metadata getting registered...')
+        logging.info('Layer getting cleaned up...')
+        os.remove(errpath)
+        # Notifies queue that this formerly enqueued task is complete:
+        logging.info('Task complete')
+

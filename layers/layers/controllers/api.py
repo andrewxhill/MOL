@@ -47,32 +47,55 @@ class ApiController(BaseController):
             return open(png, 'rb').read()
         logging.info('Tile not found : ' + png)        
         response.status = 404
-    """
-    def scan(self):
-        '''Scans the local filesystem for new shape files and adds them to the
-        worker queue to process. Intended to be invoked by GAE.
-        '''        
-        scan_dir = app_globals.NEW_SHP_SCAN_DIR
-        logging.info(scan_dir)
-        if not scan_dir:
+        
+        
+    def ecoregion(self, method, region_id, zoom):
+        '''This action returns PNG data with the response header Content-Type 
+        set to image/png with a 200 status code. It handles URLs of the form:
+        
+        http://mol.colorado.edu/ecoregion/region_id/zoom/x/y.png
+        
+        If a tile isn't found a 404 status is returned.
+        '''
+        if str(method).lower() == 'tile':
+            x = request.GET['x']
+            y = request.GET['y']
+            png = os.path.join(app_globals.ECOTILE_DIR, region_id, zoom, x, y + '.png')        
+            if os.path.exists(png):
+                logging.info('Returning tile : ' + png)
+                response.headers['Content-Type'] = 'image/png'
+                response.status = 200
+                return open(png, 'rb').read()
+            logging.info('Tile not found : ' + png)        
             response.status = 404
-            return
-        newitems = [] 
-        layerCt = 0
-        for item in os.listdir(scan_dir):
-            if os.path.splitext(item)[1] != '.shp':
-                pass
-                #full_path = os.path.join(scan_dir, item)
-                #if not os.path.isdir(full_path):
-                #    continue
-            else:
-                logging.info(item)
-                shp_full_path = os.path.join(scan_dir, item) #  '%s%s%s.shp' % (full_path, os.path.sep, item)
-                if shp_full_path not in app_globals.QUEUED_LAYERS.keys() and layerCt < 5:
-                    worker_q.put({app_globals.Q_ITEM_JOB_TYPE: app_globals.NEW_SHP_JOB_TYPE,
-                                  app_globals.Q_ITEM_FULL_PATH: shp_full_path})
-                    newitems.append(shp_full_path)
-                    layerCt += 1
-        response.status = 202
-        return simplejson.dumps({'newitems':newitems, 'qsize':str(worker_q.qsize())})
-    """
+            
+        elif str(method).lower() == 'tilefarea':
+            '''This action returns PNG data with the response header Content-Type 
+            set to image/png with a 200 status code. It handles URLs of the form:
+            
+            http://mol.colorado.edu/ecoregion/region_id/zoom/x/y.png
+            
+            If a tile isn't found a 404 status is returned.
+            '''
+            lowx = request.GET['lowx']
+            lowy = request.GET['lowy']
+            highx = request.GET['highx']
+            highy = request.GET['highy']
+            shp = os.path.join(app_globals.ECOSHP_DIR, region_id, '.shp')        
+            if os.path.exists(shp):
+                logging.info('Sending tiling job to queue : ' + shp)
+                response.status = 200
+                
+                tmp_xml = open(app_globals.MAP_XML, 'r').read().replace('layer_name', region_id)
+                mapfile = os.path.join(app_globals.ECOSHP_DIR , region_id , '.xml')
+                bbox = (float(lowx), float(lowy), float(highx), float(highy))
+                GenerateTiles.render_tiles(bbox,
+                                           mapfile,
+                                           app_globals.ECOTILE_DIR.rstrip('/') + "/",
+                                           zoom,
+                                           zoom,
+                                           "MOL-ECOREGION",
+                                           num_threads=4 )
+                                   
+            logging.info('Region not found : ' + shp)        
+            response.status = 404

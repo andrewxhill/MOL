@@ -17,6 +17,8 @@ class Globals(object):
         self.TILE_DIR = '/ftp/tile'
         self.NEW_SHP_SCAN_DIR = '/ftp/new/animalia/species'
         self.TILE_DIR = "/ftp/tile/animalia/species"
+        self.ECOTILE_DIR = "/ftp/ecoregion/tile"
+        self.ECOSHP_DIR = "/ftp/ecoregion/shp"
         self.ERR_DIR = "/ftp/error/"
         self.SRC_DIR = "/ftp/new/"
         self.DST_DIR = "/ftp/archive/"
