@@ -82,6 +82,7 @@ class ApiController(BaseController):
             lowy = request.GET['lowy']
             highx = request.GET['highx']
             highy = request.GET['highy']
+            zoom = int(zoom)
             shp = os.path.join(app_globals.ECOSHP_DIR, region_id + '.shp')        
             if os.path.exists(shp):
                 logging.info('Sending tiling job to queue : ' + shp)
@@ -99,7 +100,7 @@ class ApiController(BaseController):
                                            mapfile,
                                            app_globals.ECOTILE_DIR.rstrip('/') + "/",
                                            zoom,
-                                           zoom+1,
+                                           zoom+1
                                            "MOL-ECOREGION",
                                            num_threads=app_globals.TILE_QUEUE_THREADS )
                                    
