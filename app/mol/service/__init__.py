@@ -65,6 +65,9 @@ class LayerType(object):
     @constant
     def POLYGON():
         return 'polygon'
+    @constant
+    def ECOREGION():
+        return 'ecoregion'
 
 class LayerSource(object):
     @constant
@@ -73,6 +76,9 @@ class LayerSource(object):
     @constant
     def MOL():
         return 'mol'
+    @constant
+    def WWF():
+        return 'wwf'
     
 class LayerService(object):
 
@@ -257,6 +263,270 @@ class GbifLayerProvider(LayerProvider):
                      "name2" : query.get('name2'), 
                      "source": "GBIF",
                      "type": "points",
+                     "count": content["records"]
+                    } 
+                }
+            }
+
+
+class EcoregionLayerProvider(LayerProvider):
+    
+    def __init__(self):
+        types = [LayerType.ECOREGION]
+        sources = [LayerSource.WWF]
+        super(GbifLayerProvider, self).__init__(types, sources)        
+        
+    def getdata(self, query):
+        """TODO: add a new table to datastore that maps species
+            to ecoregion ids"""
+        return {
+            "source": "WWF",
+            "sourceUrl": "http://mappinglife.org/path/to/data/for/puma_concolor",
+            "totalRegions": 202,
+            "accessDate": str(datetime.datetime.now()),
+            "regions": {
+                "NA0417": {"introduced": False, "name": "Willamette Valley forests"},
+                "NA0505": {"introduced": False, "name": "Blue Mountains forests"},
+                "NA0506": {"introduced": False, "name": "British Columbia mainland coastal forests"},
+                "NA0507": {"introduced": False, "name": "Cascade Mountains leeward forests"},
+                "NA0508": {"introduced": False, "name": "Central and Southern Cascades forests"},
+                "NA0511": {"introduced": False, "name": "Colorado Rockies forests"},
+                "NA0519": {"introduced": False, "name": "Northern California coastal forests"},
+                "NA0526": {"introduced": False, "name": "Sierra Juarez and San Pedro Martir pine-oak forests"},
+                "NA0803": {"introduced": False, "name": "Central and Southern mixed grasslands"},
+                "NA0808": {"introduced": False, "name": "Montana Valley and Foothill grasslands"},
+                "NA0813": {"introduced": False, "name": "Palouse grasslands"},
+                "NA0814": {"introduced": False, "name": "Texas blackland prairies"},
+                "NA1201": {"introduced": False, "name": "California coastal sage and chaparral"},
+                "NA1304": {"introduced": False, "name": "Colorado Plateau shrublands"},
+                "NA1305": {"introduced": False, "name": "Great Basin shrub steppe"},
+                "NA1306": {"introduced": False, "name": "Gulf of California xeric scrub"},
+                "NA1308": {"introduced": False, "name": "Mojave desert"},
+                "NA1311": {"introduced": False, "name": "Tamaulipan matorral"},
+                "NT0102": {"introduced": False, "name": "Atlantic Coast restingas"},
+                "NT0103": {"introduced": False, "name": "Bahia coastal forests"},
+                "NT0104": {"introduced": False, "name": "Bahia interior forests"},
+                "NT0106": {"introduced": False, "name": "Caatinga Enclaves moist forests"},
+                "NT0107": {"introduced": False, "name": "Caqueta moist forests"},
+                "NT0108": {"introduced": False, "name": "Catatumbo moist forests"},
+                "NT0111": {"introduced": False, "name": "Central American Atlantic moist forests"},
+                "NT0121": {"introduced": False, "name": "Eastern Cordillera real montane forests"},
+                "NT0122": {"introduced": False, "name": "Eastern Panamanian montane forests"},
+                "NT0124": {"introduced": False, "name": "Guianan Highlands moist forests"},
+                "NT0130": {"introduced": False, "name": "Isthmian-Pacific moist forests"},
+                "NT0132": {"introduced": False, "name": "Japur-Solimoes-Negro moist forests"},
+                "NT0135": {"introduced": False, "name": "Madeira-Tapajs moist forests"},
+                "NT0137": {"introduced": False, "name": "Magdalena-Urab moist forests"},
+                "NT0140": {"introduced": False, "name": "Mato Grosso seasonal forests"},
+                "NT0148": {"introduced": False, "name": "Pantanos de Centla"},
+                "NT0151": {"introduced": False, "name": "Pernambuco coastal forests"},
+                "NT0157": {"introduced": False, "name": "Purus-Madeira moist forests"},
+                "NT0162": {"introduced": False, "name": "Sierra Madre de Chiapas moist forests"},
+                "NT0163": {"introduced": False, "name": "Solimes-Japur moist forests"},
+                "NT0165": {"introduced": False, "name": "Southern Andean Yungas"},
+                "NT0166": {"introduced": False, "name": "Southwest Amazon moist forests"},
+                "NT0167": {"introduced": False, "name": "Talamancan montane forests"},
+                "NT0175": {"introduced": False, "name": "Venezuelan Andes montane forests"},
+                "NT0177": {"introduced": False, "name": "Veracruz montane forests"},
+                "NT0181": {"introduced": False, "name": "Yucatn moist forests"},
+                "NT0182": {"introduced": False, "name": "Guianan piedmont and lowland moist forests"},
+                "NT0201": {"introduced": False, "name": "Apure-Villavicencio dry forests"},
+                "NT0202": {"introduced": False, "name": "Atlantic dry forests"},
+                "NT0205": {"introduced": False, "name": "Balsas dry forests"},
+                "NT0224": {"introduced": False, "name": "Panamanian dry forests"},
+                "NT0225": {"introduced": False, "name": "Pata Valley dry forests"},
+                "NT0228": {"introduced": False, "name": "Sinaloan dry forests"},
+                "NT0229": {"introduced": False, "name": "Sin Valley dry forests"},
+                "NT0306": {"introduced": False, "name": "Miskito pine forests"},
+                "NT0309": {"introduced": False, "name": "Sierra Madre del Sur pine-oak forests"},
+                "NT0702": {"introduced": False, "name": "Beni savanna"},
+                "NT0704": {"introduced": False, "name": "Cerrado"},
+                "NT0707": {"introduced": False, "name": "Guianan savanna"},
+                "NT0801": {"introduced": False, "name": "Espinal"},
+                "NT0904": {"introduced": False, "name": "Everglades"},
+                "NT0906": {"introduced": False, "name": "Orinoco wetlands"},
+                "NT0907": {"introduced": False, "name": "Pantanal"},
+                "NT1008": {"introduced": False, "name": "Southern Andean steppe"},
+                "NT1308": {"introduced": False, "name": "Guajira-Barranquilla xeric scrub"},
+                "NT1316": {"introduced": False, "name": "Tehuacn Valley matorral"},
+                "NT1401": {"introduced": False, "name": "Amazon-Orinoco-Southern Caribbean mangroves"},
+                "NT1404": {"introduced": False, "name": "Northern Mesoamerican Pacific mangroves"},
+                "NT1406": {"introduced": False, "name": "Southern Atlantic mangroves"},
+                "NA0303": {"introduced": False, "name": "Sierra Madre Oriental pine-oak forests"},
+                "NA0521": {"introduced": False, "name": "Northern transitional alpine forests"},
+                "NA0522": {"introduced": False, "name": "Okanagan dry forests"},
+                "NA0523": {"introduced": False, "name": "Piney Woods forests"},
+                "NA0804": {"introduced": False, "name": "Central forest-grasslands transition"},
+                "NA0806": {"introduced": False, "name": "Edwards Plateau savanna"},
+                "NA1303": {"introduced": False, "name": "Chihuahuan desert"},
+                "NT0136": {"introduced": False, "name": "Magdalena Valley montane forests"},
+                "NT0156": {"introduced": False, "name": "Purus varze"},
+                "NT0161": {"introduced": False, "name": "Sierra de los Tuxtlas"},
+                "NT0176": {"introduced": False, "name": "Veracruz moist forests"},
+                "NT0206": {"introduced": False, "name": "Bolivian montane dry forests"},
+                "NT0207": {"introduced": False, "name": "Cauca Valley dry forests"},
+                "NT0310": {"introduced": False, "name": "Trans-Mexican Volcanic Belt pine-oak forests"},
+                "NT0404": {"introduced": False, "name": "Valdivian temperate forests"},
+                "NT0708": {"introduced": False, "name": "Humid Chaco"},
+                "NT0805": {"introduced": False, "name": "Patagonian steppe"},
+                "NA0201": {"introduced": False, "name": "Sonoran-Sinaloan transition subtropical dry forest"},
+                "NA0302": {"introduced": False, "name": "Sierra Madre Occidental pine-oak forests"},
+                "NA0405": {"introduced": False, "name": "East Central Texas forests"},
+                "NA0502": {"introduced": False, "name": "Alberta-British Columbia foothills forests"},
+                "NA0503": {"introduced": False, "name": "Arizona Mountains forests"},
+                "NA0509": {"introduced": False, "name": "Central British Columbia Mountain forests"},
+                "NA0512": {"introduced": False, "name": "Eastern Cascades forests"},
+                "NA0514": {"introduced": False, "name": "Fraser Plateau and Basin complex"},
+                "NA0515": {"introduced": False, "name": "Great Basin montane forests"},
+                "NA0516": {"introduced": False, "name": "Klamath-Siskiyou forests"},
+                "NA0518": {"introduced": False, "name": "North Central Rockies forests"},
+                "NA0520": {"introduced": False, "name": "Northern Pacific coastal forests"},
+                "NA0524": {"introduced": False, "name": "Puget lowland forests"},
+                "NA0527": {"introduced": False, "name": "Sierra Nevada forests"},
+                "NA0528": {"introduced": False, "name": "South Central Rockies forests"},
+                "NA0608": {"introduced": False, "name": "Mid-Continental Canadian forests"},
+                "NA0613": {"introduced": False, "name": "Northern Cordillera forests"},
+                "NA0801": {"introduced": False, "name": "California Central Valley grasslands"},
+                "NA0802": {"introduced": False, "name": "Canadian Aspen forests and parklands"},
+                "NA0809": {"introduced": False, "name": "Nebraska Sand Hills mixed grasslands"},
+                "NA0810": {"introduced": False, "name": "Northern mixed grasslands"},
+                "NA0811": {"introduced": False, "name": "Northern short grasslands"},
+                "NA1202": {"introduced": False, "name": "California interior chaparral and woodlands"},
+                "NA1203": {"introduced": False, "name": "California montane chaparral and woodlands"},
+                "NA1301": {"introduced": False, "name": "Baja California desert"},
+                "NA1307": {"introduced": False, "name": "Meseta Central matorral"},
+                "NA1309": {"introduced": False, "name": "Snake-Columbia shrub steppe"},
+                "NA1313": {"introduced": False, "name": "Wyoming Basin shrub steppe"},
+                "NT0101": {"introduced": False, "name": "Araucaria moist forests"},
+                "NT0105": {"introduced": False, "name": "Bolivian Yungas"},
+                "NT0109": {"introduced": False, "name": "Cauca Valley montane forests"},
+                "NT0112": {"introduced": False, "name": "Central American montane forests"},
+                "NT0113": {"introduced": False, "name": "Chiapas montane forests"},
+                "NT0114": {"introduced": False, "name": "Chimalapas montane forests"},
+                "NT0115": {"introduced": False, "name": "Choc-Darin moist forests"},
+                "NT0118": {"introduced": False, "name": "Cordillera Oriental montane forests"},
+                "NT0119": {"introduced": False, "name": "Costa Rican seasonal moist forests"},
+                "NT0125": {"introduced": False, "name": "Guianan moist forests"},
+                "NT0128": {"introduced": False, "name": "Iquitos varze"},
+                "NT0129": {"introduced": False, "name": "Isthmian-Atlantic moist forests"},
+                "NT0133": {"introduced": False, "name": "Juru-Purus moist forests"},
+                "NT0138": {"introduced": False, "name": "Maraj varze"},
+                "NT0139": {"introduced": False, "name": "Maranho Babau forests"},
+                "NT0141": {"introduced": False, "name": "Monte Alegre varze"},
+                "NT0142": {"introduced": False, "name": "Napo moist forests"},
+                "NT0143": {"introduced": False, "name": "Negro-Branco moist forests"},
+                "NT0144": {"introduced": False, "name": "Northeastern Brazil restingas"},
+                "NT0146": {"introduced": False, "name": "Oaxacan montane forests"},
+                "NT0147": {"introduced": False, "name": "Orinoco Delta swamp forests"},
+                "NT0149": {"introduced": False, "name": "Guianan freshwater swamp forests"},
+                "NT0150": {"introduced": False, "name": "Alto Paran Atlantic forests"},
+                "NT0152": {"introduced": False, "name": "Pernambuco interior forests"},
+                "NT0153": {"introduced": False, "name": "Peruvian Yungas"},
+                "NT0154": {"introduced": False, "name": "Petn-Veracruz moist forests"},
+                "NT0158": {"introduced": False, "name": "Rio Negro campinarana"},
+                "NT0159": {"introduced": False, "name": "Santa Marta montane forests"},
+                "NT0160": {"introduced": False, "name": "Serra do Mar coastal forests"},
+                "NT0164": {"introduced": False, "name": "South Florida rocklands"},
+                "NT0168": {"introduced": False, "name": "Tapajs-Xingu moist forests"},
+                "NT0169": {"introduced": False, "name": "Pantepui"},
+                "NT0173": {"introduced": False, "name": "Uatuma-Trombetas moist forests"},
+                "NT0174": {"introduced": False, "name": "Ucayali moist forests"},
+                "NT0178": {"introduced": False, "name": "Western Ecuador moist forests"},
+                "NT0180": {"introduced": False, "name": "Xingu-Tocantins-Araguaia moist forests"},
+                "NT0204": {"introduced": False, "name": "Bajo dry forests"},
+                "NT0209": {"introduced": False, "name": "Central American dry forests"},
+                "NT0210": {"introduced": False, "name": "Dry Chaco"},
+                "NT0211": {"introduced": False, "name": "Chiapas Depression dry forests"},
+                "NT0212": {"introduced": False, "name": "Chiquitano dry forests"},
+                "NT0214": {"introduced": False, "name": "Ecuadorian dry forests"},
+                "NT0217": {"introduced": False, "name": "Jalisco dry forests"},
+                "NT0221": {"introduced": False, "name": "Magdalena Valley dry forests"},
+                "NT0227": {"introduced": False, "name": "Sierra de la Laguna dry forests"},
+                "NT0230": {"introduced": False, "name": "Southern Pacific dry forests"},
+                "NT0232": {"introduced": False, "name": "Tumbes-Piura dry forests"},
+                "NT0233": {"introduced": False, "name": "Veracruz dry forests"},
+                "NT0235": {"introduced": False, "name": "Yucatn dry forests"},
+                "NT0302": {"introduced": False, "name": "Belizian pine forests"},
+                "NT0303": {"introduced": False, "name": "Central American pine-oak forests"},
+                "NT0308": {"introduced": False, "name": "Sierra Madre de Oaxaca pine-oak forests"},
+                "NT0703": {"introduced": False, "name": "Campos Rupestres montane savanna"},
+                "NT0709": {"introduced": False, "name": "Llanos"},
+                "NT0710": {"introduced": False, "name": "Uruguayan savanna"},
+                "NT0802": {"introduced": False, "name": "Low Monte"},
+                "NT0905": {"introduced": False, "name": "Guayaquil flooded grasslands"},
+                "NT0908": {"introduced": False, "name": "Paran flooded savanna"},
+                "NT1001": {"introduced": False, "name": "Central Andean dry puna"},
+                "NT1002": {"introduced": False, "name": "Central Andean puna"},
+                "NT1003": {"introduced": False, "name": "Central Andean wet puna"},
+                "NT1005": {"introduced": False, "name": "Cordillera de Merida pramo"},
+                "NT1007": {"introduced": False, "name": "Santa Marta pramo"},
+                "NT1010": {"introduced": False, "name": "High Monte"},
+                "NT1201": {"introduced": False, "name": "Chilean matorral"},
+                "NT1303": {"introduced": False, "name": "Atacama desert"},
+                "NT1304": {"introduced": False, "name": "Caatinga"},
+                "NT1312": {"introduced": False, "name": "Motagua Valley thornscrub"},
+                "NT1314": {"introduced": False, "name": "San Lucan xeric scrub"},
+                "NT1315": {"introduced": False, "name": "Sechura desert"},
+                "NT1403": {"introduced": False, "name": "Mesoamerican Gulf-Caribbean mangroves"},
+                "NT1405": {"introduced": False, "name": "South American Pacific mangroves"},
+                "NT1407": {"introduced": False, "name": "Southern Mesoamerican Pacific mangroves"},
+                "NA0510": {"introduced": False, "name": "Central Pacific coastal forests"},
+                "NA0815": {"introduced": False, "name": "Western short grasslands"},
+                "NA1302": {"introduced": False, "name": "Central Mexican matorral"},
+                "NA1310": {"introduced": False, "name": "Sonoran desert"},
+                "NA1312": {"introduced": False, "name": "Tamaulipan mezquital"},
+                "NT0126": {"introduced": False, "name": "Gurupa varze"},
+                "NT0170": {"introduced": False, "name": "Tocantins/Pindare moist forests"},
+                "NT0222": {"introduced": False, "name": "Maracaibo dry forests"},
+                "NT0402": {"introduced": False, "name": "Magellanic subpolar forests"},
+                "NA0701": {"introduced": False, "name": "Western Gulf coastal grasslands"},
+                "NA1117": {"introduced": False, "name": "Pacific Coastal Mountain icefields and tundra"},
+                "NT0145": {"introduced": False, "name": "Northwestern Andean montane forests"},
+                "NT1006": {"introduced": False, "name": "Northern Andean pramo"},
+                "NA0501": {"introduced": False, "name": "Alberta Mountain forests"},
+                "NA0530": {"introduced": False, "name": "Wasatch and Uinta montane forests"},
+                "NT0307": {"introduced": False, "name": "Sierra de la Laguna pine-oak forests"},
+                "NT0909": {"introduced": False, "name": "Southern Cone Mesopotamian savanna"},
+            }
+        }
+    def getprofile(self, query, url, content):
+        return {    
+            "query": {
+                "search": query.get('sciname'),
+                "source": "http://mappinglife.org/path/to/data/for/puma_concolor",
+                "type": "ecoregions"
+                },
+            
+            "types": {
+                "ecoregions": {
+                    "names": [query.get('sciname')],
+                    "sources": ["WWF"],
+                    "layers": [0]
+                    }      
+                },
+            
+            "sources": {
+                "ecoregions": {
+                    "names": [query.get('sciname')],
+                    "types": ["ecoregions"],
+                    "layers": [0]
+                    }, 
+                },
+            
+            "names": {
+                query.get('sciname'): {
+                    "sources": ["WWF"],
+                    "layers": [0],
+                    "types": ["ecoregions"]
+                    },
+                },
+            
+            "layers": {
+                0 : {"name" : query.get('sciname'),
+                     "name2" : "WWF Ecoregions", 
+                     "source": "WWF",
+                     "type": "ecoregions",
+                     "count": content["regions"]
                     } 
                 }
             }
