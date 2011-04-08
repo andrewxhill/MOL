@@ -369,7 +369,9 @@ MOL.modules.Search = function(mol) {
             },
 
             _displayPage: function(layers) {
-                var display = this._display;
+                var display = this._display,
+                    fw = null;
+
 
                 display.clearResults();
                 //display.clearFilters();
@@ -378,11 +380,14 @@ MOL.modules.Search = function(mol) {
                 }
                 for (r in layers){
                     var res = layers[r],
-                        fw = display.getNewResult(),
-                        typeImg = fw.getTypeImg(),
-                        sourceImg = fw.getSourceImg(),
+                        typeImg = fw ? fw.getTypeImg() : null,
+                        sourceImg = fw ? fw.getSourceImg() : null,
                         resultWidgets = this._resultWidgets || [];
                     
+                    fw = display.getNewResult();
+                    typeImg = fw.getTypeImg();
+                    sourceImg = fw.getSourceImg();
+
                     resultWidgets.push({widget:fw, source:res.source, type:res.type, name:res.name});
 
                     fw.getName().text(res.name);
