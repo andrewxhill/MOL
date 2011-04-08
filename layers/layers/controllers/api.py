@@ -88,8 +88,8 @@ class ApiController(BaseController):
                 logging.info('Sending tiling job to queue : ' + shp)
                 response.status = 200
                 
-                tmp_xml = open(app_globals.MAP_XML, 'r').read().replace('layer_name', region_id) 
-                mapfile = os.path.join(app_globals.ECOSHP_DIR , region_id + '.mapfile.xml')
+                tmp_xml = open(app_globals.ECO_MAP_XML, 'r').read().replace('layer_name', region_id) 
+                mapfile = app_globals.ECOSHP_DIR +'/'+ region_id + '.mapfile.xml')
                 logging.info('Creating mapfile: %s' + (mapfile))     
                 open(mapfile, "w+").write(tmp_xml)
                 
