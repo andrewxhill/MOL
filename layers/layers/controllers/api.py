@@ -16,6 +16,7 @@
 #
 from layers.lib.base import BaseController
 from layers.lib.taskqueue import worker_q
+from layers.lib.mol.service import GenerateTiles
 from pylons import response, request, app_globals
 import logging
 import os
