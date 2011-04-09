@@ -115,19 +115,19 @@ class RenderThread:
                 break
             else:
                 (name, tile_uri, x, y, z) = r
-
-            exists = ""
-            if os.path.isfile(tile_uri):
-                exists = "exists"
-            else:
-                self.render_tile(tile_uri, x, y, z)
-            """
+            
+            self.render_tile(tile_uri, x, y, z)
+            
             bytes = os.stat(tile_uri)[6]
             empty = ''
             if bytes == 334:
+                print tile_uri + ' empty'
                 empty = " Empty Tile "
+                #remove the png
                 os.remove(tile_uri)
-            """
+                #create an empty file placeholder
+                open(tile_uri.replace('.png','.null'), "w+")
+            
             self.printLock.acquire()
             #print name, ":", z, x, y, exists, empty
             self.printLock.release()
@@ -135,9 +135,9 @@ class RenderThread:
 
 
 
-def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown", num_threads=1):
+def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown", num_threads=1, overwrite=True):
     #print "render_tiles(", bbox, mapfile, tile_dir, minZoom, maxZoom, name, ")"
-
+    print 'Rendering:'
     # Launch rendering threads
     queue = Queue(32)
     printLock = threading.Lock()
@@ -180,9 +180,17 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
                 str_y = "%s" % y
                 tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'  
                 null_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.null'  
-                #skip existing tiles     
+                #skip existing tiles 
+                
                 if os.path.exists(tile_uri) or os.path.exists(null_uri):
-                    pass
+                    if overwrite:
+                        try:
+                            os.remove(tile_uri)
+                        except:
+                            pass
+                        # Submit tile to be rendered into the queue
+                        t = (name, tile_uri, x, y, z)
+                        queue.put(t)
                 else:
                     # Submit tile to be rendered into the queue
                     t = (name, tile_uri, x, y, z)

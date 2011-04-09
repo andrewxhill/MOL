@@ -22,6 +22,7 @@ import logging
 import os
 import simplejson
 from layers.lib.mol.service import Layer
+import math
 
 log = logging.getLogger(__name__)
 
@@ -50,19 +51,107 @@ class ApiController(BaseController):
         response.status = 404
         
     def ecoregion(self, method, name):
-        if str(method).lower() == 'tile':
+        if method=='tile':
+            overwrite = False
+            try:
+                if str(request.GET['overwrite']).strip().lower() == 'true':
+                    overwrite = True
+            except:
+                pass
+            newmapfile = False
+            try:
+                if str(request.GET['newmapfile']).strip().lower() == 'true':
+                    newmapfile = True
+            except:
+                pass
+            logging.error(overwrite)
             x = request.GET['x']
             y = request.GET['y']
             z = request.GET['zoom']
-            png = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.png')        
+            name = name.strip('.png')
+            
+            png = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.png')   
+            nullPng = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.null') 
+              
+            if overwrite or (not os.path.exists(png) and not os.path.exists(nullPng)):
+                try:
+                    region_ids = request.GET['region_ids'].split(',')
+                except:
+                    region_ids = [name]
+                tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
+                                <!DOCTYPE Map>
+                                <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
+                                  <Style name="style">
+                                    <Rule>
+                                      <PolygonSymbolizer>
+                                        <CssParameter name="fill">#000000</CssParameter>
+                                      </PolygonSymbolizer>
+                                      <LineSymbolizer>
+                                        <CssParameter name="stroke">#000000</CssParameter>
+                                        <CssParameter name="stroke-width">0.0</CssParameter>
+                                      </LineSymbolizer>
+                                    </Rule>
+                                  </Style>"""
+                mapfile = str(app_globals.ECOSHP_DIR +'/'+ name + '.mapfile.xml')
+                
+                logging.info('Creating mapfile: %s' % (mapfile))  
+                             
+                pixels = 256
+                
+                res = (2 * math.pi * 6378137 / pixels) / (2**int(z))
+                sh = 2 * math.pi * 6378137 / 2.0
+        
+                gy = (2**float(z) - 1) - int(y)
+                minx, miny = ((float(x)*pixels) * res - sh),      (((float(gy))*pixels) * res - sh)
+                maxx, maxy = (((float(x)+1)*pixels) * res - sh),  (((float(gy)+1)*pixels) * res - sh)
+                
+                minx, maxx = (minx / sh) * 180.0, (maxx / sh) * 180.0
+                miny, maxy = (miny / sh) * 180.0, (maxy / sh) * 180.0
+                miny = 180 / math.pi * (2 * math.atan( math.exp( miny * math.pi / 180.0)) - math.pi / 2.0)
+                maxy = 180 / math.pi * (2 * math.atan( math.exp( maxy * math.pi / 180.0)) - math.pi / 2.0)
+                
+                bbox = (minx, miny, maxx, maxy)
+                
+                logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
+                    
+                ct=0
+                for id in region_ids:
+                    shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
+                    if os.path.exists(shp):
+                        ct+=1
+                        tmp_xml += """
+                                <Layer name="layer_name" srs="+proj=latlong +datum=WGS84">
+                                <StyleName>style</StyleName>
+                                <Datasource>
+                                  <Parameter name="type">shape</Parameter>
+                                  <Parameter name="file">layer_name</Parameter>
+                                </Datasource>
+                              </Layer>""".replace("layer_name",id)
+                        
+                tmp_xml += "</Map>"
+                if ct>0:
+                    tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
+                    if newmapfile or not os.path.exists(mapfile):
+                        open(mapfile, "w+").write(tmp_xml)
+                    if not os.path.isdir(tile_dir):
+                        os.mkdir(tile_dir)
+                    GenerateTiles.render_tiles(bbox,
+                                               mapfile,
+                                               tile_dir,
+                                               int(z),
+                                               int(z),
+                                               name,
+                                               num_threads=app_globals.TILE_QUEUE_THREADS,
+                                               overwrite=overwrite)                    
             if os.path.exists(png):
-                logging.info('Returning tile : ' + png)
+                logging.error('Returning tile : ' + png)
                 response.headers['Content-Type'] = 'image/png'
                 response.status = 200
                 return open(png, 'rb').read()
+                
             logging.info('Tile not found : ' + png)        
             response.status = 404
-        
+            
         elif str(method).lower() == 'tilearea':
             """ Takes one to many record_ids split by commas and a unique
                 name for the tileset you are creating.
@@ -77,7 +166,10 @@ class ApiController(BaseController):
                     name = 'animalia-mammalia-Andreus_andreus'
                     record_ids = 'NT103','NT445','NT6742'
             """
-            region_ids = request.GET['region_ids'].split(',')
+            try:
+                region_ids = request.GET['region_ids'].split(',')
+            except:
+                region_ids = [name]
             lowx = request.GET['lowx']
             lowy = request.GET['lowy']
             highx = request.GET['highx']
@@ -105,7 +197,7 @@ class ApiController(BaseController):
             logging.info('Creating mapfile: %s' % (mapfile))  
                             
             bbox = (float(lowx), float(lowy), float(highx), float(highy))
-            logging.info('Tiling %s with bbox: %s' % (region_id,str(bbox)))  
+            logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
                 
             ct=0
             for id in region_ids:
@@ -113,7 +205,7 @@ class ApiController(BaseController):
                 if os.path.exists(shp):
                     ct+=1
                     tmp_xml += """
-                            <Layer name="layer_name" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
+                            <Layer name="layer_name" srs="+proj=latlong +datum=WGS84">
                             <StyleName>style</StyleName>
                             <Datasource>
                               <Parameter name="type">shape</Parameter>
@@ -132,7 +224,8 @@ class ApiController(BaseController):
                                            zoom,
                                            zoom,
                                            name,
-                                           num_threads=app_globals.TILE_QUEUE_THREADS)
+                                           num_threads=app_globals.TILE_QUEUE_THREADS,
+                                           overwrite=False)
                 response.status = 200   
                 return
                 

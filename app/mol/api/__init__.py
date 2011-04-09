@@ -973,7 +973,7 @@ class EcoregionMetadata(webapp.RequestHandler):
         for key in obj.properties().keys():
             if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated', 
                         'remoteLocation', 'ecoName', 'realm', 'biome', 'ecoNum', 
-                        'ecoId', 'g200Region', 'g200Num', 'g200Biome', 'g200Stat']
+                        'ecoId', 'g200Region', 'g200Num', 'g200Biome', 'g200Stat']:
                 dict[key] = str(obj.properties()[key].__get__(obj, Ecoregion))
         dict['ecoCode'] = str(obj.key().name())
         return dict
@@ -1016,7 +1016,7 @@ class OccEcoregionsMetadata(webapp.RequestHandler):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
         for key in obj.properties().keys():
-            if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated']
+            if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated']:
                 dict[key] = str(obj.properties()[key].__get__(obj, OccEcoregions))
         return dict
 

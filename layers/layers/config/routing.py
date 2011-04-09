@@ -31,13 +31,16 @@ def make_map():
                 contoller='api',
                 action='tiles')
                 
-    map.connect('/{controller}/{action}/{method}/{region_id}',
-                contoller='api',
-                action='ecoregion')
-                
     map.connect('/{controller}/{action}/{method}/{name}',
                 contoller='api',
-                action='ecoregiongroup')
+                action='eco')
+    """
+    map.connect('/{controller}/{action}/{method}/{name}',
+                contoller='api',
+                action='ecoregion')
+    """
+                
+                
                 
 
     return map

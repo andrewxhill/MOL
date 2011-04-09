@@ -25,7 +25,7 @@ class OccEcoregions(db.Model):
 #Store a key-value lookup of metadata associated with a 
 #species-polygon link
 class OccPolygonMetadata(db.Model):
-    occType = db.StringPropert() 
+    occType = db.StringProperty() 
 
 #all the info about the Ecoregion polygons
 class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
