@@ -16,6 +16,33 @@
 #
 from google.appengine.ext import db
 
+#Store a link between either name-string and ecoRegion codes, or
+#between a MOL-Spec-Key and a list of ecoRegion codes
+class OccEcoregions(db.Model):
+    specName = db.StringProperty()
+    ecoRegions = db.StringListProperty()
+    
+#Store a key-value lookup of metadata associated with a 
+#species-polygon link
+class OccPolygonMetadata(db.Model):
+    occType = db.StringPropert() 
+
+#all the info about the Ecoregion polygons
+class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
+    ecoName = db.StringProperty()
+    realm = db.StringProperty()
+    biome = db.IntegerProperty()
+    ecoNum = db.IntegerProperty()
+    ecoId = db.IntegerProperty()
+    g200Region = db.StringProperty()
+    g200Num = db.IntegerProperty()
+    g200Biome = db.IntegerProperty()
+    g200Stat = db.IntegerProperty()
+    remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
+    extentNorthWest = db.GeoPtProperty()
+    extentSouthEast = db.GeoPtProperty()
+    dateCreated = db.DateTimeProperty(auto_now_add=True)
+    
 class TileSetIndex(db.Model):
     remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
     zoom = db.IntegerProperty() #max zoom available for the layer

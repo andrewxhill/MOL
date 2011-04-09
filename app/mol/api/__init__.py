@@ -964,9 +964,97 @@ class WebAppHandler(BaseHandler):
                 }
             }
 
+class EcoregionMetadata(webapp.RequestHandler):
+    """Method should be called as a first stop to any layer being loaded
+       When executed, it also starts tiling zoom zero tiles for the layer"""
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated', 
+                        'remoteLocation', 'ecoName', 'realm', 'biome', 'ecoNum', 
+                        'ecoId', 'g200Region', 'g200Num', 'g200Biome', 'g200Stat']
+                dict[key] = str(obj.properties()[key].__get__(obj, Ecoregion))
+        dict['ecoCode'] = str(obj.key().name())
+        return dict
 
+    def get(self, region_id=None):
+        self.post(region_id)
+
+    def post(self, region_id=None):
+        metadata = Ecoregion.get_by_key_name(region_id)
+        minx, maxy = obj.properties['extentNorthWest']
+        maxx, miny = obj.properties['extentSouthEast']
+        bboxurl = "http://mol.colorado.edu/layers/api/ecoregion/tilearea/" + \
+                  "{code}?record_ids={code}&zoom={z}&lowx={minx}&lowy={miny}&highx={maxx}&highy={maxy}"
+        bboxurl = bboxurl.replace("{code}",region_id)
+        bboxurl = bboxurl.replace("{z}",0)
+        bboxurl = bboxurl.replace("{minx}",minx)
+        bboxurl = bboxurl.replace("{maxx}",maxx)
+        bboxurl = bboxurl.replace("{miny}",miny)
+        bboxurl = bboxurl.replace("{maxy}",maxy)
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, bboxurl)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + record_id)
+            self.error(404) # Not found
+            
+        result = rpc.get_result() #TODO: Aaron is this really necessary here?
+            
+class OccEcoregionsMetadata(webapp.RequestHandler):
+    """Method should be called as a first stop to any layer being loaded
+       When executed, it also starts tiling zoom zero tiles for the layer
+       
+       Takes a unique ecoregion collection name, e.g., Puma_concolor and looks up
+       the ecoregions and returns the metadata while telling back end to create
+       a new tileset for this collection.
+       """
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated']
+                dict[key] = str(obj.properties()[key].__get__(obj, OccEcoregions))
+        return dict
+
+    def get(self, name=None):
+        self.post(name)
+
+    def post(self, name=None):
+        metadata = OccEcoregions.get_by_key_name(name)
+        minx, maxy = obj.properties['extentNorthWest']
+        maxx, miny = obj.properties['extentSouthEast']
+        bboxurl = "http://mol.colorado.edu/layers/api/ecoregion/tilearea/" + \
+                  "{code}?zoom={z}&lowx={minx}&lowy={miny}&highx={maxx}&highy={maxy}&region_ids="
+        
+        bboxurl = bboxurl.replace("{code}",region_id)
+        bboxurl = bboxurl.replace("{z}",0)
+        bboxurl = bboxurl.replace("{minx}",minx)
+        bboxurl = bboxurl.replace("{maxx}",maxx)
+        bboxurl = bboxurl.replace("{miny}",miny)
+        bboxurl = bboxurl.replace("{maxy}",maxy)
+        
+        cma = ""
+        for id in metadata.ecoRegions:
+            bboxurl+= cma + id
+            cma = ','
+            
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, bboxurl)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No index for ' + name)
+            self.error(404) # Not found
+            
+        result = rpc.get_result() #TODO: Aaron is this really necessary here?
+            
 class EcoregionTileHandler(BaseHandler):
-    def get(self, region_id):
+    def get(self, name):
         '''Handles a PNG map tile request according to the Google XYZ tile
         addressing scheme described here:
         
@@ -975,8 +1063,8 @@ class EcoregionTileHandler(BaseHandler):
             y - integer latitude pixel coordinate
             x - integer longitude pixel coordinate
         '''
-        region_id, ext = os.path.splitext(region_id)
-        logging.info('REGION ID ' + region_id)
+        name, ext = os.path.splitext(name)
+        logging.info('Ecoregion collection name ' + name)
         # Returns a 404 if there's no TileSetIndex for the species id since we
         # need it to calculate bounds and for the remote tile URL:
         # TODO: create region metadata datastore
@@ -1006,18 +1094,18 @@ class EcoregionTileHandler(BaseHandler):
         # Builds the tile image URL which is also the memcache key. It's of the
         # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
         #tileurl = metadata.remoteLocation
-        tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/NT1404?zoom={z}&x={x}&y={y}"
+        tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/{code}?zoom={z}&x={x}&y={y}"
         
         tileurl = tileurl.replace('{z}', zoom)
         tileurl = tileurl.replace('{x}', x)
         tileurl = tileurl.replace('{y}', y)
+        tileurl = tileurl.replace('{code}', name)
         
         logging.info('Tile URL ' + tileurl)
         
         # Starts an async fetch of tile in case we get a memcache/datastore miss:
         # TODO: Optimization would be to async fetch the 8 surrounding tiles.
         rpc = urlfetch.create_rpc()
-        #urlfetch.make_fetch_call(rpc, tileurl, payload=q)
         urlfetch.make_fetch_call(rpc, tileurl)
 
         # Checks memcache for tile and returns it if found:
@@ -1096,6 +1184,7 @@ application = webapp.WSGIApplication(
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/api/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
+          ('/api/ecoregion/metadata/([\w]+)', EcoregionMetadata),
           ('/layers', LayersHandler), 
           ('/api/webapp', WebAppHandler),
           ],

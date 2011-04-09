@@ -121,11 +121,13 @@ class RenderThread:
                 exists = "exists"
             else:
                 self.render_tile(tile_uri, x, y, z)
+            """
             bytes = os.stat(tile_uri)[6]
             empty = ''
             if bytes == 334:
                 empty = " Empty Tile "
                 os.remove(tile_uri)
+            """
             self.printLock.acquire()
             #print name, ":", z, x, y, exists, empty
             self.printLock.release()
@@ -176,10 +178,15 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
                 if (y < 0) or (y >= 2 ** z):
                     continue
                 str_y = "%s" % y
-                tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'
-                # Submit tile to be rendered into the queue
-                t = (name, tile_uri, x, y, z)
-                queue.put(t)
+                tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'  
+                null_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.null'  
+                #skip existing tiles     
+                if os.path.exists(tile_uri) or os.path.exists(null_uri):
+                    pass
+                else:
+                    # Submit tile to be rendered into the queue
+                    t = (name, tile_uri, x, y, z)
+                    queue.put(t)
 
     # Signal render threads to exit by sending empty request to queue
     for i in range(num_threads):

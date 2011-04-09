@@ -49,8 +49,97 @@ class ApiController(BaseController):
         logging.info('Tile not found : ' + png)        
         response.status = 404
         
+    def ecoregion(self, method, name):
+        if str(method).lower() == 'tile':
+            x = request.GET['x']
+            y = request.GET['y']
+            z = request.GET['zoom']
+            png = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.png')        
+            if os.path.exists(png):
+                logging.info('Returning tile : ' + png)
+                response.headers['Content-Type'] = 'image/png'
+                response.status = 200
+                return open(png, 'rb').read()
+            logging.info('Tile not found : ' + png)        
+            response.status = 404
         
-    def ecoregion(self, method, region_id):
+        elif str(method).lower() == 'tilearea':
+            """ Takes one to many record_ids split by commas and a unique
+                name for the tileset you are creating.
+                
+                e.g., If you are creating a tileset for a single ecoregion
+                with code NT105, you would probably want to create a new 
+                tileset with,
+                    name = 'NT105',
+                    record_ids = 'NT105'
+                If you are creating a new tileset for hyp. spec 'Andreus 
+                andreus' you could create a tileset with,
+                    name = 'animalia-mammalia-Andreus_andreus'
+                    record_ids = 'NT103','NT445','NT6742'
+            """
+            region_ids = request.GET['region_ids'].split(',')
+            lowx = request.GET['lowx']
+            lowy = request.GET['lowy']
+            highx = request.GET['highx']
+            highy = request.GET['highy']
+            zoom = int(request.GET['zoom'])
+            
+            tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
+                    
+            tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
+                            <!DOCTYPE Map>
+                            <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
+                              <Style name="style">
+                                <Rule>
+                                  <PolygonSymbolizer>
+                                    <CssParameter name="fill">#000000</CssParameter>
+                                  </PolygonSymbolizer>
+                                  <LineSymbolizer>
+                                    <CssParameter name="stroke">#000000</CssParameter>
+                                    <CssParameter name="stroke-width">0.0</CssParameter>
+                                  </LineSymbolizer>
+                                </Rule>
+                              </Style>"""
+            mapfile = str(app_globals.ECOSHP_DIR +'/'+ name + '.mapfile.xml')
+            
+            logging.info('Creating mapfile: %s' % (mapfile))  
+                            
+            bbox = (float(lowx), float(lowy), float(highx), float(highy))
+            logging.info('Tiling %s with bbox: %s' % (region_id,str(bbox)))  
+                
+            ct=0
+            for id in region_ids:
+                shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
+                if os.path.exists(shp):
+                    ct+=1
+                    tmp_xml += """
+                            <Layer name="layer_name" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
+                            <StyleName>style</StyleName>
+                            <Datasource>
+                              <Parameter name="type">shape</Parameter>
+                              <Parameter name="file">layer_name</Parameter>
+                            </Datasource>
+                          </Layer>""".replace("layer_name",id)
+                    
+            tmp_xml += "</Map>"
+            if ct>0:
+                open(mapfile, "w+").write(tmp_xml)
+                if not os.path.isdir(tile_dir):
+                    os.mkdir(tile_dir)
+                GenerateTiles.render_tiles(bbox,
+                                           mapfile,
+                                           tile_dir,
+                                           zoom,
+                                           zoom,
+                                           name,
+                                           num_threads=app_globals.TILE_QUEUE_THREADS)
+                response.status = 200   
+                return
+                
+            logging.info('Regions not found : ' + shp)        
+            response.status = 404
+    """
+    def ecoregion_Option2(self, method, region_id):
         '''This action returns PNG data with the response header Content-Type 
         set to image/png with a 200 status code. It handles URLs of the form:
         
@@ -86,9 +175,7 @@ class ApiController(BaseController):
             zoom = int(request.GET['zoom'])
             shp = os.path.join(app_globals.ECOSHP_DIR, region_id + '.shp')        
             if os.path.exists(shp):
-                logging.info('Sending tiling job to queue : ' + shp)
-                response.status = 200
-                
+                logging.info('Sending tiling job to queue : ' + shp)                
                 tmp_xml = open(app_globals.ECO_MAP_XML, 'r').read().replace('layer_name', region_id) 
                 mapfile = str(app_globals.ECOSHP_DIR +'/'+ region_id + '.mapfile.xml')
                 logging.info('Creating mapfile: %s' % (mapfile))     
@@ -113,3 +200,4 @@ class ApiController(BaseController):
                 return
             logging.info('Region not found : ' + shp)        
             response.status = 404
+    """

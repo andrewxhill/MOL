@@ -35,5 +35,9 @@ def make_map():
                 contoller='api',
                 action='ecoregion')
                 
+    map.connect('/{controller}/{action}/{method}/{name}',
+                contoller='api',
+                action='ecoregiongroup')
+                
 
     return map
