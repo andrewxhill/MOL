@@ -179,10 +179,9 @@ class ApiController(BaseController):
             zoom = int(request.GET['zoom'])
             
             request_ip = request.environ['REMOTE_ADDR']                
-            if request_ip == "127.0.0.1":
+            if request_ip != "127.0.0.1":
                 tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
             else:
-                
                 tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
                         
                 tmp_xml = """<?xml version="1.0" encoding="utf-8"?>

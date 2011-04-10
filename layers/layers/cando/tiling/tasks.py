@@ -24,7 +24,7 @@ import logging
 import os
 import threading
 import shutil
-
+import urllib, urllib2
 
 class BulkLoadTiles():
     """class for running the bulkloader to upload tilesets to GAE"""
@@ -169,6 +169,10 @@ class EcoregionProcessingThread(Task):
                 "highx": highx,
                 "highy": highy,
                 "region_ids": region_ids}
+                
+        data = urllib.urlencode(vars)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
             
         logging.info('Task complete')
 

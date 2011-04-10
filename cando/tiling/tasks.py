@@ -158,8 +158,6 @@ class LayerProcessingThread(Task):
 
 class EcoregionProcessingThread(Task):
     def run(self, name, zoom, lowx, lowy, highx, highy, record_ids=None):
-        """
-        """
         self.g = Globals()
         
         url = "http://localhost/layers/api/ecoregion/tilearea/%s" % name
