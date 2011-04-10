@@ -1117,7 +1117,6 @@ class EcoregionTileHandler(BaseHandler):
             g = self._param('g')
             b = self._param('b')
             r,g,b = int(r),int(g),int(b)
-            memcache_key = "tileurl-%s" % tileurl
             memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
             band = memcache.get(memk)
             band = None

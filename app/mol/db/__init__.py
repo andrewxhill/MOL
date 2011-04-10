@@ -38,7 +38,6 @@ class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
     g200Num = db.IntegerProperty()
     g200Biome = db.IntegerProperty()
     g200Stat = db.IntegerProperty()
-    remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
     extentNorthWest = db.GeoPtProperty()
     extentSouthEast = db.GeoPtProperty()
     dateCreated = db.DateTimeProperty(auto_now_add=True)

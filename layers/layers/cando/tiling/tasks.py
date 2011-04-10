@@ -17,7 +17,7 @@
 from celery.task import Task, PeriodicTask
 from celery.registry import tasks
 from service import Layer, SpeciesIdError
-from app_globals import Globals
+from celery_globals import Globals
 from datetime import date, timedelta
 import Queue
 import logging
@@ -157,7 +157,7 @@ class LayerProcessingThread(Task):
 
 
 class EcoregionProcessingThread(Task):
-    def run(self, name, zoom, lowx, lowy, highx, highy, record_ids=None):
+    def run(self, name, zoom, lowx, lowy, highx, highy, region_ids):
         """
         """
         self.g = Globals()
@@ -167,9 +167,8 @@ class EcoregionProcessingThread(Task):
                 "lowx": lowx,
                 "lowy": lowy,
                 "highx": highx,
-                "highy": highy}
-        if record_ids is not None:
-            vars["record_ids"] = record_ids
+                "highy": highy,
+                "region_ids": region_ids}
             
         logging.info('Task complete')
 
