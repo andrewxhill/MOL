@@ -22,7 +22,7 @@ import logging
 import os
 import simplejson
 from layers.lib.mol.service import Layer
-from layers.cando.tiling import tasks
+from layers.cando import tiling
 import math
 
 log = logging.getLogger(__name__)
@@ -180,7 +180,7 @@ class ApiController(BaseController):
             
             request_ip = request.environ['REMOTE_ADDR']                
             if request_ip != "127.0.0.1":
-                tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
+                tiling.tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
                 logging.info('Sending job to Celery')
                 response.status = 200   
                 return
