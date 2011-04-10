@@ -22,7 +22,7 @@ import logging
 import os
 import simplejson
 from layers.lib.mol.service import Layer
-from layers.cando import tiling
+from layers.cando.tiling import tasks
 import math
 
 log = logging.getLogger(__name__)
@@ -179,14 +179,15 @@ class ApiController(BaseController):
             zoom = int(request.GET['zoom'])
             
             request_ip = request.environ['REMOTE_ADDR']                
-            if request_ip != "127.0.0.1":
-                tiling.tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
+            if request_ip == "127.0.0.1":
+                tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
                 logging.info('Sending job to Celery')
                 response.status = 200   
                 return
             else:
+                logging.info("request from: %s" %request_ip)
                 tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
-                        
+                
                 tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
                                 <!DOCTYPE Map>
                                 <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
