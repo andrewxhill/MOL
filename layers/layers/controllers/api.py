@@ -181,6 +181,9 @@ class ApiController(BaseController):
             request_ip = request.environ['REMOTE_ADDR']                
             if request_ip != "127.0.0.1":
                 tasks.EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
+                logging.info('Sending job to Celery')
+                response.status = 200   
+                return
             else:
                 tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
                         
