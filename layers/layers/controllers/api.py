@@ -20,10 +20,9 @@ from layers.lib.mol.service import GenerateTiles
 from pylons import response, request, app_globals
 import logging
 import os
-os.environ["CELERY_CONFIG_MODULE"] = "layers.cando.celeryconfig"
+os.environ["CELERY_CONFIG_MODULE"] = "layers.cando.settings"
 import simplejson
 from layers.lib.mol.service import Layer
-from layers.cando import settings
 from layers.cando.tiling.tasks import EcoregionProcessingThread
 import math
 
