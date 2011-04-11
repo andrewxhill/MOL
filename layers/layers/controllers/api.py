@@ -20,10 +20,13 @@ from layers.lib.mol.service import GenerateTiles
 from pylons import response, request, app_globals
 import logging
 import os
+os.environ["CELERY_CONFIG_MODULE"] = "layers.cando.celeryconfig"
 import simplejson
 from layers.lib.mol.service import Layer
+from layers.cando import settings
 from layers.cando.tiling.tasks import EcoregionProcessingThread
 import math
+
 
 log = logging.getLogger(__name__)
 
@@ -180,6 +183,7 @@ class ApiController(BaseController):
             
             request_ip = request.environ['REMOTE_ADDR']                
             if request_ip == "127.0.0.1":
+                #executes nicely, but doesn't run as far as I can tell
                 EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
                 logging.info('Sending job to Celery')
                 response.status = 200   
