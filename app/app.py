@@ -47,6 +47,10 @@ class TechPage(BaseHandler):
     def get(self):
         self.push_html('tech.html')
         
+class BlogPage(BaseHandler):
+    def get(self):
+        self.push_html('blog.html')
+        
 class DemoPage(BaseHandler):
     def get(self):
         self.push_html('demo.html')
@@ -111,6 +115,7 @@ application = webapp.WSGIApplication(
           ('/about', AboutPage),
           ('/tech', TechPage),
           ('/demo', DemoPage),
+          ('/blog', BlogPage),
           ('/people', PeoplePage),
           ('/search', SearchHandler),
           ('/layerwidget', LayerWidget),

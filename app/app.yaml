@@ -44,5 +44,13 @@ handlers:
 - url: /layers
   script: mol/api/__init__.py
 
+- url: /sitemap.xml
+  static_files: static/config/sitemap.xml
+  upload: static/config/sitemap.xml
+  
+- url: /robots.txt
+  static_files: static/config/robots.txt
+  upload: static/config/robots.txt
+  
 - url: /.*
   script: app.py

@@ -116,20 +116,21 @@ class ApiController(BaseController):
                 bbox = (minx, miny, maxx, maxy)
                 
                 logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
-                    
+                
+                proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
                 ct=0
                 for id in region_ids:
                     shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
                     if os.path.exists(shp):
                         ct+=1
                         tmp_xml += """
-                                <Layer name="layer_name" srs="+proj=latlong +datum=WGS84">
+                                <Layer name="layer_name" srs="projection_string">
                                 <StyleName>style</StyleName>
                                 <Datasource>
                                   <Parameter name="type">shape</Parameter>
                                   <Parameter name="file">layer_name</Parameter>
                                 </Datasource>
-                              </Layer>""".replace("layer_name",id)
+                              </Layer>""".replace("layer_name",id).replace("projection_string", proj)
                         
                 tmp_xml += "</Map>"
                 if ct>0:
@@ -189,6 +190,7 @@ class ApiController(BaseController):
                 return
             else:
                 logging.info("request from: %s" %request_ip)
+                
                 tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
                 
                 tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
@@ -212,19 +214,21 @@ class ApiController(BaseController):
                 bbox = (float(lowx), float(lowy), float(highx), float(highy))
                 logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
                     
+                proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
+                
                 ct=0
                 for id in region_ids:
                     shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
                     if os.path.exists(shp):
                         ct+=1
                         tmp_xml += """
-                                <Layer name="layer_name" srs="+proj=latlong +datum=WGS84">
+                                <Layer name="layer_name" srs="projection_string">
                                 <StyleName>style</StyleName>
                                 <Datasource>
                                   <Parameter name="type">shape</Parameter>
                                   <Parameter name="file">layer_name</Parameter>
                                 </Datasource>
-                              </Layer>""".replace("layer_name",id)
+                              </Layer>""".replace("layer_name",id).replace("projection_string", proj)
                         
                 tmp_xml += "</Map>"
                 if ct>0:
