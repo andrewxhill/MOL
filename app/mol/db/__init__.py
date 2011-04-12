@@ -18,15 +18,12 @@ from google.appengine.ext import db
 
 #Store a link between either name-string and ecoRegion codes, or
 #between a MOL-Spec-Key and a list of ecoRegion codes
-class OccEcoregions(db.Model):
-    specName = db.StringProperty()
-    ecoRegions = db.StringListProperty()
+class EcoregionLayer(db.Model):
+    name = db.StringProperty()
+    id = db.StringProperty()
+    ecoCodes = db.StringListProperty()
+    searchStrings = db.StringListProperty()
     
-#Store a key-value lookup of metadata associated with a 
-#species-polygon link
-class OccPolygonMetadata(db.Model):
-    occType = db.StringProperty() 
-
 #all the info about the Ecoregion polygons
 class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
     ecoName = db.StringProperty()
@@ -40,6 +37,7 @@ class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
     g200Stat = db.IntegerProperty()
     extentNorthWest = db.GeoPtProperty()
     extentSouthEast = db.GeoPtProperty()
+    polyStrings = db.StringListProperty()
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     
 class TileSetIndex(db.Model):

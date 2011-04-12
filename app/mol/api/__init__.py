@@ -23,10 +23,11 @@ from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
-from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
+from mol.db import Species, SpeciesIndex, TileSetIndex, Tile, Ecoregion, EcoregionLayer
 from xml.etree import ElementTree as etree
 import datetime
 import logging
+import re
 import os
 import pickle
 import time
@@ -963,10 +964,11 @@ class WebAppHandler(BaseHandler):
                     },
                 }
             }
-
+"""
 class EcoregionMetadata(webapp.RequestHandler):
-    """Method should be called as a first stop to any layer being loaded
-       When executed, it also starts tiling zoom zero tiles for the layer"""
+    '''Method should be called as a first stop to any layer being loaded
+       When executed, it also starts tiling zoom zero tiles for the layer
+    '''
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
@@ -1003,15 +1005,17 @@ class EcoregionMetadata(webapp.RequestHandler):
             self.error(404) # Not found
             
         result = rpc.get_result() #TODO: Aaron is this really necessary here?
-            
+"""
+
+"""
 class OccEcoregionsMetadata(webapp.RequestHandler):
-    """Method should be called as a first stop to any layer being loaded
+    '''Method should be called as a first stop to any layer being loaded
        When executed, it also starts tiling zoom zero tiles for the layer
        
        Takes a unique ecoregion collection name, e.g., Puma_concolor and looks up
        the ecoregions and returns the metadata while telling back end to create
        a new tileset for this collection.
-       """
+    '''
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
@@ -1052,7 +1056,7 @@ class OccEcoregionsMetadata(webapp.RequestHandler):
             self.error(404) # Not found
             
         result = rpc.get_result() #TODO: Aaron is this really necessary here?
-            
+"""
 class EcoregionTileHandler(BaseHandler):
     def get(self, name):
         '''Handles a PNG map tile request according to the Google XYZ tile
@@ -1172,6 +1176,58 @@ class EcoregionTileHandler(BaseHandler):
             logging.error('%s - %s' % (tileurl, str(e)))            
             self.error(404) # Not found
 
+class EcoregionLayerSearch(BaseHandler):
+    def get(self):
+        self.post()
+    def post(self):
+        ecoCode = self._param('ecocode').strip()
+        er = Ecoregion.get_by_key_name(ecoCode)
+        if er is not None:
+            nw = simplejson.loads(self._param('nw').replace("'",'"'))
+            se = simplejson.loads(self._param('se').replace("'",'"'))
+            cl = simplejson.loads(self._param('clickables').replace("'",'"'))
+            er.extentNorthWest = db.GeoPt(lat=nw['lat'],lon=nw['lon'])
+            er.extentSouthEast = db.GeoPt(lat=se['lat'],lon=se['lon'])
+            er.polyStrings = []
+            ss = []
+            ns = str(er.ecoName).split(' ')
+            last = ""
+            full = ""
+            first = True
+            for n in ns:
+                n = n.lower()
+                ss.append(n)
+                subs = re.findall('\w+', n)
+                if len(subs) > 1:
+                    for s in subs:
+                        ss.append(s)
+                full = ' '.join([full, n])
+                if first:
+                    first = False
+                else:
+                    ss.append(last + ' ' + n)
+                    ss.append(full)
+                last = n
+            
+            for c in cl:
+                poly = {"type": "bbox", 
+                        "value": {
+                            "nw": {"lat": c['nw']['lat'],"lon": c['nw']['lon']}, 
+                            "se": {"lat": c['se']['lat'],"lon": c['se']['lon']}
+                            }
+                        }
+                er.polyStrings.append(simplejson.dumps(poly))
+            erL = EcoregionLayer.get_or_insert(ecoCode)
+            erL.name=er.ecoName
+            erL.id=ecoCode
+            erL.ecoCodes = [ecoCode]
+            erL.searchStrings = ss
+            
+            er.put()
+            erL.put()
+        else:
+            logging.error(ecoCode)
+    
 application = webapp.WSGIApplication(
          [('/api/taxonomy', Taxonomy),
           ('/api/colorimage/([^/]+)', ColorImage),
@@ -1183,7 +1239,8 @@ application = webapp.WSGIApplication(
           ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
           ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
           ('/api/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
-          ('/api/ecoregion/metadata/([\w]+)', EcoregionMetadata),
+          ('/api/ecoregion/search', EcoregionLayerSearch),
+          #('/api/ecoregion/metadata/([\w]+)', EcoregionMetadata),
           ('/layers', LayersHandler), 
           ('/api/webapp', WebAppHandler),
           ],
