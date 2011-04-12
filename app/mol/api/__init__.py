@@ -1181,10 +1181,17 @@ class EcoregionLayerSearch(BaseHandler):
         self.post()
     def post(self):
         ecoCode = self._param('ecocode').strip()
-        er = Ecoregion.get_by_key_name(ecoCode)
-        if er is not None:
+        #er = Ecoregion.get_by_key_name(ecoCode)
+        er = Ecoregion.get_or_insert(ecoCode)
+        if True:
             nw = simplejson.loads(self._param('nw').replace("'",'"'))
             se = simplejson.loads(self._param('se').replace("'",'"'))
+            
+            url = "http://mol.colorado.edu/layers/api/ecoregion/tilearea/%s?zoom=0&lowx=%s&lowy=%s&highx=%s&highy=%s" % (ecoCode,nw['lon'],se['lat'],se['lon'],nw['lat'])
+            logging.error(url)
+            rpc = urlfetch.create_rpc()
+            urlfetch.make_fetch_call(rpc, url)
+            
             cl = simplejson.loads(self._param('clickables').replace("'",'"'))
             er.extentNorthWest = db.GeoPt(lat=nw['lat'],lon=nw['lon'])
             er.extentSouthEast = db.GeoPt(lat=se['lat'],lon=se['lon'])
@@ -1225,6 +1232,9 @@ class EcoregionLayerSearch(BaseHandler):
             
             er.put()
             erL.put()
+            
+            result = rpc.get_result() # This call blocks.
+            logging.error(result.status_code)
         else:
             logging.error(ecoCode)
     

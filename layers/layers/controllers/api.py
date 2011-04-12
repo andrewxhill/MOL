@@ -182,7 +182,8 @@ class ApiController(BaseController):
             zoom = int(request.GET['zoom'])
             
             request_ip = request.environ['REMOTE_ADDR']                
-            if request_ip == "127.0.0.1":
+            #if request_ip == "127.0.0.1":
+            if False:
                 #executes nicely, but doesn't run as far as I can tell
                 EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
                 logging.info('Sending job to Celery')
