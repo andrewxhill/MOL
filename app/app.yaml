@@ -35,13 +35,19 @@ handlers:
 - url: /static
   static_dir: static
 
-- url: /api/.*
+- url: /search/.*
   script: mol/api/__init__.py
  
-- url: /layers/.*
+- url: /data/.*
   script: mol/api/__init__.py
 
-- url: /layers
+- url: /util/.*
+  script: mol/api/__init__.py
+
+- url: /test/.*
+  script: mol/api/__init__.py
+
+- url: /webapp/.*
   script: mol/api/__init__.py
 
 - url: /sitemap.xml

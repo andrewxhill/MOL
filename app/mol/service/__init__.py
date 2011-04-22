@@ -29,6 +29,45 @@ import re
 import urllib
 from google.appengine.api.datastore_errors import BadKeyError
 
+
+def colorPng(img, r, g, b, isObj=False, memKey=None):
+    val = None
+    if memKey is not None:
+        val = memcache.get(memKey)
+    if val is None:
+        if isObj:
+            imt = png.Reader(bytes=img)
+        else:
+            imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
+        logging.error(dir(imt))
+        logging.error(imt)
+        im = imt.read()
+        planes = im[3]['planes']
+        itr = im[2]
+        ar = list(itr)
+        n = len(ar)
+        row = 0
+        
+        while row < n:
+            ct = planes
+            col = len(ar[row])
+            while ct <= col:
+                if ar[row][ct-1]==255:
+                    ar[row][ct-4] = r
+                    ar[row][ct-3] = g
+                    ar[row][ct-2] = b
+                ct+= planes
+            ar[row] = tuple(ar[row])
+            row+=1
+        
+        f = StringIO.StringIO()
+        w = png.Writer(len(ar[0])/planes, len(ar), alpha=True)
+        w.write(f, ar)
+        val = f.getvalue()
+    if memKey is not None:
+        memcache.set(memKey, val, 12000)
+    return val
+    
 def constant(f):
     def fset(self, value):
         raise SyntaxError
@@ -52,6 +91,117 @@ class TileError(Error):
         self.expr = expr
         self.msg = msg
 
+# ------------------------------------------------------------------------------
+# TaxonomyService
+
+class TaxonomyProvider(object):
+    def __init__(self):
+        pass
+        
+    def _key(self, k):
+        raise NotImplementedError() 
+        
+    def _search(self, query):
+        raise NotImplementedError() 
+        
+    def search(self, query):
+        raise NotImplementedError() 
+        
+    def getdata(self, query):
+        raise NotImplementedError() 
+
+class TaxonomySearch(TaxonomyProvider):
+    def __init__(self):
+        super(TaxonomySearch, self).__init__()   
+    
+    def _key(self, k):
+        key = db.Key.from_path('Species', k.lower())
+        ent = Species.get(key)
+        return [ent]
+        
+    def _search(self,query):
+        
+        res = []
+        
+        q = SpeciesIndex.all(keys_only=True)
+              
+        for a, b in query['filters'].items():
+            q.filter("%s =" % str(a), b)
+            
+        if query.get('orderOn', None) is not None:
+            q.order(orderOn['orderOn'])
+        
+        return q.fetch(query['limit'], query['offset'])
+        
+    def search(self, query):
+        if query.get('key', None) is not None:
+            result = self._key(query.get('key', False))
+        else:
+            params = {}
+            params['limit'] = query.get('limit', 25)
+            params['offset'] = query.get('offset', 25)
+            
+            params['filters'] = {}
+            
+            filterDict = ['names',
+                          'authorityName',
+                          'authorityIdentifier',
+                          'kingdom',
+                          'phylum',
+                          'class',
+                          'order',
+                          'superFamily',
+                          'family',
+                          'genus',
+                          'species',
+                          'infraSpecies',
+                          'hasRangeMap']
+            
+            fct = 0 #keeps the number of filters to the Datastore allowable 2
+            for filter in filterDict:
+                f = filter
+                if f in ['class','order']:
+                    f = f+"_"
+                if query.get(f, None) is not None and fct < 2:
+                    if f == 'hasRangeMap' and query.get(filter, 'true') == 'true':
+                        params['filters'][f] = True
+                    else:
+                        params['filters'][f] = str(query.get(filter, ''))
+                    fct+=1
+            result = self._search()
+        return result
+        
+    def getdata(self, query):
+        s = self.search(query)
+        out = []
+        for ent in s:
+            k = ent.key_name
+            ele = k.split("/")
+            e = {
+                 "rank": str(ele[-2]),
+                 "name": str(ele[-1]).replace("_", " "),
+                 "classification": simplejson.loads(ent.classification),
+                 "authority": simplejson.loads(ent.authority),
+                 "names": simplejson.loads(ent.names) #.replace('\\','')
+                }
+            out.append(e)
+        return out
+        
+    def getsimple(self, query):
+        s = self.search(query)
+        out = []
+        for ent in s:
+            k = ent.key_name
+            ele = k.split("/")
+            e = {
+                 "name": str(ele[-1]).replace("_", " "),
+                 "rank": str(ele[-2]),
+                 "authority": simplejson.loads(ent.authority),
+                }
+            out.append(e)
+        return out
+        
+    
 # ------------------------------------------------------------------------------
 # LayerService
 
@@ -267,7 +417,6 @@ class GbifLayerProvider(LayerProvider):
                     } 
                 }
             }
-
 
 class EcoregionLayerProvider(LayerProvider):
     
@@ -531,12 +680,12 @@ class EcoregionLayerProvider(LayerProvider):
                 }
             }
 
-    
+"""
 # class AbstractLayerService(object):
-#     """An abstract base class for the Layer service."""
+#     '''An abstract base class for the Layer service.'''
 
 #     def is_id_valid(self, id):
-#         """Returns true if the id is valid, otherwise returns false."""
+#         '''Returns true if the id is valid, otherwise returns false.'''
 #         raise NotImplementedError()
 
 # class LayerService(AbstractLayerService):
@@ -565,6 +714,7 @@ class EcoregionLayerProvider(LayerProvider):
 
 #         # Passed all checks so id is valid:
 #         return True
+"""
 
 class AbstractTileService(object):
     """An abstract base class for the Tile service."""
