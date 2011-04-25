@@ -28,7 +28,8 @@ import png
 import re
 import urllib
 from google.appengine.api.datastore_errors import BadKeyError
-
+from google.appengine.api import memcache
+import StringIO
 
 def colorPng(img, r, g, b, isObj=False, memKey=None):
     val = None

@@ -307,7 +307,7 @@ MOL.modules.Map = function(mol) {
 
             _getPointIcon: function(color, callback) {
                 var icon = new Image(),
-                    src = '/api/colorimage/pm-color.png?'
+                    src = '/test/colorimage/pm-color.png?'
                           + 'r=' + color.getRed() 
                           + '&g=' + color.getGreen() 
                           + '&b=' + color.getBlue();                
