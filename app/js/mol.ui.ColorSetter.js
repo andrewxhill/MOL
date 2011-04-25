@@ -70,6 +70,12 @@ MOL.modules.ColorSetter = function(mol) {
                                 config.color = new mol.ui.ColorSetter.Color(55, 133, 233);
                                 bus.fireEvent(new ColorEvent(config));
                                 break;
+
+                            case 'range':
+                                config.color = new mol.ui.ColorSetter.Color(188, 88, 88);
+                                bus.fireEvent(new ColorEvent(config));
+                                break;
+
                             }
                             
                         }

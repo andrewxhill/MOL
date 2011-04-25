@@ -176,7 +176,7 @@ class GbifLayerProvider(LayerProvider):
         p, r, o = True, False, False
         pct, rct, oct = 0, 0, 0
         for action, element in xml:
-            logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
+            #logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
             if "{%s}TaxonOccurrence" % TOXML == element.tag:
                 if action=="start":
                     p, r, o = False, False, True

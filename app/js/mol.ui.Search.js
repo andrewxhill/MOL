@@ -307,6 +307,8 @@ MOL.modules.Search = function(mol) {
                     result = null,
                     bus = this._bus,
                     LayerAction = mol.ajax.LayerAction,
+                    LayerEvent = mol.events.LayerEvent,
+                    Layer = mol.model.Layer,
                     callback = null,
                     action = null,
                     display = this._display,
@@ -317,7 +319,7 @@ MOL.modules.Search = function(mol) {
                     };
 
                 mol.log.info('Handling add button click');
-                display.getAddButton().attr('disabled', 'disabled');
+                display.getAddButton().attr('disabled', true);
                 
                 for (x in resultWidgets) {
                     result = resultWidgets[x];
@@ -337,7 +339,11 @@ MOL.modules.Search = function(mol) {
                         break;
 
                     case 'range':
-                        mol.log.todo('TODO: range map visibility toggle');
+                        layer = new Layer(result.type, result.source, result.name);
+                        config.action = 'add';
+                        config.layer = layer;
+                        bus.fireEvent(new LayerEvent(config));                               
+                        display.getAddButton().attr('disabled', false);                        
                         break;
                     }
                 }
@@ -360,7 +366,7 @@ MOL.modules.Search = function(mol) {
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
-                        display.getAddButton().attr('disabled', '');
+                        display.getAddButton().attr('disabled', false);
                     },
                     function(error) {
                         mol.log.error(error);

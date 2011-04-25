@@ -120,7 +120,7 @@ MOL.modules.Map = function(mol) {
                             action = event.getAction(),
                             config = {
                                 action: 'get',
-                                category: 'points',
+                                category: layer.getType(),
                                 id: lid
                             };
                         
@@ -218,7 +218,8 @@ MOL.modules.Map = function(mol) {
                     bus = this._bus,
                     points = this._points,
                     layers = this._layers,
-                    self = this;
+                    self = this,
+                    map = this._map;
                 
                 bus.addHandler(
                     ColorEvent.TYPE,
@@ -260,7 +261,7 @@ MOL.modules.Map = function(mol) {
                                 break;
 
                             case 'range':
-                                // TODO
+                                map.overlayMapTypes.push(self._rangeImageMapType(layer, color));
                                 break;                                
                             }                           
                         }
@@ -464,6 +465,63 @@ MOL.modules.Map = function(mol) {
                         }
                     );
                 return marker;
+            },
+
+            _rangeImageMapType: function(layer, color) {   
+                var self = this,
+                    name = layer.getName().toLowerCase(),
+                    speciesKey = 'animalia/species/' + name.replace(' ', '_'),
+                    r = color.getRed(),
+                    g = color.getGreen(),
+                    b = color.getBlue();
+
+                return new google.maps.ImageMapType(
+                    {
+                        name: speciesKey,
+
+                        getTileUrl: function(coord, zoom) {
+                            var normalizedCoord = self._getNormalizedCoord(coord, zoom);
+                            if (!normalizedCoord) {
+                                return null;
+                            }
+                            var bound = Math.pow(2, zoom);            
+                            return "/layers/" + speciesKey + ".png?" +
+                                "z=" + zoom + 
+                                "&x=" + normalizedCoord.x + 
+                                "&y=" + (normalizedCoord.y) +
+                                "&r=" + r +
+                                "&g=" + g +
+                                "&b=" + b;
+                                
+                        },
+                        tileSize: new google.maps.Size(256, 256),
+                        isPng: true,
+                        opacity: 0.5
+                    });
+            },
+
+            /**
+             * Returns normalized coordinates for a given map zoom level.
+             * 
+             * @param coord The coordinate
+             * @param zoom The current zoom level
+             */
+            _getNormalizedCoord: function(coord, zoom) {
+                var y = coord.y,
+                    x = coord.x,
+                    tileRange = 1 << zoom;
+                // don't repeat across y-axis (vertically)
+                if (y < 0 || y >= tileRange) {
+                    return null;
+                }
+                // repeat across x-axis
+                if (x < 0 || x >= tileRange) {
+                    x = (x % tileRange + tileRange) % tileRange;
+                }
+                return {
+                    x: x,
+                    y: y
+                };
             }
         }
     );
