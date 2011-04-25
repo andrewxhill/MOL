@@ -123,16 +123,15 @@ MOL.modules.Map = function(mol) {
                                 category: layer.getType(),
                                 id: lid
                             };
-                        
-                        // Checks if the layer is already being displayed:
-                        if (layers[lid]) {
-                            mol.log.info('Map ignoring layer id ' + lid);
-                            return;
-                        }
-                        
+                                                
                         switch (action) {
 
                         case 'add':
+                            // Checks if the layer :
+                            if (layers[lid]) {
+                                mol.log.info('Map ignoring layer id ' + lid);
+                                return;
+                            }                            
                             layers[lid] = layer;
                             // We need a layer color before displaying it:
                             bus.fireEvent(new ColorEvent(config));
@@ -491,7 +490,7 @@ MOL.modules.Map = function(mol) {
                                 return null;
                             }
                             var bound = Math.pow(2, zoom);            
-                            return "/layers/" + speciesKey + ".png?" +
+                            return "/data/tile/" + speciesKey + ".png?" +
                                 "z=" + zoom + 
                                 "&x=" + normalizedCoord.x + 
                                 "&y=" + (normalizedCoord.y) +
