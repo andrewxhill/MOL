@@ -124,6 +124,12 @@ MOL.modules.Map = function(mol) {
                                 id: lid
                             };
                         
+                        // Checks if the layer is already being displayed:
+                        if (layers[lid]) {
+                            mol.log.info('Map ignoring layer id ' + lid);
+                            return;
+                        }
+                        
                         switch (action) {
 
                         case 'add':
