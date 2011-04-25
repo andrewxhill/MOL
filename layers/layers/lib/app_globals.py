@@ -17,10 +17,13 @@ class Globals(object):
         self.TILE_DIR = '/ftp/tile'
         self.NEW_SHP_SCAN_DIR = '/ftp/new/animalia/species'
         self.TILE_DIR = "/ftp/tile/animalia/species"
+        self.ECOTILE_DIR = "/ftp/ecoregion/tile"
+        self.ECOSHP_DIR = "/ftp/ecoregion/shp"
         self.ERR_DIR = "/ftp/error/"
         self.SRC_DIR = "/ftp/new/"
         self.DST_DIR = "/ftp/archive/"
         self.MAP_XML = "/ftp/tile/mapfile.xml"
+        self.ECO_MAP_XML = "/ftp/ecoregion/tile/mapfile.xml"
         #self.GAE_URL = "http://localhost:8080/"
         self.GAE_URL = "http://prototype.mol-lab.appspot.com/"        
         self.VALID_ID_SERVICE_URL = "%sapi/validkey" % self.GAE_URL
@@ -32,7 +35,7 @@ class Globals(object):
         self.BULKLOAD_TILES_JOB_TYPE = 'bulkload-tiles'
         self.Q_ITEM_FULL_PATH = 'fullpath'
         self.Q_ITEM_JOB_TYPE = 'jobtype'
-        self.TILE_QUEUE_THREADS = 2
+        self.TILE_QUEUE_THREADS = 1
         self.TILE_MAX_ZOOM = 6
         self.TILE_JOB_LIMIT = 4 #number of tiling threads
         self.QUEUED_LAYERS = {}

@@ -687,7 +687,7 @@ MOL.modules.Map = function(mol) {
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
                 this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);
-                
+                /*
                 var FT_TableID = 669006;
                 var ECO_CODES = ["NT1404","NT0904"];
                 for (e in ECO_CODES){
@@ -696,7 +696,7 @@ MOL.modules.Map = function(mol) {
                     var FT_Options = { suppressInfoWindows: false, query: FT_Query };
                     var ft = new google.maps.FusionTablesLayer(FT_TableID, FT_Options);
                     ft.setMap(this._map);
-                }
+                }*/
             },          
             
             

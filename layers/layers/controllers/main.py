@@ -15,8 +15,6 @@
 # limitations under the License.
 #
 from layers.lib.base import BaseController, BaseController, render
-from layers.lib.taskqueue import worker_q, NEW_SHP_JOB_TYPE, worker_q, \
-    NEW_SHP_JOB_TYPE, start_myworker
 from pylons import config, config, request, response, session, tmpl_context as c, \
     url
 from pylons.controllers.util import abort, redirect
@@ -38,13 +36,3 @@ class MainController(BaseController):
         #return render('/main.mako')
         # or, return a response
         return 'Hello World'
-    
-    def test_task(self):
-        id = 'agdtb2wtbGFickELEgdTcGVjaWVzIjRhbmltYWxpYS9pbmZyYXNwZWNpZXMvYWJlbG9uYV9naWdsaW90b3NpX2d1YWxhcXVpemFlDA'
-        fullpath = '/ftp/test/%s/%s.shp' % (id, id)
-        logging.info(fullpath)
-        if worker_q.empty():
-            worker_q.put({'id': id, 'jobtype': NEW_SHP_JOB_TYPE, 'fullpath': fullpath})
-            return 'In Queue'
-        else:
-            return 'Queue Full'

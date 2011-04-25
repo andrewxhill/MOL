@@ -23,10 +23,11 @@ from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
-from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
+from mol.db import Species, SpeciesIndex, TileSetIndex, Tile, Ecoregion, EcoregionLayer
 from xml.etree import ElementTree as etree
 import datetime
 import logging
+import re
 import os
 import pickle
 import time
@@ -38,91 +39,404 @@ from mol.service import GbifLayerProvider
 from mol.service import LayerType
 from mol.service import LayerService
 from mol.service import png
+from mol.service import colorPng
 
 HTTP_STATUS_CODE_NOT_FOUND = 404
 HTTP_STATUS_CODE_FORBIDDEN = 403
 HTTP_STATUS_CODE_BAD_REQUEST = 400
 
-def colorPng(img, r, g, b, isObj=False, memKey=None):
-    val = None
-    if memKey is not None:
-        val = memcache.get(memKey)
-    if val is None:
-        if isObj:
-            imt = png.Reader(bytes=img)
+class BaseHandler(webapp.RequestHandler):
+    '''Base handler for handling common stuff like template rendering.'''
+
+    def _param(self, name, required=True, type=str):
+        # Hack (see http://code.google.com/p/googleappengine/issues/detail?id=719)
+        import cgi
+        params = cgi.parse_qs(self.request.body)
+        if len(params) is 0:
+            val = self.request.get(name, None)
         else:
-            imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
-        logging.error(dir(imt))
-        logging.error(imt)
-        im = imt.read()
-        planes = im[3]['planes']
-        itr = im[2]
-        ar = list(itr)
-        n = len(ar)
-        row = 0
+            if params.has_key(name):
+                val = params[name][0]
+            else:
+                val = None
+
+        # val = self.request.get(name, None)
+        if val is None:
+            if required:
+                logging.error('%s is required' % name)
+                raise BadArgumentError
+            return None
+        try:
+            return type(val)
+        except (ValueError), e:
+            logging.error('Invalid %s %s: %s' % (name, val, e))
+            raise BadArgumentError(e)
+
+    def render_template(self, file, template_args):
+        path = os.path.join(os.path.dirname(__file__), "../../templates", file)
+        self.response.out.write(template.render(path, template_args))
+
+    def push_html(self, file):
+        path = os.path.join(os.path.dirname(__file__), "../../html", file)
+        self.response.out.write(open(path, 'r').read())
         
-        while row < n:
-            ct = planes
-            col = len(ar[row])
-            while ct <= col:
-                if ar[row][ct-1]==255:
-                    ar[row][ct-4] = r
-                    ar[row][ct-3] = g
-                    ar[row][ct-2] = b
-                ct+= planes
-            ar[row] = tuple(ar[row])
-            row+=1
-        
-        f = StringIO.StringIO()
-        w = png.Writer(len(ar[0])/planes, len(ar), alpha=True)
-        w.write(f, ar)
-        val = f.getvalue()
-    if memKey is not None:
-        memcache.set(memKey, val, 12000)
-    return val
+class WebAppHandler(BaseHandler):
     
-class TileSetMetadata(webapp.RequestHandler):
-    def _getprops(self, obj):
-        '''Returns a dictionary of entity properties as strings.'''
-        dict = {}
-        for key in obj.properties().keys():
-            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
-                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
-            """
-            elif key in []:
-                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
-                d = c.split(',')
-                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
-            """
-        dict['mol_species_id'] = str(obj.key().name())
-        return dict
+    def __init__(self):
+        self.layer_service = LayerService()
+        self.gbif = GbifLayerProvider()
+        
+    def get(self):
+        self.post();
 
-    def get(self, class_, rank, sepecies_id=None):
-        self.post(class_, rank, species_id)
-
-    def post(self, class_, rank, species_id=None):
-        '''Gets a TileSetIndex identified by a MOL specimen id
-        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
-        '''
-        if species_id is None or len(species_id) is 0:
-            # Sends all metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            all = [self._getprops(x) for x in TileSetIndex.all()]
-            # TODO: This response will get huge so we need a strategy here.
-            self.response.out.write(simplejson.dumps(all))
+    def post(self):
+        action = self.request.get('action', None)
+        
+        if not action:
+            self.error(400) # Bad request
             return
 
+        action = simplejson.loads(action)
+        a_name = action.get('name')
+        a_type = action.get('type')
+        a_query = action.get('params')
+        logging.info('name=%s, type=%s, query=%s' % (a_name, a_type, a_query))
+        
+        response = {
+            'LayerAction': {
+                'search': lambda x: self._layer_search(x),
+                'get-points': lambda x: self._layer_get_points(x)
+                }
+            }[a_name][a_type](a_query)
+
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(simplejson.dumps(response))
+
+    def _layer_get_points(self, query):
+        # TODO: Use self.layer_service()
+        sciname = query.get('layerName')
+        content = self.gbif.getdata({'sciname':sciname})
+        logging.info(content)
+        return content
+        
+    def _layer_search(self, query):
+        # TODO(aaron): Merge list of profiles.
+        # return self.layer_service.search(query)[0]
+        return {    
+            "query": {
+                "search": "Puma",
+                "offset": 0,
+                "limit": 10,
+                "source": None,
+                "type": None,
+                "advancedOption1": "foo",
+                "advancedOption2": "bar"
+                },
+            
+            "types": {
+                "points": {
+                    "names": ["Puma concolor"],
+                    "sources": ["GBIF"],
+                    "layers": [0]
+                    },
+                "range": {
+                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
+                    "sources": ["MOL"],
+                    "layers": [1,2,3]
+                    },  
+                "ecoregions": {
+                    "names": ["Puma concolor"],
+                    "sources": ["WWF"],
+                    "layers": [4]
+                    },      
+                },
+            
+            "sources": {
+                "GBIF": {
+                    "names": ["Puma concolor"],
+                    "types": ["points"],
+                    "layers": [0]
+                    },        
+                "MOL": {
+                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
+                    "types": ["range"],
+                    "layers": [1,2,3]
+                    },
+                "WWF": {
+                    "names": ["Puma concolor"],
+                    "types": ["ecoregions"],
+                    "layers": [4]
+                    }
+                },
+            
+            "names": {
+                "Puma concolor": {
+                    "sources": ["GBIF", "MOL", "WWF"],
+                    "layers": [0,1,4],
+                    "types": ["points", "range", "ecoregions"]
+                    },
+                "Puma yagouaroundi": {
+                    "sources": ["MOL"],
+                    "layers": [2],
+                    "types": ["range"]            
+                    },    
+                "Smilisca puma": {
+                    "sources": ["MOL"],
+                    "layers": [3],
+                    "types": ["range"]
+                    }
+                },
+            
+            "layers": {
+                0 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "GBIF",
+                     "type": "points",
+                     "info": "blah blah"
+                    }, 
+                1 : {"name" : "Puma concolor",
+                     "name2" : "A. Hill", 
+                     "source": "MOL",
+                     "type": "range",
+                     "info": "blah blah"
+                    },                
+                2 : {"name": "Puma yagouaroundi",
+                     "name2" : "R. Guralnick", 
+                     "source": "MOL",
+                     "type": "range",
+                     "info": "blah blah"
+                    },       
+                3:  {"name": "Smilisca puma",
+                     "name2" : "A. Steele", 
+                     "source": "MOL",
+                     "type": "range",
+                     "info": "blah blah"
+                    },       
+                4:  {"name" : "Puma concolor",
+                     "name2" : "WWF Ecoregions", 
+                     "source": "WWF",
+                     "type": "ecoregions",
+                     "info": "blah blah"
+                    },
+                }
+            }
+
+class PointsHandler(BaseHandler):
+    '''RequestHandler for GBIF occurrence point datasets
+       Uses the GbifLayerProvider Service to return GBIF datasets
+       
+       Required query string parameters:
+          sciname - string scientific name for point dataset
+          
+       Optional query string parameters:
+          limit - integer number of records to return
+          start - integer offset for paging of records
+          source - string source of dataset, default and only gbif right now
+    '''
+    def __init__(self):
+        super(PointsHandler, self).__init__()
+        self.gbif = GbifLayerProvider()
+        #self.ts = TileService()
+        
+    def post(self):
+        src = self.request.params.get('source', 'gbif')
+        lim = self.request.params.get('limit', 200)
+        sta = self.request.params.get('start', 0)
+        sn = self.request.params.get('sciname', "Puma concolor")
+        query = {"limit": lim,
+                 "start": 0,
+                 "coordinatestatus": True,
+                 "format": "darwin",
+                 "sciname": sn,
+                }
+        url = self.gbif.geturl(query)
+        data = self.gbif.getdata(query)
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write(simplejson.dumps(data)) # Not found
+
+    def get(self):
+        self.post()
+            
+class TileHandler(BaseHandler):
+    '''Handles a PNG map tile request according to the Google XYZ tile
+       addressing scheme described here:
+
+       http://code.google.com/apis/maps/documentation/javascript/v2/overlays.html#Google_Maps_Coordinates
+
+       Required query string parameters:
+    '''
+    
+    def get(self):
+        type = self.request.params.get('type', 'range') #or ecoregion, or protected area
+        class_ = self.request.params.get('class', 'animalia')
+        rank = self.request.params.get('rank', 'species')
+        png_name = self.request.params.get('name', 'puma_concolor')
+        
+        species_id, ext = os.path.splitext(png_name)
         species_key_name = os.path.join(class_, rank, species_id)
+        logging.info('KEY NAME ' + species_key_name)
+        # Returns a 404 if there's no TileSetIndex for the species id since we
+        # need it to calculate bounds and for the remote tile URL:
         metadata = TileSetIndex.get_by_key_name(species_key_name)
-        if metadata:
-            self.response.headers['Content-Type'] = 'application/json'
-            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
-        else:
-            logging.error('No TileSetIndex for ' + species_key_name)
+        if metadata is None:
+            logging.error('No metadata for species: ' + species_key_name)
+            self.error(404) # Not found
+            return
+
+        # Returns a 400 if the required query string parameters are invalid:
+        try:
+            zoom = self._param('z')
+            x = self._param('x')
+            y = self._param('y')
+        except (BadArgumentError), e:
+            logging.error('Bad request params: ' + str(e))
+            self.error(400) # Bad request
+            return
+
+        # Returns a 404 if the request isn't within bounds of the species:
+        within_bounds = True; # TODO: Calculate if within bounds.
+        if not within_bounds:
+            self.error(404) # Not found
+            return
+
+        # Builds the tile image URL which is also the memcache key. It's of the
+        # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
+        tileurl = metadata.remoteLocation
+        tileurl = tileurl.replace('zoom', zoom)
+        tileurl = tileurl.replace('/x/', '/%s/' % x)
+        tileurl = tileurl.replace('y.png', '%s.png' % y)
+
+        logging.info('Tile URL ' + tileurl)
+
+        # Starts an async fetch of tile in case we get a memcache/datastore miss:
+        # TODO: Optimization would be to async fetch the 8 surrounding tiles.
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, tileurl)
+
+        # Checks memcache for tile and returns it if found:
+        memcache_key = "tileurl-%s" % tileurl
+        
+        r,g,b = None,None,None
+        try:
+            r = self._param('r')
+            g = self._param('g')
+            b = self._param('b')
+            r,g,b = int(r),int(g),int(b)
+            memcache_key = "tileurl-%s" % tileurl
+            memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+            band = memcache.get(memk)
+            if band is not None:
+                logging.info('Tile memcache hit: ' + memk)
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(band)
+                return
+        except:
+            pass
+            
+        band = memcache.get(memcache_key)
+        if band is not None:
+            logging.info('Tile memcache hit: ' + memcache_key)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(band)
+            return
+
+        # Checks datastore for tile and returns if found:
+        tile_key_name = os.path.join(species_key_name, zoom, y, x)
+        tile = Tile.get_by_key_name(tile_key_name)
+        if tile is not None:
+            logging.info('Tile datastore hit: ' + tile_key_name)
+            memcache.set(memcache_key, tile.band, 60)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(tile.band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(tile.band)
+            return
+
+        # Gets downloaded tile from async rpc request and returns it or a 404:
+        try:
+            result = rpc.get_result() # This call blocks.
+            if result.status_code == 200:
+                logging.info('Tile downloaded: ' + tileurl)
+                band = result.content
+                memcache.set(memcache_key, band, 60)
+                self.response.headers['Content-Type'] = "image/png"
+                if b is not None:
+                    memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                    band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+                self.response.out.write(band)
+            else:
+                logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+        except (urlfetch.DownloadError), e:
+            logging.error('%s - %s' % (tileurl, str(e)))            
             self.error(404) # Not found
 
-class Taxonomy(webapp.RequestHandler):
-
+class TaxonomyHandler(BaseHandler):
+    '''RequestHandler for Taxonomy query
+    
+       Required query string parameters:
+          
+       Optional query string parameters:
+          key - if given will do a direct key only search for the result
+          names
+          authorityName
+          authorityIdentifier
+          kingdom
+          phylum
+          class
+          order
+          superFamily
+          family
+          genus
+          species
+          infraSpecies
+          hasRangeMap - boolean, if True will only return mapped results, no false filter yet
+          simple - if given will return a simple result object, not full Species entry
+    '''
+    def __init__(self):
+        super(TaxonomyHandler, self).__init__()
+        self.taxonomy = TaxonomySearch()
+        #self.ts = TileService()
+    
+    def get(self):
+        if self.request.params.get('key', None) is not None:
+            if self.request.params.get('simple', None) is not None:
+                data = self.taxonomy.getdata({'key': self.request.params.get('key')})
+            else:
+                data = self.taxonomy.getdata({'key': self.request.params.get('key')})
+            
+            
+        else: 
+            query = {}
+            params = ['limit',
+                      'offset']
+                      
+            for p in params:
+                if self.request.params.get(p, None) is not None:
+                    query[p] = self.request.params.get(p) 
+            
+            filters = ['names', 'authorityName',
+                       'authorityIdentifier', 'kingdom',
+                       'phylum', 'class', 'order',
+                       'superFamily', 'family', 'genus',
+                       'species', 'infraSpecies', 'hasRangeMap']
+            query['filters'] = {}
+            for f in filters:
+                if self.request.params.get(f, None) is not None:
+                    query['filters'][f] = self.request.params.get(f) 
+            if self.request.params.get('simple', None) is not None:
+                data = self.taxonomy.getsimple(query)
+            else:
+                data = self.taxonomy.getdata(query)
+                
+        self.response.out.write(simplejson.dumps(data))
+        
+    """
+        
     def methods(self):
         out = {"methods":{
             "search": "provide a name string to search for",
@@ -329,179 +643,9 @@ class Taxonomy(webapp.RequestHandler):
         self.response.out.write(json_clean);
         if cb is not None:
             self.response.out.write(")")
+    """
 
-class GbifDataHandler(webapp.RequestHandler):
-    """RequestHandler for GBIF occurrence point datasets"""
-    def __init__(self):
-        super(GbifDataHandler, self).__init__()
-        self.ts = TileService()
-
-    def get(self, keyA, keyB, keyC):
-        self.post(keyA, keyB, keyC)
-
-    def post(self,keyA,keyB,keyC):
-        species_key_name = os.path.join(keyA,keyB,keyC)
-        cb = self.request.params.get('callback', None)
-        sc = self.request.params.get('skipcache', None)
-
-        """if dataset exists in memcache, return it to client"""
-        if sc is None:
-            data = memcache.get("gbif-small-%s" % species_key_name)
-            if data is not None:
-                self.response.headers['Content-Type'] = "application/json"
-                data = "%s ( %s ) " % (cb, data) if cb is not None else data
-                self.response.out.write(data)
-                return
-
-        """make sure that the keyname exists in MOL"""
-        q = Species.get_by_key_name(species_key_name)
-        #if not q:
-        #    self.error(404)
-        #    return
-
-        """create query URL for GBIF occurrence point url"""
-        #for testing on localhost
-        names = [{"source": "COL", "type": "common name", "name": "Puma", "language": "Spanish", "author": None}, {"source": "COL", "type": "common name", "name": "Cougar", "language": "English", "author": None}, {"source": "COL", "type": "accepted name", "name": "Puma concolor", "language": "latin", "author": "Linnaeus, 1771"}, {"source": "COL", "type": "scientific name", "name": "Felis concolor", "language": "latin", "author": "Linnaeus, 1771"}]
-        #names = simplejson.loads(q.names)
-
-        nms = [i for i in names if i['type']=="accepted name"]
-        nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
-        nms = nms[0]
-        if len(nms)==0:
-            nms = [i for i in names if i['type']=="scientific name"]
-            nms = [i for i in nms if i['source']=="COL"] if len(nms) > 1 else nms
-            nms = nms[0]
-
-        gbifurl =  "http://data.gbif.org/ws/rest/occurrence/list?maxresults=200&coordinatestatus=true&format=darwin&scientificname=%s" % nms["name"].replace(" ","+")
-        rpc = urlfetch.create_rpc()
-        urlfetch.make_fetch_call(rpc, gbifurl)
-
-        # Gets downloaded kml from async rpc request and returns it or a 404:
-        try:
-            result = rpc.get_result() # This call blocks.
-            if result.status_code == 200:
-                """need to add a pager here!"""
-                NSXML = "http://portal.gbif.org/ws/response/gbif"
-                TOXML = "http://rs.tdwg.org/ontology/voc/TaxonOccurrence#"
-                logging.info('XML downloaded: ' + gbifurl)
-                xml = etree.iterparse(StringIO.StringIO(result.content), ("start", "end"))
-                out = {"providers":[]}
-                provider, resource, occurrence = {"resources": []}, {"occurrences": []}, {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
-                p, r, o = True, False, False
-                pct, rct, oct = 0, 0, 0
-                for action, element in xml:
-                    logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
-                    if "{%s}TaxonOccurrence" % TOXML == element.tag:
-                        if action=="start":
-                            p, r, o = False, False, True
-                            #logging.error(o)
-                        elif action=="end":
-                            oct+=1
-                            resource['occurrences'].append(occurrence)
-                            occurrence = {"coordinates": {"coordinateUncertaintyInMeters": None,"decimalLongitude": None,"decimalLatitude": None}}
-
-                    elif "{%s}dataResource" % NSXML == element.tag:
-                        if action=="start":
-                            p, r, o = False, True, False
-                        elif action=="end":
-                            rct+=1
-                            provider['resources'].append(resource)
-                            resource = {'occurrences':[]}
-
-                    elif "{%s}dataProvider" % NSXML == element.tag:
-                        if action=="start":
-                            p, r, o = True, False, False
-                        elif action=="end":
-                            pct+=1
-                            out["providers"].append(provider)
-                            provider = {"resources": []}
-
-                    elif p or r:
-                        if "{%s}name" % NSXML == element.tag:
-                            if p:
-                                provider['name'] = element.text
-                            elif r:
-                                resource['name'] = element.text
-                    elif o:
-                        if element.tag in ["{%s}decimalLatitude" % TOXML, "{%s}decimalLongitude" % TOXML]:
-                            try:
-                                occurrence["coordinates"][str(element.tag).split("}")[1]] = float(element.text)
-                            except:
-                                occurrence["coordinates"][str(element.tag).split("}")[1]] = None
-                        elif "{%s}coordinateUncertaintyInMeters" % TOXML == element.tag:
-                            try:
-                                occurrence["coordinates"]["coordinateUncertaintyInMeters"] = float(element.text)
-                                assert occurrence["coordinates"]["coordinateUncertaintyInMeters"] > 0
-                            except:
-                                occurrence["coordinates"]["coordinateUncertaintyInMeters"] = None
-
-                output = simplejson.dumps({"source": "GBIF", "sourceUrl": gbifurl, "accessDate": str(datetime.datetime.now()), "totalProviders": pct, "totalResources": rct, "totalRecords": oct, "records": out}).replace('\\/','/')
-                memcache.set("gbif-small-%s" % species_key_name, output, 120000)
-                self.response.headers['Content-Type'] = "application/json"
-                output = "%s ( %s ) " % (cb, output) if cb is not None else output
-                self.response.out.write(output)
-
-            else:
-                raise urlfetch.DownloadError('Bad urlfetch result ' + str(gbifurl))
-        except (urlfetch.DownloadError), e:
-            logging.error('%s - %s' % (gbifurl, str(e)))
-            self.error(404) # Not found
-
-class TilePngHandler(webapp.RequestHandler):
-    """RequestHandler for map tile PNGs."""
-    def __init__(self):
-        super(TilePngHandler, self).__init__()
-        self.ts = TileService()
-    def get(self):
-        #convert the URL route into the key (removing .png)
-        url = self.request.path_info
-        assert '/' == url[0]
-        path = url[1:]
-        (b1, b2, tileurl) = path.split("/", 2)
-        tileurl = tileurl.split('.')[0]
-
-        fullTest = False
-        band = memcache.get("tile-%s" % tileurl)
-        if band is None:
-            tile = self.ts.tile_from_url(tileurl)
-            if tile:
-                band = tile.band
-
-        if band is not None:
-            memcache.set("tile-%s" % tileurl, band, 60)
-            try:
-                tmp = str(band)
-            except:
-                tmp = 0
-
-            if cmp(tmp, 'f') == 0:
-                self.redirect("/static/full.png")
-            else:
-                self.response.headers['Content-Type'] = "image/png"
-                self.response.out.write(self.t.band)
-
-class FindID(webapp.RequestHandler):
-    def get(self, a, id):
-        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
-        d = q.fetch(limit=2)
-        if len(d) == 2:
-            return "multiple matches"
-        elif len(d) == 0:
-            self.error(404)
-        else:
-            k = d[0]
-            self.response.out.write(str(k.name()))
-
-class ValidKey(webapp.RequestHandler):
-    def get(self, class_, rank, species_id=None):
-        species_key_name = os.path.join(class_, rank, species_id)
-        q = Species.get_by_key_name(species_key_name)
-        if q:
-            self.response.set_status(200)
-        else:
-            self.error(404)
-
-class DatasetMetadata(webapp.RequestHandler):
+class MetadataHandler(webapp.RequestHandler):
     def _getprops(self, obj):
         '''Returns a dictionary of entity properties as strings.'''
         dict = {}
@@ -541,163 +685,14 @@ class DatasetMetadata(webapp.RequestHandler):
             logging.error('No TileSetIndex for ' + species_key_name)
             self.error(404) # Not found
 
-class BaseHandler(webapp.RequestHandler):
-    '''Base handler for handling common stuff like template rendering.'''
-
-    def _param(self, name, required=True, type=str):
-        # Hack (see http://code.google.com/p/googleappengine/issues/detail?id=719)
-        import cgi
-        params = cgi.parse_qs(self.request.body)
-        if len(params) is 0:
-            val = self.request.get(name, None)
-        else:
-            if params.has_key(name):
-                val = params[name][0]
-            else:
-                val = None
-
-        # val = self.request.get(name, None)
-        if val is None:
-            if required:
-                logging.error('%s is required' % name)
-                raise BadArgumentError
-            return None
-        try:
-            return type(val)
-        except (ValueError), e:
-            logging.error('Invalid %s %s: %s' % (name, val, e))
-            raise BadArgumentError(e)
-
-    def render_template(self, file, template_args):
-        path = os.path.join(os.path.dirname(__file__), "../../templates", file)
-        self.response.out.write(template.render(path, template_args))
-
-    def push_html(self, file):
-        path = os.path.join(os.path.dirname(__file__), "../../html", file)
-        self.response.out.write(open(path, 'r').read())
-
-class RangeMapHandler(BaseHandler):
-    '''Handler for rendering range maps based on species key_name.'''
-    def get(self):
-        self.push_html('range_maps.html')
-
-class LayersTileHandler(BaseHandler):
-
-    def get(self, class_, rank, png_name):
-        '''Handles a PNG map tile request according to the Google XYZ tile
-        addressing scheme described here:
-
-        http://code.google.com/apis/maps/documentation/javascript/v2/overlays.html#Google_Maps_Coordinates
-
-        Required query string parameters:
-            z - integer zoom level
-            y - integer latitude pixel coordinate
-            x - integer longitude pixel coordinate
-        '''
-        species_id, ext = os.path.splitext(png_name)
-        species_key_name = os.path.join(class_, rank, species_id)
-        logging.info('KEY NAME ' + species_key_name)
-        # Returns a 404 if there's no TileSetIndex for the species id since we
-        # need it to calculate bounds and for the remote tile URL:
-        metadata = TileSetIndex.get_by_key_name(species_key_name)
-        if metadata is None:
-            logging.error('No metadata for species: ' + species_key_name)
-            self.error(404) # Not found
-            return
-
-        # Returns a 400 if the required query string parameters are invalid:
-        try:
-            zoom = self._param('z')
-            x = self._param('x')
-            y = self._param('y')
-        except (BadArgumentError), e:
-            logging.error('Bad request params: ' + str(e))
-            self.error(400) # Bad request
-            return
-
-        # Returns a 404 if the request isn't within bounds of the species:
-        within_bounds = True; # TODO: Calculate if within bounds.
-        if not within_bounds:
-            self.error(404) # Not found
-            return
-
-        # Builds the tile image URL which is also the memcache key. It's of the
-        # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
-        tileurl = metadata.remoteLocation
-        tileurl = tileurl.replace('zoom', zoom)
-        tileurl = tileurl.replace('/x/', '/%s/' % x)
-        tileurl = tileurl.replace('y.png', '%s.png' % y)
-
-        logging.info('Tile URL ' + tileurl)
-
-        # Starts an async fetch of tile in case we get a memcache/datastore miss:
-        # TODO: Optimization would be to async fetch the 8 surrounding tiles.
-        rpc = urlfetch.create_rpc()
-        urlfetch.make_fetch_call(rpc, tileurl)
-
-        # Checks memcache for tile and returns it if found:
-        memcache_key = "tileurl-%s" % tileurl
-        
-        r,g,b = None,None,None
-        try:
-            r = self._param('r')
-            g = self._param('g')
-            b = self._param('b')
-            r,g,b = int(r),int(g),int(b)
-            memcache_key = "tileurl-%s" % tileurl
-            memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
-            band = memcache.get(memk)
-            if band is not None:
-                logging.info('Tile memcache hit: ' + memk)
-                self.response.headers['Content-Type'] = "image/png"
-                self.response.out.write(band)
-                return
-        except:
-            pass
-            
-        band = memcache.get(memcache_key)
-        if band is not None:
-            logging.info('Tile memcache hit: ' + memcache_key)
-            self.response.headers['Content-Type'] = "image/png"
-            if b is not None:
-                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
-                band = colorPng(band, r, g, b, isObj=True, memKey=memk)
-            self.response.out.write(band)
-            return
-
-        # Checks datastore for tile and returns if found:
-        tile_key_name = os.path.join(species_key_name, zoom, y, x)
-        tile = Tile.get_by_key_name(tile_key_name)
-        if tile is not None:
-            logging.info('Tile datastore hit: ' + tile_key_name)
-            memcache.set(memcache_key, tile.band, 60)
-            self.response.headers['Content-Type'] = "image/png"
-            if b is not None:
-                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
-                band = colorPng(tile.band, r, g, b, isObj=True, memKey=memk)
-            self.response.out.write(tile.band)
-            return
-
-        # Gets downloaded tile from async rpc request and returns it or a 404:
-        try:
-            result = rpc.get_result() # This call blocks.
-            if result.status_code == 200:
-                logging.info('Tile downloaded: ' + tileurl)
-                band = result.content
-                memcache.set(memcache_key, band, 60)
-                self.response.headers['Content-Type'] = "image/png"
-                if b is not None:
-                    memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
-                    band = colorPng(band, r, g, b, isObj=True, memKey=memk)
-                self.response.out.write(band)
-            else:
-                logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
-                raise urlfetch.DownloadError('Bad tile result ' + str(result))
-        except (urlfetch.DownloadError), e:
-            logging.error('%s - %s' % (tileurl, str(e)))            
-            self.error(404) # Not found
-
 class LayersHandler(BaseHandler):
+    '''BaseHandler utility for backend to send information about updated 
+       tilesets.
+       
+       Required query string parameters:
+          
+       Optional query string parameters:
+    '''
 
     AUTHORIZED_IPS = ['128.138.167.165', '127.0.0.1', '71.202.235.132']
 
@@ -806,6 +801,113 @@ class LayersHandler(BaseHandler):
         except (BadArgumentError), e:
             logging.error('Bad PUT request %s: %s' % (species_key_name, e))
             self.error(400) # Bad request
+
+class KeyHandler(webapp.RequestHandler):
+    '''RequestHandler utility for backend to check if a layer is a valid
+       layer to be tiling or analyzing. Used for dropping new layers into
+       the pipeling.
+       
+       Required query string parameters:
+          
+       Optional query string parameters:
+    '''
+    def get(self, class_, rank, species_id=None):
+        species_key_name = os.path.join(class_, rank, species_id)
+        q = Species.get_by_key_name(species_key_name)
+        if q:
+            self.response.set_status(200)
+        else:
+            self.error(404)
+            
+class TileSetMetadata(webapp.RequestHandler):
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'status', 'zoom', 'dateLastModified', 'proj', 'type']:
+                dict[key] = str(obj.properties()[key].__get__(obj, TileSetIndex))
+            """
+            elif key in []:
+                c = str(obj.properties()[key].__get__(obj, TileSetIndex))
+                d = c.split(',')
+                dict[key] = {"latitude":float(c[1]),"longitude":float(c[0])}
+            """
+        dict['mol_species_id'] = str(obj.key().name())
+        return dict
+
+    def get(self, class_, rank, sepecies_id=None):
+        self.post(class_, rank, species_id)
+
+    def post(self, class_, rank, species_id=None):
+        '''Gets a TileSetIndex identified by a MOL specimen id
+        (/api/tile/metadata/specimen_id) or all TileSetIndex entities (/layers).
+        '''
+        if species_id is None or len(species_id) is 0:
+            # Sends all metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            all = [self._getprops(x) for x in TileSetIndex.all()]
+            # TODO: This response will get huge so we need a strategy here.
+            self.response.out.write(simplejson.dumps(all))
+            return
+
+        species_key_name = os.path.join(class_, rank, species_id)
+        metadata = TileSetIndex.get_by_key_name(species_key_name)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + species_key_name)
+            self.error(404) # Not found
+
+class TilePngHandler(webapp.RequestHandler):
+    """RequestHandler for map tile PNGs."""
+    def __init__(self):
+        super(TilePngHandler, self).__init__()
+        self.ts = TileService()
+    def get(self):
+        #convert the URL route into the key (removing .png)
+        url = self.request.path_info
+        assert '/' == url[0]
+        path = url[1:]
+        (b1, b2, tileurl) = path.split("/", 2)
+        tileurl = tileurl.split('.')[0]
+
+        fullTest = False
+        band = memcache.get("tile-%s" % tileurl)
+        if band is None:
+            tile = self.ts.tile_from_url(tileurl)
+            if tile:
+                band = tile.band
+
+        if band is not None:
+            memcache.set("tile-%s" % tileurl, band, 60)
+            try:
+                tmp = str(band)
+            except:
+                tmp = 0
+
+            if cmp(tmp, 'f') == 0:
+                self.redirect("/static/full.png")
+            else:
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(self.t.band)
+
+class FindID(webapp.RequestHandler):
+    def get(self, a, id):
+        q = SpeciesIndex.all(keys_only=True).filter("authorityName =", a).filter("authorityIdentifier =", id)
+        d = q.fetch(limit=2)
+        if len(d) == 2:
+            return "multiple matches"
+        elif len(d) == 0:
+            self.error(404)
+        else:
+            k = d[0]
+            self.response.out.write(str(k.name()))
+
+class RangeMapHandler(BaseHandler):
+    '''Handler for rendering range maps based on species key_name.'''
+    def get(self):
+        self.push_html('range_maps.html')
    
 class ColorImage(BaseHandler):
     """Handler for the search UI."""
@@ -822,187 +924,252 @@ class ColorImage(BaseHandler):
         self.response.headers["Content-Type"] = "image/png"
         self.response.out.write(val)
         
-        
-class WebAppHandler(BaseHandler):
-    
-    def __init__(self):
-        self.layer_service = LayerService()
-        self.gbif = GbifLayerProvider()
-        
-    def get(self):
-        self.post();
+"""
+class EcoregionMetadata(webapp.RequestHandler):
+    '''Method should be called as a first stop to any layer being loaded
+       When executed, it also starts tiling zoom zero tiles for the layer
+    '''
+    def _getprops(self, obj):
+        '''Returns a dictionary of entity properties as strings.'''
+        dict = {}
+        for key in obj.properties().keys():
+            if key in ['extentNorthWest', 'extentSouthEast', 'dateCreated', 
+                        'remoteLocation', 'ecoName', 'realm', 'biome', 'ecoNum', 
+                        'ecoId', 'g200Region', 'g200Num', 'g200Biome', 'g200Stat']:
+                dict[key] = str(obj.properties()[key].__get__(obj, Ecoregion))
+        dict['ecoCode'] = str(obj.key().name())
+        return dict
 
-    def post(self):
-        action = self.request.get('action', None)
+    def get(self, region_id=None):
+        self.post(region_id)
+
+    def post(self, region_id=None):
+        metadata = Ecoregion.get_by_key_name(region_id)
+        minx, maxy = obj.properties['extentNorthWest']
+        maxx, miny = obj.properties['extentSouthEast']
+        bboxurl = "http://mol.colorado.edu/layers/api/ecoregion/tilearea/" + \
+                  "{code}?record_ids={code}&zoom={z}&lowx={minx}&lowy={miny}&highx={maxx}&highy={maxy}"
+        bboxurl = bboxurl.replace("{code}",region_id)
+        bboxurl = bboxurl.replace("{z}",0)
+        bboxurl = bboxurl.replace("{minx}",minx)
+        bboxurl = bboxurl.replace("{maxx}",maxx)
+        bboxurl = bboxurl.replace("{miny}",miny)
+        bboxurl = bboxurl.replace("{maxy}",maxy)
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, bboxurl)
+        if metadata:
+            self.response.headers['Content-Type'] = 'application/json'
+            self.response.out.write(simplejson.dumps(self._getprops(metadata)).replace("\\/", "/"))
+        else:
+            logging.error('No TileSetIndex for ' + record_id)
+            self.error(404) # Not found
+            
+        result = rpc.get_result() #TODO: Aaron is this really necessary here?
+"""
+
+class EcoregionTileHandler(BaseHandler):
+    def get(self, name):
+        '''Handles a PNG map tile request according to the Google XYZ tile
+        addressing scheme described here:
         
-        if not action:
+        Required query string parameters:
+            z - integer zoom level
+            y - integer latitude pixel coordinate
+            x - integer longitude pixel coordinate
+        '''
+        name, ext = os.path.splitext(name)
+        logging.info('Ecoregion collection name ' + name)
+        # Returns a 404 if there's no TileSetIndex for the species id since we
+        # need it to calculate bounds and for the remote tile URL:
+        # TODO: create region metadata datastore
+        #metadata = TileSetIndex.get_by_key_name(species_key_name)
+        metadata = True
+        # Returns a 404 if the requested region_id doesn't exist:
+        if metadata is None:
+            self.error(404) # Not found
+            return
+            
+        # Returns a 400 if the required query string parameters are invalid:
+        try:
+            zoom = self._param('z')
+            x = self._param('x')
+            y = self._param('y')
+        except (BadArgumentError), e:
+            logging.error('Bad request params: ' + str(e))
             self.error(400) # Bad request
             return
 
-        action = simplejson.loads(action)
-        a_name = action.get('name')
-        a_type = action.get('type')
-        a_query = action.get('params')
-        logging.info('name=%s, type=%s, query=%s' % (a_name, a_type, a_query))
-        
-        response = {
-            'LayerAction': {
-                'search': lambda x: self._layer_search(x),
-                'get-points': lambda x: self._layer_get_points(x)
-                }
-            }[a_name][a_type](a_query)
+        # Returns a 404 if the request isn't within bounds of the region:
+        within_bounds = True; # TODO: Calculate if within bounds.
+        if not within_bounds:
+            self.error(404) # Not found
+            return
 
-        self.response.headers["Content-Type"] = "application/json"
-        self.response.out.write(simplejson.dumps(response))
-
-    def _layer_get_points(self, query):
-        # TODO: Use self.layer_service()
-        sciname = query.get('layerName')
-        content = self.gbif.getdata({'sciname':sciname})
-        logging.info(content)
-        return content
+        # Builds the tile image URL which is also the memcache key. It's of the
+        # form: http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
+        #tileurl = metadata.remoteLocation
+        tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/{code}?zoom={z}&x={x}&y={y}"
         
-    def _layer_search(self, query):
-        # TODO(aaron): Merge list of profiles.
-        # return self.layer_service.search(query)[0]
-        return {    
-            "query": {
-                "search": "Puma",
-                "offset": 0,
-                "limit": 10,
-                "source": None,
-                "type": None,
-                "advancedOption1": "foo",
-                "advancedOption2": "bar"
-                },
-            
-            "types": {
-                "points": {
-                    "names": ["Puma concolor"],
-                    "sources": ["GBIF"],
-                    "layers": [0]
-                    },
-                "range": {
-                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
-                    "sources": ["MOL"],
-                    "layers": [1,2,3]
-                    },  
-                "ecoregions": {
-                    "names": ["Puma concolor"],
-                    "sources": ["WWF"],
-                    "layers": [4]
-                    },      
-                },
-            
-            "sources": {
-                "GBIF": {
-                    "names": ["Puma concolor"],
-                    "types": ["points"],
-                    "layers": [0]
-                    },        
-                "MOL": {
-                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
-                    "types": ["range"],
-                    "layers": [1,2,3]
-                    },
-                "WWF": {
-                    "names": ["Puma concolor"],
-                    "types": ["ecoregions"],
-                    "layers": [4]
-                    }
-                },
-            
-            "names": {
-                "Puma concolor": {
-                    "sources": ["GBIF", "MOL", "WWF"],
-                    "layers": [0,1,4],
-                    "types": ["points", "range", "ecoregions"]
-                    },
-                "Puma yagouaroundi": {
-                    "sources": ["MOL"],
-                    "layers": [2],
-                    "types": ["range"]            
-                    },    
-                "Smilisca puma": {
-                    "sources": ["MOL"],
-                    "layers": [3],
-                    "types": ["range"]
-                    }
-                },
-            
-            "layers": {
-                0 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
-                     "source": "GBIF",
-                     "type": "points",
-                     "info": "blah blah"
-                    }, 
-                1 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },                
-                2 : {"name": "Puma yagouaroundi",
-                     "name2" : "R. Guralnick", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },       
-                3:  {"name": "Smilisca puma",
-                     "name2" : "A. Steele", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },       
-                4:  {"name" : "Puma concolor",
-                     "name2" : "WWF Ecoregions", 
-                     "source": "WWF",
-                     "type": "ecoregions",
-                     "info": "blah blah"
-                    },
-                }
-            }
-
-
+        tileurl = tileurl.replace('{z}', zoom)
+        tileurl = tileurl.replace('{x}', x)
+        tileurl = tileurl.replace('{y}', y)
+        tileurl = tileurl.replace('{code}', name)
         
-class GBIFTest(BaseHandler):
-    def __init__(self):
-        self.p = GbifLayerProvider()
+        logging.info('Tile URL ' + tileurl)
         
+        # Starts an async fetch of tile in case we get a memcache/datastore miss:
+        # TODO: Optimization would be to async fetch the 8 surrounding tiles.
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, tileurl)
+
+        # Checks memcache for tile and returns it if found:
+        memcache_key = "tileurl-%s" % tileurl
+        
+        r,g,b = None,None,None
+        try:
+            r = self._param('r')
+            g = self._param('g')
+            b = self._param('b')
+            r,g,b = int(r),int(g),int(b)
+            memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+            band = memcache.get(memk)
+            band = None
+            if band is not None:
+                logging.info('Tile memcache hit: ' + memk)
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(band)
+                return
+        except:
+            pass
+        
+        band = memcache.get(memcache_key)
+        if band is not None:
+            logging.info('Tile memcache hit: ' + memcache_key)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                logging.info('colored')
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(band)
+            return
+        
+        # Checks datastore for tile and returns if found:
+        """
+        tile_key_name = os.path.join(species_key_name, zoom, y, x)
+        tile = Tile.get_by_key_name(tile_key_name)
+        if tile is not None:
+            logging.info('Tile datastore hit: ' + tile_key_name)
+            memcache.set(memcache_key, tile.band, 60)
+            self.response.headers['Content-Type'] = "image/png"
+            if b is not None:
+                memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                band = colorPng(tile.band, r, g, b, isObj=True, memKey=memk)
+            self.response.out.write(tile.band)
+            return
+        """
+        # Gets downloaded tile from async rpc request and returns it or a 404:
+        try:
+            result = rpc.get_result() # This call blocks.
+            if result.status_code == 200:
+                logging.info('Tile downloaded: ' + tileurl)
+                band = result.content
+                memcache.set(memcache_key, band, 60)
+                self.response.headers['Content-Type'] = "image/png"
+                if b is not None:
+                    memk = "%s/%s/%s/%s" % (memcache_key, r, g, b)
+                    band = colorPng(band, r, g, b, isObj=True, memKey=memk)
+                self.response.out.write(band)
+            else:
+                logging.info('Status=%s, URL=%s' % (str(result.status_code), result.final_url))
+                raise urlfetch.DownloadError('Bad tile result ' + str(result))
+        except (urlfetch.DownloadError), e:
+            logging.error('%s - %s' % (tileurl, str(e)))            
+            self.error(404) # Not found
+
+class EcoregionLayerSearch(BaseHandler):
     def get(self):
-        self.post();
-
+        self.post()
     def post(self):
-        q = 'Puma concolor'
-        a = 'Hill AW'
-        qd = {'sciname': q, 'limit': 1, 'name2': a}
-        url = self.p.geturl(qd)
-        data = self.p.getdata(qd)
-        #jsn = self.p.xmltojson(data,url)
-        prf = self.p.getprofile(qd, url, data)
-        #prof = self.p.getprofile(data)
-        self.response.headers["Content-Type"] = "application/json"
-        self.response.out.write(simplejson.dumps(data))
-
+        ecoCode = self._param('ecocode').strip()
+        #er = Ecoregion.get_by_key_name(ecoCode)
+        er = Ecoregion.get_or_insert(ecoCode)
+        if True:
+            nw = simplejson.loads(self._param('nw').replace("'",'"'))
+            se = simplejson.loads(self._param('se').replace("'",'"'))
+            
+            url = "http://mol.colorado.edu/layers/api/ecoregion/tilearea/%s?zoom=0&lowx=%s&lowy=%s&highx=%s&highy=%s" % (ecoCode,nw['lon'],se['lat'],se['lon'],nw['lat'])
+            logging.error(url)
+            rpc = urlfetch.create_rpc()
+            urlfetch.make_fetch_call(rpc, url)
+            
+            cl = simplejson.loads(self._param('clickables').replace("'",'"'))
+            er.extentNorthWest = db.GeoPt(lat=nw['lat'],lon=nw['lon'])
+            er.extentSouthEast = db.GeoPt(lat=se['lat'],lon=se['lon'])
+            er.polyStrings = []
+            ss = []
+            ns = str(er.ecoName).split(' ')
+            last = ""
+            full = ""
+            first = True
+            for n in ns:
+                n = n.lower()
+                ss.append(n)
+                subs = re.findall('\w+', n)
+                if len(subs) > 1:
+                    for s in subs:
+                        ss.append(s)
+                full = ' '.join([full, n])
+                if first:
+                    first = False
+                else:
+                    ss.append(last + ' ' + n)
+                    ss.append(full)
+                last = n
+            
+            for c in cl:
+                poly = {"type": "bbox", 
+                        "value": {
+                            "nw": {"lat": c['nw']['lat'],"lon": c['nw']['lon']}, 
+                            "se": {"lat": c['se']['lat'],"lon": c['se']['lon']}
+                            }
+                        }
+                er.polyStrings.append(simplejson.dumps(poly))
+            erL = EcoregionLayer.get_or_insert(ecoCode)
+            erL.name=er.ecoName
+            erL.id=ecoCode
+            erL.ecoCodes = [ecoCode]
+            erL.searchStrings = ss
+            
+            er.put()
+            erL.put()
+            
+            result = rpc.get_result() # This call blocks.
+            logging.error(result.status_code)
+        else:
+            logging.error(ecoCode)
 
 application = webapp.WSGIApplication(
-         [('/api/taxonomy', Taxonomy),
-          ('/api/colorimage/([^/]+)', ColorImage),
-          ('/api/findid/([^/]+)/([^/]+)', FindID),
-          ('/api/validkey/([^/]+)/([^/]+)/([\w]+)', ValidKey),
-          ('/api/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/api/points/gbif/([^/]+)/([^/]+)/([\w]+)', GbifDataHandler),
-          ('/api/tile/metadata/([^/]+)/([^/]+)/([\w]+)', DatasetMetadata),
-          ('/layers/([^/]+)/([^/]+)/([\w]+)', LayersHandler),
-          ('/layers/([^/]+)/([^/]+)/([\w]*.png)', LayersTileHandler),
-          ('/layers', LayersHandler), 
-          ('/api/webapp', WebAppHandler),
-          ('/api/gbif', GBIFTest),
+         [('/webapp', WebAppHandler),
+         
+          ('/data/points', PointsHandler), 
+          ('/data/tile', TileHandler),
+
+          ('/search/taxonomy', TaxonomyHandler),
+          ('/search/metadata', MetadataHandler),
+          
+          ('/util/layers', LayersHandler), 
+          ('/util/validkey', KeyHandler),
+
+          ('/test/colorimage/([^/]+)', ColorImage),
+          ('/test/findid/([^/]+)/([^/]+)', FindID),
+          ('/test/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
+          ('/test/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
+          ('/test/ecoregion/search', EcoregionLayerSearch),
+          #('/test/gbif', GBIFTest),
+          #('/test/ecoregion/metadata/([\w]+)', EcoregionMetadata),
           ],
-
          debug=True)
-
+         
 def main():
     run_wsgi_app(application)
 

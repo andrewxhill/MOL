@@ -17,14 +17,14 @@
 from celery.task import Task, PeriodicTask
 from celery.registry import tasks
 from service import Layer, SpeciesIdError
-from app_globals import Globals
+from celery_globals import Globals
 from datetime import date, timedelta
 import Queue
 import logging
 import os
 import threading
 import shutil
-
+import urllib, urllib2
 
 class BulkLoadTiles():
     """class for running the bulkloader to upload tilesets to GAE"""
@@ -152,5 +152,27 @@ class LayerProcessingThread(Task):
             raise e
 
         # Notifies queue that this formerly enqueued task is complete:
+        logging.info('Task complete')
+
+
+
+class EcoregionProcessingThread(Task):
+    def run(self, name, zoom, lowx, lowy, highx, highy, region_ids):
+        """
+        """
+        self.g = Globals()
+        
+        url = "http://localhost/layers/api/ecoregion/tilearea/%s" % name
+        vars = {"zoom": zoom,
+                "lowx": lowx,
+                "lowy": lowy,
+                "highx": highx,
+                "highy": highy,
+                "region_ids": region_ids}
+                
+        data = urllib.urlencode(vars)
+        req = urllib2.Request(url, data)
+        response = urllib2.urlopen(req)
+            
         logging.info('Task complete')
 

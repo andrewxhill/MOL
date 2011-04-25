@@ -30,5 +30,17 @@ def make_map():
     map.connect('/{controller}/{action}/{class}/{rank}/{species_id}/{zoom:\d+}/{x:\d+}/{y:\d+}.png',
                 contoller='api',
                 action='tiles')
+                
+    map.connect('/{controller}/{action}/{method}/{name}',
+                contoller='api',
+                action='eco')
+    """
+    map.connect('/{controller}/{action}/{method}/{name}',
+                contoller='api',
+                action='ecoregion')
+    """
+                
+                
+                
 
     return map

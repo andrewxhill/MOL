@@ -380,6 +380,7 @@ div#content .wrapper #right{
 div#content .wrapper #code{ 
     height: 285px;
     color: #fff;
+    overflow: hidden;
 }
 div#content .wrapper #code a{ 
     color: #b8fd85;

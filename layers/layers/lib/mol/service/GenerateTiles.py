@@ -1,18 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright 2010 Map Of Life
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# This is code derived work
 #
 from Queue import Queue
 from math import pi, sin, log, exp, atan
@@ -102,7 +90,8 @@ class RenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(render_size, render_size)
         mapnik.render(self.m, im)
-        im.save(tile_uri, 'png256')
+        print tile_uri
+        im.save(tile_uri, 'png')
 
 
     def loop(self):
@@ -114,17 +103,19 @@ class RenderThread:
                 break
             else:
                 (name, tile_uri, x, y, z) = r
-
-            exists = ""
-            if os.path.isfile(tile_uri):
-                exists = "exists"
-            else:
-                self.render_tile(tile_uri, x, y, z)
+            
+            self.render_tile(tile_uri, x, y, z)
+            
             bytes = os.stat(tile_uri)[6]
             empty = ''
-            if bytes == 103:
+            if bytes == 334:
+                print tile_uri + ' empty'
                 empty = " Empty Tile "
+                #remove the png
                 os.remove(tile_uri)
+                #create an empty file placeholder
+                open(tile_uri.replace('.png','.null'), "w+")
+            
             self.printLock.acquire()
             #print name, ":", z, x, y, exists, empty
             self.printLock.release()
@@ -132,9 +123,9 @@ class RenderThread:
 
 
 
-def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown", num_threads=1):
+def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown", num_threads=1, overwrite=True):
     #print "render_tiles(", bbox, mapfile, tile_dir, minZoom, maxZoom, name, ")"
-
+    print 'Rendering:'
     # Launch rendering threads
     queue = Queue(32)
     printLock = threading.Lock()
@@ -175,10 +166,23 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
                 if (y < 0) or (y >= 2 ** z):
                     continue
                 str_y = "%s" % y
-                tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'
-                # Submit tile to be rendered into the queue
-                t = (name, tile_uri, x, y, z)
-                queue.put(t)
+                tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'  
+                null_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.null'  
+                #skip existing tiles 
+                
+                if os.path.exists(tile_uri) or os.path.exists(null_uri):
+                    if overwrite:
+                        try:
+                            os.remove(tile_uri)
+                        except:
+                            pass
+                        # Submit tile to be rendered into the queue
+                        t = (name, tile_uri, x, y, z)
+                        queue.put(t)
+                else:
+                    # Submit tile to be rendered into the queue
+                    t = (name, tile_uri, x, y, z)
+                    queue.put(t)
 
     # Signal render threads to exit by sending empty request to queue
     for i in range(num_threads):
