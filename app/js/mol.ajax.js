@@ -100,7 +100,7 @@ MOL.modules.ajax = function(mol) {
              */
             execute: function(action, callback ) {
                 var params = {action: action.toJson()},
-                    xhr = $.post('/api/webapp', params, 'json'),
+                    xhr = $.post('/webapp', params, 'json'),
                     self = this;
 
                 xhr.success(

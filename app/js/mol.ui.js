@@ -61,10 +61,10 @@ MOL.modules.ui = function(mol) {
             },
             
             attr: function(name, val) {
-                if (val) {
-                    return this._element.attr(name, val);
-                } else {
+                if (val === undefined) {
                     return this._element.attr(name);
+                } else {
+                    return this._element.attr(name, val);                    
                 }
             },
 

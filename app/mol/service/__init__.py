@@ -28,7 +28,8 @@ import png
 import re
 import urllib
 from google.appengine.api.datastore_errors import BadKeyError
-
+from google.appengine.api import memcache
+import StringIO
 
 def colorPng(img, r, g, b, isObj=False):
     val = None
@@ -321,7 +322,7 @@ class GbifLayerProvider(LayerProvider):
         p, r, o = True, False, False
         pct, rct, oct = 0, 0, 0
         for action, element in xml:
-            logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
+            #logging.info('element.text:%s, type:%s ' % (element.text, type(element.text)))
             if "{%s}TaxonOccurrence" % TOXML == element.tag:
                 if action=="start":
                     p, r, o = False, False, True

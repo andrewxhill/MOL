@@ -50,6 +50,9 @@ handlers:
 - url: /webapp/.*
   script: mol/api/__init__.py
 
+- url: /webapp
+  script: mol/api/__init__.py
+
 - url: /sitemap.xml
   static_files: static/config/sitemap.xml
   upload: static/config/sitemap.xml
