@@ -30,42 +30,37 @@ import urllib
 from google.appengine.api.datastore_errors import BadKeyError
 
 
-def colorPng(img, r, g, b, isObj=False, memKey=None):
+def colorPng(img, r, g, b, isObj=False):
     val = None
-    if memKey is not None:
-        val = memcache.get(memKey)
-    if val is None:
-        if isObj:
-            imt = png.Reader(bytes=img)
-        else:
-            imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
-        logging.error(dir(imt))
-        logging.error(imt)
-        im = imt.read()
-        planes = im[3]['planes']
-        itr = im[2]
-        ar = list(itr)
-        n = len(ar)
-        row = 0
-        
-        while row < n:
-            ct = planes
-            col = len(ar[row])
-            while ct <= col:
-                if ar[row][ct-1]==255:
-                    ar[row][ct-4] = r
-                    ar[row][ct-3] = g
-                    ar[row][ct-2] = b
-                ct+= planes
-            ar[row] = tuple(ar[row])
-            row+=1
-        
-        f = StringIO.StringIO()
-        w = png.Writer(len(ar[0])/planes, len(ar), alpha=True)
-        w.write(f, ar)
-        val = f.getvalue()
-    if memKey is not None:
-        memcache.set(memKey, val, 12000)
+    if isObj:
+        imt = png.Reader(bytes=img)
+    else:
+        imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
+    logging.error(dir(imt))
+    logging.error(imt)
+    im = imt.read()
+    planes = im[3]['planes']
+    itr = im[2]
+    ar = list(itr)
+    n = len(ar)
+    row = 0
+    
+    while row < n:
+        ct = planes
+        col = len(ar[row])
+        while ct <= col:
+            if ar[row][ct-1]==255:
+                ar[row][ct-4] = r
+                ar[row][ct-3] = g
+                ar[row][ct-2] = b
+            ct+= planes
+        ar[row] = tuple(ar[row])
+        row+=1
+    
+    f = StringIO.StringIO()
+    w = png.Writer(len(ar[0])/planes, len(ar), alpha=True)
+    w.write(f, ar)
+    val = f.getvalue()
     return val
     
 def constant(f):
@@ -716,85 +711,113 @@ class EcoregionLayerProvider(LayerProvider):
 #         return True
 """
 
-class AbstractTileService(object):
-    """An abstract base class for the Tile service."""
-
-    def put_tile(self, tile):
-        """Puts a Tile in the datastore. Returns a key or None if it wasn't put."""
+class TileService(object):
+    """A base class for the Tile service."""
+    
+    def __init__(self):
+        self.key = None
+        self.metadata = None
+        self.query = None
+        self.png = None
+        self.url = None
+        self.status = False
+        self.rpc = urlfetch.create_rpc()
+        
+    def colortile(self, img):
+        """Colors a tile based on R,G,B values"""
+        if self.query['r'] is not None:
+            """color img here"""
+            self.png = colorPng(self.png, 
+                                self.query['r'],
+                                self.query['g'],
+                                self.query['b'],
+                                isObj=True)
+        return True
+        
+    def tileurl(self):
+        """Returns the URL of the remote tile"""
         raise NotImplementedError()
+        
+    def fetchurl(self):
+        """Returns a tile from the remote server if needed"""
+        result = self.rpc.get_result() # This call blocks.
+        if result.status_code == 200:
+            self.png = result.content
+            return True
+        else:
+            return False
+        
+    def fetchds(self):
+        """Returns a tile based on its key if it is available in the datastore"""
+        tile = Tile.get_by_key_name(self.key)
+        if tile is not None:
+            self.png = tile
+            return True
+        else:
+            return False
 
-    def put_tile_update(self, tile):
-        """Puts a TileUpdate for a Tile in the datastore. Returns a key or None if
-        it wasn't put.
-        """
-        raise NotImplementedError()
+    def fetchmc(self, k):
+        """Returns a tile based on its key if it is available in memcache"""
+        mc = memcache.get(k)
+        if mc is not None:
+            self.png = mc
+            return True
+        else:
+            return False
 
-    def tile_from_url(self, url):
-        """Returns the Tile associated with a entity URL request url or None if a
-        Tile could not be found."""
-        raise NotImplementedError()
+    def gettile(self):
+        """gets a tile based on query parameters"""
+        if self.png is not None:
+            return True
+        else:
+            """start a url call"""
+            self.url = self.tileurl() 
+            urlfetch.make_fetch_call(rpc, tileurl)
+            
+            """first check to see if the colored tile is in memcache"""
+            if self.query['r'] is not None:
+                k = self.key + "/%s/%s/%s" % (self.query['r'],self.query['g'],self.query['b'])
+                if self.fetchmc(k) is True: 
+                    self.status = True
+                
+            if self.fetchmc(self.key) is True: 
+                self.colortile()
+                self.status = True
+            elif self.fetchds is True:
+                self.colortile()
+                self.status = True
+            elif self.fetchurl is True:
+                self.colortile()
+                self.status = True
+            else: 
+                self.status = False
+            return self.status
 
-class TileService(AbstractTileService):
-
-    KEY_NAME_PATTERN = '[\d]+/[\d]+/[\w]+'
-    TILE_KIND = 'Tile'
-    TILE_UPDATE_KIND = 'TileUpdate'
-
-    @staticmethod
-    def _is_tile(tile):
-        return tile is not None and isinstance(tile, Tile)
-
-    @staticmethod
-    def _zoom_from_key_name(key_name):
-        if key_name is None:
-            return None
-        if key_name.count('/') < 2:
-            return None
-        zoom = key_name.split('/')[1]
-        try:
-            int(zoom)
-        except ValueError:
-            return None
-        return zoom
-
-    def put_tile(self, tile, update=True):
-        if not TileService._is_tile(tile):
-            return None
-        key = db.put(tile)
-        if update:
-            self.put_tile_update(tile)
-        return key
-
-    def put_tile_update(self, tile):
-        if not TileService._is_tile(tile):
-            return None
-        if not tile.is_saved() or tile.key().name() is None:
-            return None
-        key_name = tile.key().name()
-        zoom = self._zoom_from_key_name(key_name)
-        if zoom is None:
-            return None
-        tu_key = db.Key.from_path(self.TILE_UPDATE_KIND, key_name)
-        tu = TileUpdate(key=tu_key)
-        tu.zoom = len(zoom)
-        tu_key = db.put(tu)
-        return tu_key
-
-    def tile_from_url(self, url):
-        if url is None:
-            return None
-        key = self._key_name(url)
-        if key is None:
-            return None
-        entity = Tile.get(key)
-        return entity
-
-    def _key_name(self, string):
-        if string is None:
-            return None
-        try:
-            key_name = re.findall(self.KEY_NAME_PATTERN, string)[0]
-            key = db.Key.from_path(self.TILE_KIND, key_name)
-            return key
-        except IndexError:
-            return None
+class RangeTileProvider(TileService):
+    def __init__(self,query):
+        self.query = query
+        self.key = "%s/%s/%s/%s/%s/%s/%s" % (
+                        query['type'],
+                        query['class'],
+                        query['rank'],
+                        query['name'],
+                        query['zoom'],
+                        query['x'],
+                        query['y'] )
+                        
+    def tileurl(self):
+        if self.url is not None:
+            return self.url
+        else:
+            species_key_name = "%s/%s/%s" % (
+                            query['class'],
+                            query['rank'],
+                            query['name'] )
+            self.metadata = TileSetIndex.get_by_key_name(species_key_name)
+            tileurl = self.metadata.remoteLocation
+            tileurl = tileurl.replace('zoom', query['zoom'])
+            tileurl = tileurl.replace('/x/', '/%s/' % query['x'])
+            tileurl = tileurl.replace('y.png', '%s.png' % query['y'])
+            self.url = tileurl
+            return tileurl
+    
