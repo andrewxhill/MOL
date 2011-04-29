@@ -49,6 +49,7 @@ MOL.src.files = [
     'mol.exceptions.js?id=' + MOL.src.makeId(), 
     'mol.location.js?id=' + MOL.src.makeId(), 
     'mol.model.js?id=' + MOL.src.makeId(), 
+    'mol.util.js?id=' + MOL.src.makeId(),
     'mol.ui.js?id=' + MOL.src.makeId(),
     'mol.ui.ColorSetter.js?id=' + MOL.src.makeId(), 
     'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
