@@ -152,7 +152,7 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
 
         # check if we have directories in place
         zoom = "%s" % z
-        if not os.path.isdir(tile_dir + zoom):
+        if not os.path.isdir(os.path.join(tile_dir , zoom)):
             os.makedirs(os.path.join(tile_dir, zoom))
         for x in range(int(px0[0] / 256.0), int(px1[0] / 256.0) + 1):
             # Validate x co-ordinate
@@ -199,15 +199,15 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
 
         # check if we have directories in place
         zoom = "%s" % z
-        if not os.path.isdir(tile_dir + zoom):
-            os.mkdir(tile_dir + zoom)
+        if not os.path.isdir(os.path.join(tile_dir , zoom)):
+            os.makedirs(os.path.join(tile_dir , zoom))
         for x in range(int(px0[0] / 256.0), int(px1[0] / 256.0) + 1):
             # Validate x co-ordinate
             if (x < 0) or (x >= 2 ** z):
                 continue
             # check if we have directories in place
             str_x = "%s" % x
-            if os.listdir(tile_dir + zoom + '/' + str_x) == []:
-                shutil.rmtree(tile_dir + zoom + '/' + str_x)
-        if os.listdir(tile_dir + zoom) == []:
-            shutil.rmtree(tile_dir + zoom)
+            if os.listdir(os.path.join(tile_dir , zoom , str_x)) == []:
+                shutil.rmtree(os.path.join(tile_dir , zoom , str_x))
+        if os.listdir(os.path.join(tile_dir , zoom)) == []:
+            shutil.rmtree(os.path.join(tile_dir , zoom))
