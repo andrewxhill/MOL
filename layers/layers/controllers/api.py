@@ -66,8 +66,8 @@ class NewMapfile():
         self.features = 0
         
     def newfeature(self,name,src,proj):
-        self.features +=1
-        tmp_xml += """
+        self.features += 1
+        tmp_xml = """
                 <Layer name="layer_name" srs="projection_string">
                 <StyleName>style</StyleName>
                 <Datasource>
@@ -75,7 +75,7 @@ class NewMapfile():
                   <Parameter name="file">layer_src</Parameter>
                 </Datasource>
               </Layer>""".replace("layer_name",name).replace("layer_src",src).replace("projection_string", proj)
-        self.body = self.body + tmp_xml
+        self.body += tmp_xml
         return True
     
     def returnfile(self):
@@ -97,7 +97,6 @@ class ApiController(BaseController):
     
     def newtileset(self, id):
         type = id
-        logging.info('Creating tileset : ' + type)
         '''For any new tileset that the frontend wants to create, this needs to be initiated.
            It creates a mapfile.xml for the given dataset so that future tiling jobs can be 
            run based on the tileset id (param 'id') alone instead of resending the full set
@@ -132,9 +131,18 @@ class ApiController(BaseController):
         
         mf = NewMapfile()
         
+        
+        logging.info('Creating tileset type: ' + type)
+        logging.info('Creating tileset id: ' + id)
+        logging.info('Creating tileset containing: ' + ','.join(ids))
+        
+        
         for f in ids:        
             if os.path.exists(os.path.join(shpdir, f + '.shp')):
+                logging.info('Dataset ' + id +': valid')
                 mf.newfeature(f,os.path.join(shpdir, f + '.shp'),proj)
+            else:
+                logging.info('Dataset ' + id +': invalid')
         
         if mf.features > 0:
             mf.savefile(mapfile)
