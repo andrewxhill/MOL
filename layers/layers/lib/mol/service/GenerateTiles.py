@@ -5,6 +5,7 @@
 from Queue import Queue
 from math import pi, sin, log, exp, atan
 import mapnik
+import logging
 import os
 import shutil
 import threading
@@ -57,6 +58,8 @@ class RenderThread:
         self.m = mapnik.Map(256, 256)
         self.printLock = printLock
         # Load style XML
+        logging.info(mapfile)
+        print open(mapfile,'r').read()
         mapnik.load_map(self.m, mapfile, True)
         # Obtain <Map> projection
         self.prj = mapnik.Projection(self.m.srs)

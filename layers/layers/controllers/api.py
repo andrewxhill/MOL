@@ -131,8 +131,9 @@ class ApiController(BaseController):
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
-            proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-        
+            #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
+            proj = "+proj=latlong +datum=WGS84"
+            
         mf = NewMapfile()
         
         
@@ -165,6 +166,8 @@ class ApiController(BaseController):
         z = request.params.get('z', None)
         id = request.params.get('id', None)
         
+        logging.info('Creating tileset type: ' + type)
+        
         if type=="range":
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
@@ -176,22 +179,25 @@ class ApiController(BaseController):
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
         
         if os.path.exists(tile):
-            logging.info('Returning tile : ' + tile)
+            logging.info('Returning existing tile: ' + tile)
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
             
         if not os.path.exists(mapfile):
+            logging.info('No mapfile : ' + mapfile)
             response.status = 404
             return
             
-        logging.info('Creating mapfile: %s' % (mapfile))  
         minx, miny, maxx, maxy = bboxfromxyz(x, y, z)
         bbox = (minx, miny, maxx, maxy)
+        logging.info('Bounding box: ' + str(bbox))
         
         if not os.path.isdir(tile_dir):
+            logging.info('Making directories')
             os.makedirs(tile_dir)
         overwrite = True
+        logging.info('Creating tiles')
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
                                    tile_dir,
