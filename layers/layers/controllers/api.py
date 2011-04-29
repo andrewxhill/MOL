@@ -190,7 +190,7 @@ class ApiController(BaseController):
         bbox = (minx, miny, maxx, maxy)
         
         if not os.path.isdir(tile_dir):
-            os.mkdir(tile_dir)
+            os.makedirs(tile_dir)
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
                                    tile_dir,
