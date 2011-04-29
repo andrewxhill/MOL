@@ -95,7 +95,8 @@ class ApiController(BaseController):
         url = request.params.get('url', None)
         return simplejson.dumps({'species_id':id, 'valid':Layer.isidvalid(id, url)})
     
-    def newtileset(self, type):
+    def newtileset(self, id):
+        type = id
         logging.info('Creating tileset : ' + type)
         '''For any new tileset that the frontend wants to create, this needs to be initiated.
            It creates a mapfile.xml for the given dataset so that future tiling jobs can be 
