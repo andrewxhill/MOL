@@ -102,7 +102,7 @@ class ApiController(BaseController):
            run based on the tileset id (param 'id') alone instead of resending the full set
            of layers included 
            
-           parameters
+           parameters:
            
            id - the unique id for the given tileset, uniqueness needs only be maintained within 
                 a source type. E.g. there can be an ecoregion tileset named puma_concolor and a
@@ -112,6 +112,10 @@ class ApiController(BaseController):
                 ids to base the tileset off of. Any that are not found to be real shp files 
                 will be ignored, if none are found to be real shp files a 404 will be returned
            region_ids - same as range_ids but for type=ecoregion.
+           
+           example:
+           
+           http://mol.colorado.edu/layers/api/newtileset/range?id=animalia/species/puma_concolor&range_ids=animalia/species/puma_concolor
            
         '''
            
@@ -154,7 +158,8 @@ class ApiController(BaseController):
         return
             
             
-    def tile(self, type):
+    def tile(self, id):
+        type = id
         x = request.params.get('x', None)
         y = request.params.get('y', None)
         z = request.params.get('z', None)
