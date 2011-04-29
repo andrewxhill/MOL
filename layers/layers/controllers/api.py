@@ -120,13 +120,13 @@ class ApiController(BaseController):
         if type=="range":
             ids = request.GET['range_ids'].split(',')
             shpdir = app_globals.RANGESHP_DIR
-            mapfile = os.path.join(app_globals.RANGESHP_DIR, id, '.mapfile.xml')  
+            mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             
         elif type=="ecoregion":
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
-            mapfile = os.path.join(app_globals.ECOSHP_DIR, id, '.mapfile.xml') 
+            mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
             proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
         
         mf = NewMapfile()
@@ -161,12 +161,12 @@ class ApiController(BaseController):
         id = request.params.get('id', None)
         
         if type=="range":
-            mapfile = os.path.join(app_globals.RANGESHP_DIR, id, '.mapfile.xml')  
+            mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             
         elif type=="ecoregion":
-            mapfile = os.path.join(app_globals.ECOSHP_DIR, id, '.mapfile.xml')   
+            mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
         
