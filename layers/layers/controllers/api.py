@@ -82,7 +82,7 @@ class NewMapfile():
         return self.header + self.body + self.footer
     
     def savefile(self, filepath):
-        f = open(fileopen, "w+")
+        f = open(filepath, "w+")
         f.write(self.returnfile())
         f.close()
         return True
@@ -146,8 +146,10 @@ class ApiController(BaseController):
         
         if mf.features > 0:
             mf.savefile(mapfile)
+            logging.info('Creating tileset id ' + id + ': created')
             response.status = 200
         else:
+            logging.info('Creating tileset id ' + id + ': not created')
             response.status = 404
         return
             
