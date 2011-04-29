@@ -152,7 +152,7 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
 
         # check if we have directories in place
         zoom = "%s" % z
-        if not os.path.isdir(os.path.join(tile_dir , zoom)):
+        if not os.path.exists(os.path.join(tile_dir, zoom)):
             os.makedirs(os.path.join(tile_dir, zoom))
         for x in range(int(px0[0] / 256.0), int(px1[0] / 256.0) + 1):
             # Validate x co-ordinate

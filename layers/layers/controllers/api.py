@@ -82,6 +82,8 @@ class NewMapfile():
         return self.header + self.body + self.footer
     
     def savefile(self, filepath):
+        if not os.path.exists(os.path.dirname(filepath)):
+            os.makedirs(os.path.dirname(filepath))
         f = open(filepath, "w+")
         f.write(self.returnfile())
         f.close()
