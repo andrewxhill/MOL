@@ -191,6 +191,7 @@ class ApiController(BaseController):
         
         if not os.path.isdir(tile_dir):
             os.makedirs(tile_dir)
+        overwrite = True
         GenerateTiles.render_tiles(bbox,
                                    mapfile,
                                    tile_dir,
