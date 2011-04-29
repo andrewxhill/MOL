@@ -58,8 +58,6 @@ class RenderThread:
         self.m = mapnik.Map(256, 256)
         self.printLock = printLock
         # Load style XML
-        logging.info(mapfile)
-        print open(mapfile,'r').read()
         mapnik.load_map(self.m, mapfile, True)
         # Obtain <Map> projection
         self.prj = mapnik.Projection(self.m.srs)
@@ -155,22 +153,22 @@ def render_tiles(bbox, mapfile, tile_dir, minZoom=1, maxZoom=18, name="unknown",
         # check if we have directories in place
         zoom = "%s" % z
         if not os.path.isdir(tile_dir + zoom):
-            os.mkdir(tile_dir + zoom)
+            os.makedirs(os.path.join(tile_dir, zoom))
         for x in range(int(px0[0] / 256.0), int(px1[0] / 256.0) + 1):
             # Validate x co-ordinate
             if (x < 0) or (x >= 2 ** z):
                 continue
             # check if we have directories in place
             str_x = "%s" % x
-            if not os.path.isdir(tile_dir + zoom + '/' + str_x):
-                os.mkdir(tile_dir + zoom + '/' + str_x)
+            if not os.path.isdir(os.path.join(tile_dir , zoom , str_x)):
+                os.makedirs(os.path.join(tile_dir , zoom , str_x))
             for y in range(int(px0[1] / 256.0), int(px1[1] / 256.0) + 1):
                 # Validate x co-ordinate
                 if (y < 0) or (y >= 2 ** z):
                     continue
                 str_y = "%s" % y
-                tile_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.png'  
-                null_uri = tile_dir + zoom + '/' + str_x + '/' + str_y + '.null'  
+                tile_uri = str(os.path.join(tile_dir , zoom , str_x , str_y + '.png'))  
+                null_uri = str(os.path.join(tile_dir , zoom , str_x , str_y + '.null'))
                 #skip existing tiles 
                 
                 if os.path.exists(tile_uri) or os.path.exists(null_uri):

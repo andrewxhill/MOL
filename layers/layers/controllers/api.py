@@ -199,11 +199,11 @@ class ApiController(BaseController):
         overwrite = True
         logging.info('Creating tiles')
         GenerateTiles.render_tiles(bbox,
-                                   mapfile,
-                                   tile_dir,
+                                   str(mapfile),
+                                   str(tile_dir),
                                    int(z),
                                    int(z),
-                                   id,
+                                   str(id),
                                    num_threads=app_globals.TILE_QUEUE_THREADS,
                                    overwrite=overwrite)   
             
