@@ -196,7 +196,7 @@ class ApiController(BaseController):
                                    tile_dir,
                                    int(z),
                                    int(z),
-                                   name,
+                                   id,
                                    num_threads=app_globals.TILE_QUEUE_THREADS,
                                    overwrite=overwrite)   
             
