@@ -23,7 +23,7 @@ import os
 os.environ["CELERY_CONFIG_MODULE"] = "layers.cando.settings"
 import simplejson
 from layers.lib.mol.service import Layer
-from layers.cando.tiling.tasks import EcoregionProcessingThread
+#from layers.cando.tiling.tasks import EcoregionProcessingThread
 import math
 
 
@@ -96,6 +96,7 @@ class ApiController(BaseController):
         return simplejson.dumps({'species_id':id, 'valid':Layer.isidvalid(id, url)})
     
     def newtileset(self, type):
+        logging.info('Creating tileset : ' + type)
         '''For any new tileset that the frontend wants to create, this needs to be initiated.
            It creates a mapfile.xml for the given dataset so that future tiling jobs can be 
            run based on the tileset id (param 'id') alone instead of resending the full set
@@ -112,7 +113,7 @@ class ApiController(BaseController):
                 will be ignored, if none are found to be real shp files a 404 will be returned
            region_ids - same as range_ids but for type=ecoregion.
            
-           '''
+        '''
            
         id = request.params.get('id', None)
         
