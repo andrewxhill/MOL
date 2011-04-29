@@ -802,7 +802,7 @@ class RangeTileProvider(TileService):
                         query['class'],
                         query['rank'],
                         query['name'],
-                        query['zoom'],
+                        query['z'],
                         query['x'],
                         query['y'] )
                         
@@ -816,9 +816,30 @@ class RangeTileProvider(TileService):
                             query['name'] )
             self.metadata = TileSetIndex.get_by_key_name(species_key_name)
             tileurl = self.metadata.remoteLocation
-            tileurl = tileurl.replace('zoom', query['zoom'])
+            tileurl = tileurl.replace('zoom', query['z'])
             tileurl = tileurl.replace('/x/', '/%s/' % query['x'])
             tileurl = tileurl.replace('y.png', '%s.png' % query['y'])
+            self.url = tileurl
+            return tileurl
+            
+class EcoregionTileProvider(TileService):
+    def __init__(self,query):
+        self.query = query
+        self.key = "%s/%s/%s/%s/%s" % (
+                        query['type'],
+                        query['code'],
+                        query['z'],
+                        query['x'],
+                        query['y'] )
+                        
+    def tileurl(self):
+        if self.url is not None:
+            return self.url
+        else:
+            tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/{code}?zoom={z}&x={x}&y={y}"
+            tileurl = tileurl.replace('{z}', query['z'])
+            tileurl = tileurl.replace('{x}', query['x'])
+            tileurl = tileurl.replace('{y}', query['y'])
             self.url = tileurl
             return tileurl
     

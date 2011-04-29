@@ -14,14 +14,15 @@ class Globals(object):
         'app_globals' variable
 
         """
-        self.TILE_DIR = '/ftp/tile'
+        self.TILE_DIR = '/ftp/range/tile'
         self.NEW_SHP_SCAN_DIR = '/ftp/new/animalia/species'
         self.TILE_DIR = "/ftp/tile/animalia/species"
+        self.RANGESHP_DIR = "/ftp/range/shp"
         self.ECOTILE_DIR = "/ftp/ecoregion/tile"
         self.ECOSHP_DIR = "/ftp/ecoregion/shp"
-        self.ERR_DIR = "/ftp/error/"
-        self.SRC_DIR = "/ftp/new/"
-        self.DST_DIR = "/ftp/archive/"
+        self.ERR_DIR = "/ftp/range/error/"
+        self.SRC_DIR = "/ftp/range/new/"
+        self.DST_DIR = "/ftp/range/shp/"
         self.MAP_XML = "/ftp/tile/mapfile.xml"
         self.ECO_MAP_XML = "/ftp/ecoregion/tile/mapfile.xml"
         #self.GAE_URL = "http://localhost:8080/"
