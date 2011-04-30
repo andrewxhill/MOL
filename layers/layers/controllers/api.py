@@ -98,7 +98,7 @@ class ApiController(BaseController):
         return simplejson.dumps({'species_id':id, 'valid':Layer.isidvalid(id, url)})
     
     def newtileset(self, id):
-        type = id
+        datatype = id
         '''For any new tileset that the frontend wants to create, this needs to be initiated.
            It creates a mapfile.xml for the given dataset so that future tiling jobs can be 
            run based on the tileset id (param 'id') alone instead of resending the full set
@@ -123,13 +123,13 @@ class ApiController(BaseController):
            
         id = request.params.get('id', None)
         
-        if type=="range":
+        if datatype=="range":
             ids = request.GET['range_ids'].split(',')
             shpdir = app_globals.RANGESHP_DIR
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             
-        elif type=="ecoregion":
+        elif datatype=="ecoregion":
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
@@ -139,7 +139,7 @@ class ApiController(BaseController):
         mf = NewMapfile()
         
         
-        logging.info('Creating tileset type: ' + type)
+        logging.info('Creating tileset type: ' + datatype)
         logging.info('Creating tileset id: ' + id)
         logging.info('Creating tileset containing: ' + ','.join(ids))
         
@@ -162,23 +162,25 @@ class ApiController(BaseController):
             
             
     def tile(self, id):
-        type = id
+        datatype = id
         x = request.params.get('x', None)
         y = request.params.get('y', None)
         z = request.params.get('z', None)
         id = request.params.get('id', None)
         
-        logging.info('Creating tileset type: ' + type)
+        logging.info('Creating tileset type: ' + datatype)
         
-        if type=="range":
+        if datatype=="range":
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             
-        elif type=="ecoregion":
+        elif datatype=="ecoregion":
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            
+        logging.info('Generating new ' + datatype +' tile: ' + id)
         
         if os.path.exists(tile):
             logging.info('Returning existing tile: ' + tile)
