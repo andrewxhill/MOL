@@ -744,7 +744,7 @@ class TileService(object):
         if self.result.status_code == 204: #means that the tileing job ran, but no data existed in the tile
             return 204
         elif self.result.status_code == 200:
-            self.png = result.content
+            self.png = self.result.content
             return True
         else:
             return False
@@ -782,7 +782,7 @@ class TileService(object):
             self.url = self.tileurl() 
             urlfetch.make_fetch_call(self.rpc, self.url)
             
-            mcstatus = self.fetchmc(self.key):
+            mcstatus = self.fetchmc(self.key)
             if mcstatus in [404, 204]:
                 self.status = mcstatus
                 return
@@ -804,7 +804,7 @@ class TileService(object):
                 self.setmc(self.key)
                 self.status = 200
             elif self.fetchurl() == 204:
-                self.status = 204 #tiling ran fine, not data existed in the tile
+                self.status = 204 #tiling ran, no data existed in the tile
                 memcache.set(self.key, 204, 6000)
             elif self.fetchurl() is True:
                 self.colortile()

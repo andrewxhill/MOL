@@ -309,9 +309,11 @@ class TileHandler(BaseHandler):
             self.response.headers['Content-Type'] = "image/png"
             self.response.out.write(tp.png)
             return
+        elif tp.status == 204:
+            return self.response.set_status(204)
         else: 
             self.error(404)
-            return
+            return self.response.set_status(404)
         """
         # Returns a 404 if there's no TileSetIndex for the species id since we
         # need it to calculate bounds and for the remote tile URL:

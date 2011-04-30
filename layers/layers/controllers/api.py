@@ -192,12 +192,13 @@ class ApiController(BaseController):
         elif os.path.exists(null_tile):
             logging.info('No tile: ' + tile)
             response.status = 204
-            return
+            del response.headers['content-type'])
+            return None
             
         if not os.path.exists(mapfile):
             logging.info('No mapfile : ' + mapfile)
             response.status = 404
-            return
+            return None
             
         minx, miny, maxx, maxy = bboxfromxyz(x, y, z)
         bbox = (minx, miny, maxx, maxy)
