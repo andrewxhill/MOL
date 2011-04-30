@@ -782,7 +782,8 @@ class TileService(object):
             self.url = self.tileurl() 
             urlfetch.make_fetch_call(self.rpc, self.url)
             
-            if self.fetchmc(self.key) == 404:
+            mcstatus = self.fetchmc(self.key) 
+            if mcstatus == 404:
                 self.status = 404
                 return
                 
@@ -793,7 +794,7 @@ class TileService(object):
                     self.status = 200
                     return
             
-            if self.fetchmc(self.key) is True: 
+            if mcstatus is True: 
                 logging.info('memcache')
                 self.colortile()
                 self.setmc(self.key)
