@@ -267,7 +267,7 @@ class TileHandler(BaseHandler):
     '''
     
     def get(self):
-        type = self.request.params.get('type', 'range') #or ecoregion, or protected area
+        datatype = self.request.params.get('type', 'range') #or ecoregion, or protected area
         class_ = self.request.params.get('class', 'animalia')
         rank = self.request.params.get('rank', 'species')
         name = self.request.params.get('name', 'puma_concolor')
@@ -281,17 +281,18 @@ class TileHandler(BaseHandler):
         species_key_name = os.path.join(class_, rank, name)
         logging.info('KEY NAME ' + species_key_name)
         
-        rtp = RangeTileProvider({
-                                'type': type,
-                                'class': class_,
-                                'rank': rank,
-                                'name': name,
-                                'z': z,
-                                'x': x,
-                                'y': y,
-                                'r': r,
-                                'g': g,
-                                'b': b })
+        if datatype == 'range':
+            rtp = RangeTileProvider({
+                                    'class': class_,
+                                    'rank': rank,
+                                    'name': name,
+                                    'z': z,
+                                    'x': x,
+                                    'y': y,
+                                    'r': r,
+                                    'g': g,
+                                    'b': b })
+                                    
         rtp.gettile()
         if rtp.status == 200:
             self.response.headers['Content-Type'] = "image/png"
@@ -943,8 +944,10 @@ class ColorImage(BaseHandler):
         g = int(self.request.get('g', 0))
         b = int(self.request.get('b', 0))
         memk = "%s/%s/%s/%s" % (name, r, g, b)
-        
-        val = colorPng(name, r, g, b, isObj=False, memKey=memk)
+        val = memcache.get(memk)
+        if val is None:
+            val = colorPng(name, r, g, b, isObj=False)
+        memcache.set(memk, val, 60)
         
         # binary PNG data
         self.response.headers["Content-Type"] = "image/png"
