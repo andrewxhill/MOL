@@ -267,7 +267,7 @@ class TileHandler(BaseHandler):
     '''
     
     def get(self):
-        type = self.request.params.get('type', 'range') #or ecoregion, or protected area
+        datatype = self.request.params.get('type', 'range') #or ecoregion, or protected area
         class_ = self.request.params.get('class', 'animalia')
         rank = self.request.params.get('rank', 'species')
         name = self.request.params.get('name', 'puma_concolor')
@@ -282,7 +282,7 @@ class TileHandler(BaseHandler):
         logging.info('KEY NAME ' + species_key_name)
         
         rtp = RangeTileProvider({
-                                'type': type,
+                                'type': datatype,
                                 'class': class_,
                                 'rank': rank,
                                 'name': name,
