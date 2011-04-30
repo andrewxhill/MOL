@@ -267,7 +267,7 @@ MOL.modules.Map = function(mol) {
                                 break;
 
                             case 'range':
-                                mapType = self._rangeImageMapType(layer, color);
+                                mapType = self._buildImageMapType(layer, color, 'range');
 
                                 if (mapTypes[layerId]) {
                                     // The mapType exists, so remove it first:
@@ -498,18 +498,40 @@ MOL.modules.Map = function(mol) {
                 return marker;
             },
 
-            _rangeImageMapType: function(layer, color) {   
+            _buildImageMapType: function(layer, color, type) {   
                 var self = this,
+                    rank = 'species',
+                    cls = 'animalia',
+                    name = layer.getName().toLowerCase().replace(' ', '_'),
+                    r = color.getRed(),
+                    g = color.getGreen(),
+                    b = color.getBlue(),
+                    params = null;
+                
+                switch (type) {
+                case 'range':
                     params = {                        
-                        name: layer.getName().toLowerCase().replace(' ', '_'),
-                        rank: 'species',
-                        type: 'range',
-                        class: 'animalia',
+                        name: name,
+                        rank: rank,
+                        type: type,
+                        cls: cls,
+                        r: r,
+                        g: g,
+                        b: b
+                    };
+                    break;
+
+                case 'ecoregion':
+                    params = {     
+                        id: [cls, rank, name].join('/'),
                         r: color.getRed(),
                         g: color.getGreen(),
                         b: color.getBlue()
                     };
-
+                    break;
+                }
+                
+                
                 return new google.maps.ImageMapType(
                     {
                         getTileUrl: function(coord, zoom) {
