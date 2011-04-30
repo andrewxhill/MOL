@@ -281,17 +281,18 @@ class TileHandler(BaseHandler):
         species_key_name = os.path.join(class_, rank, name)
         logging.info('KEY NAME ' + species_key_name)
         
-        rtp = RangeTileProvider({
-                                'type': datatype,
-                                'class': class_,
-                                'rank': rank,
-                                'name': name,
-                                'z': z,
-                                'x': x,
-                                'y': y,
-                                'r': r,
-                                'g': g,
-                                'b': b })
+        if datatype == 'range':
+            rtp = RangeTileProvider({
+                                    'class': class_,
+                                    'rank': rank,
+                                    'name': name,
+                                    'z': z,
+                                    'x': x,
+                                    'y': y,
+                                    'r': r,
+                                    'g': g,
+                                    'b': b })
+                                    
         rtp.gettile()
         if rtp.status == 200:
             self.response.headers['Content-Type'] = "image/png"
