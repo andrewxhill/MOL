@@ -842,7 +842,7 @@ class EcoregionTileProvider(TileService):
         self.query = query
         self.key = "%s/%s/%s/%s/%s" % (
                         query['type'],
-                        query['code'],
+                        query['id'],
                         query['z'],
                         query['x'],
                         query['y'] )
@@ -856,10 +856,11 @@ class EcoregionTileProvider(TileService):
         if self.url is not None:
             return self.url
         else:
-            tileurl ="http://mol.colorado.edu/layers/api/ecoregion/tile/{code}?zoom={z}&x={x}&y={y}"
-            tileurl = tileurl.replace('{z}', query['z'])
-            tileurl = tileurl.replace('{x}', query['x'])
-            tileurl = tileurl.replace('{y}', query['y'])
+            tileurl ="http://mol.colorado.edu/layers/api/tile/ecoregion?id={id}&z={z}&x={x}&y={y}"
+            tileurl = tileurl.replace('{id}', self.query['id'])
+            tileurl = tileurl.replace('{z}', str(self.query['z']))
+            tileurl = tileurl.replace('{x}', str(self.query['x']))
+            tileurl = tileurl.replace('{y}', str(self.query['y']))
             self.url = tileurl
             return tileurl
     

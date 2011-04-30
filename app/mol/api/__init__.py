@@ -34,6 +34,7 @@ import time
 import wsgiref.util
 import StringIO
 from mol.service import RangeTileProvider
+from mol.service import EcoregionTileProvider
 from mol.service import LayerService
 from mol.service import GbifLayerProvider
 from mol.service import LayerType
@@ -268,9 +269,6 @@ class TileHandler(BaseHandler):
     
     def get(self):
         datatype = self.request.params.get('type', 'range') #or ecoregion, or protected area
-        class_ = self.request.params.get('class', 'animalia')
-        rank = self.request.params.get('rank', 'species')
-        name = self.request.params.get('name', 'puma_concolor')
         x = int(self.request.params.get('x', 0))
         y = int(self.request.params.get('y', 0))
         z = int(self.request.params.get('z', 0))
@@ -278,11 +276,12 @@ class TileHandler(BaseHandler):
         g = self.request.params.get('g', None)
         b = self.request.params.get('b', None)
         
-        species_key_name = os.path.join(class_, rank, name)
-        logging.info('KEY NAME ' + species_key_name)
-        
         if datatype == 'range':
-            rtp = RangeTileProvider({
+            class_ = self.request.params.get('class', 'animalia')
+            rank = self.request.params.get('rank', 'species')
+            name = self.request.params.get('name', 'puma_concolor')
+            tp = RangeTileProvider({
+                                    'type': datatype,
                                     'class': class_,
                                     'rank': rank,
                                     'name': name,
@@ -292,11 +291,23 @@ class TileHandler(BaseHandler):
                                     'r': r,
                                     'g': g,
                                     'b': b })
+                        
+        elif datatype == 'ecoregion':
+            id = self.request.params.get('id', 'NT1405')
+            tp = EcoregionTileProvider({
+                                    'type': datatype,
+                                    'id': id,
+                                    'z': z,
+                                    'x': x,
+                                    'y': y,
+                                    'r': r,
+                                    'g': g,
+                                    'b': b })
                                     
-        rtp.gettile()
-        if rtp.status == 200:
+        tp.gettile()
+        if tp.status == 200:
             self.response.headers['Content-Type'] = "image/png"
-            self.response.out.write(rtp.png)
+            self.response.out.write(tp.png)
             return
         else: 
             self.error(404)
