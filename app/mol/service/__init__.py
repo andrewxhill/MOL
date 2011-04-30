@@ -31,7 +31,7 @@ from google.appengine.api.datastore_errors import BadKeyError
 from google.appengine.api import memcache
 import StringIO
 
-def colorPng(img, r, g, b, isObj=False, memKey=None):
+def colorPng(img, r, g, b, isObj=False):
     val = None
     if isObj:
         imt = png.Reader(bytes=img)
@@ -724,15 +724,18 @@ class TileService(object):
         self.status = False
         self.rpc = urlfetch.create_rpc()
         
-    def colortile(self, img):
+    def colortile(self):
         """Colors a tile based on R,G,B values"""
         if self.query['r'] is not None:
             """color img here"""
+            self.setmc(self.key)
             self.png = colorPng(self.png, 
-                                self.query['r'],
-                                self.query['g'],
-                                self.query['b'],
+                                int(self.query['r']),
+                                int(self.query['g']),
+                                int(self.query['b']),
                                 isObj=True)
+            self.key = self.key + "/%s/%s/%s" % (self.query['r'],self.query['g'],self.query['b'])
+        
         return True
         
     def tileurl(self):
@@ -765,60 +768,77 @@ class TileService(object):
             return True
         else:
             return False
-
+            
+    def setmc(self, k):
+        memcache.set(k, self.png, 6000)
+    
+    
     def gettile(self):
         """gets a tile based on query parameters"""
         if self.png is not None:
-            return True
+            return
         else:
             """start a url call"""
             self.url = self.tileurl() 
-            urlfetch.make_fetch_call(rpc, tileurl)
+            urlfetch.make_fetch_call(self.rpc, self.url)
             
+            if self.fetchmc(self.key) == 404:
+                self.status = 404
+                return
+                
             """first check to see if the colored tile is in memcache"""
             if self.query['r'] is not None:
                 k = self.key + "/%s/%s/%s" % (self.query['r'],self.query['g'],self.query['b'])
                 if self.fetchmc(k) is True: 
-                    self.status = True
-                
+                    self.status = 200
+                    return
+            
             if self.fetchmc(self.key) is True: 
+                logging.info('memcache')
                 self.colortile()
-                self.status = True
-            elif self.fetchds is True:
+                self.setmc(self.key)
+                self.status = 200
+            elif self.fetchds() is True:
                 self.colortile()
-                self.status = True
-            elif self.fetchurl is True:
+                self.setmc(self.key)
+                self.status = 200
+            elif self.fetchurl() is True:
                 self.colortile()
-                self.status = True
+                self.setmc(self.key)
+                self.status = 200
             else: 
-                self.status = False
+                memcache.set(self.key, 404, 6000)
+                self.status = 404
             return self.status
 
 class RangeTileProvider(TileService):
     def __init__(self,query):
         self.query = query
         self.key = "%s/%s/%s/%s/%s/%s/%s" % (
-                        query['type'],
-                        query['class'],
-                        query['rank'],
-                        query['name'],
-                        query['z'],
-                        query['x'],
-                        query['y'] )
+                        self.query['type'],
+                        self.query['class'],
+                        self.query['rank'],
+                        self.query['name'],
+                        self.query['z'],
+                        self.query['x'],
+                        self.query['y'] )
+        self.metadata = None
+        self.png = None
+        self.url = None
+        self.status = False
+        self.rpc = urlfetch.create_rpc()
                         
     def tileurl(self):
         if self.url is not None:
             return self.url
         else:
-            species_key_name = "%s/%s/%s" % (
-                            query['class'],
-                            query['rank'],
-                            query['name'] )
-            self.metadata = TileSetIndex.get_by_key_name(species_key_name)
-            tileurl = self.metadata.remoteLocation
-            tileurl = tileurl.replace('zoom', query['z'])
-            tileurl = tileurl.replace('/x/', '/%s/' % query['x'])
-            tileurl = tileurl.replace('y.png', '%s.png' % query['y'])
+            tileurl = "http://mol.colorado.edu/layers/api/tile/range?id={class}/{rank}/{name}&x={x}&y={y}&z={z}"
+            tileurl = tileurl.replace('{z}', str(self.query['z']))
+            tileurl = tileurl.replace('{x}', str(self.query['x']))
+            tileurl = tileurl.replace('{y}', str(self.query['y']))
+            tileurl = tileurl.replace('{class}', self.query['class'])
+            tileurl = tileurl.replace('{rank}', self.query['rank'])
+            tileurl = tileurl.replace('{name}', self.query['name'])
             self.url = tileurl
             return tileurl
             

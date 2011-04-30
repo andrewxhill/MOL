@@ -274,8 +274,10 @@ class TileHandler(BaseHandler):
         x = int(self.request.params.get('x', 0))
         y = int(self.request.params.get('y', 0))
         z = int(self.request.params.get('z', 0))
+        r = self.request.params.get('r', None)
+        g = self.request.params.get('g', None)
+        b = self.request.params.get('b', None)
         
-        #species_id, ext = os.path.splitext(png_name)
         species_key_name = os.path.join(class_, rank, name)
         logging.info('KEY NAME ' + species_key_name)
         
@@ -286,7 +288,18 @@ class TileHandler(BaseHandler):
                                 'name': name,
                                 'z': z,
                                 'x': x,
-                                'y': y })
+                                'y': y,
+                                'r': r,
+                                'g': g,
+                                'b': b })
+        rtp.gettile()
+        if rtp.status == 200:
+            self.response.headers['Content-Type'] = "image/png"
+            self.response.out.write(rtp.png)
+            return
+        else: 
+            self.error(404)
+            return
         """
         # Returns a 404 if there's no TileSetIndex for the species id since we
         # need it to calculate bounds and for the remote tile URL:
