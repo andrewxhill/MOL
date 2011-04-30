@@ -174,11 +174,13 @@ class ApiController(BaseController):
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             
         elif datatype=="ecoregion":
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
@@ -187,6 +189,10 @@ class ApiController(BaseController):
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
+        elif os.path.exists(null_tile):
+            logging.info('No tile: ' + tile)
+            response.status = 204
+            return
             
         if not os.path.exists(mapfile):
             logging.info('No mapfile : ' + mapfile)

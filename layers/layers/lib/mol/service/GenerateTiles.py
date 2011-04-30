@@ -107,17 +107,15 @@ class RenderThread:
             
             self.render_tile(tile_uri, x, y, z)
             
-            #bytes = os.stat(tile_uri)[6]
-            bytes = True
+            bytes = os.stat(tile_uri)[6]
             empty = ''
-            #if bytes == 334: #getting varying bytes, so not a good check of nullness
-            if bytes == False:
-                print tile_uri + ' empty'
+            if bytes == 334:
                 empty = " Empty Tile "
                 #remove the png
                 os.remove(tile_uri)
                 #create an empty file placeholder
-                open(tile_uri.replace('.png','.null'), "w+")
+                open(tile_uri.replace('.png','.null'), "w+").close()
+                
             
             self.printLock.acquire()
             #print name, ":", z, x, y, exists, empty

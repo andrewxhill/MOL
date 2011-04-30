@@ -738,8 +738,12 @@ class TileService(object):
         
     def fetchurl(self):
         """Returns a tile from the remote server if needed"""
-        result = self.rpc.get_result() # This call blocks.
-        if result.status_code == 200:
+        if self.result is None:
+            self.result = self.rpc.get_result() # This call blocks.
+            
+        if self.result.status_code == 204: #means that the tileing job ran, but no data existed in the tile
+            return 204
+        elif self.result.status_code == 200:
             self.png = result.content
             return True
         else:
@@ -757,7 +761,9 @@ class TileService(object):
     def fetchmc(self, k):
         """Returns a tile based on its key if it is available in memcache"""
         mc = memcache.get(k)
-        if mc is not None:
+        if mc in [404, 204]:
+            return mc
+        elif mc is not None:
             self.png = mc
             return True
         else:
@@ -776,9 +782,9 @@ class TileService(object):
             self.url = self.tileurl() 
             urlfetch.make_fetch_call(self.rpc, self.url)
             
-            mcstatus = self.fetchmc(self.key) 
-            if mcstatus == 404:
-                self.status = 404
+            mcstatus = self.fetchmc(self.key):
+            if mcstatus in [404, 204]:
+                self.status = mcstatus
                 return
                 
             """first check to see if the colored tile is in memcache"""
@@ -797,6 +803,9 @@ class TileService(object):
                 self.colortile()
                 self.setmc(self.key)
                 self.status = 200
+            elif self.fetchurl() == 204:
+                self.status = 204 #tiling ran fine, not data existed in the tile
+                memcache.set(self.key, 204, 6000)
             elif self.fetchurl() is True:
                 self.colortile()
                 self.setmc(self.key)
@@ -820,6 +829,7 @@ class RangeTileProvider(TileService):
         self.metadata = None
         self.png = None
         self.url = None
+        self.result = None
         self.status = False
         self.rpc = urlfetch.create_rpc()
                         
@@ -850,6 +860,7 @@ class EcoregionTileProvider(TileService):
         self.png = None
         self.url = None
         self.status = False
+        self.result = None
         self.rpc = urlfetch.create_rpc()
                         
     def tileurl(self):
