@@ -474,30 +474,28 @@ MOL.modules.Map = function(mol) {
 
             _rangeImageMapType: function(layer, color) {   
                 var self = this,
-                    name = layer.getName().toLowerCase(),
-                    speciesKey = 'animalia/species/' + name.replace(' ', '_'),
-                    r = color.getRed(),
-                    g = color.getGreen(),
-                    b = color.getBlue();
+                    params = {                        
+                        name: layer.getName().toLowerCase().replace(' ', '_') + '.png',
+                        rank: 'species',
+                        class: 'animalia',
+                        r: color.getRed(),
+                        g: color.getGreen(),
+                        b: color.getBlue()
+                    };
 
                 return new google.maps.ImageMapType(
                     {
-                        name: speciesKey,
-
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom);
                             if (!normalizedCoord) {
                                 return null;
                             }
-                            var bound = Math.pow(2, zoom);            
-                            return "/data/tile/" + speciesKey + ".png?" +
-                                "z=" + zoom + 
-                                "&x=" + normalizedCoord.x + 
-                                "&y=" + (normalizedCoord.y) +
-                                "&r=" + r +
-                                "&g=" + g +
-                                "&b=" + b;
-                                
+                            var bound = Math.pow(2, zoom);
+                            params.z = zoom;
+                            params.x = normalizedCoord.x;
+                            params.y = normalizedCoord.y;
+                            
+                            return "/data/tile?" + mol.util.urlEncode(params);
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,
