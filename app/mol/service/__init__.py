@@ -716,13 +716,7 @@ class TileService(object):
     """A base class for the Tile service."""
     
     def __init__(self):
-        self.key = None
-        self.metadata = None
-        self.query = None
-        self.png = None
-        self.url = None
-        self.status = False
-        self.rpc = urlfetch.create_rpc()
+        raise NotImplementedError()
         
     def colortile(self):
         """Colors a tile based on R,G,B values"""
@@ -852,6 +846,11 @@ class EcoregionTileProvider(TileService):
                         query['z'],
                         query['x'],
                         query['y'] )
+        self.metadata = None
+        self.png = None
+        self.url = None
+        self.status = False
+        self.rpc = urlfetch.create_rpc()
                         
     def tileurl(self):
         if self.url is not None:
