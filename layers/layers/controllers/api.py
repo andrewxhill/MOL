@@ -192,7 +192,7 @@ class ApiController(BaseController):
         elif os.path.exists(null_tile):
             logging.info('No tile: ' + tile)
             response.status = 204
-            del response.headers['content-type'])
+            del response.headers['content-type']
             return None
             
         if not os.path.exists(mapfile):
