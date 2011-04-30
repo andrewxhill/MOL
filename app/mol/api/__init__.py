@@ -944,8 +944,10 @@ class ColorImage(BaseHandler):
         g = int(self.request.get('g', 0))
         b = int(self.request.get('b', 0))
         memk = "%s/%s/%s/%s" % (name, r, g, b)
-        
-        val = colorPng(name, r, g, b, isObj=False, memKey=memk)
+        val = memcache.get(memk)
+        if val is None:
+            val = colorPng(name, r, g, b, isObj=False)
+        memcache.set(memk, val, 60)
         
         # binary PNG data
         self.response.headers["Content-Type"] = "image/png"
