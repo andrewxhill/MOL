@@ -32,6 +32,9 @@ MOL.modules.Map = function(mol) {
                 this._points = {};
                 this._layers = {};
                 this._controlDivs = {};
+                this._currentMapTypeIndex = 0;
+                this._mapTypeIndexes = {};
+                this._mapTypes = {};
             },            
             
             /**
@@ -233,7 +236,8 @@ MOL.modules.Map = function(mol) {
                             category = event.getCategory(),
                             layerId = event.getId(),
                             layer = layers[layerId],
-                            action = event.getAction();
+                            action = event.getAction(),
+                            mapType = null;
 
                         // Ignores event since we don't have the layer associated with it:
                         if (!layer) {
@@ -266,7 +270,14 @@ MOL.modules.Map = function(mol) {
                                 break;
 
                             case 'range':
-                                map.overlayMapTypes.push(self._rangeImageMapType(layer, color));
+                                //map.overlayMapTypes.push(self._rangeImageMapType(layer, color));
+                                mapType = self._rangeImageMapType(layer, color);
+                                map.overlayMapTypes.insertAt(
+                                    self._currentMapTypeIndex, 
+                                    mapType);
+                                self._mapTypes[layerId] = mapType;
+                                self._mapTypeIndexes[layerId] = self._currentMapTypeIndex;
+                                self._currentMapTypeIndex = self._currentMapTypeIndex + 1;
                                 break;                                
                             }                           
                         }
@@ -344,9 +355,12 @@ MOL.modules.Map = function(mol) {
              */
             _toggleLayer: function(layer, show) {
                 var lid = layer.getId(),
+                    index = this._mapTypeIndexes[lid],
                     type = layer.getType(),
                     points = this._points[lid],
-                    map = show ? this._map : null;
+                    overlayMapTypes = this._map.overlayMapTypes,
+                    map = show ? this._map : null,
+                    mapType = this._mapTypes[lid];
 
                 switch (type) {
 
@@ -354,9 +368,14 @@ MOL.modules.Map = function(mol) {
                     for (x in points) {
                         points[x].setMap(map);
                     }
+                    break;
                     
                 case 'range':
-                    // TODO
+                    if (show) {
+                        overlayMapTypes.insertAt(index, mapType);
+                    } else {
+                        overlayMapTypes.removeAt(index);                            
+                    }
                     break;
                 }
             },            
@@ -474,30 +493,29 @@ MOL.modules.Map = function(mol) {
 
             _rangeImageMapType: function(layer, color) {   
                 var self = this,
-                    name = layer.getName().toLowerCase(),
-                    speciesKey = 'animalia/species/' + name.replace(' ', '_'),
-                    r = color.getRed(),
-                    g = color.getGreen(),
-                    b = color.getBlue();
+                    params = {                        
+                        name: layer.getName().toLowerCase().replace(' ', '_'),
+                        rank: 'species',
+                        type: 'range',
+                        class: 'animalia',
+                        r: color.getRed(),
+                        g: color.getGreen(),
+                        b: color.getBlue()
+                    };
 
                 return new google.maps.ImageMapType(
                     {
-                        name: speciesKey,
-
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom);
                             if (!normalizedCoord) {
                                 return null;
                             }
-                            var bound = Math.pow(2, zoom);            
-                            return "/data/tile/" + speciesKey + ".png?" +
-                                "z=" + zoom + 
-                                "&x=" + normalizedCoord.x + 
-                                "&y=" + (normalizedCoord.y) +
-                                "&r=" + r +
-                                "&g=" + g +
-                                "&b=" + b;
-                                
+                            var bound = Math.pow(2, zoom);
+                            params.z = zoom;
+                            params.x = normalizedCoord.x;
+                            params.y = normalizedCoord.y;
+                            
+                            return "/data/tile?" + mol.util.urlEncode(params);
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,

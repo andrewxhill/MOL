@@ -285,6 +285,7 @@ class TileHandler(BaseHandler):
                                     'class': class_,
                                     'rank': rank,
                                     'name': name,
+                                    'type': datatype,
                                     'z': z,
                                     'x': x,
                                     'y': y,
