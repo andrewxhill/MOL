@@ -130,13 +130,11 @@ MOL.modules.Map = function(mol) {
                         switch (action) {
 
                         case 'add':
-                            // Checks if the layer :
                             if (layers[lid]) {
                                 mol.log.info('Map ignoring layer id ' + lid);
                                 return;
                             }                            
                             layers[lid] = layer;
-                            // We need a layer color before displaying it:
                             bus.fireEvent(new ColorEvent(config));
                             break;
 
@@ -145,12 +143,9 @@ MOL.modules.Map = function(mol) {
                             break;
 
                         case 'checked':
-                            mol.log.todo('Handle layer checked event');
                             self._toggleLayer(layers[lid], true);
-                            break;
-                            
+                            break;                            
                         case 'unchecked':
-                            mol.log.todo('Handle layer unchecked event');
                             self._toggleLayer(layers[lid], false);
                             break;                            
                         }                        
@@ -207,15 +202,13 @@ MOL.modules.Map = function(mol) {
                                 control = leftBottomControl;
                                 break;
                             }
-
                             control.addDisplay(display, displayPosition);
+                            break;
 
                         case 'remove':
-                            // if (controlDivs[div]) {
-                            //     controls.removeAt(controlDivs[div]);
-                            //     delete controlDivs[div];
-                            // }                           
-                            
+                            // TODO: Remove custom map control.
+                            mol.log.todo('Remove custom map control');
+                            break;                            
                         }
                     }
                 );
@@ -227,8 +220,13 @@ MOL.modules.Map = function(mol) {
                     points = this._points,
                     layers = this._layers,
                     self = this,
-                    map = this._map;
-                
+                    map = this._map,
+                    overlayMapTypes = this._map.overlayMapTypes,
+                    mapTypes = this._mapTypes,
+                    mapTypeIndexes = this._mapTypeIndexes,
+                    currentMapTypeIndex = this._currentMapTypeIndex,
+                    mapType = null;
+
                 bus.addHandler(
                     ColorEvent.TYPE,
                     function(event) {
@@ -236,8 +234,7 @@ MOL.modules.Map = function(mol) {
                             category = event.getCategory(),
                             layerId = event.getId(),
                             layer = layers[layerId],
-                            action = event.getAction(),
-                            mapType = null;
+                            action = event.getAction();
 
                         // Ignores event since we don't have the layer associated with it:
                         if (!layer) {
@@ -270,14 +267,24 @@ MOL.modules.Map = function(mol) {
                                 break;
 
                             case 'range':
-                                //map.overlayMapTypes.push(self._rangeImageMapType(layer, color));
-                                mapType = self._rangeImageMapType(layer, color);
-                                map.overlayMapTypes.insertAt(
+                                mapType = self._buildImageMapType(layer, color, 'range');
+
+                                if (mapTypes[layerId]) {
+                                    // The mapType exists, so remove it first:
+                                    overlayMapTypes.removeAt(mapTypeIndexes[layerId]);                            
+                                } else {
+                                    // This is a new mapType, so let us keep track of it:
+                                    mapTypes[layerId] = mapType;
+                                }
+
+                                // Adds the mapType to the map:
+                                overlayMapTypes.insertAt(
                                     self._currentMapTypeIndex, 
                                     mapType);
-                                self._mapTypes[layerId] = mapType;
-                                self._mapTypeIndexes[layerId] = self._currentMapTypeIndex;
-                                self._currentMapTypeIndex = self._currentMapTypeIndex + 1;
+                                
+                                // Updates the index of the mapType on the map:
+                                mapTypeIndexes[layerId] = currentMapTypeIndex;
+                                currentMapTypeIndex = currentMapTypeIndex + 1;
                                 break;                                
                             }                           
                         }
@@ -491,18 +498,40 @@ MOL.modules.Map = function(mol) {
                 return marker;
             },
 
-            _rangeImageMapType: function(layer, color) {   
+            _buildImageMapType: function(layer, color, type) {   
                 var self = this,
+                    rank = 'species',
+                    cls = 'animalia',
+                    name = layer.getName().toLowerCase().replace(' ', '_'),
+                    r = color.getRed(),
+                    g = color.getGreen(),
+                    b = color.getBlue(),
+                    params = null;
+                
+                switch (type) {
+                case 'range':
                     params = {                        
-                        name: layer.getName().toLowerCase().replace(' ', '_'),
-                        rank: 'species',
-                        type: 'range',
-                        class: 'animalia',
+                        name: name,
+                        rank: rank,
+                        type: type,
+                        cls: cls,
+                        r: r,
+                        g: g,
+                        b: b
+                    };
+                    break;
+
+                case 'ecoregion':
+                    params = {     
+                        id: [cls, rank, name].join('/'),
                         r: color.getRed(),
                         g: color.getGreen(),
                         b: color.getBlue()
                     };
-
+                    break;
+                }
+                
+                
                 return new google.maps.ImageMapType(
                     {
                         getTileUrl: function(coord, zoom) {
