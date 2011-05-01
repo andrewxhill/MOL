@@ -41,6 +41,9 @@
             var url = "http://localhost:8080/data/tile?type="+type+"&class="+cl+
                    "&rank="+ra+"&species="+sp+"&x=" + coord.x + "&y=" + coord.y + 
                    "&z=" + zoom +"&r=233&g=44&b=88";
+            url = "http://localhost:8080/data/tile?type="+type+"&id="+cl+
+                   "/"+ra+"/"+sp+"&x=" + coord.x + "&y=" + coord.y + 
+                   "&z=" + zoom +"&r=233&g=44&b=88";
             //var url = "http://mol.colorado.edu/layers/api/tile/"+type+"?id="+id+"&x=" + 
             //    coord.x + "&y=" + coord.y + "&z=" + zoom +"&r=233&g=44&b=88";
             console.log(url);
