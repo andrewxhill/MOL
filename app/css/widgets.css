@@ -9,17 +9,18 @@
         linear,
         left bottom,
         left top,
-        color-stop(0.37, rgba(184, 233, 133,0.65)),
-        color-stop(0.69, rgba(92,194,7,0.65))
+        color-stop(0.89, rgba(29,43,82,0.65)),
+        color-stop(0.57, rgba(29,43,82,0.75))
     );
     background-image: -moz-linear-gradient(
         center bottom,
-        rgba(184, 253, 133,0.65) 37%,
-        rgba(92,214,7,0.65) 69%
+        rgba(29,43,82,0.65) 89%,
+        rgba(29,43,82,0.75) 57%
     );
     -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
     -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
     box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    color: rgb(240, 240, 260);
 }
 button{
     float: left;
@@ -148,7 +149,7 @@ button:hover{
     float: left;
     position: relative;
     height: 30px;
-    width: 95%;
+    width: 93%;
     margin-bottom: 5px;
     margin-right: 5px;
     padding: 3px 5px 2px 5px;
@@ -206,8 +207,10 @@ button:hover{
     font-size: 1.1em;
 }
 
+.mol-LayerControl-Results .filters .filter .option a{
+    color: rgb(230, 254, 230);
+}
 .mol-LayerControl-Results .filters .filter .option {
-    color: #6622ee;
     text-decoration: none;
     margin-left: 10px;
     margin-bottom: 2px;
@@ -271,7 +274,7 @@ button:hover{
     float: left;
 }
 .mol-LayerControl-Results .result a{
-    color: #212121;
+    color: rgb(230, 250, 230);
 }
 .mol-LayerControl-Results .result .buttonContainer {
 	width:24px;

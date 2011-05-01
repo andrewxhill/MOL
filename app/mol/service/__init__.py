@@ -768,7 +768,7 @@ class TileService(object):
             return False
             
     def setmc(self, k):
-        memcache.set(k, self.png, 6000)
+        memcache.set(k, self.png, self.cachetime)
     
     
     def gettile(self):
@@ -803,13 +803,13 @@ class TileService(object):
                 self.status = 200
             elif self.fetchurl() == 204:
                 self.status = 204 #tiling ran, no data existed in the tile
-                memcache.set(self.key, 204, 6000)
+                memcache.set(self.key, 204, self.cachetime)
             elif self.fetchurl() is True:
                 self.colortile()
                 self.setmc(self.key)
                 self.status = 200
             else: 
-                memcache.set(self.key, 404, 6000)
+                memcache.set(self.key, 404, self.cachetime)
                 self.status = 404
             return self.status
 
@@ -830,6 +830,7 @@ class RangeTileProvider(TileService):
         self.result = None
         self.status = False
         self.rpc = urlfetch.create_rpc()
+        self.cachetime = 6000
                         
     def tileurl(self):
         if self.url is not None:
@@ -860,6 +861,7 @@ class EcoregionTileProvider(TileService):
         self.status = False
         self.result = None
         self.rpc = urlfetch.create_rpc()
+        self.cachetime = 6000
                         
     def tileurl(self):
         if self.url is not None:
