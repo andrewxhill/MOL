@@ -277,7 +277,7 @@ class TileHandler(BaseHandler):
         b = self.request.params.get('b', None)
         
         if datatype == 'range':
-            class_ = self.request.params.get('cls', 'animalia')
+            class_ = self.request.params.get('class', 'animalia')
             rank = self.request.params.get('rank', 'species')
             name = self.request.params.get('name', 'puma_concolor')
             tp = RangeTileProvider({

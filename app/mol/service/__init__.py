@@ -37,8 +37,6 @@ def colorPng(img, r, g, b, isObj=False):
         imt = png.Reader(bytes=img)
     else:
         imt=png.Reader(os.path.join(os.path.split(__file__)[0], 'images', img))
-    logging.error(dir(imt))
-    logging.error(imt)
     im = imt.read()
     planes = im[3]['planes']
     itr = im[2]

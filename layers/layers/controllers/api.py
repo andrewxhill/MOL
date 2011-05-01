@@ -16,7 +16,7 @@
 #
 from layers.lib.base import BaseController
 from layers.lib.taskqueue import worker_q
-from layers.lib.mol.service import GenerateTiles
+from layers.lib.mol.service import GenerateTile, GenerateTiles
 from pylons import response, request, app_globals
 import logging
 import os
@@ -28,6 +28,7 @@ import math
 
 
 log = logging.getLogger(__name__)
+
 
 def bboxfromxyz(x,y,z):             
     pixels = 256
@@ -44,6 +45,7 @@ def bboxfromxyz(x,y,z):
     miny = 180 / math.pi * (2 * math.atan( math.exp( miny * math.pi / 180.0)) - math.pi / 2.0)
     maxy = 180 / math.pi * (2 * math.atan( math.exp( maxy * math.pi / 180.0)) - math.pi / 2.0)
     return minx,miny,maxx,maxy
+
 
 class NewMapfile():
     def __init__(self):
@@ -167,6 +169,7 @@ class ApiController(BaseController):
         y = request.params.get('y', None)
         z = request.params.get('z', None)
         id = request.params.get('id', None)
+        overwrite = True if request.params.get('overwrite', None) is not None else False
         
         logging.info('Creating tileset type: ' + datatype)
         
@@ -200,235 +203,65 @@ class ApiController(BaseController):
             response.status = 404
             return None
             
-        minx, miny, maxx, maxy = bboxfromxyz(x, y, z)
-        bbox = (minx, miny, maxx, maxy)
-        logging.info('Bounding box: ' + str(bbox))
-        
         if not os.path.isdir(tile_dir):
             logging.info('Making directories')
             os.makedirs(tile_dir)
-        overwrite = True
+        
+        
         logging.info('Creating tiles')
-        GenerateTiles.render_tiles(bbox,
-                                   str(mapfile),
-                                   str(tile_dir),
-                                   int(z),
-                                   int(z),
-                                   str(id),
-                                   num_threads=app_globals.TILE_QUEUE_THREADS,
-                                   overwrite=overwrite)   
-            
-        if os.path.exists(tile):
+        tilestatus = GenerateTile.render(str(id), 
+                            str(tile_dir),
+                            str(mapfile), 
+                            int(x), 
+                            int(y), 
+                            int(z), 
+                            overwrite=overwrite)
+        
+        if tilestatus == 204:
+            response.status = 204
+            del response.headers['content-type']
+            return None
+        elif tilestatus:
             logging.info('Returning tile : ' + tile)
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
         else:
             response.status = 404
-            return
+            return None
         
         
-    def tiles(self, species_id, zoom, x, y):
-        '''OLD METHOD, DO NOT USE ANYMORE'''
-        '''This action returns PNG data with the response header Content-Type 
-        set to image/png with a 200 status code. It handles URLs of the form:
+    def tiles(self, id):
+        datatype = id
+        x = request.params.get('x', None)
+        y = request.params.get('y', None)
+        z = request.params.get('z', None)
+        id = request.params.get('id', None)
         
-        http://mol.colorado.edu/tiles/species_id/zoom/x/y.png
+        overwrite = True if request.params.get('overwrite', None) is not None else False
         
-        If a tile isn't found a 404 status is returned.
-        '''
-        png = os.path.join(app_globals.TILE_DIR, species_id, zoom, x, y + '.png')        
-        if os.path.exists(png):
-            logging.info('Returning tile : ' + png)
-            response.headers['Content-Type'] = 'image/png'
-            response.status = 200
-            return open(png, 'rb').read()
-        logging.info('Tile not found : ' + png)        
-        response.status = 404
+        logging.info('Creating tileset type: ' + datatype)
         
-    def ecoregion(self, method, name):
-        '''OLD METHOD, DO NOT USE ANYMORE'''
-        if method=='tile':
-            overwrite = False
-            try:
-                if str(request.GET['overwrite']).strip().lower() == 'true':
-                    overwrite = True
-            except:
-                pass
-            newmapfile = False
-            try:
-                if str(request.GET['newmapfile']).strip().lower() == 'true':
-                    newmapfile = True
-            except:
-                pass
-            logging.error(overwrite)
-            x = request.GET['x']
-            y = request.GET['y']
-            z = request.GET['zoom']
-            name = name.strip('.png')
+        if datatype=="range":
+            mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
+            tile_dir = os.path.join(app_globals.TILE_DIR, id)    
+            tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             
-            png = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.png')   
-            nullPng = os.path.join(app_globals.ECOTILE_DIR, name, z, x, y + '.null') 
-              
-            if overwrite or (not os.path.exists(png) and not os.path.exists(nullPng)):
-                try:
-                    region_ids = request.GET['region_ids'].split(',')
-                except:
-                    region_ids = [name]
-                tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
-                                <!DOCTYPE Map>
-                                <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
-                                  <Style name="style">
-                                    <Rule>
-                                      <PolygonSymbolizer>
-                                        <CssParameter name="fill">#000000</CssParameter>
-                                      </PolygonSymbolizer>
-                                      <LineSymbolizer>
-                                        <CssParameter name="stroke">#000000</CssParameter>
-                                        <CssParameter name="stroke-width">0.0</CssParameter>
-                                      </LineSymbolizer>
-                                    </Rule>
-                                  </Style>"""
-                mapfile = str(app_globals.ECOSHP_DIR +'/'+ name + '.mapfile.xml')
-                
-                logging.info('Creating mapfile: %s' % (mapfile))  
-                
-                minx, miny, maxx, maxy = bboxfromxyz(x, y, z)
-                
-                bbox = (minx, miny, maxx, maxy)
-                
-                logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
-                
-                proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-                ct=0
-                for id in region_ids:
-                    shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
-                    if os.path.exists(shp):
-                        ct+=1
-                        tmp_xml += """
-                                <Layer name="layer_name" srs="projection_string">
-                                <StyleName>style</StyleName>
-                                <Datasource>
-                                  <Parameter name="type">shape</Parameter>
-                                  <Parameter name="file">layer_name</Parameter>
-                                </Datasource>
-                              </Layer>""".replace("layer_name",id).replace("projection_string", proj)
-                        
-                tmp_xml += "</Map>"
-                if ct>0:
-                    tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
-                    if newmapfile or not os.path.exists(mapfile):
-                        open(mapfile, "w+").write(tmp_xml)
-                    if not os.path.isdir(tile_dir):
-                        os.mkdir(tile_dir)
-                    GenerateTiles.render_tiles(bbox,
-                                               mapfile,
-                                               tile_dir,
-                                               int(z),
-                                               int(z),
-                                               name,
-                                               num_threads=app_globals.TILE_QUEUE_THREADS,
-                                               overwrite=overwrite)                    
-            if os.path.exists(png):
-                logging.error('Returning tile : ' + png)
-                response.headers['Content-Type'] = 'image/png'
-                response.status = 200
-                return open(png, 'rb').read()
-                
-            logging.info('Tile not found : ' + png)        
-            response.status = 404
+        elif datatype=="ecoregion":
+            mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
+            tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
+            tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             
-        elif str(method).lower() == 'tilearea':
-            """ Takes one to many record_ids split by commas and a unique
-                name for the tileset you are creating.
-                
-                e.g., If you are creating a tileset for a single ecoregion
-                with code NT105, you would probably want to create a new 
-                tileset with,
-                    name = 'NT105',
-                    record_ids = 'NT105'
-                If you are creating a new tileset for hyp. spec 'Andreus 
-                andreus' you could create a tileset with,
-                    name = 'animalia-mammalia-Andreus_andreus'
-                    record_ids = 'NT103','NT445','NT6742'
-            """
-            
-            try:
-                region_ids = request.GET['region_ids'].split(',')
-            except:
-                region_ids = [name]
-            lowx = request.GET['lowx']
-            lowy = request.GET['lowy']
-            highx = request.GET['highx']
-            highy = request.GET['highy']
-            zoom = int(request.GET['zoom'])
-            
-            request_ip = request.environ['REMOTE_ADDR']                
-            #if request_ip == "127.0.0.1":
-            if False:
-                #executes nicely, but doesn't run as far as I can tell
-                EcoregionProcessingThread.apply_async(args=[name, zoom, lowx, lowy, highx, highy, region_ids])
-                logging.info('Sending job to Celery')
-                response.status = 200   
-                return
-            else:
-                logging.info("request from: %s" %request_ip)
-                
-                tile_dir =  str(app_globals.ECOTILE_DIR.rstrip('/') + "/" + name +"/")
-                
-                tmp_xml = """<?xml version="1.0" encoding="utf-8"?>
-                                <!DOCTYPE Map>
-                                <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
-                                  <Style name="style">
-                                    <Rule>
-                                      <PolygonSymbolizer>
-                                        <CssParameter name="fill">#000000</CssParameter>
-                                      </PolygonSymbolizer>
-                                      <LineSymbolizer>
-                                        <CssParameter name="stroke">#000000</CssParameter>
-                                        <CssParameter name="stroke-width">0.0</CssParameter>
-                                      </LineSymbolizer>
-                                    </Rule>
-                                  </Style>"""
-                mapfile = str(app_globals.ECOSHP_DIR +'/'+ name + '.mapfile.xml')
-                
-                logging.info('Creating mapfile: %s' % (mapfile))  
-                
-                
-                bbox = (float(lowx), float(lowy), float(highx), float(highy))
-                logging.info('Tiling %s with bbox: %s' % (name,str(bbox)))  
-                    
-                proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-                
-                ct=0
-                for id in region_ids:
-                    shp = os.path.join(app_globals.ECOSHP_DIR, id + '.shp')        
-                    if os.path.exists(shp):
-                        ct+=1
-                        tmp_xml += """
-                                <Layer name="layer_name" srs="projection_string">
-                                <StyleName>style</StyleName>
-                                <Datasource>
-                                  <Parameter name="type">shape</Parameter>
-                                  <Parameter name="file">layer_name</Parameter>
-                                </Datasource>
-                              </Layer>""".replace("layer_name",id).replace("projection_string", proj)
-                        
-                tmp_xml += "</Map>"
-                if ct>0:
-                    open(mapfile, "w+").write(tmp_xml)
-                    if not os.path.isdir(tile_dir):
-                        os.mkdir(tile_dir)
-                    GenerateTiles.render_tiles(bbox,
-                                               mapfile,
-                                               tile_dir,
-                                               zoom,
-                                               zoom,
-                                               name,
-                                               num_threads=app_globals.TILE_QUEUE_THREADS,
-                                               overwrite=False)
-                    response.status = 200   
-                    return
-                    
-                logging.info('Regions not found : ' + shp)        
-                response.status = 404
+        logging.info('Generating new ' + datatype +' tiles: ' + id)
+        bbox = bboxfromxyz(int(x),int(y),int(z) )   
+        GenerateTiles.render_tiles(bbox,
+                                   str(mapfile),
+                                   str(tile_dir),
+                                   int(z),
+                                   int(z+1),
+                                   str(id),
+                                   num_threads=app_globals.TILE_QUEUE_THREADS,
+                                   overwrite=overwrite)   
+        
