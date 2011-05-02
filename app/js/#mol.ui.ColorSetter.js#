@@ -72,7 +72,7 @@ MOL.modules.ColorSetter = function(mol) {
                                 break;
 
                             case 'range':
-                                case 'ecoregions':
+                            case 'ecoregions':
                                 config.color = new mol.ui.ColorSetter.Color(188, 88, 88);
                                 bus.fireEvent(new ColorEvent(config));
                                 break;

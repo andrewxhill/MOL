@@ -35,7 +35,9 @@ MOL.modules.Search = function(mol) {
                 
                 if (!name && !type && !source){
                     var keys = new Array();
-                    for (i in response.layers) {keys.push(i)};
+                    for (i in response.layers) {
+                        keys.push(i);
+                    };
                     return keys;
                 }
                 
@@ -339,6 +341,7 @@ MOL.modules.Search = function(mol) {
                         break;
 
                     case 'range':
+                    case 'ecoregions':
                         layer = new Layer(result.type, result.source, result.name);
                         config.action = 'add';
                         config.layer = layer;
@@ -504,12 +507,10 @@ MOL.modules.Search = function(mol) {
                         self._result = new Result(response),
                         self._displayPage(response.layers);
                         display.clearFilters();
-                        for (i in filterNames){
+                        for (i in filterNames) {
                             fn = filterNames[i];
                             self._createNewFilter(fn,response);
                         }
-                        //TODO: get selected filters
-                        //self._display.getSelectedFilters();
                     },
 
                     function(error) {

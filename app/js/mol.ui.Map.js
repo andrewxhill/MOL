@@ -267,11 +267,13 @@ MOL.modules.Map = function(mol) {
                                 break;
 
                             case 'range':
-                                mapType = self._buildImageMapType(layer, color, 'range');
+                            case 'ecoregions':
+                                mapType = self._buildImageMapType(layer, color, category);
 
                                 if (mapTypes[layerId]) {
                                     // The mapType exists, so remove it first:
-                                    overlayMapTypes.removeAt(mapTypeIndexes[layerId]);                            
+                                    overlayMapTypes.removeAt(mapTypeIndexes[layerId]);    
+                                    currentMapTypeIndex = mapTypeIndexes[layerId];
                                 } else {
                                     // This is a new mapType, so let us keep track of it:
                                     mapTypes[layerId] = mapType;
@@ -279,7 +281,7 @@ MOL.modules.Map = function(mol) {
 
                                 // Adds the mapType to the map:
                                 overlayMapTypes.insertAt(
-                                    self._currentMapTypeIndex, 
+                                    currentMapTypeIndex, 
                                     mapType);
                                 
                                 // Updates the index of the mapType on the map:
@@ -378,6 +380,7 @@ MOL.modules.Map = function(mol) {
                     break;
                     
                 case 'range':
+                case 'ecoregions':
                     if (show) {
                         overlayMapTypes.insertAt(index, mapType);
                     } else {
@@ -521,9 +524,9 @@ MOL.modules.Map = function(mol) {
                     };
                     break;
 
-                case 'ecoregion':
+                case 'ecoregions':
                     params = {     
-                        id: [cls, rank, name].join('/'),
+                        type: type,                        
                         r: color.getRed(),
                         g: color.getGreen(),
                         b: color.getBlue()
@@ -539,12 +542,18 @@ MOL.modules.Map = function(mol) {
                             if (!normalizedCoord) {
                                 return null;
                             }
-                            var bound = Math.pow(2, zoom);
+                            var bound = Math.pow(2, zoom),
+                                tileurl = null;
                             params.z = zoom;
                             params.x = normalizedCoord.x;
                             params.y = normalizedCoord.y;
                             
-                            return "/data/tile?" + mol.util.urlEncode(params);
+                            tileurl = "/data/tile?" + mol.util.urlEncode(params);
+                            if (type === 'ecoregions') {
+                                tileurl += '&id=' + [cls, rank, name].join('/');
+                            }
+                            mol.log.info(tileurl);
+                            return tileurl;
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,
