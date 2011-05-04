@@ -99,9 +99,14 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LayerControlEvent = mol.events.Event.extend(
         {
-            init: function(action) {
+            init: function(action, layerId) {
                 this._super('LayerControlEvent', action);
-            }            
+                this._layerId = layerId;
+            },
+            
+            getLayerId: function() {
+                return this._layerId;
+            }
         }
     );
     mol.events.LayerControlEvent.TYPE = 'LayerControlEvent';

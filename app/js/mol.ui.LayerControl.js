@@ -26,7 +26,7 @@ MOL.modules.LayerControl = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
-                this._layerIds = [];
+                this._layerIds = {};
             },
 
             /**
@@ -56,22 +56,37 @@ MOL.modules.LayerControl = function(mol) {
                     LayerControlEvent = mol.events.LayerControlEvent,
                     LayerEvent = mol.events.LayerEvent,
                     widget = null,
-                    bus = this._bus;
+                    bus = this._bus, 
+                    ch = null,
+                    styles = null,
+                    layerId = null;
 
 
                 this._display = display;
                 display.setEngine(this);            
                 
-                // Restart button:
+                // Clicking the add button fires a LayerControlEvent:
                 widget = display.getAddButton();
                 widget.click(
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                     }
                 );
+
+                // Clicking the delete button fires a LayerControlEvent:
+                widget = display.getDeleteButton();
+                widget.click(
+                    function(event) {
+                        ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
+                        layerId = ch.attr('id');
+                        ch.remove();
+                        bus.fireEvent(new LayerControlEvent('delete-click', layerId));
+                        delete self._layerIds[layerId];
+                    }
+                );
                 
                 this._addDisplayToMap();
-                
+
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
@@ -87,21 +102,22 @@ MOL.modules.LayerControl = function(mol) {
                             ch = null,
                             widget = null;
                     
-                        switch (action) {
-
+                        switch (action) {                                                       
+    
                         case 'add':
-                            if (_.indexOf(layerIds, layerId) > -1) {
+                            if (layerIds[layerId]) {
                                 // Duplicate layer.
                                 return;
                             }
-                            layerIds.push(layerId);
+                            layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
-                            //layerUi.getAuthor().text(layer.name2);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
-                            layerUi.click(function(e){
+                            layerUi.attr('id', layerId);
+
+                            layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
-                                for (y in ch){
+                                for (y in ch) {
                                     ch[y].removeStyleName('selected');
                                 }
                                 new mol.ui.Element(e.target).addStyleName('selected');

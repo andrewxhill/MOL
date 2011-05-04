@@ -13,7 +13,189 @@
 MOL.modules.Map = function(mol) { 
     
     mol.ui.Map = {};
-    
+
+    mol.ui.Map.MapLayer = Class.extend(
+        {
+            init: function(map, layer) {
+                this._map = map;
+                this._layer = layer;
+                this._color = null;
+            },
+            
+            // Abstract functions:
+            show: function() {
+                throw new mol.exceptions.NotImplementedError('show()');
+            },
+            hide: function() {
+                throw new mol.exceptions.NotImplementedError('hide()');
+            },
+            isVisible: function() {                
+                throw new mol.exceptions.NotImplementedError('isVisible()');
+            },
+            refresh: function() {
+                throw new mol.exceptions.NotImplementedError('refresh()');
+            },
+            
+            // Getters and setters:
+            getLayer: function() {
+                return this._layer;
+            },
+            getMap: function() {
+                return this._map;           
+            },
+            getColor: function() {
+                return this._color;
+            },
+            setColor: function(color) {
+                this._color = color;
+            }
+        }
+    );
+
+    mol.ui.Map.TileMapLayer = mol.ui.Map.MapLayer.extend(
+        {
+            init: function(map, layer) {
+                this._super(map, layer);
+                this._mapType = null;
+                this._onMap = false;
+            },
+            
+            // Abstract functions:
+            _getTileUrlParams: function() {
+                throw mol.exceptions.NotImplementedError('_getTileUrlParams()');
+            },
+
+            show: function() {
+                if (!this.isVisible()) {
+                    if (!this._mapType) {
+                        this.refresh();
+                    }
+                    this.getMap().overlayMapTypes.push(this._mapType);
+                    this._onMap = true;
+                }
+            },
+
+            hide: function() {
+                var layerId = this.getLayer().getId(),
+                    map = this.getMap();
+                if (this.isVisible()) {
+                    map.overlayMapTypes.forEach(
+                        function(x, i) {
+                            if (x && x.name === layerId) {
+                                map.overlayMapTypes.removeAt(i);
+                            }
+                        }
+                    );
+                    this._onMap = false;
+                }
+            },
+                        
+            isVisible: function() {
+                return this._onMap;
+            },
+
+            refresh: function() {              
+                var self = this,
+                    layerId = this.getLayer().getId();
+
+                this._mapType = new google.maps.ImageMapType(
+                    {
+                        getTileUrl: function(coord, zoom) {
+                            var normalizedCoord = self._getNormalizedCoord(coord, zoom),
+                                bound = Math.pow(2, zoom),
+                                tileParams = self._getTileUrlParams(),
+                                tileurl = null;                                
+
+                            if (!normalizedCoord) {
+                                return null;
+                            }                    
+                            
+                            tileParams = tileParams + '&z=' + zoom;
+                            tileParams = tileParams + '&x=' + normalizedCoord.x;
+                            tileParams = tileParams + '&y=' + normalizedCoord.y;
+                            tileurl = "/data/tile?" + tileParams;
+                            mol.log.info(tileurl);
+                            return tileurl;
+                        },
+                        tileSize: new google.maps.Size(256, 256),
+                        isPng: true,
+                        opacity: 0.5,
+                        name: layerId
+                    });
+            },
+
+            _getNormalizedCoord: function(coord, zoom) {
+                var y = coord.y,
+                    x = coord.x,
+                    tileRange = 1 << zoom;
+                // don't repeat across y-axis (vertically)
+                if (y < 0 || y >= tileRange) {
+                    return null;
+                }
+                // repeat across x-axis
+                if (x < 0 || x >= tileRange) {
+                    x = (x % tileRange + tileRange) % tileRange;
+                }
+                return {
+                    x: x,
+                    y: y
+                };
+            }
+        }
+    );
+
+    mol.ui.Map.RangeLayer = mol.ui.Map.TileMapLayer.extend(
+        {
+            init: function(map, layer) {
+                this._super(map, layer);
+            },
+
+            _getTileUrlParams: function() {
+                var layer = this.getLayer(),
+                    color = this.getColor();
+
+                return mol.util.urlEncode(
+                    {
+                        rank: 'species',
+                        cls: 'animalia',
+                        name: layer.getName().toLowerCase().replace(' ', '_'),
+                        type: 'range',
+                        r: color.getRed(),
+                        g: color.getGreen(),
+                        b: color.getBlue()
+                    }
+                );
+            }  
+        }
+    );
+
+    mol.ui.Map.EcoRegionLayer = mol.ui.Map.TileMapLayer.extend(
+        {
+            init: function(map, layer) {
+                this._super(map, layer);
+            },
+
+            _getTileUrlParams: function() {
+                var layer = this.getLayer(),
+                    color = this.getColor(),
+                    rank = 'species',
+                    cls = 'animalia',
+                    name = layer.getName().toLowerCase().replace(' ', '_'),
+                    id = [cls, rank, name].join('/'),
+                    tileParams = mol.util.urlEncode(
+                        {
+                            type: 'ecoregions',
+                            r: color.getRed(),
+                            g: color.getGreen(),
+                            b: color.getBlue()
+                        }
+                    );
+                
+                return tileParams + '&id=' + id;
+            }  
+        }
+    );
+
     /**
      * The Map Engine.
      */
@@ -35,7 +217,43 @@ MOL.modules.Map = function(mol) {
                 this._currentMapTypeIndex = 0;
                 this._mapTypeIndexes = {};
                 this._mapTypes = {};
+
+                this._mapLayers = {};
             },            
+
+            _addMapLayer: function(map, layer) {
+                var layerId = layer.getId(),
+                    layerType = layer.getType(),
+                    mapLayer = null;
+
+                switch (layerType) {
+                case 'range':
+                    mapLayer = new mol.ui.Map.RangeLayer(map, layer);
+                    break;
+                case 'ecoregions':
+                    mapLayer = new mol.ui.Map.EcoRegionLayer(map, layer);
+                    break;
+                }
+                this._mapLayers[layerId] = mapLayer;
+            },
+
+            _mapLayerExists: function(layerId) {
+                return this._mapLayers[layerId] !== undefined;
+            },
+            
+            _getMapLayer: function(layerId) {
+                return this._mapLayers[layerId];
+            },
+
+            _removeMapLayer: function(layerId) {
+                var mapLayer = this._getMapLayer(layerId);
+                if (!mapLayer) {
+                    return false;
+                }
+                mapLayer.hide();
+                delete this._mapLayers[layerId];                
+                return true;
+            },
             
             /**
              * Starts the engine and provides a container for its display.
@@ -109,44 +327,65 @@ MOL.modules.Map = function(mol) {
              */
             _addLayerEventHandler: function() {
                 var bus = this._bus,
+                    map = this._map,
                     LayerEvent = mol.events.LayerEvent,
+                    LayerControlEvent = mol.events.LayerControlEvent,
                     ColorEvent = mol.events.ColorEvent,
-                    deleteLayer = this._deleteLayer,
                     layers = this._layers,
                     self = this;
                 
                 bus.addHandler(
+                    LayerControlEvent.TYPE,
+                    function(event) {
+                        var action = event.getAction(),
+                            layerId = event.getLayerId();
+                        if (action === 'delete-click') {                            
+                            self._removeMapLayer(layerId);
+                        }
+                    }
+                );
+
+                bus.addHandler(
                     LayerEvent.TYPE,
                     function(event) {
                         var layer = event.getLayer(),
-                            lid = layer.getId(),
+                            layerId = layer.getId(),     
+                            mapLayer = self._getMapLayer(layerId),                        
                             action = event.getAction(),
-                            config = {
-                                action: 'get',
-                                category: layer.getType(),
-                                id: lid
-                            };
+                            colorEventConfig = {};
                                                 
                         switch (action) {
 
                         case 'add':
-                            if (layers[lid]) {
-                                mol.log.info('Map ignoring layer id ' + lid);
+                            if (mapLayer) {
                                 return;
                             }                            
-                            layers[lid] = layer;
-                            bus.fireEvent(new ColorEvent(config));
+                            self._addMapLayer(map, layer);
+                            colorEventConfig = {
+                                action: 'get',
+                                category: layer.getType(),
+                                id: layerId
+                            };
+                            bus.fireEvent(new ColorEvent(colorEventConfig));
                             break;
 
                         case 'delete':
-                            deleteLayer(lid);
+                            if (!mapLayer) {
+                                return;
+                            }    
+                            self._removeMapLayer(layerId);
                             break;
 
                         case 'checked':
-                            self._toggleLayer(layers[lid], true);
+                            if (mapLayer) {
+                                mapLayer.show();
+                            }                                
                             break;                            
+
                         case 'unchecked':
-                            self._toggleLayer(layers[lid], false);
+                            if (mapLayer) {
+                                mapLayer.hide();
+                            }    
                             break;                            
                         }                        
                     }
@@ -218,14 +457,8 @@ MOL.modules.Map = function(mol) {
                 var ColorEvent = mol.events.ColorEvent,
                     bus = this._bus,
                     points = this._points,
-                    layers = this._layers,
                     self = this,
-                    map = this._map,
-                    overlayMapTypes = this._map.overlayMapTypes,
-                    mapTypes = this._mapTypes,
-                    mapTypeIndexes = this._mapTypeIndexes,
-                    currentMapTypeIndex = this._currentMapTypeIndex,
-                    mapType = null;
+                    map = this._map;
 
                 bus.addHandler(
                     ColorEvent.TYPE,
@@ -233,20 +466,20 @@ MOL.modules.Map = function(mol) {
                         var color = event.getColor(),
                             category = event.getCategory(),
                             layerId = event.getId(),
-                            layer = layers[layerId],
+                            mapLayer = self._getMapLayer(layerId),
                             action = event.getAction();
 
-                        // Ignores event since we don't have the layer associated with it:
-                        if (!layer) {
+                        // Ignores event:
+                        if (!mapLayer) {
                             return;
                         }
-                        
-                        // Sets the layer color:
-                        layer.setColor(color);
 
                         switch (action) {
 
-                        case 'change':
+                        case 'change':                        
+                            // Sets the layer color:
+                            mapLayer.setColor(color);
+                            
                             switch (category) {
                                 
                             case 'points':
@@ -268,26 +501,7 @@ MOL.modules.Map = function(mol) {
 
                             case 'range':
                             case 'ecoregions':
-                                mapType = self._buildImageMapType(layer, color, category);
-
-                                if (mapTypes[layerId]) {
-                                    // The mapType exists, so remove it first:
-                                    overlayMapTypes.removeAt(mapTypeIndexes[layerId]);    
-                                    currentMapTypeIndex = mapTypeIndexes[layerId];
-                                } else {
-                                    // This is a new mapType, so let us keep track of it:
-                                    mapTypes[layerId] = mapType;
-                                }
-
-                                // Adds the mapType to the map:
-                                overlayMapTypes.insertAt(
-                                    currentMapTypeIndex, 
-                                    mapType);
-                                
-                                // Updates the index of the mapType on the map:
-                                mapTypeIndexes[layerId] = currentMapTypeIndex;
-                                currentMapTypeIndex = currentMapTypeIndex + 1;
-                                break;                                
+                                mapLayer.show();
                             }                           
                         }
                     }
@@ -342,32 +556,14 @@ MOL.modules.Map = function(mol) {
                 icon.src = src;
             },
 
-            /**
-             * Deletes a layer from the map.
-             * 
-             * @param layerId the id of the layer to delete
-             */
-            _deleteLayer: function(layerId) {
-                var points = this._points[layerId];
-                for (x in points) {
-                    points[x].setMap(null);
-                    delete points[x];
-                }
-                delete this._points[layerId];
-                this._points[layerId] = null;
-            },
 
-            /**
-             * Displays the layer on the map.
-             * 
-             * @param the layer to display
-             */
             _toggleLayer: function(layer, show) {
                 var lid = layer.getId(),
                     index = this._mapTypeIndexes[lid],
                     type = layer.getType(),
                     points = this._points[lid],
                     overlayMapTypes = this._map.overlayMapTypes,
+                    mapTypeIndexes = this._mapTypeIndexes,
                     map = show ? this._map : null,
                     mapType = this._mapTypes[lid];
 
@@ -381,10 +577,13 @@ MOL.modules.Map = function(mol) {
                     
                 case 'range':
                 case 'ecoregions':
-                    if (show) {
-                        overlayMapTypes.insertAt(index, mapType);
-                    } else {
+                    if (show && index) {
+                        overlayMapTypes.insertAt(this._currentMapTypeIndex, mapType);
+                        this._currentMapTypeIndex = this._currentMapTypeIndex + 1;
+                        mapTypeIndexes[lid] = this._currentMapTypeIndex;
+                    } else if (index) {
                         overlayMapTypes.removeAt(index);                            
+                        delete mapTypeIndexes[lid];
                     }
                     break;
                 }
