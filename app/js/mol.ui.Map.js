@@ -416,7 +416,7 @@ MOL.modules.Map = function(mol) {
                     id = [cls, rank, name].join('/'),
                     tileParams = mol.util.urlEncode(
                         {
-                            type: 'ecoregions',
+                            type: 'ecoregion',
                             r: color.getRed(),
                             g: color.getGreen(),
                             b: color.getBlue()
@@ -459,7 +459,7 @@ MOL.modules.Map = function(mol) {
                 case 'range':
                     mapLayer = new mol.ui.Map.RangeLayer(map, layer);
                     break;
-                case 'ecoregions':
+                case 'ecoregion':
                     mapLayer = new mol.ui.Map.EcoRegionLayer(map, layer);
                     break;
                 }
