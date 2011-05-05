@@ -725,8 +725,22 @@ class EcoregionLayerProvider(LayerProvider):
 class TileService(object):
     """A base class for the Tile service."""
     
-    def __init__(self):
-        raise NotImplementedError()
+    def __init__(self,query):
+        self.query = query
+        self.key = "%s/%s/%s/%s/%s/%s" % (
+                        self.query['type'],
+                        self.query['source'],
+                        self.query['id'],
+                        self.query['z'],
+                        self.query['x'],
+                        self.query['y'] )
+        self.metadata = None
+        self.png = None
+        self.url = None
+        self.result = None
+        self.status = False
+        self.rpc = urlfetch.create_rpc()
+        self.cachetime = 6000
         
     def colortile(self):
         """Colors a tile based on R,G,B values"""
@@ -743,8 +757,19 @@ class TileService(object):
         return True
         
     def tileurl(self):
-        """Returns the URL of the remote tile"""
-        raise NotImplementedError()
+        if self.url is not None:
+            return self.url
+        else:
+            tileurl = "http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&x={x}&y={y}&z={z}"
+            tileurl = tileurl.replace('{z}', str(self.query['z']))
+            tileurl = tileurl.replace('{x}', str(self.query['x']))
+            tileurl = tileurl.replace('{y}', str(self.query['y']))
+            tileurl = tileurl.replace('{type}', self.query['type'])
+            tileurl = tileurl.replace('{source}', self.query['source'])
+            tileurl = tileurl.replace('{id}', self.query['id'])
+            self.url = tileurl
+            logging.error(self.url)
+            return tileurl
         
     def fetchurl(self):
         """Returns a tile from the remote server if needed"""
@@ -830,9 +855,8 @@ class RangeTileProvider(TileService):
         self.query = query
         self.key = "%s/%s/%s/%s/%s/%s/%s" % (
                         self.query['type'],
-                        self.query['class'],
-                        self.query['rank'],
-                        self.query['name'],
+                        self.query['source'],
+                        self.query['id'],
                         self.query['z'],
                         self.query['x'],
                         self.query['y'] )
@@ -848,21 +872,22 @@ class RangeTileProvider(TileService):
         if self.url is not None:
             return self.url
         else:
-            tileurl = "http://mol.colorado.edu/layers/api/tile/range?source={source}&id={class}/{rank}/{name}&x={x}&y={y}&z={z}"
+            tileurl = "http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&x={x}&y={y}&z={z}"
             tileurl = tileurl.replace('{z}', str(self.query['z']))
             tileurl = tileurl.replace('{x}', str(self.query['x']))
             tileurl = tileurl.replace('{y}', str(self.query['y']))
-            tileurl = tileurl.replace('{class}', self.query['class'])
-            tileurl = tileurl.replace('{rank}', self.query['rank'])
-            tileurl = tileurl.replace('{name}', self.query['name'])
+            tileurl = tileurl.replace('{type}', self.query['type'])
+            tileurl = tileurl.replace('{source}', self.query['source'])
+            tileurl = tileurl.replace('{id}', self.query['id'])
             self.url = tileurl
             return tileurl
             
 class EcoregionTileProvider(TileService):
     def __init__(self,query):
         self.query = query
-        self.key = "%s/%s/%s/%s/%s" % (
+        self.key = "%s/%s/%s/%s/%s/%s" % (
                         query['type'],
+                        query['source'],
                         query['id'],
                         query['z'],
                         query['x'],
@@ -879,7 +904,9 @@ class EcoregionTileProvider(TileService):
         if self.url is not None:
             return self.url
         else:
-            tileurl ="http://mol.colorado.edu/layers/api/tile/ecoregion?id={id}&z={z}&x={x}&y={y}"
+            tileurl ="http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&z={z}&x={x}&y={y}"
+            tileurl = tileurl.replace('{type}', self.query['type'])
+            tileurl = tileurl.replace('{source}', self.query['source'])
             tileurl = tileurl.replace('{id}', self.query['id'])
             tileurl = tileurl.replace('{z}', str(self.query['z']))
             tileurl = tileurl.replace('{x}', str(self.query['x']))
