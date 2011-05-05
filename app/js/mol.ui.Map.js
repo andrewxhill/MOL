@@ -328,7 +328,8 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    layerId = this.getLayer().getId();
+                    layerId = this.getLayer().getId(),
+                    layerSource = this.getLayer().getSource();
 
                 this._mapType = new google.maps.ImageMapType(
                     {
@@ -341,8 +342,8 @@ MOL.modules.Map = function(mol) {
                             if (!normalizedCoord) {
                                 return null;
                             }                    
-                            
-                            tileParams = tileParams + '&z=' + zoom;
+                                                        
+                            tileParams = tileParams + '&source=' + layerSource;
                             tileParams = tileParams + '&x=' + normalizedCoord.x;
                             tileParams = tileParams + '&y=' + normalizedCoord.y;
                             tileurl = "/data/tile?" + tileParams;
