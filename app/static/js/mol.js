@@ -1125,15 +1125,14 @@ MOL.modules.ColorSetter = function(mol) {
                                 break;
 
                             case 'range':
-                                config.color = new mol.ui.ColorSetter.Color(242, 12, 212);
+                                config.color = new mol.ui.ColorSetter.Color(83, 42, 16);
                                 break;
                             case 'ecoregion':
                                 config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
                                 break;
                             }                            
-                        }
-                        
-                        bus.fireEvent(new ColorEvent(config));
+                            bus.fireEvent(new ColorEvent(config));
+                        }                        
                     }
                 );
             }
