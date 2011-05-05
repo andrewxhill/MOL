@@ -23,13 +23,13 @@ class OccurrenceSetIndex(db.Model): #parent = OccurrenceSet see below
     
 class OccurrenceSet(db.Model): #key_name = ecoregion/wwf/puma_concolor or something
     name = db.StringProperty() #this could be non-unique, Puma concolor is fine
-    source = db.StringProperty() #wwf
-    type = db.StringProperty() #ecoregion
+    subname = db.StringProperty()
+    source = db.CategoryProperty() #wwf
+    category = db.CategoryProperty() #ecoregion
     info = db.BlobProperty() #some meta standard for sets of occ polygons
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     
 class OccurrenceIndex(db.Model): #parent = MultiPolygon see below
-    occurrenceSetKey = db.StringProperty() #key_name string
     introduced = db.BooleanProperty(default=None) 
     deleted = db.BooleanProperty(default=None) 
     occurrenceSet = db.ReferenceProperty(OccurrenceSet, collection_name="polygons") #OccurrenceSet
@@ -41,27 +41,12 @@ class MultiPolygonIndex(db.Model): #parent = OccurrenceSet see below
 class MultiPolygon(db.Model): #key_name = some_id
     name = db.StringProperty()
     subname = db.StringProperty()
-    type = db.CategoryProperty() #'ecoregion' would be one
     source = db.CategoryProperty() #'wwf' would be one
+    category = db.CategoryProperty() #'ecoregion' would be one
     info = db.BlobProperty() #some meta standard based on the type, but not restriced by the datastore model
     dateCreated = db.DateTimeProperty(auto_now_add=True)
 
-#all the info about the Ecoregion polygons
-class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
-    ecoName = db.StringProperty()
-    realm = db.StringProperty()
-    biome = db.IntegerProperty()
-    ecoNum = db.IntegerProperty()
-    ecoId = db.IntegerProperty()
-    g200Region = db.StringProperty()
-    g200Num = db.IntegerProperty()
-    g200Biome = db.IntegerProperty()
-    g200Stat = db.IntegerProperty()
-    extentNorthWest = db.GeoPtProperty()
-    extentSouthEast = db.GeoPtProperty()
-    polyStrings = db.StringListProperty()
-    dateCreated = db.DateTimeProperty(auto_now_add=True)
-    
+
 class TileSetIndex(db.Model):
     remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
     zoom = db.IntegerProperty() #max zoom available for the layer

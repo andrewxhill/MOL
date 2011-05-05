@@ -29,3 +29,33 @@ mapreduce:
       default: mol.db.TileUpdate
     - name: shard_count
       default: 2
+ 
+- name: Fix lower case wwf in Entity.source
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.capitalize_source
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 4
+      
+- name: Add missing subname
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.add_subname
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 4
+
+- name: Move TileSetIndex to MultiPolygon
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.move_tile_set
+    params:
+    - name: entity_kind
+      default: mol.db.TileSetIndex
+    - name: shard_count
+      default: 4

@@ -25,6 +25,18 @@ indexes:
   - name: term=
   - name: rank
 
+- kind: OccurrenceSetIndex
+  properties:
+  - name: term
+  - name: rank
+    direction: desc
+
+- kind: OccurrenceSetIndex
+  properties:
+  - name: term=
+  - name: rank
+    direction: desc
+
 - kind: Species
   properties:
   - name: __key__

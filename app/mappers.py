@@ -18,10 +18,11 @@
 from google.appengine.api import images, memcache as m
 from google.appengine.ext import db
 from mapreduce import operation as op
-from mol.db import Tile, TileUpdate, TileSetIndex
+from mol.db import *
 import cStringIO
 import png
 import logging
+import simplejson
 
 memcache = m.Client()
 
@@ -40,6 +41,58 @@ def set_range_map(entity):
         entity.names = []
         logging.warn('SpeciesIndex(%s) has no names' % key_name)
     yield op.db.Put(entity)
+
+def move_tile_set(entity):
+    old_key = entity.key().name()
+    name = ' '.join(old_key.split('/')[2].split('_')).capitalize().strip()
+    subname = "MOL Range Map"
+    new_key = "range/mol/%s" % old_key
+           
+    info = {
+            "extentNorthWest": str(entity.extentNorthWest),
+            "extentSouthEast": str(entity.extentSouthEast),
+            "proj": str(entity.proj)
+           }
+    mpoly = MultiPolygon(
+                key_name = new_key,
+                info = simplejson.dumps(info),
+                name = name,
+                subname = subname,
+                source = 'MOL',
+                category = 'range'
+            )
+    yield op.db.Put(mpoly)
+           
+    taxa = Species.get_by_key_name(old_key)
+    cls = simplejson.loads(taxa.classification)
+    terms = []
+    terms.append(name.lower())
+    for a in ["genus","family","order","class","phylum","species","infraspecies","superfamily"]:
+        if a in cls:
+            if cls[a] not in ["",None,False]:
+                if cls[a] not in terms:
+                    terms.append(cls[a])
+    i = 0
+    for t in terms:
+        rank = int((len(terms)-i) * 90/(len(terms)))
+        mpi = MultiPolygonIndex(
+                parent = db.Key.from_path('MultiPolygon',new_key),
+                term = str(t).strip().lower(),
+                rank = rank,
+              )
+        yield op.db.Put(mpi)
+        i+=1
+    
+    
+    
+def capitalize_source(entity):
+    entity.source = str(entity.source).upper()
+    yield op.db.Put(entity)
+    
+def add_subname(entity):
+    entity.subname = "WWF Ecoregion Set"
+    yield op.db.Put(entity)
+
 
 def interpolate(entity):
     """Processes any changed tiles

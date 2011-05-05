@@ -23,7 +23,7 @@ from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
-from mol.db import Species, SpeciesIndex, TileSetIndex, Tile, Ecoregion, EcoregionSet, EcoregionSetIndex
+from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
 from xml.etree import ElementTree as etree
 import datetime
 import logging
@@ -33,6 +33,7 @@ import pickle
 import time
 import wsgiref.util
 import StringIO
+from mol.service import MasterSearch
 from mol.service import RangeTileProvider
 from mol.service import EcoregionTileProvider
 from mol.service import LayerService
@@ -84,6 +85,7 @@ class BaseHandler(webapp.RequestHandler):
 class WebAppHandler(BaseHandler):
     
     def __init__(self):
+        self.master_search = MasterSearch()
         self.layer_service = LayerService()
         self.gbif = GbifLayerProvider()
         
@@ -123,104 +125,59 @@ class WebAppHandler(BaseHandler):
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.
         # return self.layer_service.search(query)[0]
-        return {    
-            "query": {
-                "search": "Puma",
-                "offset": 0,
-                "limit": 10,
-                "source": None,
-                "type": None,
-                "advancedOption1": "foo",
-                "advancedOption2": "bar"
-                },
+        term = query.get('term')
+        term = 'ambystoma'
+        limit = 5
+        offset = 0
+        query = {"term": term, "limit": limit, "offset": offset}
+        results = self.master_search.search(query)
+        
+        logging.error(len(results))
             
-            "types": {
-                "points": {
-                    "names": ["Puma concolor"],
-                    "sources": ["GBIF"],
-                    "layers": [0]
-                    },
-                "range": {
-                    "names": ["Puma concolor","Puma yagouaroundi", "Smilisca puma"],
-                    "sources": ["MOL"],
-                    "layers": [1,2,3]
-                    },  
-                "ecoregions": {
-                    "names": ["Puma concolor"],
-                    "sources": ["WWF"],
-                    "layers": [4]
-                    },      
-                },
-            
-            "sources": {
-                "GBIF": {
-                    "names": ["Puma concolor"],
-                    "types": ["points"],
-                    "layers": [0]
-                    },        
-                "MOL": {
-                    "names": ["Puma concolor", "Puma yagouaroundi", "Smilisca puma"],
-                    "types": ["range"],
-                    "layers": [1,2,3]
-                    },
-                "WWF": {
-                    "names": ["Puma concolor"],
-                    "types": ["ecoregions"],
-                    "layers": [4]
-                    }
-                },
-            
-            "names": {
-                "Puma concolor": {
-                    "sources": ["GBIF", "MOL", "WWF"],
-                    "layers": [0,1,4],
-                    "types": ["points", "range", "ecoregions"]
-                    },
-                "Puma yagouaroundi": {
-                    "sources": ["MOL"],
-                    "layers": [2],
-                    "types": ["range"]            
-                    },    
-                "Smilisca puma": {
-                    "sources": ["MOL"],
-                    "layers": [3],
-                    "types": ["range"]
-                    }
-                },
-            
-            "layers": {
-                0 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
-                     "source": "GBIF",
-                     "type": "points",
-                     "info": "blah blah"
-                    }, 
-                1 : {"name" : "Puma concolor",
-                     "name2" : "A. Hill", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },                
-                2 : {"name": "Puma yagouaroundi",
-                     "name2" : "R. Guralnick", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },       
-                3:  {"name": "Smilisca puma",
-                     "name2" : "A. Steele", 
-                     "source": "MOL",
-                     "type": "range",
-                     "info": "blah blah"
-                    },       
-                4:  {"name" : "Puma concolor",
-                     "name2" : "WWF Ecoregions", 
-                     "source": "WWF",
-                     "type": "ecoregions",
-                     "info": "blah blah"
-                    },
+        query = {
+                "search": term,
+                "offset": offset,
+                "limit": limit,
                 }
-            }
+        types = {}
+        sources = {}
+        layers = {}
+        names = {}
+        
+        ct = 0
+        for r in results:
+            r = db.get(r)
+            if r.category not in types.keys():
+                types[r.category] = {"names": [],"sources": [], "layers": []}
+            if r.source not in sources.keys():
+                sources[r.source] = {"names": [],"types": [],"layers": []}
+            if r.name.strip() not in names.keys():
+                names[r.name.strip()] = {"sources": [],"types": [],"layers": []}
+            
+            types[r.category]["names"].append(r.name)
+            types[r.category]["sources"].append(r.source)
+            types[r.category]["layers"].append(ct)
+            
+            sources[r.source]["names"].append(r.name)
+            sources[r.source]["types"].append(r.category)
+            sources[r.source]["layers"].append(ct)
+            
+            names[r.name.strip()]["sources"].append(r.source)
+            names[r.name.strip()]["types"].append(r.category)
+            names[r.name.strip()]["layers"].append(ct)
+            
+            layers[ct] = {
+                "name": r.name,
+                "name2": r.subname,
+                "source": r.source,
+                "type": r.category,
+                "info": r.info
+                }
+            ct += 1
+        out = {"query": query, "types": types, 
+               "sources": sources, "layers": layers,
+               "names": names}
+        return out
 
 class PointsHandler(BaseHandler):
     '''RequestHandler for GBIF occurrence point datasets
@@ -416,6 +373,7 @@ class TileHandler(BaseHandler):
             logging.error('%s - %s' % (tileurl, str(e)))            
             self.error(404) # Not found
     """
+    
 class TaxonomyHandler(BaseHandler):
     '''RequestHandler for Taxonomy query
     

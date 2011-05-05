@@ -19,7 +19,7 @@ from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
 import logging
 from math import ceil
-from mol.db import Tile, TileUpdate, TileSetIndex
+from mol.db import Tile, TileUpdate, TileSetIndex, MultiPolygon, MultiPolygonIndex, OccurrenceSetIndex, OccurrenceSet
 from xml.etree import ElementTree as etree
 import datetime
 import cStringIO
@@ -256,6 +256,19 @@ class LayerService(object):
 
     def _create_layer_search_callback(self, provider, rpc):
         return lambda: self._handle_layer_search_callback(provider, rpc)
+
+class MasterSearch(object):
+    def __init__(self):
+        pass
+    def search(self,query):
+        logging.error(query)
+        osi = OccurrenceSetIndex.all(keys_only=True)
+        osi.filter("term =",str(query['term']).lower()).order("-rank")
+        res = osi.fetch(limit=query["limit"],offset=query["offset"])
+        return [i.parent() for i in res]
+        
+        
+        
 
 class LayerProvider(object):
     """An abstract base class for the Layer service."""
