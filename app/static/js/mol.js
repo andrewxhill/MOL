@@ -100,7 +100,7 @@ MOL.modules.app = function(mol) {
     mol.app.Instance = Class.extend(
         {
             init: function(config) {
-                mol.log.enabled = config.logging;
+                mol.log.enabled = config ? config.logging: false;
                 this._control = new mol.location.Control(config);
                 Backbone.history.start();
             },
@@ -541,7 +541,7 @@ MOL.modules.location = function(mol) {
             initialize: function(config) {
                 this._bus = config.bus || new mol.events.Bus();
                 this._api = config.api || new mol.ajax.Api(this._bus);
-                this._colorSetter = new mol.ui.ColorSetter.Api({bus: this._bus});
+                this._colorSetter = new mol.ui.ColorSetter.Api({'bus': this._bus});
                 this._container = $('body');
 
                 this._mapEngine = new mol.ui.Map.Engine(this._api, this._bus);
@@ -1299,6 +1299,7 @@ MOL.modules.LayerControl = function(mol) {
             _addDisplayToMap: function() {
                 var MapControlEvent = mol.events.MapControlEvent,
                     display = this._display,
+                    bus = this._bus,
                     DisplayPosition = mol.ui.Map.Control.DisplayPosition,
                     ControlPosition = mol.ui.Map.Control.ControlPosition,
                     action = 'add',
@@ -2222,6 +2223,7 @@ MOL.modules.Map = function(mol) {
 
             _addColorEventHandler: function() {
                 var ColorEvent = mol.events.ColorEvent,
+                    bus = this._bus,
                     self = this;
 
                 bus.addHandler(
@@ -2974,6 +2976,7 @@ MOL.modules.Search = function(mol) {
             _addDisplayToMap: function() {
                 var MapControlEvent = mol.events.MapControlEvent,
                     display = this._display,
+                    bus = this._bus,
                     DisplayPosition = mol.ui.Map.Control.DisplayPosition,
                     ControlPosition = mol.ui.Map.Control.ControlPosition,
                     action = 'add',

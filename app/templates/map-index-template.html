@@ -14,7 +14,21 @@
     {% if prod %}
     <script src="../../../static/js/mol.js"></script>
     {% else %}
-    <script src="../../../js/mol.js?1"></script>
+    <script src="../../../js/mol.js?"></script>
+    <script src="../../../js/mol.app.js"></script>
+    <script src="../../../js/mol.events.js"></script>
+    <script src="../../../js/mol.ajax.js"></script>
+    <script src="../../../js/mol.log.js"></script>
+    <script src="../../../js/mol.exceptions.js"></script>
+    <script src="../../../js/mol.location.js"></script>
+    <script src="../../../js/mol.model.js"></script>
+    <script src="../../../js/mol.util.js"></script>
+    <script src="../../../js/mol.ui.js"></script>
+    <script src="../../../js/mol.ui.ColorSetter.js"></script>
+    <script src="../../../js/mol.ui.LayerControl.js"></script>
+    <script src="../../../js/mol.ui.LayerList.js"></script>
+    <script src="../../../js/mol.ui.Map.js"></script>
+    <script src="../../../js/mol.ui.Search.js"></script>
     {% endif %}
 
     <meta charset="utf-8" /> 
@@ -22,6 +36,7 @@
     <style type="text/css"> 
         html { height: 100% }
         body { height: 100%; margin: 0px; padding: 0px }
+        #map { height: 100% }
     </style> 
     <meta name="description" content="Map of Life - Range Map." /> 
     <meta name="keywords" content="map, map of life, biology, range map, expert map" /> 
@@ -35,16 +50,10 @@
                    new env.app.Instance({logging: false}).run();
                 });           
             {% else %}   
-                <!-- Not production, so load split source, enable logging, etc. -->
-                MOL.src.load();
-                <!-- var mol = MOL(function(mol) { -->
-                <!--     bus = new mol.events.Bus(); -->
-                <!--     api = new mol.ajax.Api(bus); -->
-                <!--     var config = {bus: bus, api: api, logging:true}; -->
-                <!--     var app = new mol.app.Instance(config); -->
-                <!--     app.run(); -->
-                <!--     return this; -->
-                <!-- }); -->
+                <!-- Not production, so load app with logging and run it. -->
+                MOL(function(env) {
+                   new env.app.Instance({logging: true}).run();
+                });           
             {% endif %}
         });
     </script>

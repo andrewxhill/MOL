@@ -73,8 +73,8 @@ class MainPage(BaseHandler):
 ''' For testing... '''
 class MapPage(BaseHandler):
     def get(self):
-        #self.render_template('map-index-template.html', {'prod': PROD})
-        self.push_html('map.html');
+        self.render_template('map-index-template.html', {'prod': PROD})
+        #self.push_html('map.html');
 class LayerWidget(BaseHandler):
     def get(self):
         self.push_html('layer.widget.html')

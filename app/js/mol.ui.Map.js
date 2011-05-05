@@ -686,6 +686,7 @@ MOL.modules.Map = function(mol) {
 
             _addColorEventHandler: function() {
                 var ColorEvent = mol.events.ColorEvent,
+                    bus = this._bus,
                     self = this;
 
                 bus.addHandler(
