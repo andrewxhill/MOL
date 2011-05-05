@@ -283,7 +283,7 @@ MOL.modules.Map = function(mol) {
         }
     );
 
-    mol.ui.Map.TileMapLayer = mol.ui.Map.MapLayer.extend(
+    mol.ui.Map.TileLayer = mol.ui.Map.MapLayer.extend(
         {
             init: function(map, layer) {
                 this._super(map, layer);
@@ -307,13 +307,13 @@ MOL.modules.Map = function(mol) {
             },
 
             hide: function() {
-                var layerId = this.getLayer().getId(),
+                var keyName = this.getLayer().getKeyName(),
                     map = this.getMap();
 
                 if (this.isVisible()) {
                     map.overlayMapTypes.forEach(
                         function(x, i) {
-                            if (x && x.name === layerId) {
+                            if (x && x.name === keyName) {
                                 map.overlayMapTypes.removeAt(i);
                             }
                         }
@@ -328,32 +328,40 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    layerId = this.getLayer().getId(),
-                    layerSource = this.getLayer().getSource();
+                    keyName = this.getLayer().getKeyName(),
+                    layerSource = this.getLayer().getSource(),
+                    color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
                     {
                         getTileUrl: function(coord, zoom) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
-                                tileParams = self._getTileUrlParams(),
+                                tileParams = '',
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
                             }                    
                                                         
+                            tileParams = tileParams + 'key_name=' + keyName;
                             tileParams = tileParams + '&source=' + layerSource;
+                            tileParams = tileParams + '&r=' + color.getRed(),
+                            tileParams = tileParams + '&g=' + color.getGreen(),
+                            tileParams = tileParams + '&b=' + color.getBlue(),
                             tileParams = tileParams + '&x=' + normalizedCoord.x;
                             tileParams = tileParams + '&y=' + normalizedCoord.y;
+                            tileParams = tileParams + '&z=' + zoom;
                             tileurl = "/data/tile?" + tileParams;
+
                             mol.log.info(tileurl);
+
                             return tileurl;
                         },
                         tileSize: new google.maps.Size(256, 256),
                         isPng: true,
                         opacity: 0.5,
-                        name: layerId
+                        name: keyName
                     });
             },
 
@@ -374,58 +382,6 @@ MOL.modules.Map = function(mol) {
                     y: y
                 };
             }
-        }
-    );
-
-    mol.ui.Map.RangeLayer = mol.ui.Map.TileMapLayer.extend(
-        {
-            init: function(map, layer) {
-                this._super(map, layer);
-            },
-
-            _getTileUrlParams: function() {
-                var layer = this.getLayer(),
-                    color = this.getColor();
-
-                return mol.util.urlEncode(
-                    {
-                        rank: 'species',
-                        cls: 'animalia',
-                        name: layer.getName().toLowerCase().replace(' ', '_'),
-                        type: 'range',
-                        r: color.getRed(),
-                        g: color.getGreen(),
-                        b: color.getBlue()
-                    }
-                );
-            }  
-        }
-    );
-
-    mol.ui.Map.EcoRegionLayer = mol.ui.Map.TileMapLayer.extend(
-        {
-            init: function(map, layer) {
-                this._super(map, layer);
-            },
-
-            _getTileUrlParams: function() {
-                var layer = this.getLayer(),
-                    color = this.getColor(),
-                    rank = 'species',
-                    cls = 'animalia',
-                    name = layer.getName().toLowerCase().replace(' ', '_'),
-                    id = [cls, rank, name].join('/'),
-                    tileParams = mol.util.urlEncode(
-                        {
-                            type: 'ecoregion',
-                            r: color.getRed(),
-                            g: color.getGreen(),
-                            b: color.getBlue()
-                        }
-                    );
-                
-                return tileParams + '&id=' + id;
-            }  
         }
     );
 
@@ -458,10 +414,10 @@ MOL.modules.Map = function(mol) {
                     mapLayer = new mol.ui.Map.PointLayer(map, layer, this._markerCanvas);
                     break;
                 case 'range':
-                    mapLayer = new mol.ui.Map.RangeLayer(map, layer);
+                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 case 'ecoregion':
-                    mapLayer = new mol.ui.Map.EcoRegionLayer(map, layer);
+                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
                 this._mapLayers[layerId] = mapLayer;

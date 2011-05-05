@@ -46,14 +46,14 @@ MOL.modules.model = function(mol) {
      */
     mol.model.Layer = Class.extend(
         {
-            init: function(type, source, name, json) {
-                this._type = type;
-                this._source = source;
-                this._name = name;
-                this._json = json;
+            init: function(params) {
+                this._type = params.type;
+                this._source = params.source;
+                this._name = params.name;
+                this._key_name = params.key_name;
+                this._json = params.json;
                 this._color = null;
                 this._icon = null;
-                this._buildId();
             },
 
             hasPoints: function() {
@@ -83,9 +83,13 @@ MOL.modules.model = function(mol) {
             getName: function() {
                 return this._name;                
             },
+
+            getKeyName: function() {
+                return this._key_name;                
+            },
             
             getId: function() {
-                return this._id;                
+                return this._key_name;
             },
             
             getColor: function() {
@@ -94,17 +98,6 @@ MOL.modules.model = function(mol) {
             
             setColor: function(color) {
                 this._color = color;
-            },
-                             
-            _buildId: function() {
-                var type = this._type,
-                    source = this._source,
-                    name = this._name;
-                if (this._id) {
-                    return this._id;                    
-                }
-                this._id = [type, source, name.split(' ').join('_')].join('_');
-                return this._id;
             }
         }
     );
