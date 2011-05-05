@@ -29,10 +29,10 @@ class OccurrenceSet(db.Model): #key_name = ecoregion/wwf/puma_concolor or someth
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     
 class OccurrenceIndex(db.Model): #parent = MultiPolygon see below
-    occurrenceSet = db.StringProperty() #key_name string
+    occurrenceSetKey = db.StringProperty() #key_name string
     introduced = db.BooleanProperty(default=None) 
     deleted = db.BooleanProperty(default=None) 
-    set = db.ReferenceProperty(OccurrenceSet, collection_name="polygons") #OccurrenceSet
+    occurrenceSet = db.ReferenceProperty(OccurrenceSet, collection_name="polygons") #OccurrenceSet
     
 class MultiPolygonIndex(db.Model): #parent = OccurrenceSet see below
     term = db.CategoryProperty() #string values to search for sets
