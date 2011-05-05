@@ -54,7 +54,7 @@ button:hover{
     font-size: 0.8em;
 }
 .mol-LayerControl-Menu .button:hover{
-    color: #555;
+    color: #FFF;
     cursor: pointer;
 }
 .mol-LayerControl-Menu div{
@@ -189,6 +189,34 @@ button:hover{
     padding: 0px;
     margin: 0px;
 }
+
+.mol-LayerControl-Results ::-webkit-scrollbar {
+    width: 11px;
+    height: 0px;
+}
+.mol-LayerControl-Results ::-webkit-scrollbar-button:vertical {
+    background-color: white;
+    border: 1px solid white;
+}
+.mol-LayerControl-Results ::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment {
+    display: block;
+}
+ 
+/* Turn off the down area up on top, and up area on bottom */
+.mol-LayerControl-Results 
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:start:decrement,
+::-webkit-scrollbar-button:vertical:end:increment,
+::-webkit-scrollbar-button:vertical:end:decrement {
+    display: none;
+}
+.mol-LayerControl-Results ::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: white;
+}
+ 
+
 .mol-LayerControl-Results .filters{
     float: left;
     width: 30%;
@@ -201,6 +229,11 @@ button:hover{
     padding: 4px;
     margin: 0px 0px 5px 0px;
     font-size: 12px;
+    
+}
+.mol-LayerControl-Results .filters .filter .options{
+    max-height: 125px;
+    overflow-y: auto;
 }
 .mol-LayerControl-Results .filters .filter .filterName{
     margin-bottom: 5px;
@@ -238,7 +271,10 @@ button:hover{
     position: relative;
     -moz-border-radius: 3px;
     border-radius: 3px;
+    max-height: 400px;
+    overflow-y: auto;
 }
+
 .mol-LayerControl-Results ul {
     padding-left: 0px;
     margin-bottom: 5px;

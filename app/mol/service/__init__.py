@@ -261,7 +261,7 @@ class MasterTermSearch(object):
     def __init__(self):
         pass
     def search(self,query):
-        osi = MasterSearchIndex.all(keys_only=True)
+        osi = OccurrenceSetIndex.all(keys_only=True)
         osi.filter("term =",str(query['term']).lower()).order("-rank")
         res = osi.fetch(limit=query["limit"],offset=query["offset"])
         return [i.parent() for i in res]
