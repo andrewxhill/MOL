@@ -1,6 +1,5 @@
 #!/bin/sh
-cd mol
 rm -rf *.*~
-rm -rf ../mol.js
-cat mol.util.js mol.control.js mol.event.js mol.api.js mol.view.* mol.activity.* mol.init.js > ../mol.js
+rm -rf ../static/js/mol.js
+cat mol.js mol.app.js mol.events.js mol.ajax.js mol.log.js mol.exceptions.js mol.location.js mol.model.js mol.util.js mol.ui.js mol.ui.ColorSetter.js mol.ui.LayerControl.js mol.ui.LayerList.js mol.ui.Map.js mol.ui.Search.js > ../static/js/mol.js
 
