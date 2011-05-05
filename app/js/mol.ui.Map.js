@@ -1,3 +1,4 @@
+
 /**
  * Map module that wraps a Google Map and gives it the ability to handle app 
  * level events and perform AJAX calls to the server. It surfaces custom
@@ -14,6 +15,9 @@ MOL.modules.Map = function(mol) {
     
     mol.ui.Map = {};
 
+    /**
+     * Base class for map layers.
+     */
     mol.ui.Map.MapLayer = Class.extend(
         {
             init: function(map, layer) {
@@ -439,13 +443,7 @@ MOL.modules.Map = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;  
-                this._points = {};
-                this._layers = {};
                 this._controlDivs = {};
-                this._currentMapTypeIndex = 0;
-                this._mapTypeIndexes = {};
-                this._mapTypes = {};
-
                 this._mapLayers = {};
             },            
 
@@ -478,9 +476,11 @@ MOL.modules.Map = function(mol) {
 
             _removeMapLayer: function(layerId) {
                 var mapLayer = this._getMapLayer(layerId);
+
                 if (!mapLayer) {
                     return false;
                 }
+
                 mapLayer.hide();
                 delete this._mapLayers[layerId];                
                 return true;
@@ -686,6 +686,7 @@ MOL.modules.Map = function(mol) {
 
             _addColorEventHandler: function() {
                 var ColorEvent = mol.events.ColorEvent,
+                    bus = this._bus,
                     self = this;
 
                 bus.addHandler(

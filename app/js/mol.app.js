@@ -8,7 +8,7 @@ MOL.modules.app = function(mol) {
     mol.app.Instance = Class.extend(
         {
             init: function(config) {
-                mol.log.enabled = config.logging;
+                mol.log.enabled = config ? config.logging: false;
                 this._control = new mol.location.Control(config);
                 Backbone.history.start();
             },

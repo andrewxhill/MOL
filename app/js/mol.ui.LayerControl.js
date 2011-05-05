@@ -150,6 +150,7 @@ MOL.modules.LayerControl = function(mol) {
             _addDisplayToMap: function() {
                 var MapControlEvent = mol.events.MapControlEvent,
                     display = this._display,
+                    bus = this._bus,
                     DisplayPosition = mol.ui.Map.Control.DisplayPosition,
                     ControlPosition = mol.ui.Map.Control.ControlPosition,
                     action = 'add',

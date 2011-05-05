@@ -27,18 +27,23 @@ from google.appengine.ext import db
 
 memcache = m.Client()
 
+if 'SERVER_SOFTWARE' in os.environ:
+  PROD = not os.environ['SERVER_SOFTWARE'].startswith('Development')
+else:
+  PROD = True
+
 class ColPage(webapp.RequestHandler):
     def get(self):
         path = os.path.join(os.path.dirname(__file__), 'templates/coltest.html')
         self.response.out.write(template.render(path, {}))
 
 class BaseHandler(webapp.RequestHandler):
-    def render_template(self, file, template_args):
-        path = os.path.join(os.path.dirname(__file__), "html", file)
+    def render_template(self, f, template_args):
+        path = os.path.join(os.path.dirname(__file__), "templates", f)
         self.response.out.write(template.render(path, template_args))
 
-    def push_html(self, file):
-        path = os.path.join(os.path.dirname(__file__), "html", file)
+    def push_html(self, f):
+        path = os.path.join(os.path.dirname(__file__), "html", f)
         self.response.out.write(open(path, 'r').read())
 
 class PeoplePage(BaseHandler):
@@ -68,7 +73,8 @@ class MainPage(BaseHandler):
 ''' For testing... '''
 class MapPage(BaseHandler):
     def get(self):
-        self.push_html('map.html');
+        self.render_template('map-index-template.html', {'prod': PROD})
+        #self.push_html('map.html');
 class LayerWidget(BaseHandler):
     def get(self):
         self.push_html('layer.widget.html')
