@@ -16,14 +16,36 @@
 #
 from google.appengine.ext import db
 
-#Store a link between either name-string and ecoRegion codes, or
-#between a MOL-Spec-Key and a list of ecoRegion codes
-class EcoregionLayer(db.Model):
-    name = db.StringProperty()
-    id = db.StringProperty()
-    ecoCodes = db.StringListProperty()
-    searchStrings = db.StringListProperty()
+
+class OccurrenceSetIndex(db.Model): #parent = OccurrenceSet see below
+    term = db.CategoryProperty() #string values to search for sets
+    rank = db.RatingProperty(default=0) #weight of term for an order by
     
+class OccurrenceSet(db.Model): #key_name = ecoregion/wwf/puma_concolor or something
+    name = db.StringProperty() #this could be non-unique, Puma concolor is fine
+    source = db.StringProperty() #wwf
+    type = db.StringProperty() #ecoregion
+    info = db.BlobProperty() #some meta standard for sets of occ polygons
+    dateCreated = db.DateTimeProperty(auto_now_add=True)
+    
+class OccurrenceIndex(db.Model): #parent = MultiPolygon see below
+    occurrenceSetKey = db.StringProperty() #key_name string
+    introduced = db.BooleanProperty(default=None) 
+    deleted = db.BooleanProperty(default=None) 
+    occurrenceSet = db.ReferenceProperty(OccurrenceSet, collection_name="polygons") #OccurrenceSet
+    
+class MultiPolygonIndex(db.Model): #parent = OccurrenceSet see below
+    term = db.CategoryProperty() #string values to search for sets
+    rank = db.RatingProperty(default=0) #weight of term for an order by
+    
+class MultiPolygon(db.Model): #key_name = some_id
+    name = db.StringProperty()
+    subname = db.StringProperty()
+    type = db.CategoryProperty() #'ecoregion' would be one
+    source = db.CategoryProperty() #'wwf' would be one
+    info = db.BlobProperty() #some meta standard based on the type, but not restriced by the datastore model
+    dateCreated = db.DateTimeProperty(auto_now_add=True)
+
 #all the info about the Ecoregion polygons
 class Ecoregion(db.Model): #key_name = ('Ecoregion', eco_code)
     ecoName = db.StringProperty()
