@@ -23,7 +23,7 @@ from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
-from mol.db import Species, SpeciesIndex, TileSetIndex, Tile, Ecoregion, EcoregionSet, EcoregionSetIndex
+from mol.db import Species, SpeciesIndex, TileSetIndex, Tile
 from xml.etree import ElementTree as etree
 import datetime
 import logging
