@@ -125,7 +125,9 @@ class WebAppHandler(BaseHandler):
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.
         # return self.layer_service.search(query)[0]
-        term = query.get('query', 'puma')
+        term = query.get('query', 'stenocercus')
+        if term in ["", None, False]:
+            term = 'stenocercus'
         limit = int(query.get('limit', 50))
         offset = int(query.get('offset', 0))
         
@@ -248,7 +250,7 @@ class TileHandler(BaseHandler):
                                     'g': g,
                                     'b': b })
                         
-        elif datatype == 'ecoregions':
+        elif datatype == 'ecoregion':
             id = self.request.params.get('id', 'NT1405')
             tp = EcoregionTileProvider({
                                     'type': 'ecoregion',

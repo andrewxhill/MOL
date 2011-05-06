@@ -402,11 +402,11 @@ MOL.modules.Search = function(mol) {
                     fw.getName().text(res.name);
                     fw.getAuthor().text(res.name2);
                     fw.getInfoLink().attr("attr","/static/dead_link.html");
-                    sourceImg.attr("src","/static/maps/search/" + res.source + ".png");
+                    sourceImg.attr("src","/static/maps/search/" + res.source.toLowerCase() + ".png");
                     sourceImg.click(function(){
                         console.log('TODO: send source info to LeftBottom Modal');
                     });
-                    typeImg.attr("src","/static/maps/search/" + res.type + ".png");
+                    typeImg.attr("src","/static/maps/search/" + res.type.toLowerCase() + ".png");
                     typeImg.click(function(){
                         console.log('TODO: send type info to LeftBottom Modal');
                     });
@@ -431,6 +431,20 @@ MOL.modules.Search = function(mol) {
                     self = this;
                 filter.getFilterName().text(name);
                 filter.attr('id', name);
+                allTypes = filter.getNewOption();
+                allTypes.text("All "+name);
+                allTypes.addStyleName("all");
+                allTypes.click(
+                    function(event) {
+                        var fo = filter.getOptions();
+                        for (o in fo){
+                            fo[o].removeStyleName("selected");
+                        }
+                        new mol.ui.Element(event.target).addStyleName("selected");
+                        self._processFilterValue(name,null);
+                    }
+                );
+                allTypes.addStyleName("selected");
                 for (k in keys) {
                     var option;
                     option = filter.getNewOption();
@@ -447,20 +461,6 @@ MOL.modules.Search = function(mol) {
                         }
                     );
                 }
-                allTypes = filter.getNewOption();
-                allTypes.text("All "+name);
-                allTypes.addStyleName("all");
-                allTypes.click(
-                    function(event) {
-                        var fo = filter.getOptions();
-                        for (o in fo){
-                            fo[o].removeStyleName("selected");
-                        }
-                        new mol.ui.Element(event.target).addStyleName("selected");
-                        self._processFilterValue(name,null);
-                    }
-                );
-                allTypes.addStyleName("selected");
             },
 
             _processFilterValue: function(key,value){
@@ -648,10 +648,14 @@ MOL.modules.Search = function(mol) {
             init: function() {
                 this._super(this._html());
                 this._filterName = null;
+                this._options = null;
             },
 
             getOptions: function() {
-                return this.findChildren('.option');
+                if (!this._options){
+                    this._options = this.findChild('.options');
+                }
+                return this._options.findChildren('.option');
             },
             
             getAllOption: function() {
@@ -668,10 +672,13 @@ MOL.modules.Search = function(mol) {
             },
             
             getNewOption: function() {
+                if (!this._options){
+                    this._options = this.findChild('.options');
+                }
                 var option = new mol.ui.Element();
                 option.setStyleName('option');
                 option.setInnerHtml(this._option());
-                this.append(option);
+                this._options.append(option);
                 return option;
             },
             
@@ -682,6 +689,7 @@ MOL.modules.Search = function(mol) {
             _html: function() {
                 return  '<div class="filter widgetTheme">' + 
                         '    <div class="filterName">Names</div>' + 
+                        '    <div class="options"></div>' + 
                         '</div>';
             }
         }
