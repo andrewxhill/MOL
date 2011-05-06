@@ -33,7 +33,7 @@ import pickle
 import time
 import wsgiref.util
 import StringIO
-from mol.service import MasterSearch
+from mol.service import MasterTermSearch
 from mol.service import RangeTileProvider
 from mol.service import EcoregionTileProvider
 from mol.service import LayerService
@@ -85,7 +85,7 @@ class BaseHandler(webapp.RequestHandler):
 class WebAppHandler(BaseHandler):
     
     def __init__(self):
-        self.master_search = MasterSearch()
+        self.master_term_search = MasterTermSearch()
         self.layer_service = LayerService()
         self.gbif = GbifLayerProvider()
         
@@ -125,14 +125,12 @@ class WebAppHandler(BaseHandler):
     def _layer_search(self, query):
         # TODO(aaron): Merge list of profiles.
         # return self.layer_service.search(query)[0]
-        term = query.get('term')
-        term = 'ambystoma'
-        limit = 5
-        offset = 0
-        query = {"term": term, "limit": limit, "offset": offset}
-        results = self.master_search.search(query)
+        term = query.get('query', 'puma')
+        limit = int(query.get('limit', 50))
+        offset = int(query.get('offset', 0))
         
-        logging.error(len(results))
+        query = {"term": term, "limit": limit, "offset": offset}
+        results = self.master_term_search.search(query)
             
         query = {
                 "search": term,

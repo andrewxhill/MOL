@@ -17,6 +17,10 @@
 from google.appengine.ext import db
 
 
+class MasterSearchIndex(db.Model): #parent = OccurrenceSet see below
+    term = db.CategoryProperty() #string values to search for sets
+    rank = db.RatingProperty(default=0) #weight of term for an order by
+  
 class OccurrenceSetIndex(db.Model): #parent = OccurrenceSet see below
     term = db.CategoryProperty() #string values to search for sets
     rank = db.RatingProperty(default=0) #weight of term for an order by

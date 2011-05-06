@@ -83,15 +83,13 @@ def move_tile_set(entity):
         yield op.db.Put(mpi)
         i+=1
     
-    
-    
-def capitalize_source(entity):
-    entity.source = str(entity.source).upper()
-    yield op.db.Put(entity)
-    
-def add_subname(entity):
-    entity.subname = "WWF Ecoregion Set"
-    yield op.db.Put(entity)
+def move_index_to_mastersearch(entity):
+    #multipoly, done
+    ms = MasterSearchIndex(
+        parent = entity.key().parent(),
+        term = entity.term,
+        rank = entity.rank )
+    yield op.db.Put(ms)
 
 
 def interpolate(entity):

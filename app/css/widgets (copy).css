@@ -1,0 +1,320 @@
+/* BEGIN Shared Styles
+ * */
+
+/* sets defaults for units within a widget background greed fade theme, 
+ * as well as min-height and 100% width */
+
+.widgetTheme{
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(184, 233, 133,0.65)),
+        color-stop(0.69, rgba(92,194,7,0.65))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(184, 253, 133,0.65) 37%,
+        rgba(92,214,7,0.65) 69%
+    );
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+}
+button{
+    float: left;
+    width: auto;
+    margin: 2px;
+    font-size: 1.1em;
+    font-weight:700;
+    color: rgb(240, 240, 260);
+    background-color: rgba(25, 25, 25, 0.75);
+    -moz-box-shadow: 2px 2px 5px #000;
+    -webkit-box-shadow: 2px 2px 5px #000;
+    box-shadow: 2px 2px 5px #222;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+}
+button:hover{
+    background-color: rgba(25, 25, 25, 1.0);
+    cursor: pointer;
+}
+ 
+/* BEGIN Layers Widget
+ * Add, Delete
+ * Layer Stack
+ */
+
+.mol-LayerControl-Menu {
+    width: 100%;
+    float: left;
+    list-style-type: none;
+    font-size: 0.8em;
+}
+.mol-LayerControl-Menu .button:hover{
+    color: #555;
+    cursor: pointer;
+}
+.mol-LayerControl-Menu div{
+    float: right;
+    text-align: center;
+    padding: 5px;
+    width: 60px;
+}
+.mol-LayerControl-Menu div.add{
+    -moz-border-radius-topleft: 3px;
+    border-top-left-radius: 3px;
+}
+.mol-LayerControl-Menu div.label{
+    -moz-border-radius-bottomright: 3px;
+    border-bottom-right-radius: 3px;
+    -moz-border-radius-topright: 3px;
+    border-top-right-radius: 3px;
+    border: 1px solid rgb(73, 73, 73);
+    border-bottom: 0px solid rgb(73, 73, 73);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.37, rgba(35, 35, 35,0.75)),
+        color-stop(0.69, rgba(66,66,66,0.75))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgba(35, 35, 35,0.75) 37%,
+        rgba(66,66,66,0.75) 69%
+    );
+    color: #fff;
+}
+.mol-LayerControl-Layers {
+    width: 100%;
+    float: left;
+    position: relative;
+}
+.mol-LayerControl-Layers .layer{
+    width: 97%;
+    float: left;
+    margin-top: 3px;
+    padding: 2px;
+    border: 3px solid rgba(0,0,0,0.01);
+    cursor: pointer;
+}
+.mol-LayerControl-Layers .layer.selected{
+    border: 3px solid rgba(25, 25, 25, 0.75);
+}
+.mol-LayerControl-Layers .layer .layerName{
+    float: left;
+    width: 60%;
+    margin-left: 5px;
+    pointer-events: none;
+}
+.mol-LayerControl-Layers .layer .layerNomial{
+    float: left;
+    width: 100%;
+}
+.mol-LayerControl-Layers .layer .layerAuthor{
+    float: left;
+    font-size: 0.8em;
+}
+.mol-LayerControl-Layers .layer .type{
+    float: left;
+    width: 10%;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.mol-LayerControl-Layers .layer img.type{
+    height: 18px;
+    width: 18px;
+}
+.mol-LayerControl-Layers .layer .info{
+    float: left;
+    width: 10%;
+    font-style: italic;
+    font-size: 1.2em;
+}
+.mol-LayerControl-Layers .layer .toggle{
+    float: left;
+    width: 10%;
+}
+
+
+
+/* BEGIN SEARCH UI
+ * search, results
+ */
+ 
+.mol-LayerControl-Search {
+    float: left;
+    position: relative;
+    height: 30px;
+    width: 95%;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    padding: 3px 5px 2px 5px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+.mol-LayerControl-Search .title{
+    float: left;
+    line-height: 25px;
+    font-size: 1.1em;
+}
+.mol-LayerControl-Search .value{
+    float: left;
+    margin-right: 5px;
+    width: 66%;
+}
+.mol-LayerControl-Search .execute{
+    float: left;
+    margin-left: 12px;
+    width: 50px;
+}
+.mol-LayerControl-Search .cancel{
+    width: 25px;
+    margin-left: 12px;
+    padding-top: 2px;
+}
+.mol-LayerControl-Search .cancel img{
+    width: 100%;
+}
+.mol-LayerControl-Results{
+    float: left;
+    width: 100%;
+    list-style-type: none;
+    text-align: left;
+    outline: none;
+    position: relative;
+    padding: 0px;
+    margin: 0px;
+}
+.mol-LayerControl-Results .filters{
+    float: left;
+    width: 30%;
+    height: 100%;
+    margin-right: 5px;
+    padding: 0px;
+    border: 0px;
+}
+.mol-LayerControl-Results .filters .filter{
+    padding: 4px;
+    margin: 0px 0px 5px 0px;
+    font-size: 12px;
+}
+.mol-LayerControl-Results .filters .filter .filterName{
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.mol-LayerControl-Results .filters .filter .option {
+    color: #6622ee;
+    text-decoration: none;
+    margin-left: 10px;
+    margin-bottom: 2px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.mol-LayerControl-Results .filters .filter .option.selected {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.mol-LayerControl-Results .filters .filter .option .hidden {
+    visibility: hidden;
+}
+
+.mol-LayerControl-Results ol{
+    position: relative;
+    list-style-type: none;
+    padding: 5px;
+    margin: 0px;
+    width: 61%;
+    float: left;
+    padding-top: 10px;
+    position: relative;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.mol-LayerControl-Results ul {
+    padding-left: 0px;
+    margin-bottom: 5px;
+    text-align: left;
+    width: 100%;
+    float: left;
+    position: relative;
+}
+.mol-LayerControl-Results .result button{
+    width: 20px;
+    height: 20px;
+    color: #fff;
+    padding: 0px;
+    padding-top: 2px;
+}
+.mol-LayerControl-Results .result button img{
+    width: 16px;
+    height: 16px;
+}
+.mol-LayerControl-Results .result div.resultName{
+    width: 55%;
+    float: left;
+    margin-left: 4px;
+}
+.mol-LayerControl-Results .result .resultAuthor{
+    font-size: 0.8em;
+    margin-top: -4px;
+}
+.mol-LayerControl-Results .result div.resultLink{
+    width: 20%;
+    font-size: 0.9em;
+    padding-top: 1%;
+    float: left;
+}
+.mol-LayerControl-Results .result a{
+    color: #212121;
+}
+.mol-LayerControl-Results .result .buttonContainer {
+	width:24px;
+	height:24px;
+    position: relative;
+    float: left;
+}
+.mol-LayerControl-Results .result .checkbox {
+    opacity: 0.0;
+	position:absolute;
+	left:0;
+	z-index:100;
+    float: left;
+	width:24px;
+	height:24px;
+    cursor: pointer;
+    
+}
+.mol-LayerControl-Results .break{
+    float: left;
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px solid rgba(11,11,11,0.3);
+    margin-bottom: 2px;
+}
+.mol-LayerControl-Results .result .customCheck:after{
+	content:url('/static/unchecked.png');
+	position:absolute;
+    left: 0;
+}
+.mol-LayerControl-Results .result .checkbox:checked + .customCheck:after {
+	content:url('/static/checked.png');
+}
+.mol-LayerControl-Results .pageNavigation{
+    width: 50%;
+    float: right;
+    padding: 0px;
+    margin: 0px;
+    margin-top: 5px;
+    margin-right: 6%;
+}
+.mol-LayerControl-Results .pageNavigation button{
+    float: right;
+    margin-left: 8px;
+    font-size: 0.9em;
+}
