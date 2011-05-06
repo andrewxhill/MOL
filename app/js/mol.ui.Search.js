@@ -341,7 +341,7 @@ MOL.modules.Search = function(mol) {
                         break;
 
                     case 'range':
-                    case 'ecoregions':
+                    case 'ecoregion':
                         layer = new Layer(result.type, result.source, result.name);
                         config.action = 'add';
                         config.layer = layer;
