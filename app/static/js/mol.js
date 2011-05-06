@@ -1133,7 +1133,7 @@ MOL.modules.ColorSetter = function(mol) {
                                 break;
 
                             case 'range':
-                            case 'ecoregions':
+                            case 'ecoregion':
                                 config.color = new mol.ui.ColorSetter.Color(188, 88, 88);
                                 bus.fireEvent(new ColorEvent(config));
                                 break;
@@ -1865,7 +1865,8 @@ MOL.modules.Map = function(mol) {
 
             refresh: function() {              
                 var self = this,
-                    layerId = this.getLayer().getId();
+                    layerId = this.getLayer().getId(),
+                    layerSource = this.getLayer().getSource();
 
                 this._mapType = new google.maps.ImageMapType(
                     {
@@ -1878,8 +1879,8 @@ MOL.modules.Map = function(mol) {
                             if (!normalizedCoord) {
                                 return null;
                             }                    
-                            
-                            tileParams = tileParams + '&z=' + zoom;
+                                                        
+                            tileParams = tileParams + '&source=' + layerSource;
                             tileParams = tileParams + '&x=' + normalizedCoord.x;
                             tileParams = tileParams + '&y=' + normalizedCoord.y;
                             tileurl = "/data/tile?" + tileParams;
@@ -1953,7 +1954,7 @@ MOL.modules.Map = function(mol) {
                     id = [cls, rank, name].join('/'),
                     tileParams = mol.util.urlEncode(
                         {
-                            type: 'ecoregions',
+                            type: 'ecoregion',
                             r: color.getRed(),
                             g: color.getGreen(),
                             b: color.getBlue()
@@ -1996,7 +1997,7 @@ MOL.modules.Map = function(mol) {
                 case 'range':
                     mapLayer = new mol.ui.Map.RangeLayer(map, layer);
                     break;
-                case 'ecoregions':
+                case 'ecoregion':
                     mapLayer = new mol.ui.Map.EcoRegionLayer(map, layer);
                     break;
                 }
@@ -2789,7 +2790,7 @@ MOL.modules.Search = function(mol) {
                         break;
 
                     case 'range':
-                    case 'ecoregions':
+                    case 'ecoregion':
                         layer = new Layer(result.type, result.source, result.name);
                         config.action = 'add';
                         config.layer = layer;

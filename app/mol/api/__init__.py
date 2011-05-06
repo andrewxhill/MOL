@@ -171,7 +171,8 @@ class WebAppHandler(BaseHandler):
                 "name2": r.subname,
                 "source": r.source,
                 "type": r.category,
-                "info": r.info
+                "info": r.info,
+                "key_name": r.key().name()
                 }
             ct += 1
         out = {"query": query, "types": types, 
