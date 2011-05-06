@@ -786,7 +786,7 @@ MOL.modules.Search = function(mol) {
             },
             
             clearResults: function(){
-                this.findChild('.searchResults').setInnerHtml("");
+                this.findChild('.resultList').setInnerHtml("");
             },
             
             clearFilters: function(){
@@ -796,14 +796,14 @@ MOL.modules.Search = function(mol) {
             getNewResult: function(){
                 var ResultWidget = mol.ui.Search.ResultWidget,
                     r = new ResultWidget();
-                this.findChild('.searchResults').append(r);
+                this.findChild('.resultList').append(r);
                 return r;
             },
             noMatches: function(){
                 var r = new mol.ui.Element('<ul class="result">' + 
                                            '    <i>No matches</a>' + 
                                            '</ul>') ;
-                this.findChild('.searchResults').append(r);
+                this.findChild('.resultList').append(r);
                 return r;
             },
             
@@ -824,8 +824,10 @@ MOL.modules.Search = function(mol) {
                        '<div class="mol-LayerControl-Results">' + 
                        '  <div class="filters">' + 
                        '  </div>' + 
-                       '  <ol class="searchResults widgetTheme">' + 
-                       '  </ol>' + 
+                       '  <div class="searchResults widgetTheme">' + 
+                       '    <div class="resultHeader">Results</div>' + 
+                       '    <ol class="resultList"></ol>' + 
+                       '  </div>' + 
                        '  <div class="pageNavigation">' + 
                        '     <button class="addAll">Add</button>' + 
                        '     <button class="nextPage">More</button>' + 
