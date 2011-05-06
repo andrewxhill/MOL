@@ -225,7 +225,7 @@ class TileHandler(BaseHandler):
     '''
     
     def get(self):
-        datatype = self.request.params.get('type', 'range') #or ecoregion, or protected area
+        datatype = self.request.params.get('type', 'range').lower() #or ecoregion, or protected area
         x = int(self.request.params.get('x', 0))
         y = int(self.request.params.get('y', 0))
         z = int(self.request.params.get('z', 0))
@@ -235,11 +235,13 @@ class TileHandler(BaseHandler):
         tp = None
 
         if datatype == 'range':
-            class_ = self.request.params.get('class', 'animalia')
+            source = self.request.params.get('source', 'mol')
+            class_ = self.request.params.get('cls', 'animalia')
             rank = self.request.params.get('rank', 'species')
             name = self.request.params.get('name', 'puma_concolor')
             tp = RangeTileProvider({
                                     'type': datatype,
+                                    'source': source,
                                     'class': class_,
                                     'rank': rank,
                                     'name': name,
@@ -251,9 +253,11 @@ class TileHandler(BaseHandler):
                                     'b': b })
                         
         elif datatype == 'ecoregion':
+            source = self.request.params.get('source', 'wwf')
             id = self.request.params.get('id', 'NT1405')
             tp = EcoregionTileProvider({
                                     'type': 'ecoregion',
+                                    'source': source,
                                     'id': id,
                                     'z': z,
                                     'x': x,

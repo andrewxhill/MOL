@@ -261,7 +261,7 @@ class MasterTermSearch(object):
     def __init__(self):
         pass
     def search(self,query):
-        osi = OccurrenceSetIndex.all(keys_only=True)
+        osi = MasterSearchIndex.all(keys_only=True)
         osi.filter("term =",str(query['term']).lower()).order("-rank")
         res = osi.fetch(limit=query["limit"],offset=query["offset"])
         return [i.parent() for i in res]
@@ -848,7 +848,7 @@ class RangeTileProvider(TileService):
         if self.url is not None:
             return self.url
         else:
-            tileurl = "http://mol.colorado.edu/layers/api/tile/range?id={class}/{rank}/{name}&x={x}&y={y}&z={z}"
+            tileurl = "http://mol.colorado.edu/layers/api/tile/range?source={source}&id={class}/{rank}/{name}&x={x}&y={y}&z={z}"
             tileurl = tileurl.replace('{z}', str(self.query['z']))
             tileurl = tileurl.replace('{x}', str(self.query['x']))
             tileurl = tileurl.replace('{y}', str(self.query['y']))
