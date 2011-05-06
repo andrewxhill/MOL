@@ -186,7 +186,7 @@ class ApiController(BaseController):
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
-            empty_bytes=103
+            empty_bytes=334
             
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
