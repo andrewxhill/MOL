@@ -66,25 +66,25 @@ button:hover{
 .mol-LayerControl-Menu div.add{
     -moz-border-radius-topleft: 3px;
     border-top-left-radius: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    border-bottom-left-radius: 3px;
 }
 .mol-LayerControl-Menu div.label{
     -moz-border-radius-bottomright: 3px;
     border-bottom-right-radius: 3px;
     -moz-border-radius-topright: 3px;
     border-top-right-radius: 3px;
-    border: 1px solid rgb(73, 73, 73);
-    border-bottom: 0px solid rgb(73, 73, 73);
     background-image: -webkit-gradient(
         linear,
         left bottom,
         left top,
-        color-stop(0.37, rgba(35, 35, 35,0.75)),
-        color-stop(0.69, rgba(66,66,66,0.75))
+        color-stop(0.37, rgba(35, 35, 35,0.85)),
+        color-stop(0.69, rgba(66,66,66,0.85))
     );
     background-image: -moz-linear-gradient(
         center bottom,
-        rgba(35, 35, 35,0.75) 37%,
-        rgba(66,66,66,0.75) 69%
+        rgba(35, 35, 35,0.85) 37%,
+        rgba(66,66,66,0.85) 69%
     );
     color: #fff;
 }
@@ -98,6 +98,8 @@ button:hover{
     float: left;
     margin-top: 3px;
     padding: 2px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
     border: 3px solid rgba(0,0,0,0.01);
     cursor: pointer;
 }
@@ -229,6 +231,8 @@ button:hover{
     padding: 4px;
     margin: 0px 0px 5px 0px;
     font-size: 12px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
     
 }
 .mol-LayerControl-Results .filters .filter .options{

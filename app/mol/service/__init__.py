@@ -273,40 +273,40 @@ class MasterTermSearch(object):
         self.gbifmemkey = None
         
     def _addresult(self, category, source, name, subname, info, key_name, ct):
-            if category not in self.types.keys():
-                self.types[category] = {"names": [],"sources": [], "layers": []}
-            if source not in self.sources.keys():
-                self.sources[source] = {"names": [],"types": [],"layers": []}
-            if name not in self.names.keys():
-                self.names[name] = {"sources": [],"types": [],"layers": []}
-                    
-            if name not in self.types[category]["names"]:
-                self.types[category]["names"].append(name)
-            if name not in self.sources[source]["names"]:
-                self.sources[source]["names"].append(name)
-            
-            if source not in self.types[category]["sources"]:
-                self.types[category]["sources"].append(source)
-            if source not in self.names[name]["sources"]:
-                self.names[name]["sources"].append(source)
+        if category not in self.types.keys():
+            self.types[category] = {"names": [],"sources": [], "layers": []}
+        if source not in self.sources.keys():
+            self.sources[source] = {"names": [],"types": [],"layers": []}
+        if name not in self.names.keys():
+            self.names[name] = {"sources": [],"types": [],"layers": []}
                 
-            if category not in self.sources[source]["types"]:
-                self.sources[source]["types"].append(category)
-            if category not in self.names[name]["types"]:
-                self.names[name]["types"].append(category)
-                
-            self.types[category]["layers"].append(ct)
-            self.sources[source]["layers"].append(ct)
-            self.names[name]["layers"].append(ct)
+        if name not in self.types[category]["names"]:
+            self.types[category]["names"].append(name)
+        if name not in self.sources[source]["names"]:
+            self.sources[source]["names"].append(name)
+        
+        if source not in self.types[category]["sources"]:
+            self.types[category]["sources"].append(source)
+        if source not in self.names[name]["sources"]:
+            self.names[name]["sources"].append(source)
             
-            self.layers[ct] = {
-                "name": name,
-                "name2": subname,
-                "source": source,
-                "type": category,
-                "info": info,
-                "key_name": key_name
-                }
+        if category not in self.sources[source]["types"]:
+            self.sources[source]["types"].append(category)
+        if category not in self.names[name]["types"]:
+            self.names[name]["types"].append(category)
+            
+        self.types[category]["layers"].append(ct)
+        self.sources[source]["layers"].append(ct)
+        self.names[name]["layers"].append(ct)
+        
+        self.layers[ct] = {
+            "name": name,
+            "name2": subname,
+            "source": source,
+            "type": category,
+            "info": info,
+            "key_name": key_name
+            }
                 
     def gbifnamesearch(self, query):
         self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
@@ -331,7 +331,7 @@ class MasterTermSearch(object):
                 if len(i)>1:
                     self.gbifnames.append({'name': i[1].strip(), 'subname': 'GBIF Points', 
                                            'category': 'points', 'source': 'GBIF', 'info': None,
-                                           'key_name': "points/GBIF/%s" % i[0].strip().replace(' ','_')})
+                                           'key_name': "points/gbif/%s" % i[0].strip()})
                     ct+=1
             memcache.set(self.gbifmemkey, self.gbifnames, 10*self.cachetime)
         return self.gbifnames
@@ -357,6 +357,7 @@ class MasterTermSearch(object):
                 self._addresult(r.category, r.source, r.name, r.subname, r.info, r.key().name(), ct)
             
                 ctg = ct%8
+                ct+=1
                 if (ctg==0 or ct==3) and len(gbifnames)>0:
                     cur = gbifnames.pop(0)
                     self._addresult(cur["category"], 
