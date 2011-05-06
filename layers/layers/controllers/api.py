@@ -136,8 +136,8 @@ class ApiController(BaseController):
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
-            #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-            proj = "+proj=latlong +datum=WGS84"
+            proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
+            #proj = "+proj=latlong +datum=WGS84"
             
         mf = NewMapfile()
         
