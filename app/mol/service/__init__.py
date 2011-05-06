@@ -300,12 +300,30 @@ class GbifLayerProvider(LayerProvider):
         sources = [LayerSource.GBIF]
         super(GbifLayerProvider, self).__init__(types, sources)        
     
+    def namesearch(self, query):
+        params = urllib.urlencode({
+                'maxResults': query.get('limit', 10),
+                'startIndex': query.get('start', 0),
+                'query': query.get('sciname'),
+                'returnType': 'nameId'})
+        url = 'http://data.gbif.org/species/nameSearch?%s' % params
+        rpc = urlfetch.create_rpc()
+        urlfetch.make_fetch_call(rpc, url)
+        result = rpc.get_result()
+        data = []
+        ct = 0
+        for i in result.content.split('\n'):
+            i = i.strip().split('\t')
+            if len(i)>1:
+                data.append( {'name': i[1].strip(), 'subname': 'GBIF Points', 'category': 'points', 'source': 'GBIF', 'key_name': "points/GBIF/%s" % i[1].strip().replace(' ','_')})
+                ct+=1
+        return data
     def geturl(self, query):
         params = urllib.urlencode({
                 'format': query.get('format', 'darwin'),
-                'coordinatestatus': True,
-                'maxresults': query.get('limit', 200),
-                'startindex': query.get('start', 0),
+                'coordinateStatus': True,
+                'maxResults': query.get('limit', 20),
+                'startIndex': query.get('start', 0),
                 'scientificname': query.get('sciname')})
         return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
 
@@ -851,67 +869,4 @@ class TileService(object):
                 self.status = 404
             return self.status
 
-class RangeTileProvider(TileService):
-    def __init__(self,query):
-        self.query = query
-        self.key = "%s/%s/%s/%s/%s/%s/%s" % (
-                        self.query['type'],
-                        self.query['source'],
-                        self.query['id'],
-                        self.query['z'],
-                        self.query['x'],
-                        self.query['y'] )
-        self.metadata = None
-        self.png = None
-        self.url = None
-        self.result = None
-        self.status = False
-        self.rpc = urlfetch.create_rpc()
-        self.cachetime = 6000
-                        
-    def tileurl(self):
-        if self.url is not None:
-            return self.url
-        else:
-            tileurl = "http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&x={x}&y={y}&z={z}"
-            tileurl = tileurl.replace('{z}', str(self.query['z']))
-            tileurl = tileurl.replace('{x}', str(self.query['x']))
-            tileurl = tileurl.replace('{y}', str(self.query['y']))
-            tileurl = tileurl.replace('{type}', self.query['type'])
-            tileurl = tileurl.replace('{source}', self.query['source'])
-            tileurl = tileurl.replace('{id}', self.query['id'])
-            self.url = tileurl
-            return tileurl
-            
-class EcoregionTileProvider(TileService):
-    def __init__(self,query):
-        self.query = query
-        self.key = "%s/%s/%s/%s/%s/%s" % (
-                        query['type'],
-                        query['source'],
-                        query['id'],
-                        query['z'],
-                        query['x'],
-                        query['y'] )
-        self.metadata = None
-        self.png = None
-        self.url = None
-        self.status = False
-        self.result = None
-        self.rpc = urlfetch.create_rpc()
-        self.cachetime = 6000
-                        
-    def tileurl(self):
-        if self.url is not None:
-            return self.url
-        else:
-            tileurl ="http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&z={z}&x={x}&y={y}"
-            tileurl = tileurl.replace('{type}', self.query['type'])
-            tileurl = tileurl.replace('{source}', self.query['source'])
-            tileurl = tileurl.replace('{id}', self.query['id'])
-            tileurl = tileurl.replace('{z}', str(self.query['z']))
-            tileurl = tileurl.replace('{x}', str(self.query['x']))
-            tileurl = tileurl.replace('{y}', str(self.query['y']))
-            self.url = tileurl
-            return tileurl
     

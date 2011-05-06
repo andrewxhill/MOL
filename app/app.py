@@ -174,14 +174,7 @@ class Andrew(BaseHandler):
         db.delete(dsputs)
         self.response.out.write("%s ER moves<br/>" % ct)
         """
-        
-        q = MultiPolygonIndex.all().filter('term','island').order('-rank')
-        res = q.fetch(50)
-        self.response.out.write("Search: 'island'<br/>")
-        for r in res:
-            self.response.out.write("<p>%s: %s<br/>" % (r.term,r.rank))
-            self.response.out.write("dataset: %s</p>" % (r.parent().name))
-            
+        memcache.flush_all()
         self.response.out.write("Andrew says %s" % 'hi')
             
         
