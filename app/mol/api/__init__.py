@@ -227,7 +227,6 @@ class TileHandler(BaseHandler):
     def get(self):
         #range/mol/animalia/species/abditomys_latidens
         key_name = self.request.params.get('key_name', 'ecoregion/wwf/100') #or ecoregion, or protected area
-        logging.error(key_name)
         #datatype = self.request.params.get('type', 'range').lower() #or ecoregion, or protected area
         x = int(self.request.params.get('x', 0))
         y = int(self.request.params.get('y', 0))

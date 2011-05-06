@@ -25,6 +25,7 @@ import simplejson
 from layers.lib.mol.service import Layer
 #from layers.cando.tiling.tasks import EcoregionProcessingThread
 import math
+import urllib2
 
 
 log = logging.getLogger(__name__)
@@ -244,6 +245,10 @@ class ApiController(BaseController):
         
         if datatype=="range":
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
+            if not os.path_exists(mapfile):
+                url = "http://mol.colorado.edu/layers/api/newtileset/range?id=%s&range_ids=%s" % (id,id)
+                req = urllib2.Request(url)
+                response = urllib2.urlopen(req)
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  

@@ -768,7 +768,7 @@ class TileService(object):
             tileurl = tileurl.replace('{source}', self.query['source'])
             tileurl = tileurl.replace('{id}', self.query['id'])
             self.url = tileurl
-            logging.error(self.url)
+            logging.error(tileurl)
             return tileurl
         
     def fetchurl(self):
@@ -795,6 +795,7 @@ class TileService(object):
 
     def fetchmc(self, k):
         """Returns a tile based on its key if it is available in memcache"""
+        return False
         mc = memcache.get(k)
         if mc in [404, 204]:
             return mc
