@@ -342,7 +342,14 @@ MOL.modules.Search = function(mol) {
 
                     case 'range':
                     case 'ecoregion':
-                        layer = new Layer(result.type, result.source, result.name);
+                        layer = new Layer(
+                            {
+                                type: result.type, 
+                                source: result.source, 
+                                name: result.name, 
+                                key_name: result.key_name
+                            }
+                        );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -365,7 +372,14 @@ MOL.modules.Search = function(mol) {
                 action = new LayerAction('get-points', {layerName:result.name});
                 return new ActionCallback(
                     function(response) {
-                        layer = new Layer(result.type, result.source, result.name, response);
+                        layer = new Layer(
+                            {
+                                type: result.type, 
+                                source: result.source, 
+                                name: result.name, 
+                                json: response
+                            }
+                        );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -397,7 +411,15 @@ MOL.modules.Search = function(mol) {
                     typeImg = fw.getTypeImg();
                     sourceImg = fw.getSourceImg();
 
-                    resultWidgets.push({widget:fw, source:res.source, type:res.type, name:res.name});
+                    resultWidgets.push(
+                        {
+                            widget: fw, 
+                            source: res.source, 
+                            type: res.type, 
+                            name: res.name,
+                            key_name: res.key_name
+                        }
+                    );
 
                     fw.getName().text(res.name);
                     fw.getAuthor().text(res.name2);
