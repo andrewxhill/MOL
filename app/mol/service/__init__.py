@@ -259,12 +259,130 @@ class LayerService(object):
 
 class MasterTermSearch(object):
     def __init__(self):
-        pass
+        self.cachetime = 6000
+        self.query = {}
+        self.types = {}
+        self.sources = {}
+        self.layers = {}
+        self.names = {}
+        self.gbifnames = None
+        self.keys = None
+        self.rpc = None
+        self.api_results = None
+        self.cachetime = 6000
+        self.gbifmemkey = None
+        
+    def _addresult(self, category, source, name, subname, info, key_name, ct):
+            if category not in self.types.keys():
+                self.types[category] = {"names": [],"sources": [], "layers": []}
+            if source not in self.sources.keys():
+                self.sources[source] = {"names": [],"types": [],"layers": []}
+            if name not in self.names.keys():
+                self.names[name] = {"sources": [],"types": [],"layers": []}
+                    
+            if name not in self.types[category]["names"]:
+                self.types[category]["names"].append(name)
+            if name not in self.sources[source]["names"]:
+                self.sources[source]["names"].append(name)
+            
+            if source not in self.types[category]["sources"]:
+                self.types[category]["sources"].append(source)
+            if source not in self.names[name]["sources"]:
+                self.names[name]["sources"].append(source)
+                
+            if category not in self.sources[source]["types"]:
+                self.sources[source]["types"].append(category)
+            if category not in self.names[name]["types"]:
+                self.names[name]["types"].append(category)
+                
+            self.types[category]["layers"].append(ct)
+            self.sources[source]["layers"].append(ct)
+            self.names[name]["layers"].append(ct)
+            
+            self.layers[ct] = {
+                "name": name,
+                "name2": subname,
+                "source": source,
+                "type": category,
+                "info": info,
+                "key_name": key_name
+                }
+                
+    def gbifnamesearch(self, query):
+        self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
+        self.gbifnames = memcache.get(self.gbifmemkey)  
+        if self.gbifnames is None:
+            params = urllib.urlencode({
+                    'maxResults': query.get('limit', 10),
+                    'startIndex': query.get('offset', 0),
+                    'query': query.get('term'),
+                    'returnType': 'nameId'})
+            url = 'http://data.gbif.org/species/nameSearch?%s' % params
+            self.rpc = urlfetch.create_rpc()
+            urlfetch.make_fetch_call(self.rpc, url)
+            
+    def _gbifresults(self):
+        if self.gbifnames is None:
+            result = self.rpc.get_result()
+            self.gbifnames = []
+            ct = 0
+            for i in result.content.split('\n'):
+                i = i.strip().split('\t')
+                if len(i)>1:
+                    self.gbifnames.append({'name': i[1].strip(), 'subname': 'GBIF Points', 
+                                           'category': 'points', 'source': 'GBIF', 'info': None,
+                                           'key_name': "points/GBIF/%s" % i[0].strip().replace(' ','_')})
+                    ct+=1
+            memcache.set(self.gbifmemkey, self.gbifnames, 10*self.cachetime)
+        return self.gbifnames
+        
     def search(self,query):
-        osi = MasterSearchIndex.all(keys_only=True)
-        osi.filter("term =",str(query['term']).lower()).order("-rank")
-        res = osi.fetch(limit=query["limit"],offset=query["offset"])
-        return [i.parent() for i in res]
+        self.gbifnamesearch(query)
+        memkey = "MasterTermSearch/%s/%s/%s" % (query['term'],query['limit'],query['offset'])
+        self.keys = memcache.get(memkey)
+        self.query = query
+        if self.keys is None:
+            osi = MasterSearchIndex.all(keys_only=True)
+            osi.filter("term =",str(query['term']).lower()).order("-rank")
+            res = osi.fetch(limit=query["limit"],offset=query["offset"])
+            self.keys = [i.parent() for i in res]
+            memcache.set(memkey, self.keys, self.cachetime)
+            
+    def api_format(self):
+        if self.api_results is None:
+            ct = 0
+            gbifnames = self._gbifresults()
+            for r in self.keys:
+                r = db.get(r)
+                self._addresult(r.category, r.source, r.name, r.subname, r.info, r.key().name(), ct)
+            
+                ctg = ct%8
+                if (ctg==0 or ct==3) and len(gbifnames)>0:
+                    cur = gbifnames.pop(0)
+                    self._addresult(cur["category"], 
+                                    cur["source"], 
+                                    cur["name"], 
+                                    cur["subname"], 
+                                    cur["info"], 
+                                    cur["key_name"], 
+                                    ct)
+                    ct+=1
+                    
+            while len(gbifnames) > 0:
+                cur = gbifnames.pop(0)
+                self._addresult(cur["category"], 
+                                cur["source"], 
+                                cur["name"], 
+                                cur["subname"], 
+                                cur["info"], 
+                                cur["key_name"], 
+                                ct)
+                ct+=1
+        
+            self.api_results = {"query": self.query, "types": self.types, 
+                   "sources": self.sources, "layers": self.layers,
+                   "names": self.names}
+        return self.api_results
         
         
         
@@ -298,26 +416,9 @@ class GbifLayerProvider(LayerProvider):
     def __init__(self):
         types = [LayerType.POINTS]
         sources = [LayerSource.GBIF]
-        super(GbifLayerProvider, self).__init__(types, sources)        
+        super(GbifLayerProvider, self).__init__(types, sources)   
+        self.cachetime = 60000   
     
-    def namesearch(self, query):
-        params = urllib.urlencode({
-                'maxResults': query.get('limit', 10),
-                'startIndex': query.get('start', 0),
-                'query': query.get('sciname'),
-                'returnType': 'nameId'})
-        url = 'http://data.gbif.org/species/nameSearch?%s' % params
-        rpc = urlfetch.create_rpc()
-        urlfetch.make_fetch_call(rpc, url)
-        result = rpc.get_result()
-        data = []
-        ct = 0
-        for i in result.content.split('\n'):
-            i = i.strip().split('\t')
-            if len(i)>1:
-                data.append( {'name': i[1].strip(), 'subname': 'GBIF Points', 'category': 'points', 'source': 'GBIF', 'key_name': "points/GBIF/%s" % i[1].strip().replace(' ','_')})
-                ct+=1
-        return data
     def geturl(self, query):
         params = urllib.urlencode({
                 'format': query.get('format', 'darwin'),
@@ -813,7 +914,6 @@ class TileService(object):
 
     def fetchmc(self, k):
         """Returns a tile based on its key if it is available in memcache"""
-        return False
         mc = memcache.get(k)
         if mc in [404, 204]:
             return mc
