@@ -68,18 +68,17 @@ MOL.modules.ColorSetter = function(mol) {
                             case 'points':
                                 // TODO(andrew): Logic for getting next color.
                                 config.color = new mol.ui.ColorSetter.Color(55, 133, 233);
-                                bus.fireEvent(new ColorEvent(config));
                                 break;
 
                             case 'range':
-                            case 'ecoregion':
-                                config.color = new mol.ui.ColorSetter.Color(188, 88, 88);
-                                bus.fireEvent(new ColorEvent(config));
+                                config.color = new mol.ui.ColorSetter.Color(83, 42, 16);
                                 break;
-
-                            }
-                            
-                        }
+                            case 'ecoregion':
+                                config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
+                                break;
+                            }                            
+                            bus.fireEvent(new ColorEvent(config));
+                        }                        
                     }
                 );
             }
