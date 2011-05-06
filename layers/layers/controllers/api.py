@@ -179,21 +179,23 @@ class ApiController(BaseController):
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
+            empty_bytes=334
             
         elif datatype=="ecoregion":
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
+            empty_bytes=103
             
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
-        if os.path.exists(tile):
+        if os.path.exists(tile) and overwrite is None:
             logging.info('Returning existing tile: ' + tile)
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
-        elif os.path.exists(null_tile):
+        elif os.path.exists(null_tile) and overwrite is None:
             logging.info('No tile: ' + tile)
             response.status = 204
             del response.headers['content-type']
@@ -216,7 +218,8 @@ class ApiController(BaseController):
                             int(x), 
                             int(y), 
                             int(z), 
-                            overwrite=overwrite)
+                            overwrite=overwrite,
+                            empty_bytes=empty_bytes)
         
         if tilestatus == 204:
             response.status = 204

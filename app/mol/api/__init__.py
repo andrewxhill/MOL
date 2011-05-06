@@ -188,7 +188,7 @@ class WebAppHandler(BaseHandler):
             
             #sprinkle GBIF name search results throughout
             ctg = ct%8
-            if ctg==0 or ct==3:
+            if ctg==0 or ct==3 and len(gbifnames)>0:
                 cur = gbifnames.pop(0)
                 if 'points' not in types.keys():
                     types['points'] = {"names": [],"sources": [], "layers": []}
