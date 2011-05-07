@@ -47,7 +47,7 @@ def move_tile_set(entity):
     name = ' '.join(old_key.split('/')[2].split('_')).capitalize().strip()
     subname = "MOL Range Map"
     new_key = "range/mol/%s" % old_key
-           
+    """
     info = {
             "extentNorthWest": str(entity.extentNorthWest),
             "extentSouthEast": str(entity.extentSouthEast),
@@ -62,7 +62,7 @@ def move_tile_set(entity):
                 category = 'range'
             )
     yield op.db.Put(mpoly)
-           
+    """
     taxa = Species.get_by_key_name(old_key)
     cls = simplejson.loads(taxa.classification)
     terms = []
@@ -76,6 +76,7 @@ def move_tile_set(entity):
     for t in terms:
         rank = int((len(terms)-i) * 90/(len(terms)))
         mpi = MultiPolygonIndex(
+                key_name = str(i),
                 parent = db.Key.from_path('MultiPolygon',new_key),
                 term = str(t).strip().lower(),
                 rank = rank,
@@ -86,6 +87,7 @@ def move_tile_set(entity):
 def move_index_to_mastersearch(entity):
     #multipoly, done
     ms = MasterSearchIndex(
+        key_name = entity.key().name(),
         parent = entity.key().parent(),
         term = entity.term,
         rank = entity.rank )

@@ -84,7 +84,6 @@ class BaseHandler(webapp.RequestHandler):
 class WebAppHandler(BaseHandler):
     
     def __init__(self):
-        self.master_term_search = MasterTermSearch()
         self.layer_service = LayerService()
         self.gbif = GbifLayerProvider()
         
@@ -132,135 +131,9 @@ class WebAppHandler(BaseHandler):
         offset = int(query.get('offset', 0))
         
         query = {"term": term, "limit": limit, "offset": offset}
-        results = self.master_term_search.search(query)
-        
-        gbifnames = self.gbif.namesearch({
-                                    'limit': 5,
-                                    'start': 0,
-                                    'sciname': term})
-                
-        query = {
-                "search": term,
-                "offset": offset,
-                "limit": limit,
-                }
-        types = {}
-        sources = {}
-        layers = {}
-        names = {}
-        
-        ct = 0
-        for r in results:
-            r = db.get(r)
-            if r.category not in types.keys():
-                types[r.category] = {"names": [],"sources": [], "layers": []}
-            if r.source not in sources.keys():
-                sources[r.source] = {"names": [],"types": [],"layers": []}
-            if r.name.strip() not in names.keys():
-                names[r.name.strip()] = {"sources": [],"types": [],"layers": []}
-            
-            if r.name not in types[r.category]["names"]:
-                types[r.category]["names"].append(r.name)
-                sources[r.source]["names"].append(r.name)
-            
-            if r.source not in types[r.category]["sources"]:
-                types[r.category]["sources"].append(r.source)
-                names[r.name.strip()]["sources"].append(r.source)
-                
-            if r.category not in sources[r.source]["types"]:
-                sources[r.source]["types"].append(r.category)
-                names[r.name.strip()]["types"].append(r.category)
-                
-            types[r.category]["layers"].append(ct)
-            sources[r.source]["layers"].append(ct)
-            names[r.name.strip()]["layers"].append(ct)
-
-            layers[ct] = {
-                "name": r.name,
-                "name2": r.subname,
-                "source": r.source,
-                "type": r.category,
-                "info": r.info,
-                "key_name": r.key().name()
-                }
-            ct += 1
-            
-            
-            #sprinkle GBIF name search results throughout
-            ctg = ct%8
-            if ctg==0 or ct==3 and len(gbifnames)>0:
-                cur = gbifnames.pop(0)
-                if 'points' not in types.keys():
-                    types['points'] = {"names": [],"sources": [], "layers": []}
-                if 'GBIF' not in sources.keys():
-                    sources['GBIF'] = {"names": [],"types": [],"layers": []}
-                if cur['name'] not in names.keys():
-                    names[cur['name']] = {"sources": [],"types": [],"layers": []}
-                
-                if cur['category'] not in names[cur['name']]["types"]:
-                    names[cur['name']]["types"].append(cur['category'])
-                    sources[cur['source']]["types"].append(cur['category'])
-                if cur['source'] not in types[cur['category']]["sources"]:
-                    types[cur['category']]["sources"].append(cur['source'])
-                    names[cur['name']]["sources"].append(cur['source'])
-                if cur['name'] not in types[cur['category']]["names"]:
-                    types[cur['category']]["names"].append(cur['name'])
-                    sources[cur['source']]["names"].append(cur['name'])
-                    
-                types[cur['category']]["layers"].append(ct)
-                sources[cur['source']]["layers"].append(ct)
-                names[cur['name']]["layers"].append(ct)
-                
-                layers[ct] = {
-                    "name": cur['name'],
-                    "name2": cur['subname'],
-                    "source": cur['source'],
-                    "type": cur['category'],
-                    "info": {},
-                    "key_name": cur['key_name']
-                    }
-                    
-                ct += 1
-                
-        while len(gbifnames) > 0:
-            cur = gbifnames.pop(0)
-            if 'points' not in types.keys():
-                types['points'] = {"names": [],"sources": [], "layers": []}
-            if 'GBIF' not in sources.keys():
-                sources['GBIF'] = {"names": [],"types": [],"layers": []}
-            if cur['name'] not in names.keys():
-                names[cur['name']] = {"sources": [],"types": [],"layers": []}
-            
-            if cur['category'] not in names[cur['name']]["types"]:
-                names[cur['name']]["types"].append(cur['category'])
-                sources[cur['source']]["types"].append(cur['category'])
-            if cur['source'] not in types[cur['category']]["sources"]:
-                types[cur['category']]["sources"].append(cur['source'])
-                names[cur['name']]["sources"].append(cur['source'])
-            if cur['name'] not in types[cur['category']]["names"]:
-                types[cur['category']]["names"].append(cur['name'])
-                sources[cur['source']]["names"].append(cur['name'])
-                
-            types[cur['category']]["layers"].append(ct)
-            sources[cur['source']]["layers"].append(ct)
-            names[cur['name']]["layers"].append(ct)
-
-            layers[ct] = {
-                "name": cur['name'],
-                "name2": cur['subname'],
-                "source": cur['source'],
-                "type": cur['category'],
-                "info": {},
-                "key_name": cur['key_name']
-                }
-                
-            ct += 1
-                
-                
-        out = {"query": query, "types": types, 
-               "sources": sources, "layers": layers,
-               "names": names}
-        return out
+        mts = MasterTermSearch()
+        mts.search(query)
+        return mts.api_format()
 
 class PointsHandler(BaseHandler):
     '''RequestHandler for GBIF occurrence point datasets
