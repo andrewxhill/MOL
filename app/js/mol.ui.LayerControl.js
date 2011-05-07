@@ -92,7 +92,7 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer.getId(),
+                            layerId = layer.getKeyName(),
                             layerType = layer.getType(),
                             layerName = layer.getName(),
                             layerIds = self._layerIds,
