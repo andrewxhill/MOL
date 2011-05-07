@@ -2750,8 +2750,14 @@ MOL.modules.Search = function(mol) {
 
             _displayPage: function(layers) {
                 var display = this._display,
-                    fw = null;
-
+                    fw = null,
+                    res = null,
+                    typeImg = null,
+                    sourceImg = null,
+                    resultWidgets = null;
+                
+                this._resultWidgets = [];
+                resultWidgets = this._resultWidgets;
                 display.clearResults();
 
                 if (layers.length==0){
@@ -2759,11 +2765,7 @@ MOL.modules.Search = function(mol) {
                 }
 
                 for (r in layers){
-                    var res = layers[r],
-                        typeImg = fw ? fw.getTypeImg() : null,
-                        sourceImg = fw ? fw.getSourceImg() : null,
-                        resultWidgets = this._resultWidgets || [];
-                    
+                    res = layers[r];
                     fw = display.getNewResult();
                     typeImg = fw.getTypeImg();
                     sourceImg = fw.getSourceImg();
