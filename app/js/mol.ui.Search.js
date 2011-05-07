@@ -280,6 +280,16 @@ MOL.modules.Search = function(mol) {
                     }
                 );
 
+                widget = display.getSearchBox();
+                
+                widget.keyup(
+                    function(event) {
+                      if (event.keyCode === 13) {
+                          self._onGoButtonClick();
+                      }
+                    }
+                );
+
                 // Add button:
                 widget = display.getAddButton();
                 widget.click(
@@ -591,6 +601,7 @@ MOL.modules.Search = function(mol) {
                         
                         if (action === 'add-click' && displayNotVisible) {
                             display.show();
+                            display.getSearchBox().focus();
                         }
                     }
                 );

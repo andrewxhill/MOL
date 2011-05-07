@@ -822,6 +822,9 @@ MOL.modules.ui = function(mol) {
                 this._element.click(handler);
             },
 
+            keyup: function(handler) {
+                this._element.keyup(handler);
+            },
             /**
              * Proxy to JQuery.append()
              */
@@ -861,6 +864,10 @@ MOL.modules.ui = function(mol) {
             addStyleDependentName: function(styleSuffix) {
                 this.addStyleName(this.getStylePrimaryName() + '-' + styleSuffix);
             },         
+
+            focus: function() {
+                this._element.focus();
+            },
 
             /**
              * Gets all of the object's style names, as a space-separated list.
@@ -2634,6 +2641,16 @@ MOL.modules.Search = function(mol) {
                     }
                 );
 
+                widget = display.getSearchBox();
+                
+                widget.keyup(
+                    function(event) {
+                      if (event.keyCode === 13) {
+                          self._onGoButtonClick();
+                      }
+                    }
+                );
+
                 // Add button:
                 widget = display.getAddButton();
                 widget.click(
@@ -2945,6 +2962,7 @@ MOL.modules.Search = function(mol) {
                         
                         if (action === 'add-click' && displayNotVisible) {
                             display.show();
+                            display.getSearchBox().focus();
                         }
                     }
                 );

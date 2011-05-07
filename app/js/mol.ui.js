@@ -183,6 +183,9 @@ MOL.modules.ui = function(mol) {
                 this._element.click(handler);
             },
 
+            keyup: function(handler) {
+                this._element.keyup(handler);
+            },
             /**
              * Proxy to JQuery.append()
              */
@@ -222,6 +225,10 @@ MOL.modules.ui = function(mol) {
             addStyleDependentName: function(styleSuffix) {
                 this.addStyleName(this.getStylePrimaryName() + '-' + styleSuffix);
             },         
+
+            focus: function() {
+                this._element.focus();
+            },
 
             /**
              * Gets all of the object's style names, as a space-separated list.
