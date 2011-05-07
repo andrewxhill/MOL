@@ -174,7 +174,7 @@ class WebAppHandler(BaseHandler):
             types[r.category]["layers"].append(ct)
             sources[r.source]["layers"].append(ct)
             names[r.name.strip()]["layers"].append(ct)
-            
+
             layers[ct] = {
                 "name": r.name,
                 "name2": r.subname,
@@ -244,7 +244,7 @@ class WebAppHandler(BaseHandler):
             types[cur['category']]["layers"].append(ct)
             sources[cur['source']]["layers"].append(ct)
             names[cur['name']]["layers"].append(ct)
-            
+
             layers[ct] = {
                 "name": cur['name'],
                 "name2": cur['subname'],
