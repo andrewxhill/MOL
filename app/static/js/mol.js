@@ -30,50 +30,7 @@ function MOL() {
 
 MOL.modules = {};
 
-MOL.src = {};
 
-MOL.src.makeId = function() {
-    var text = "",
-        possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0; i < 5; i++ ) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-};
-
-MOL.src.files = [
-    'mol.app.js?id=' + MOL.src.makeId(), 
-    'mol.events.js?id=' + MOL.src.makeId(), 
-    'mol.ajax.js?id=' + MOL.src.makeId(), 
-    'mol.log.js?id=' + MOL.src.makeId(), 
-    'mol.exceptions.js?id=' + MOL.src.makeId(), 
-    'mol.location.js?id=' + MOL.src.makeId(), 
-    'mol.model.js?id=' + MOL.src.makeId(), 
-    'mol.util.js?id=' + MOL.src.makeId(),
-    'mol.ui.js?id=' + MOL.src.makeId(),
-    'mol.ui.ColorSetter.js?id=' + MOL.src.makeId(), 
-    'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
-    'mol.ui.LayerList.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Map.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Search.js?id=' + MOL.src.makeId()
-];
-
-/**
- * Dynamically loads JavaScript source modules by creating script elements and 
- * appending them to DOM in the head element.
- */
-MOL.src.load = function() {
-    var src = MOL.src.files,
-        file = null,
-        script = null;
-    for (x in src) {
-        file = "../../../js/" + src[x];
-        script = document.createElement('script');
-        script.setAttribute("type","text/javascript");
-        script.setAttribute("src", file);
-        document.getElementsByTagName("head")[0].appendChild(script);
-    }
-};
 
 
 
@@ -1233,7 +1190,7 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer.getId(),
+                            layerId = layer.getKeyName(),
                             layerType = layer.getType(),
                             layerName = layer.getName(),
                             layerIds = self._layerIds,
@@ -2746,8 +2703,8 @@ MOL.modules.Search = function(mol) {
                                 source: result.source, 
                                 name: result.name, 
                                 key_name: result.key_name
-                            }
-                        );
+                            } 
+                     );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -2776,6 +2733,7 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                key_name: result.key_name,
                                 json: response
                             }
                         );
@@ -2794,12 +2752,12 @@ MOL.modules.Search = function(mol) {
                 var display = this._display,
                     fw = null;
 
-
                 display.clearResults();
-                //display.clearFilters();
+
                 if (layers.length==0){
                     fw = display.noMatches();
                 }
+
                 for (r in layers){
                     var res = layers[r],
                         typeImg = fw ? fw.getTypeImg() : null,
@@ -2824,72 +2782,72 @@ MOL.modules.Search = function(mol) {
                     fw.getAuthor().text(res.name2);
                     fw.getInfoLink().attr("attr","/static/dead_link.html");
                     sourceImg.attr("src","/static/maps/search/" + res.source.toLowerCase() + ".png");
-                    sourceImg.click(function(){
-                        console.log('TODO: send source info to LeftBottom Modal');
+                    sourceImg.click(function() {
+                        mol.log.todo('Send source info to LeftBottom Modal');
                     });
                     typeImg.attr("src","/static/maps/search/" + res.type.toLowerCase() + ".png");
                     typeImg.click(function(){
-                        console.log('TODO: send type info to LeftBottom Modal');
+                        mol.log.todo('Send type info to LeftBottom Modal');
                     });
-                    ///TODO: andrew
-                    ///get source, type button imgs
-                    ///set attr img src
                 }
-                //fw.getFilterName().text('Names');
-                //for (k in nameKeys) {
-                //    fo = fw.getNewOption();
-                //    key = nameKeys[k];
-                //    fo.text(key);
-                //}
+
                 display.getResultsContainer().show();
             },
 
+            _allTypesCallback: function(filter, name) {
+                var self = this;
+                return function(event) {                    
+                    var fo = filter.getOptions();
+                    for (o in fo) {
+                        fo[o].removeStyleName("selected");
+                    }
+                    new mol.ui.Element(event.target).addStyleName("selected");                    
+                    self._processFilterValue(name, null);
+                    };
+            },
+
+            _optionCallback: function(filter, name) {                
+                var self = this;
+                return function(event) {
+                    var fo = filter.getOptions();
+                    for (o in fo){
+                        fo[o].removeStyleName("selected");
+                    }
+                    new mol.ui.Element(event.target).addStyleName("selected");                            
+                    self._processFilterValue(name, new mol.ui.Element(event.target).text());
+                }; 
+            },
+            
             _createNewFilter: function(name, data){
                 var allTypes,
                     display = this._display,
                     filter = display.getNewFilter(),
                     keys = data[name.toLowerCase()],
-                    self = this;
+                    self = this,
+                    option = null;
+
                 filter.getFilterName().text(name);
                 filter.attr('id', name);
+
                 allTypes = filter.getNewOption();
-                allTypes.text("All "+name);
+                allTypes.text("All " + name);
                 allTypes.addStyleName("all");
-                allTypes.click(
-                    function(event) {
-                        var fo = filter.getOptions();
-                        for (o in fo){
-                            fo[o].removeStyleName("selected");
-                        }
-                        new mol.ui.Element(event.target).addStyleName("selected");
-                        self._processFilterValue(name,null);
-                    }
-                );
+                allTypes.click(this._allTypesCallback(filter, name));
                 allTypes.addStyleName("selected");
+
                 for (k in keys) {
-                    var option;
                     option = filter.getNewOption();
                     option.text(k);
-                    option.click(
-                        function(event) {
-                            var fo = filter.getOptions();
-                            for (o in fo){
-                                fo[o].removeStyleName("selected");
-                            }
-                            new mol.ui.Element(event.target).addStyleName("selected");
-                            
-                            self._processFilterValue(name,new mol.ui.Element(event.target).text());
-                        }
-                    );
+                    option.click(this._optionCallback(filter, name));
                 }
             },
 
-            _processFilterValue: function(key,value){
+            _processFilterValue: function(key, value){
                 var layers = new Array(),
-                    self = this;
-
-                key = key.toLowerCase();
-                switch(key){
+                    self = this,
+                    tmp = null;
+                
+                switch(key.toLowerCase()) {
                     case "names":
                         self._nameFilter = value;
                         break;
@@ -2902,8 +2860,13 @@ MOL.modules.Search = function(mol) {
                     default:
                         break;
                 }
-                var tmp = this._result.getLayers(self._nameFilter,self._sourceFilter,self._typeFilter);
-                for (v in tmp){
+          
+                tmp = this._result.getLayers(
+                    self._nameFilter,
+                    self._sourceFilter,
+                    self._typeFilter);
+
+                for (v in tmp) {
                     layers.push(this._result.getLayer(tmp[v]));
                 }
                 
@@ -3185,7 +3148,7 @@ MOL.modules.Search = function(mol) {
             },
             
             clearResults: function(){
-                this.findChild('.searchResults').setInnerHtml("");
+                this.findChild('.resultList').setInnerHtml("");
             },
             
             clearFilters: function(){
@@ -3195,14 +3158,14 @@ MOL.modules.Search = function(mol) {
             getNewResult: function(){
                 var ResultWidget = mol.ui.Search.ResultWidget,
                     r = new ResultWidget();
-                this.findChild('.searchResults').append(r);
+                this.findChild('.resultList').append(r);
                 return r;
             },
             noMatches: function(){
                 var r = new mol.ui.Element('<ul class="result">' + 
                                            '    <i>No matches</a>' + 
                                            '</ul>') ;
-                this.findChild('.searchResults').append(r);
+                this.findChild('.resultList').append(r);
                 return r;
             },
             
@@ -3223,8 +3186,10 @@ MOL.modules.Search = function(mol) {
                        '<div class="mol-LayerControl-Results">' + 
                        '  <div class="filters">' + 
                        '  </div>' + 
-                       '  <ol class="searchResults widgetTheme">' + 
-                       '  </ol>' + 
+                       '  <div class="searchResults widgetTheme">' + 
+                       '    <div class="resultHeader">Results</div>' + 
+                       '    <ol class="resultList"></ol>' + 
+                       '  </div>' + 
                        '  <div class="pageNavigation">' + 
                        '     <button class="addAll">Add</button>' + 
                        '     <button class="nextPage">More</button>' + 
