@@ -55,7 +55,8 @@ MOL.src.files = [
     'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
     'mol.ui.LayerList.js?id=' + MOL.src.makeId(), 
     'mol.ui.Map.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Search.js?id=' + MOL.src.makeId()
+    'mol.ui.Search.js?id=' + MOL.src.makeId(),
+    'mol.metadata.js?id=' + MOL.src.makeId()
 ];
 
 /**
