@@ -1,5 +1,6 @@
 html { height: 100% }
-body { height: 200%; margin: 0px; padding: 0px; overflow: hidden; font-family: Arial, sans-serif; color: #141414; font-weight:700;}
+body { height: 200%; margin: 0px; padding: 0px; overflow: auto; 
+       font-family: Arial, sans-serif; color: #141414; font-weight:700;}
 #map { height: 50% }
 #meta { height: 50% }
 

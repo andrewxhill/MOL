@@ -22,6 +22,9 @@ MOL.modules.location = function(mol) {
 
                 this._searchEngine = new mol.ui.Search.Engine(this._api, this._bus);
                 this._searchEngine.start(this._container);
+                
+                this._metadataEngine = new mol.ui.Metadata.Engine(this._api,this._bus);
+                this._metadataEngine.start(this._container);
             },
             
             routes: {
