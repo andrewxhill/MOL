@@ -30,8 +30,8 @@ function MOL() {
 
 MOL.modules = {};
 
-MOL.src = {};
 
+<<<<<<< HEAD
 MOL.src.makeId = function() {
     var text = "",
         possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -55,7 +55,8 @@ MOL.src.files = [
     'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
     'mol.ui.LayerList.js?id=' + MOL.src.makeId(), 
     'mol.ui.Map.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Search.js?id=' + MOL.src.makeId()
+    'mol.ui.Search.js?id=' + MOL.src.makeId(),
+    'mol.ui.Metadata.js?id=' + MOL.src.makeId()
 ];
 
 /**
@@ -74,6 +75,8 @@ MOL.src.load = function() {
         document.getElementsByTagName("head")[0].appendChild(script);
     }
 };
+=======
+>>>>>>> 24c7a13fe60c904b57493e1df24fb87b9ec50839
 
 
 
@@ -552,6 +555,9 @@ MOL.modules.location = function(mol) {
 
                 this._searchEngine = new mol.ui.Search.Engine(this._api, this._bus);
                 this._searchEngine.start(this._container);
+                
+                this._metadataEngine = new mol.ui.Metadata.Engine(this._api,this._bus);
+                this._metadataEngine.start(this._container);
             },
             
             routes: {
@@ -564,7 +570,8 @@ MOL.modules.location = function(mol) {
             }
         }
     );
-};/**
+};
+/**
  * Model module.
  */
 MOL.modules.model = function(mol) {
@@ -865,6 +872,9 @@ MOL.modules.ui = function(mol) {
                 this._element.click(handler);
             },
 
+            keyup: function(handler) {
+                this._element.keyup(handler);
+            },
             /**
              * Proxy to JQuery.append()
              */
@@ -904,6 +914,10 @@ MOL.modules.ui = function(mol) {
             addStyleDependentName: function(styleSuffix) {
                 this.addStyleName(this.getStylePrimaryName() + '-' + styleSuffix);
             },         
+
+            focus: function() {
+                this._element.focus();
+            },
 
             /**
              * Gets all of the object's style names, as a space-separated list.
@@ -1233,7 +1247,7 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer.getId(),
+                            layerId = layer.getKeyName(),
                             layerType = layer.getType(),
                             layerName = layer.getName(),
                             layerIds = self._layerIds,
@@ -2677,6 +2691,16 @@ MOL.modules.Search = function(mol) {
                     }
                 );
 
+                widget = display.getSearchBox();
+                
+                widget.keyup(
+                    function(event) {
+                      if (event.keyCode === 13) {
+                          self._onGoButtonClick();
+                      }
+                    }
+                );
+
                 // Add button:
                 widget = display.getAddButton();
                 widget.click(
@@ -2746,8 +2770,8 @@ MOL.modules.Search = function(mol) {
                                 source: result.source, 
                                 name: result.name, 
                                 key_name: result.key_name
-                            }
-                        );
+                            } 
+                     );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -2776,6 +2800,7 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                key_name: result.key_name,
                                 json: response
                             }
                         );
@@ -2792,20 +2817,22 @@ MOL.modules.Search = function(mol) {
 
             _displayPage: function(layers) {
                 var display = this._display,
-                    fw = null;
-
-
+                    fw = null,
+                    res = null,
+                    typeImg = null,
+                    sourceImg = null,
+                    resultWidgets = null;
+                
+                this._resultWidgets = [];
+                resultWidgets = this._resultWidgets;
                 display.clearResults();
-                //display.clearFilters();
+
                 if (layers.length==0){
                     fw = display.noMatches();
                 }
+
                 for (r in layers){
-                    var res = layers[r],
-                        typeImg = fw ? fw.getTypeImg() : null,
-                        sourceImg = fw ? fw.getSourceImg() : null,
-                        resultWidgets = this._resultWidgets || [];
-                    
+                    res = layers[r];
                     fw = display.getNewResult();
                     typeImg = fw.getTypeImg();
                     sourceImg = fw.getSourceImg();
@@ -2824,72 +2851,72 @@ MOL.modules.Search = function(mol) {
                     fw.getAuthor().text(res.name2);
                     fw.getInfoLink().attr("attr","/static/dead_link.html");
                     sourceImg.attr("src","/static/maps/search/" + res.source.toLowerCase() + ".png");
-                    sourceImg.click(function(){
-                        console.log('TODO: send source info to LeftBottom Modal');
+                    sourceImg.click(function() {
+                        mol.log.todo('Send source info to LeftBottom Modal');
                     });
                     typeImg.attr("src","/static/maps/search/" + res.type.toLowerCase() + ".png");
                     typeImg.click(function(){
-                        console.log('TODO: send type info to LeftBottom Modal');
+                        mol.log.todo('Send type info to LeftBottom Modal');
                     });
-                    ///TODO: andrew
-                    ///get source, type button imgs
-                    ///set attr img src
                 }
-                //fw.getFilterName().text('Names');
-                //for (k in nameKeys) {
-                //    fo = fw.getNewOption();
-                //    key = nameKeys[k];
-                //    fo.text(key);
-                //}
+
                 display.getResultsContainer().show();
             },
 
+            _allTypesCallback: function(filter, name) {
+                var self = this;
+                return function(event) {                    
+                    var fo = filter.getOptions();
+                    for (o in fo) {
+                        fo[o].removeStyleName("selected");
+                    }
+                    new mol.ui.Element(event.target).addStyleName("selected");                    
+                    self._processFilterValue(name, null);
+                    };
+            },
+
+            _optionCallback: function(filter, name) {                
+                var self = this;
+                return function(event) {
+                    var fo = filter.getOptions();
+                    for (o in fo){
+                        fo[o].removeStyleName("selected");
+                    }
+                    new mol.ui.Element(event.target).addStyleName("selected");                            
+                    self._processFilterValue(name, new mol.ui.Element(event.target).text());
+                }; 
+            },
+            
             _createNewFilter: function(name, data){
                 var allTypes,
                     display = this._display,
                     filter = display.getNewFilter(),
                     keys = data[name.toLowerCase()],
-                    self = this;
+                    self = this,
+                    option = null;
+
                 filter.getFilterName().text(name);
                 filter.attr('id', name);
+
                 allTypes = filter.getNewOption();
-                allTypes.text("All "+name);
+                allTypes.text("All " + name);
                 allTypes.addStyleName("all");
-                allTypes.click(
-                    function(event) {
-                        var fo = filter.getOptions();
-                        for (o in fo){
-                            fo[o].removeStyleName("selected");
-                        }
-                        new mol.ui.Element(event.target).addStyleName("selected");
-                        self._processFilterValue(name,null);
-                    }
-                );
+                allTypes.click(this._allTypesCallback(filter, name));
                 allTypes.addStyleName("selected");
+
                 for (k in keys) {
-                    var option;
                     option = filter.getNewOption();
                     option.text(k);
-                    option.click(
-                        function(event) {
-                            var fo = filter.getOptions();
-                            for (o in fo){
-                                fo[o].removeStyleName("selected");
-                            }
-                            new mol.ui.Element(event.target).addStyleName("selected");
-                            
-                            self._processFilterValue(name,new mol.ui.Element(event.target).text());
-                        }
-                    );
+                    option.click(this._optionCallback(filter, name));
                 }
             },
 
-            _processFilterValue: function(key,value){
+            _processFilterValue: function(key, value){
                 var layers = new Array(),
-                    self = this;
-
-                key = key.toLowerCase();
-                switch(key){
+                    self = this,
+                    tmp = null;
+                
+                switch(key.toLowerCase()) {
                     case "names":
                         self._nameFilter = value;
                         break;
@@ -2902,8 +2929,13 @@ MOL.modules.Search = function(mol) {
                     default:
                         break;
                 }
-                var tmp = this._result.getLayers(self._nameFilter,self._sourceFilter,self._typeFilter);
-                for (v in tmp){
+          
+                tmp = this._result.getLayers(
+                    self._nameFilter,
+                    self._sourceFilter,
+                    self._typeFilter);
+
+                for (v in tmp) {
                     layers.push(this._result.getLayer(tmp[v]));
                 }
                 
@@ -2980,6 +3012,7 @@ MOL.modules.Search = function(mol) {
                         
                         if (action === 'add-click' && displayNotVisible) {
                             display.show();
+                            display.getSearchBox().focus();
                         }
                     }
                 );
@@ -3233,6 +3266,181 @@ MOL.modules.Search = function(mol) {
                        '  </div>' + 
                        '</div>';
             }
+        }
+    );
+};
+
+/**
+ * Map module that wraps a Google Map and gives it the ability to handle app 
+ * level events and perform AJAX calls to the server. It surfaces custom
+ * map controls with predefined slots. 
+ * 
+ * Event binding:
+ *     ADD_MAP_CONTROL - Adds a control to the map.
+ *     ADD_LAYER - Displays the layer on the map.
+ * 
+ * Event triggering:
+ *     None
+ */
+MOL.modules.Metadata = function(mol) { 
+    
+    mol.ui.Metadata = {};
+    console.log('metadata hit');
+    /**
+     * Base class for map layers.
+     */
+    mol.ui.Metadata.Dataset = Class.extend(
+        {
+            init: function(dataset) {
+                this._dataset = dataset;
+            },
+            
+            // Abstract functions:
+            show: function() {
+                throw new mol.exceptions.NotImplementedError('show()');
+            },
+            hide: function() {
+                throw new mol.exceptions.NotImplementedError('hide()');
+            },
+            isVisible: function() {                
+                throw new mol.exceptions.NotImplementedError('isVisible()');
+            },
+            refresh: function() {
+                throw new mol.exceptions.NotImplementedError('refresh()');
+            },
+            
+            // Getters and setters:
+            getDataset: function() {
+                return this._dataset;
+            }
+        }
+    );
+    /**
+     * The Map Engine.
+     */
+    mol.ui.Metadata.Engine = mol.ui.Engine.extend(
+        {
+            /**
+             * Constucts a new Map Engine.
+             *
+             * @param api the mol.ajax.Api for server communication
+             * @param bus the mol.events.Bus for event handling 
+             * @constructor
+             */
+            init: function(api, bus) {
+                this._api = api;
+                this._bus = bus;  
+            },            
+
+            _addDataset: function(dataset) {
+                var datasetId = dataset.getId(),
+                    datasetType = dataset.getType();
+                mol.log.todo('Metadata._addDataset');
+                molDataset = new mol.ui.Metadata.Dataset(dataset);
+                this._molDatasets[datasetId] = mapDataset;
+            },
+
+            _datasetExists: function(datasetId) {
+                return this._molDatasets[datasetId] !== undefined;
+            },
+            
+            _getDataset: function(datasetId) {
+                return this._molDatasets[datasetId];
+            },
+
+            _removeDataset: function(datasetId) {
+                var dataset = this._getDataset(datasetId);
+
+                if (!dataset) {
+                    return false;
+                }
+                delete this._molDatasets[datasetId];                
+                return true;
+            },
+            
+            /**
+             * Starts the engine and provides a container for its display.
+             * 
+             * @param container the container for the engine display 
+             * @override mol.ui.Engine.start
+             */
+            start: function(container) {
+                this._bindDisplay(new mol.ui.Metadata.Display(), container);
+            },
+
+            /**
+             * Gives the engine a new place to go based on a browser history
+             * change.
+             * 
+             * @param place the place to go
+             * @override mol.ui.Engine.go
+             */
+
+            _bindDisplay: function(display, container) {
+                this._display = display;
+                display.setEngine(this);                
+
+                container.append(display.getElement());
+            },
+
+            /**
+             * Adds an event handler for new layers.
+             */
+            _addLayerEventHandler: function() {
+                var bus = this._bus,
+                    LayerEvent = mol.events.LayerEvent,
+                    LayerControlEvent = mol.events.LayerControlEvent,
+                    layers = this._layers,
+                    self = this;
+                
+                bus.addHandler(
+                    LayerControlEvent.TYPE,
+                    function(event) {
+                        var dataset = event.getLayer(),
+                            datasetId = layer.getId(),     
+                            dataset = self._getDataset(datasetId),                        
+                            action = event.getAction();
+                                                
+                        switch (action) {
+
+                        case 'add':
+                            if (dataset) {
+                                return;
+                            }                            
+                            self._addDataset(dataset);
+                            break;
+
+                        case 'delete':
+                            if (!datasetId) {
+                                return;
+                            }    
+                            self._removeDatasetId(datasetId);
+                            break;
+                        }
+                    }
+                );
+            }            
+        }
+    );
+
+    /**
+     * The Metadata Display <div> in the <body> element.
+     */
+    mol.ui.Metadata.Display = mol.ui.Display.extend(
+        {
+
+            /**
+             * Constructs a new Metadata Display.
+             * 
+             * @param config the display configuration
+             * @constructor
+             */
+            init: function(config) {
+                console.log('metadata display init');
+                this._id = 'metadata';
+                this._super($('<div>').attr({'id': this._id}));
+                $('body').append(this.getElement());
+            }        
         }
     );
 };
