@@ -175,7 +175,6 @@ MOL.modules.events = function(mol) {
     // Event types:
     mol.events.ADD_MAP_CONTROL = 'add_map_control';
 
-
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
 //    mol.events.SET_LAYER_COLOR = 'set_layer_color';

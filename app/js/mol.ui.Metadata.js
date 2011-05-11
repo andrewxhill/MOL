@@ -14,7 +14,6 @@
 MOL.modules.Metadata = function(mol) { 
     
     mol.ui.Metadata = {};
-    console.log('metadata hit');
     /**
      * Base class for map layers.
      */
@@ -23,21 +22,6 @@ MOL.modules.Metadata = function(mol) {
             init: function(dataset) {
                 this._dataset = dataset;
             },
-            
-            // Abstract functions:
-            show: function() {
-                throw new mol.exceptions.NotImplementedError('show()');
-            },
-            hide: function() {
-                throw new mol.exceptions.NotImplementedError('hide()');
-            },
-            isVisible: function() {                
-                throw new mol.exceptions.NotImplementedError('isVisible()');
-            },
-            refresh: function() {
-                throw new mol.exceptions.NotImplementedError('refresh()');
-            },
-            
             // Getters and setters:
             getDataset: function() {
                 return this._dataset;
@@ -94,64 +78,46 @@ MOL.modules.Metadata = function(mol) {
              * @override mol.ui.Engine.start
              */
             start: function(container) {
-                this._bindDisplay(new mol.ui.Metadata.Display(), container);
+                this._bindDisplay(new mol.ui.Metadata.Display());
             },
-
+             
             /**
-             * Gives the engine a new place to go based on a browser history
-             * change.
-             * 
-             * @param place the place to go
-             * @override mol.ui.Engine.go
+             * Binds the display.
              */
-
-            _bindDisplay: function(display, container) {
+            _bindDisplay: function(display, text) {  
+                var self = this,
+                    bus = this._bus;
+                    
                 this._display = display;
-                display.setEngine(this);                
-
-                container.append(display.getElement());
-            },
-
-            /**
-             * Adds an event handler for new layers.
-             */
-            _addLayerEventHandler: function() {
-                var bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent,
-                    LayerControlEvent = mol.events.LayerControlEvent,
-                    layers = this._layers,
-                    self = this;
+                display.setEngine(this);   
                 
-                bus.addHandler(
-                    LayerControlEvent.TYPE,
+                this._bus.bind(
+                    mol.events.LayerEvent.TYPE,
                     function(event) {
-                        var dataset = event.getLayer(),
-                            datasetId = layer.getId(),     
-                            dataset = self._getDataset(datasetId),                        
-                            action = event.getAction();
-                                                
-                        switch (action) {
-
-                        case 'add':
-                            if (dataset) {
-                                return;
-                            }                            
-                            self._addDataset(dataset);
-                            break;
-
-                        case 'delete':
-                            if (!datasetId) {
-                                return;
-                            }    
-                            self._removeDatasetId(datasetId);
-                            break;
-                        }
+                        var layer = event.getLayer();
+                        var keyname = layer.getKeyName();
+                        var datasetUi = self._display.addDataset(layer, keyname);
+                        console.log(keyname);
+                        console.log(layer);
                     }
                 );
-            }            
+                
+            }
         }
     );
 
+    /**
+     * The LayerWidget.
+     */
+    mol.ui.Metadata.DatasetUI = mol.ui.Display.extend(
+        {
+            init: function(layer, keyname) {
+                this._super('<div>');
+                this.setStyleName(keyname);
+                this.setInnerHtml("Metadata for: "+keyname);
+            }
+        }
+    );
     /**
      * The Metadata Display <div> in the <body> element.
      */
@@ -165,11 +131,21 @@ MOL.modules.Metadata = function(mol) {
              * @constructor
              */
             init: function(config) {
-                console.log('metadata display init');
                 this._id = 'metadata';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
-            }        
+                this._datasets = {};
+            },
+            
+            addDataset: function(layer, keyname) {                
+                var layerWidget = null;
+                if (this._datasets[keyname]) {
+                    return;
+                }
+                this._datasets[keyname] = null;
+                //TODO: hit metadata api with keyname
+                this.append(new mol.ui.Metadata.DatasetUI(layer,keyname));                
+            },       
         }
     );
 };

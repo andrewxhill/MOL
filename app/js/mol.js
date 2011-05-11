@@ -30,8 +30,8 @@ function MOL() {
 
 MOL.modules = {};
 
+MOL.src = {};
 
-<<<<<<< HEAD
 MOL.src.makeId = function() {
     var text = "",
         possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -75,8 +75,6 @@ MOL.src.load = function() {
         document.getElementsByTagName("head")[0].appendChild(script);
     }
 };
-=======
->>>>>>> 24c7a13fe60c904b57493e1df24fb87b9ec50839
 
 
 
