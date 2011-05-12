@@ -19,7 +19,7 @@ from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
 import logging
 from math import ceil
-from mol.db import MasterSearchIndex, Tile, TileUpdate, TileSetIndex, MultiPolygon, MultiPolygonIndex, OccurrenceSetIndex, OccurrenceSet
+from mol.db import MasterSearchIndex, Tile, MultiPolygon, MultiPolygonIndex, OccurrenceSetIndex, OccurrenceSet
 from xml.etree import ElementTree as etree
 import datetime
 import cStringIO
@@ -854,10 +854,12 @@ class TileService(object):
     
     def __init__(self,query):
         self.query = query
-        self.key = "%s/%s/%s/%s/%s/%s" % (
+        self.rawkey = "%s/%s/%s" % (
                         self.query['type'],
                         self.query['source'],
-                        self.query['id'],
+                        self.query['id'] )
+        self.colorkey = "%s/%s/%s/%s" % (
+                        self.rawkey,
                         self.query['z'],
                         self.query['x'],
                         self.query['y'] )
@@ -867,20 +869,17 @@ class TileService(object):
         self.result = None
         self.status = False
         self.rpc = urlfetch.create_rpc()
-        self.cachetime = 6000
+        self.cachetime = 60000
         
     def colortile(self):
         """Colors a tile based on R,G,B values"""
         if self.query['r'] is not None:
             """color img here"""
-            self.setmc(self.key)
             self.png = colorPng(self.png, 
                                 int(self.query['r']),
                                 int(self.query['g']),
                                 int(self.query['b']),
                                 isObj=True)
-            self.key = self.key + "/%s/%s/%s" % (self.query['r'],self.query['g'],self.query['b'])
-        
         return True
         
     def tileurl(self):
@@ -895,7 +894,6 @@ class TileService(object):
             tileurl = tileurl.replace('{source}', self.query['source'])
             tileurl = tileurl.replace('{id}', self.query['id'])
             self.url = tileurl
-            logging.error(tileurl)
             return tileurl
         
     def fetchurl(self):
@@ -931,8 +929,11 @@ class TileService(object):
         else:
             return False
             
-    def setmc(self, k):
-        memcache.set(k, self.png, self.cachetime)
+    def setmc(self, k, status=None):
+        if status is not None:
+            memcache.set(k, status, self.cachetime)
+        else:
+            memcache.set(k, self.png, self.cachetime)
     
     
     def gettile(self):
@@ -944,36 +945,37 @@ class TileService(object):
             self.url = self.tileurl() 
             urlfetch.make_fetch_call(self.rpc, self.url)
             
-            mcstatus = self.fetchmc(self.key)
+            mcstatus = self.fetchmc(self.rawkey)
             if mcstatus in [404, 204]:
                 self.status = mcstatus
                 return
                 
             """first check to see if the colored tile is in memcache"""
             if self.query['r'] is not None:
-                k = self.key + "/%s/%s/%s" % (self.query['r'],self.query['g'],self.query['b'])
-                if self.fetchmc(k) is True: 
+                if self.fetchmc(self.colorkey) is True: 
                     self.status = 200
                     return
             
             if mcstatus is True: 
-                logging.info('memcache')
+                self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.key)
+                self.setmc(self.colorkey)
                 self.status = 200
             elif self.fetchds() is True:
+                self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.key)
+                self.setmc(self.colorkey)
                 self.status = 200
             elif self.fetchurl() == 204:
                 self.status = 204 #tiling ran, no data existed in the tile
-                memcache.set(self.key, 204, self.cachetime)
+                self.setmc(self.rawkey, status = 204)
             elif self.fetchurl() is True:
+                self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.key)
+                self.setmc(self.colorkey)
                 self.status = 200
             else: 
-                memcache.set(self.key, 404, self.cachetime)
+                self.setmc(self.rawkey, status = 404)
                 self.status = 404
             return self.status
 

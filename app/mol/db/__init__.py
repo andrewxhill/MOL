@@ -50,27 +50,8 @@ class MultiPolygon(db.Model): #key_name = some_id
     info = db.BlobProperty() #some meta standard based on the type, but not restriced by the datastore model
     dateCreated = db.DateTimeProperty(auto_now_add=True)
 
-
-class TileSetIndex(db.Model):
-    remoteLocation = db.LinkProperty() #remote url constructor for the dataset, for distributed storage
-    zoom = db.IntegerProperty() #max zoom available for the layer
-    proj = db.StringProperty() #max zoom available for the layer
-    extentNorthWest = db.GeoPtProperty()
-    extentSouthEast = db.GeoPtProperty()
-    dateLastModified = db.DateTimeProperty()
-    dateCreated = db.DateTimeProperty(auto_now_add=True)
-    errors = db.StringListProperty()
-    status = db.CategoryProperty()
-    type = db.CategoryProperty()
-
 class Tile(db.Model):
     band = db.BlobProperty()
-
-class TileUpdate(db.Model):
-    zoom = db.IntegerProperty()
-
-class TmpTile(db.Model):
-    band = db.TextProperty()
 
 class Species(db.Model):
     authority = db.TextProperty()
