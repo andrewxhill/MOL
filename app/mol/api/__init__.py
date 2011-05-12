@@ -117,7 +117,6 @@ class WebAppHandler(BaseHandler):
         # TODO: Use self.layer_service()
         sciname = query.get('layerName')
         content = self.gbif.getdata({'sciname':sciname})
-        logging.info(content)
         return content
         
         
@@ -858,6 +857,7 @@ class ColorImage(BaseHandler):
         r = int(self.request.get('r', 0))
         g = int(self.request.get('g', 0))
         b = int(self.request.get('b', 0))
+        logging.error(r)
         memk = "%s/%s/%s/%s" % (name, r, g, b)
         val = memcache.get(memk)
         if val is None:
@@ -1107,8 +1107,8 @@ application = webapp.WSGIApplication(
           ('/test/colorimage/([^/]+)', ColorImage),
           ('/test/findid/([^/]+)/([^/]+)', FindID),
           ('/test/tile/[\d]+/[\d]+/[\w]+.png', TilePngHandler),
-          ('/test/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
-          ('/test/ecoregion/search', EcoregionLayerSearch),
+          #('/test/ecoregion/tile/([\w]*.png)', EcoregionTileHandler),
+          #('/test/ecoregion/search', EcoregionLayerSearch),
           #('/test/gbif', GBIFTest),
           #('/test/ecoregion/metadata/([\w]+)', EcoregionMetadata),
           ],

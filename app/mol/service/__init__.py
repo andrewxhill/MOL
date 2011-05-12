@@ -33,6 +33,7 @@ import StringIO
 
 def colorPng(img, r, g, b, isObj=False):
     val = None
+    logging.error(img)
     if isObj:
         imt = png.Reader(bytes=img)
     else:

@@ -67,7 +67,7 @@ MOL.modules.ColorSetter = function(mol) {
                                 
                             case 'points':
                                 // TODO(andrew): Logic for getting next color.
-                                config.color = new mol.ui.ColorSetter.Color(55, 133, 233);
+                                config.color = new mol.ui.ColorSetter.Color(32, 40, 73);
                                 break;
 
                             case 'range':

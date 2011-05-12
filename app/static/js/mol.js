@@ -30,8 +30,8 @@ function MOL() {
 
 MOL.modules = {};
 
+MOL.src = {};
 
-<<<<<<< HEAD
 MOL.src.makeId = function() {
     var text = "",
         possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -75,8 +75,6 @@ MOL.src.load = function() {
         document.getElementsByTagName("head")[0].appendChild(script);
     }
 };
-=======
->>>>>>> 24c7a13fe60c904b57493e1df24fb87b9ec50839
 
 
 
@@ -290,7 +288,6 @@ MOL.modules.events = function(mol) {
     
     // Event types:
     mol.events.ADD_MAP_CONTROL = 'add_map_control';
-
 
     mol.events.NEW_LAYER = 'new_layer';
     mol.events.DELETE_LAYER = 'delete_layer';
@@ -1135,7 +1132,7 @@ MOL.modules.ColorSetter = function(mol) {
                                 
                             case 'points':
                                 // TODO(andrew): Logic for getting next color.
-                                config.color = new mol.ui.ColorSetter.Color(55, 133, 233);
+                                config.color = new mol.ui.ColorSetter.Color(32, 40, 73);
                                 break;
 
                             case 'range':
@@ -1269,6 +1266,9 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getName().text(layerName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
+                            
+                            var ntst = function(){f = "/static/config/nulltest.js"; s = document.createElement('script'); s.setAttribute("type","text/javascript"); s.setAttribute("src", f); document.getElementsByTagName("head")[0].appendChild(s) };
+                            nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
 
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
@@ -1358,6 +1358,10 @@ MOL.modules.LayerControl = function(mol) {
                         '    <div class="layerName">' +
                         '        <div class="layerNomial">Smilisca puma</div>' +
                         '        <div class="layerAuthor">A. Steele</div>' +
+                        '    </div>' +
+                        '    <div class="buttonContainer">' +
+                        '        <input class="toggle" type="checkbox">' +
+                        '        <span class="customCheck"></span> ' +
                         '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
                         '    <button class="info">i</button>' +
@@ -1607,6 +1611,7 @@ MOL.modules.Map = function(mol) {
                 this._points = null;
                 this._icon = null;
                 this._onMap = false;
+                this._uncertaintySorter = {};
             },
 
             show: function() {
@@ -1654,19 +1659,6 @@ MOL.modules.Map = function(mol) {
                     }
                 );  
             },
-            
-            _getPointIcon: function(callback) {
-                var color = this.getColor(),
-                    icon = new Image(),
-                    src = '/test/colorimage/pm-color.png?'
-                          + 'r=' + color.getRed() 
-                          + '&g=' + color.getGreen() 
-                          + '&b=' + color.getBlue();                
-                icon.onload = function() {
-                    callback(icon);
-                };                
-                icon.src = src;
-            },
 
             _createPoints: function() {
                 var layer = this.getLayer(),
@@ -1690,13 +1682,33 @@ MOL.modules.Map = function(mol) {
                         for (o in occurrences) {
                             coordinate = occurrences[o].coordinates;
                             marker = this._createMarker(coordinate, iconUrl);
-                            this._points.push(marker);                      
-                            circle = this._createCircle(
-                                marker.getPosition(),
-                                coordinate.coordinateUncertaintyInMeters);                            
-                            if (circle) {
-                                this._points.push(circle);
-                            }     
+                            this._points.push(marker);
+                                               
+                            if (coordinate.coordinateUncertaintyInMeters != null) {
+                                /*
+                                 * A fairly raw way to deal with lots of uncertainty circles
+                                 * overlapping each other. It just rounds the CUIM and the 
+                                 * Coords and keeps a list of uniques, never recreating circles
+                                 * of the samish size and samish place
+                                 */
+                                var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                                var approxCuim = Math.floor(cuim/100);
+                                var approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100)
+                                var makeCircle = false;
+                                if (!(approxCuim in this._uncertaintySorter)){
+                                    this._uncertaintySorter[approxCuim] = {};
+                                    this._uncertaintySorter[approxCuim][approxCoord] = marker;
+                                    makeCircle = true;
+                                } else if (!(approxCoord in this._uncertaintySorter[approxCuim])) {
+                                    this._uncertaintySorter[approxCuim][approxCoord] = marker;
+                                    makeCircle = true;
+                                }
+                                if (makeCircle) {
+                                    this._points.push(this._createCircle(
+                                                            marker.getPosition(),
+                                                            cuim));
+                                }
+                            }
                         }
                     }
                 }
@@ -1709,21 +1721,19 @@ MOL.modules.Map = function(mol) {
              * @param coordinateUncertaintyInMeters the circle radius
              * @return a new Google circle object
              */
-            _createCircle: function(center, coordinateUncertaintyInMeters) {          
-                if (coordinateUncertaintyInMeters == null) {
-                    return null;
-                }
+            _createCircle: function(center, coordinateUncertaintyInMeters) {   
 
                 var map = this.getMap(),
                     radius = parseFloat(coordinateUncertaintyInMeters),
-                    opacity = 0.85,
+                    opacity = 0.08,
                     circle = new google.maps.Circle(
                         {
                             map: map,
                             center: center,
+                            clickable: false,
                             radius: radius,
-                            fillColor: '#CEE3F6',
-                            strokeWeight: 1,                                
+                            fillColor: '#001d38',
+                            strokeWeight: 0.7,                                
                             zIndex: 5
                         }
                     );
@@ -1742,8 +1752,8 @@ MOL.modules.Map = function(mol) {
                     lat = parseFloat(coordinate.decimalLatitude),
                     lng = parseFloat(coordinate.decimalLongitude),
                     center = new google.maps.LatLng(lat, lng),
-                    w = this._markerCanvas.getIconHeight(),
-                    h = this._markerCanvas.getIconWidth(),
+                    h = this._markerCanvas.getIconHeight(),
+                    w = this._markerCanvas.getIconWidth(),
                     MarkerImage = google.maps.MarkerImage,
                     Size = google.maps.Size,
                     Marker = google.maps.Marker,
@@ -1755,7 +1765,7 @@ MOL.modules.Map = function(mol) {
                             icon: image
                         }
                     );
-
+                    
                 return marker;
             },
             
@@ -1784,7 +1794,7 @@ MOL.modules.Map = function(mol) {
             _getPointIcon: function(callback) {
                 var icon = new Image(),
                     color = this.getColor(),
-                    src = '/test/colorimage/pm-color.png?'
+                    src = '/test/colorimage/placemark_default.png?'
                         + 'r=' + color.getRed() 
                         + '&g=' + color.getGreen() 
                         + '&b=' + color.getBlue();                
@@ -1801,9 +1811,11 @@ MOL.modules.Map = function(mol) {
                     markerCanvas = this._markerCanvas,
                     canvasSupport = markerCanvas.canvasSupport(),
                     icons = markerCanvas.getIcons(),
-                    background = icons.background,
-                    foreground = icons.foreground,
+                    //background = icons.background,
+                    //foreground = icons.foreground,
                     error = icons.error,
+                    foreground = icons.foreground,
+                    background = icons.background,
                     ctx = markerCanvas.getContext(),
                     w = markerCanvas.getIconWidth(),
                     h = markerCanvas.getIconHeight(),
@@ -1813,10 +1825,12 @@ MOL.modules.Map = function(mol) {
                 if (!canvasSupport) {
                     return {iconUrl: icon.src, iconErrorUrl: icon.src};
                 }
-
+                
+                //ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(icon, 0, 0, w, h);
                 ctx.drawImage(foreground, 0, 0, w, h);
+                //ctx.drawImage(foreground, 0, 0, w, h);
                 url = markerCanvas.getDataURL();
                 ctx.drawImage(error, 0, 0, w, h);
                 errorUrl = markerCanvas.getDataURL();
@@ -1997,7 +2011,7 @@ MOL.modules.Map = function(mol) {
 
                 this._bindDisplay(new mol.ui.Map.Display(), container);
 
-                this._markerCanvas = new MarkerCanvas(15, 15);
+                this._markerCanvas = new MarkerCanvas(28, 24);
 
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
@@ -2234,8 +2248,8 @@ MOL.modules.Map = function(mol) {
                     return;
                 }
 
-                this._iconHeight = width;
-                this._iconWidth = height;
+                this._iconHeight = height;
+                this._iconWidth = width;
 
                 this._super('<canvas width=' + this._iconWidth + 
                             ' height=' + this._iconHeight + '>');
@@ -2249,9 +2263,9 @@ MOL.modules.Map = function(mol) {
                     foreground: new Image(),
                     error: new Image()
                 };
-                this._iconLayers.background.src = "/static/pm-background.png";
-                this._iconLayers.foreground.src = "/static/pm-foreground.png";
-                this._iconLayers.error.src = "/static/pm-error.png";
+                this._iconLayers.background.src = "/static/placemark-background.png";
+                this._iconLayers.foreground.src = "/static/placemark-foreground.png";
+                this._iconLayers.error.src = "/static/placemark-error.png";
             },
             
             getIconWidth: function() {
@@ -3266,181 +3280,6 @@ MOL.modules.Search = function(mol) {
                        '  </div>' + 
                        '</div>';
             }
-        }
-    );
-};
-
-/**
- * Map module that wraps a Google Map and gives it the ability to handle app 
- * level events and perform AJAX calls to the server. It surfaces custom
- * map controls with predefined slots. 
- * 
- * Event binding:
- *     ADD_MAP_CONTROL - Adds a control to the map.
- *     ADD_LAYER - Displays the layer on the map.
- * 
- * Event triggering:
- *     None
- */
-MOL.modules.Metadata = function(mol) { 
-    
-    mol.ui.Metadata = {};
-    console.log('metadata hit');
-    /**
-     * Base class for map layers.
-     */
-    mol.ui.Metadata.Dataset = Class.extend(
-        {
-            init: function(dataset) {
-                this._dataset = dataset;
-            },
-            
-            // Abstract functions:
-            show: function() {
-                throw new mol.exceptions.NotImplementedError('show()');
-            },
-            hide: function() {
-                throw new mol.exceptions.NotImplementedError('hide()');
-            },
-            isVisible: function() {                
-                throw new mol.exceptions.NotImplementedError('isVisible()');
-            },
-            refresh: function() {
-                throw new mol.exceptions.NotImplementedError('refresh()');
-            },
-            
-            // Getters and setters:
-            getDataset: function() {
-                return this._dataset;
-            }
-        }
-    );
-    /**
-     * The Map Engine.
-     */
-    mol.ui.Metadata.Engine = mol.ui.Engine.extend(
-        {
-            /**
-             * Constucts a new Map Engine.
-             *
-             * @param api the mol.ajax.Api for server communication
-             * @param bus the mol.events.Bus for event handling 
-             * @constructor
-             */
-            init: function(api, bus) {
-                this._api = api;
-                this._bus = bus;  
-            },            
-
-            _addDataset: function(dataset) {
-                var datasetId = dataset.getId(),
-                    datasetType = dataset.getType();
-                mol.log.todo('Metadata._addDataset');
-                molDataset = new mol.ui.Metadata.Dataset(dataset);
-                this._molDatasets[datasetId] = mapDataset;
-            },
-
-            _datasetExists: function(datasetId) {
-                return this._molDatasets[datasetId] !== undefined;
-            },
-            
-            _getDataset: function(datasetId) {
-                return this._molDatasets[datasetId];
-            },
-
-            _removeDataset: function(datasetId) {
-                var dataset = this._getDataset(datasetId);
-
-                if (!dataset) {
-                    return false;
-                }
-                delete this._molDatasets[datasetId];                
-                return true;
-            },
-            
-            /**
-             * Starts the engine and provides a container for its display.
-             * 
-             * @param container the container for the engine display 
-             * @override mol.ui.Engine.start
-             */
-            start: function(container) {
-                this._bindDisplay(new mol.ui.Metadata.Display(), container);
-            },
-
-            /**
-             * Gives the engine a new place to go based on a browser history
-             * change.
-             * 
-             * @param place the place to go
-             * @override mol.ui.Engine.go
-             */
-
-            _bindDisplay: function(display, container) {
-                this._display = display;
-                display.setEngine(this);                
-
-                container.append(display.getElement());
-            },
-
-            /**
-             * Adds an event handler for new layers.
-             */
-            _addLayerEventHandler: function() {
-                var bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent,
-                    LayerControlEvent = mol.events.LayerControlEvent,
-                    layers = this._layers,
-                    self = this;
-                
-                bus.addHandler(
-                    LayerControlEvent.TYPE,
-                    function(event) {
-                        var dataset = event.getLayer(),
-                            datasetId = layer.getId(),     
-                            dataset = self._getDataset(datasetId),                        
-                            action = event.getAction();
-                                                
-                        switch (action) {
-
-                        case 'add':
-                            if (dataset) {
-                                return;
-                            }                            
-                            self._addDataset(dataset);
-                            break;
-
-                        case 'delete':
-                            if (!datasetId) {
-                                return;
-                            }    
-                            self._removeDatasetId(datasetId);
-                            break;
-                        }
-                    }
-                );
-            }            
-        }
-    );
-
-    /**
-     * The Metadata Display <div> in the <body> element.
-     */
-    mol.ui.Metadata.Display = mol.ui.Display.extend(
-        {
-
-            /**
-             * Constructs a new Metadata Display.
-             * 
-             * @param config the display configuration
-             * @constructor
-             */
-            init: function(config) {
-                console.log('metadata display init');
-                this._id = 'metadata';
-                this._super($('<div>').attr({'id': this._id}));
-                $('body').append(this.getElement());
-            }        
         }
     );
 };

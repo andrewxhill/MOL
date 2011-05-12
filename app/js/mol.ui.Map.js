@@ -64,6 +64,7 @@ MOL.modules.Map = function(mol) {
                 this._points = null;
                 this._icon = null;
                 this._onMap = false;
+                this._uncertaintySorter = {};
             },
 
             show: function() {
@@ -111,19 +112,6 @@ MOL.modules.Map = function(mol) {
                     }
                 );  
             },
-            
-            _getPointIcon: function(callback) {
-                var color = this.getColor(),
-                    icon = new Image(),
-                    src = '/test/colorimage/pm-color.png?'
-                          + 'r=' + color.getRed() 
-                          + '&g=' + color.getGreen() 
-                          + '&b=' + color.getBlue();                
-                icon.onload = function() {
-                    callback(icon);
-                };                
-                icon.src = src;
-            },
 
             _createPoints: function() {
                 var layer = this.getLayer(),
@@ -147,13 +135,33 @@ MOL.modules.Map = function(mol) {
                         for (o in occurrences) {
                             coordinate = occurrences[o].coordinates;
                             marker = this._createMarker(coordinate, iconUrl);
-                            this._points.push(marker);                      
-                            circle = this._createCircle(
-                                marker.getPosition(),
-                                coordinate.coordinateUncertaintyInMeters);                            
-                            if (circle) {
-                                this._points.push(circle);
-                            }     
+                            this._points.push(marker);
+                                               
+                            if (coordinate.coordinateUncertaintyInMeters != null) {
+                                /*
+                                 * A fairly raw way to deal with lots of uncertainty circles
+                                 * overlapping each other. It just rounds the CUIM and the 
+                                 * Coords and keeps a list of uniques, never recreating circles
+                                 * of the samish size and samish place
+                                 */
+                                var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                                var approxCuim = Math.floor(cuim/100);
+                                var approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100)
+                                var makeCircle = false;
+                                if (!(approxCuim in this._uncertaintySorter)){
+                                    this._uncertaintySorter[approxCuim] = {};
+                                    this._uncertaintySorter[approxCuim][approxCoord] = marker;
+                                    makeCircle = true;
+                                } else if (!(approxCoord in this._uncertaintySorter[approxCuim])) {
+                                    this._uncertaintySorter[approxCuim][approxCoord] = marker;
+                                    makeCircle = true;
+                                }
+                                if (makeCircle) {
+                                    this._points.push(this._createCircle(
+                                                            marker.getPosition(),
+                                                            cuim));
+                                }
+                            }
                         }
                     }
                 }
@@ -166,21 +174,19 @@ MOL.modules.Map = function(mol) {
              * @param coordinateUncertaintyInMeters the circle radius
              * @return a new Google circle object
              */
-            _createCircle: function(center, coordinateUncertaintyInMeters) {          
-                if (coordinateUncertaintyInMeters == null) {
-                    return null;
-                }
+            _createCircle: function(center, coordinateUncertaintyInMeters) {   
 
                 var map = this.getMap(),
                     radius = parseFloat(coordinateUncertaintyInMeters),
-                    opacity = 0.85,
+                    opacity = 0.08,
                     circle = new google.maps.Circle(
                         {
                             map: map,
                             center: center,
+                            clickable: false,
                             radius: radius,
-                            fillColor: '#CEE3F6',
-                            strokeWeight: 1,                                
+                            fillColor: '#001d38',
+                            strokeWeight: 0.7,                                
                             zIndex: 5
                         }
                     );
@@ -199,8 +205,8 @@ MOL.modules.Map = function(mol) {
                     lat = parseFloat(coordinate.decimalLatitude),
                     lng = parseFloat(coordinate.decimalLongitude),
                     center = new google.maps.LatLng(lat, lng),
-                    w = this._markerCanvas.getIconHeight(),
-                    h = this._markerCanvas.getIconWidth(),
+                    h = this._markerCanvas.getIconHeight(),
+                    w = this._markerCanvas.getIconWidth(),
                     MarkerImage = google.maps.MarkerImage,
                     Size = google.maps.Size,
                     Marker = google.maps.Marker,
@@ -212,7 +218,7 @@ MOL.modules.Map = function(mol) {
                             icon: image
                         }
                     );
-
+                    
                 return marker;
             },
             
@@ -241,7 +247,7 @@ MOL.modules.Map = function(mol) {
             _getPointIcon: function(callback) {
                 var icon = new Image(),
                     color = this.getColor(),
-                    src = '/test/colorimage/pm-color.png?'
+                    src = '/test/colorimage/placemark_default.png?'
                         + 'r=' + color.getRed() 
                         + '&g=' + color.getGreen() 
                         + '&b=' + color.getBlue();                
@@ -258,9 +264,11 @@ MOL.modules.Map = function(mol) {
                     markerCanvas = this._markerCanvas,
                     canvasSupport = markerCanvas.canvasSupport(),
                     icons = markerCanvas.getIcons(),
-                    background = icons.background,
-                    foreground = icons.foreground,
+                    //background = icons.background,
+                    //foreground = icons.foreground,
                     error = icons.error,
+                    foreground = icons.foreground,
+                    background = icons.background,
                     ctx = markerCanvas.getContext(),
                     w = markerCanvas.getIconWidth(),
                     h = markerCanvas.getIconHeight(),
@@ -270,10 +278,12 @@ MOL.modules.Map = function(mol) {
                 if (!canvasSupport) {
                     return {iconUrl: icon.src, iconErrorUrl: icon.src};
                 }
-
+                
+                //ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(icon, 0, 0, w, h);
                 ctx.drawImage(foreground, 0, 0, w, h);
+                //ctx.drawImage(foreground, 0, 0, w, h);
                 url = markerCanvas.getDataURL();
                 ctx.drawImage(error, 0, 0, w, h);
                 errorUrl = markerCanvas.getDataURL();
@@ -454,7 +464,7 @@ MOL.modules.Map = function(mol) {
 
                 this._bindDisplay(new mol.ui.Map.Display(), container);
 
-                this._markerCanvas = new MarkerCanvas(15, 15);
+                this._markerCanvas = new MarkerCanvas(28, 24);
 
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
@@ -691,8 +701,8 @@ MOL.modules.Map = function(mol) {
                     return;
                 }
 
-                this._iconHeight = width;
-                this._iconWidth = height;
+                this._iconHeight = height;
+                this._iconWidth = width;
 
                 this._super('<canvas width=' + this._iconWidth + 
                             ' height=' + this._iconHeight + '>');
@@ -706,9 +716,9 @@ MOL.modules.Map = function(mol) {
                     foreground: new Image(),
                     error: new Image()
                 };
-                this._iconLayers.background.src = "/static/pm-background.png";
-                this._iconLayers.foreground.src = "/static/pm-foreground.png";
-                this._iconLayers.error.src = "/static/pm-error.png";
+                this._iconLayers.background.src = "/static/placemark-background.png";
+                this._iconLayers.foreground.src = "/static/placemark-foreground.png";
+                this._iconLayers.error.src = "/static/placemark-error.png";
             },
             
             getIconWidth: function() {

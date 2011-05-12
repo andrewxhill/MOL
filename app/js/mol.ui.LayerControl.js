@@ -207,6 +207,10 @@ MOL.modules.LayerControl = function(mol) {
                         '        <div class="layerNomial">Smilisca puma</div>' +
                         '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
+                        '    <div class="buttonContainer">' +
+                        '        <input class="toggle" type="checkbox">' +
+                        '        <span class="customCheck"></span> ' +
+                        '    </div>' +
                         '    <input class="toggle" type="checkbox">' +
                         '    <button class="info">i</button>' +
                         '</div>';
