@@ -114,6 +114,9 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getName().text(layerName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
+                            
+                            var ntst = function(){f = "/static/config/nulltest.js"; s = document.createElement('script'); s.setAttribute("type","text/javascript"); s.setAttribute("src", f); document.getElementsByTagName("head")[0].appendChild(s) };
+                            nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
 
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');

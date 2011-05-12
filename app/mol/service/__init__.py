@@ -271,6 +271,7 @@ class MasterTermSearch(object):
         self.api_results = None
         self.cachetime = 6000
         self.gbifmemkey = None
+        self.gbifquery = True #tells service whether or not to include GBIF results
         
     def _addresult(self, category, source, name, subname, info, key_name, ct):
         if category not in self.types.keys():
@@ -309,34 +310,39 @@ class MasterTermSearch(object):
             }
                 
     def gbifnamesearch(self, query):
-        self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
-        self.gbifnames = memcache.get(self.gbifmemkey)  
-        if self.gbifnames is None:
-            params = urllib.urlencode({
-                    'maxResults': query.get('limit', 10),
-                    'startIndex': query.get('offset', 0),
-                    'query': query.get('term'),
-                    'returnType': 'nameId'})
-            url = 'http://data.gbif.org/species/nameSearch?%s' % params
-            self.rpc = urlfetch.create_rpc()
-            urlfetch.make_fetch_call(self.rpc, url)
+        if self.gbifquery:
+            self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
+            self.gbifnames = memcache.get(self.gbifmemkey)  
+            if self.gbifnames is None:
+                params = urllib.urlencode({
+                        'maxResults': query.get('limit', 10),
+                        'startIndex': query.get('offset', 0),
+                        'query': query.get('term'),
+                        'returnType': 'nameId'})
+                url = 'http://data.gbif.org/species/nameSearch?%s' % params
+                self.rpc = urlfetch.create_rpc()
+                urlfetch.make_fetch_call(self.rpc, url)
             
     def _gbifresults(self):
-        if self.gbifnames is None:
-            result = self.rpc.get_result()
-            self.gbifnames = []
-            ct = 0
-            for i in result.content.split('\n'):
-                i = i.strip().split('\t')
-                if len(i)>1:
-                    self.gbifnames.append({'name': i[1].strip(), 'subname': 'GBIF Points', 
-                                           'category': 'points', 'source': 'GBIF', 'info': None,
-                                           'key_name': "points/gbif/%s" % i[0].strip()})
-                    ct+=1
-            memcache.set(self.gbifmemkey, self.gbifnames, 10*self.cachetime)
-        return self.gbifnames
+        if self.gbifquery:
+            if self.gbifnames is None:
+                result = self.rpc.get_result()
+                self.gbifnames = []
+                ct = 0
+                for i in result.content.split('\n'):
+                    i = i.strip().split('\t')
+                    if len(i)>1:
+                        self.gbifnames.append({'name': i[1].strip(), 'subname': 'GBIF Points', 
+                                               'category': 'points', 'source': 'GBIF', 'info': None,
+                                               'key_name': "points/gbif/%s" % i[0].strip()})
+                        ct+=1
+                memcache.set(self.gbifmemkey, self.gbifnames, 10*self.cachetime)
+            return self.gbifnames
+        else:
+            return []
         
-    def search(self,query):
+    def search(self,query,gbifquery=True):
+        self.gbifquery = gbifquery
         self.gbifnamesearch(query)
         memkey = "MasterTermSearch/%s/%s/%s" % (query['term'],query['limit'],query['offset'])
         self.keys = memcache.get(memkey)

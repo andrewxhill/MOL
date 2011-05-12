@@ -97,8 +97,6 @@ MOL.modules.Metadata = function(mol) {
                         var layer = event.getLayer();
                         var keyname = layer.getKeyName();
                         var datasetUi = self._display.addDataset(layer, keyname);
-                        console.log(keyname);
-                        console.log(layer);
                     }
                 );
                 
