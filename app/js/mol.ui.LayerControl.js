@@ -130,6 +130,7 @@ MOL.modules.LayerControl = function(mol) {
                             widget.setChecked(true);
                             widget.click(
                                 function(event) {
+                                    console.log(widget);
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
@@ -211,7 +212,6 @@ MOL.modules.LayerControl = function(mol) {
                         '        <input class="toggle" type="checkbox">' +
                         '        <span class="customCheck"></span> ' +
                         '    </div>' +
-                        '    <input class="toggle" type="checkbox">' +
                         '    <button class="info">i</button>' +
                         '</div>';
             }
