@@ -128,7 +128,7 @@ class Andrew(BaseHandler):
     """Handler for the search UI."""
     def get(self):
         #memcache.flush_all()
-        """
+        
         k = self.request.get('k')
         n = db.get(db.Key.from_path('OccurrenceSet', str(k)))
         if n is not None:
@@ -137,7 +137,7 @@ class Andrew(BaseHandler):
             for p in n.polygons:
                 d.append(p)
             db.delete(d)
-        """
+        
         self.response.out.write("Andrew says %s" % 'hi')
             
         

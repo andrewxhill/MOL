@@ -28,7 +28,6 @@ handlers:
   
 - url: /andrew
   script: app.py
-  login: admin
 
 - url: /js
   static_dir: js

@@ -189,8 +189,8 @@ button:hover{
 .mol-LayerControl-Search {
     float: left;
     position: relative;
-    height: 30px;
-    width: 93%;
+    height: 28px;
+    width: 65%;
     margin-bottom: 5px;
     margin-right: 5px;
     padding: 3px 5px 2px 5px;
@@ -201,20 +201,21 @@ button:hover{
     float: left;
     line-height: 25px;
     font-size: 1.1em;
+    margin-right: 2px;
 }
 .mol-LayerControl-Search .value{
     float: left;
     margin-right: 5px;
-    width: 66%;
+    width: 55%;
 }
 .mol-LayerControl-Search .execute{
     float: left;
-    margin-left: 12px;
+    margin-left: 6px;
     width: 50px;
 }
 .mol-LayerControl-Search .cancel{
     width: 25px;
-    margin-left: 12px;
+    margin-left: 6px;
     padding-top: 2px;
 }
 .mol-LayerControl-Search .cancel img{
