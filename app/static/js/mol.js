@@ -1270,7 +1270,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
-                            layerUi.getSubName().text(layerSubName);
+                            //layerUi.getSubName().text(layerSubName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
@@ -1365,7 +1365,6 @@ MOL.modules.LayerControl = function(mol) {
                         '    <button><img class="type" src="/static/maps/search/points.png"></button>' +
                         '    <div class="layerName">' +
                         '        <div class="layerNomial">Smilisca puma</div>' +
-                        '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
                         '    <div class="buttonContainer">' +
                         '        <input class="toggle" type="checkbox">' +
