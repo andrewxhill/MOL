@@ -495,8 +495,13 @@ MOL.modules.Search = function(mol) {
                 allTypes.addStyleName("all");
                 allTypes.click(this._allTypesCallback(filter, name));
                 allTypes.addStyleName("selected");
-
+                var tmpKeys = []
                 for (k in keys) {
+                    tmpKeys.push(k);
+                }
+                tmpKeys.sort()
+                for (i in tmpKeys) {
+                    k = tmpKeys[i];
                     option = filter.getNewOption();
                     option.text(k);
                     option.click(this._optionCallback(filter, name));

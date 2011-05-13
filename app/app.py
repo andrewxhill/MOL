@@ -129,7 +129,7 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        #memcache.flush_all()
+        memcache.flush_all()
         
         t = self.request.get('t', 'litoria eucnemis')
         n = MasterSearchIndex.all().filter("term =", t)
