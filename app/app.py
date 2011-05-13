@@ -130,6 +130,7 @@ class Andrew(BaseHandler):
         self.post()
     def post(self):
         #memcache.flush_all()
+        
         t = self.request.get('t', 'litoria eucnemis')
         n = MasterSearchIndex.all().filter("term =", t)
         for r in n.fetch(10):
@@ -137,6 +138,7 @@ class Andrew(BaseHandler):
             self.response.out.write(str(r.rank) +"<br/>")
             self.response.out.write(str(r.parent()) +"<br/>")
             #self.response.out.write(str(db.get(r.parent())) +"<br/>")
+        
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
             
         

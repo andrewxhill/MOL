@@ -36,14 +36,9 @@ def delete(entity):
 def clean_term_index(entity):
     """Cleans term indexes of terms pointing to old layers"""
     #if len(entity.key().name().split('/')[1]) < 6:
-    p = db.get(entity.key().parent())
-    if entity.term == 'litoria eucnemis':
-        logging.error('litoria eucnemis')
-        logging.error(entity)
-        logging.error(p)
-        pass
-    if p is None:
-        logging.error(str(entity.key()) + " deleted")
+    p = entity.key().parent()
+    if db.get(p) is None:
+        logging.info(str(entity.key()) + " deleted")
         yield op.db.Delete(entity)
     else:
         pass

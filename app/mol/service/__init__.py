@@ -270,6 +270,7 @@ class MasterTermSearch(object):
         self.rpc = None
         self.api_results = None
         self.cachetime = 6000
+        self.memkey = None
         self.gbifmemkey = None
         self.gbifquery = True #tells service whether or not to include GBIF results
         
@@ -344,37 +345,45 @@ class MasterTermSearch(object):
     def search(self,query,gbifquery=True):
         self.gbifquery = gbifquery
         self.gbifnamesearch(query)
-        memkey = "MasterTermSearch/%s/%s/%s" % (query['term'],query['limit'],query['offset'])
-        self.keys = memcache.get(memkey)
+        self.memkey = "MasterTermSearch/%s/%s/%s" % (query['term'],query['limit'],query['offset'])
+        self.keys = memcache.get(self.memkey)
         self.query = query
         if self.keys is None:
             osi = MasterSearchIndex.all(keys_only=True)
             osi.filter("term =",str(query['term']).lower()).order("-rank")
             res = osi.fetch(limit=query["limit"],offset=query["offset"])
             self.keys = [i.parent() for i in res]
-            memcache.set(memkey, self.keys, self.cachetime)
+            memcache.set(self.memkey, self.keys, self.cachetime)
             
     def api_format(self):
         if self.api_results is None:
             ct = 0
             gbifnames = self._gbifresults()
-            for r in self.keys:
-                r = db.get(r)
-                self._addresult(r.category, r.source, r.name, r.subname, r.info, r.key().name(), ct)
-            
-                ctg = ct%8
-                ct+=1
-                if (ctg==0 or ct==3) and len(gbifnames)>0:
-                    cur = gbifnames.pop(0)
-                    self._addresult(cur["category"], 
-                                    cur["source"], 
-                                    cur["name"], 
-                                    cur["subname"], 
-                                    cur["info"], 
-                                    cur["key_name"], 
-                                    ct)
+            delcache = False
+            for rk in self.keys:
+                r = db.get(rk)
+                if r is not None:
+                    self._addresult(r.category, r.source, r.name, r.subname, r.info, r.key().name(), ct)
+                
+                    ctg = (ct+1)%8
                     ct+=1
-                    
+                    if (ctg==0 or ct==4) and len(gbifnames)>0:
+                        cur = gbifnames.pop(0)
+                        self._addresult(cur["category"], 
+                                        cur["source"], 
+                                        cur["name"], 
+                                        cur["subname"], 
+                                        cur["info"], 
+                                        cur["key_name"], 
+                                        ct)
+                        ct+=1
+                else:
+                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    delcache = True
+            if delcache:
+                memcache.delete(self.memkey)
             while len(gbifnames) > 0:
                 cur = gbifnames.pop(0)
                 self._addresult(cur["category"], 

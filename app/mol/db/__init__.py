@@ -38,7 +38,7 @@ class OccurrenceIndex(db.Model): #parent = MultiPolygon see below
     deleted = db.BooleanProperty(default=None) 
     occurrenceSet = db.ReferenceProperty(OccurrenceSet, collection_name="polygons") #OccurrenceSet
     
-class MultiPolygonIndex(db.Model): #parent = OccurrenceSet see below
+class MultiPolygonIndex(db.Model): #parent = MultiPolygon see below
     term = db.CategoryProperty() #string values to search for sets
     rank = db.RatingProperty(default=0) #weight of term for an order by
     
