@@ -19,40 +19,13 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 import urllib2
 
-class InterpolateTiles(webapp.RequestHandler):
-    def get(self):
-        self.post()
-    def post(self):
-        pass
-        """
-        t = TileUpdate.all().fetch(1)
-        if len(t) == 1:
-            mr_control.start_map(
-              "Process queued Tiles stored in TileUpdate",
-              "mappers.interpolate",
-              "mapreduce.input_readers.DatastoreInputReader",
-              {"entity_kind": "Tiles.TileUpdate",
-              "shard_count": 2,
-              },
-              mapreduce_parameters={"done_callback": "/"},
-            )
-            self.response.headers['Content-Type'] = 'text/plain'
-            self.response.out.write('MR Cron Started')
-        """
-"""
-class RemoteScan(webapp.RequestHandler):
-    def get(self):
-        self.post()
-    def post(self):
-        url = "http://mol.colorado.edu/layers/api/scan"
-        try:
-            result = urllib2.urlopen(url)
-        except urllib2.URLError, e:
-          self.response.out.write(e)
-"""
+class Hi(webapp.RequestHandler):
+    pass
+    
 application = webapp.WSGIApplication(
          [
-          ('/cron/interpolate',InterpolateTiles),
+          ('/cron/hi',Hi),
+          #('/cron/interpolate',InterpolateTiles),
           #('/cron/remote/scan',RemoteScan)
          ],
          debug=True)

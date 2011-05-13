@@ -868,7 +868,7 @@ class TileService(object):
         self.result = None
         self.status = False
         self.rpc = urlfetch.create_rpc()
-        self.cachetime = 60000
+        self.cachetime = int(41943040 / (2**int(self.query['z'])))
         
     def colortile(self):
         """Colors a tile based on R,G,B values"""
@@ -928,11 +928,13 @@ class TileService(object):
         else:
             return False
             
-    def setmc(self, k, status=None):
+    def setmc(self, k, ct=None, status=None):
+        if ct is None:
+            ct = self.cachetime
         if status is None:
-            memcache.set(k, status, self.cachetime)
+            memcache.set(k, status, ct)
         else:
-            memcache.set(k, self.png, self.cachetime)
+            memcache.set(k, self.png, ct)
     
     
     def gettile(self):
@@ -952,19 +954,19 @@ class TileService(object):
             """first check to see if the colored tile is in memcache"""
             if self.query['r'] is not None:
                 if self.fetchmc(self.colorkey) is True: 
-                    self.setmc(self.colorkey)
+                    self.setmc(self.colorkey, ct=int(self.cachetime/100))
                     self.status = 200
                     return
             
             if mcstatus is True: 
                 self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.colorkey)
+                self.setmc(self.colorkey, ct=int(self.cachetime/100))
                 self.status = 200
             elif self.fetchds() is True:
                 self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.colorkey)
+                self.setmc(self.colorkey, ct=int(self.cachetime/100))
                 self.status = 200
             elif self.fetchurl() == 204:
                 self.status = 204 #tiling ran, no data existed in the tile
@@ -972,7 +974,7 @@ class TileService(object):
             elif self.fetchurl() is True:
                 self.setmc(self.rawkey)
                 self.colortile()
-                self.setmc(self.colorkey)
+                self.setmc(self.colorkey, ct=int(self.cachetime/100))
                 self.status = 200
             else: 
                 self.setmc(self.rawkey, status = 404)

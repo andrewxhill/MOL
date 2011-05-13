@@ -6,39 +6,14 @@ mapreduce:
     params:
     - name: entity_kind
       default: mol.db.Species
-
       
-- name: Set range map boolean on SpeciesIndex
+- name: Clean term index of terms with nonexisting parents
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.set_range_map
+    handler: mappers.clean_term_index
     params:
     - name: entity_kind
-      default: mol.db.SpeciesIndex
-    - name: shard_count
-      default: 2
-    - name: processing_rate
-      default: 800 
-            
-- name: Process queued Tiles stored in TileUpdate
-  mapper:
-    input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.interpolate
-    params:
-    - name: entity_kind
-      default: mol.db.TileUpdate
-    - name: shard_count
-      default: 2
- 
-- name: Move TileSetIndex to MultiPolygon
-  mapper:
-    input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.move_tile_set
-    params:
-    - name: entity_kind
-      default: mol.db.TileSetIndex
-    - name: shard_count
-      default: 4
+      default: mol.db.MasterSearchIndex
 
 - name: Move Index to MasterSearch
   mapper:
