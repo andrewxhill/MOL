@@ -716,9 +716,9 @@ MOL.modules.Map = function(mol) {
                     foreground: new Image(),
                     error: new Image()
                 };
-                this._iconLayers.background.src = "/static/placemark-background.png";
-                this._iconLayers.foreground.src = "/static/placemark-foreground.png";
-                this._iconLayers.error.src = "/static/placemark-error.png";
+                this._iconLayers.background.src = "/static/maps/placemarks/placemark-background.png";
+                this._iconLayers.foreground.src = "/static/maps/placemarks/placemark-foreground.png";
+                this._iconLayers.error.src = "/static/maps/placemarks/placemark-error.png";
             },
             
             getIconWidth: function() {
