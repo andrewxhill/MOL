@@ -129,17 +129,43 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        memcache.flush_all()
+        name = 'Lake Chad Flooded Savannah'
+        desc = ""
+        dtype = "Ecoregion"
+        refstring = "Cite me"
+        agrstring = "Please use"
+        datestring = "2001-04-20"
+        md = {'collection':{
+                        'name': name,
+                        'description': desc,
+                        'type': dtype,
+                        'spatial': {
+                                'reference': 'WGS84',
+                                'extent': {'text': 'Global',
+                                           'coordinates': {
+                                                'northWest':{
+                                                        'latitude': 90.0,
+                                                        'longitude': -180.0,
+                                                        },
+                                                 'southEast':{
+                                                        'latitude': -90.0,
+                                                        'longitude': 180.0,
+                                                        }
+                                                },
+                                          },
+                                    },
+                        'references': {0 : refstring, },
+                        'agreements': {0 : agrstring, },
+                        'date': datestring,
+                        }
+             }
+                        
+                                
+                        
         
-        t = self.request.get('t', 'litoria eucnemis')
-        n = MasterSearchIndex.all().filter("term =", t)
-        for r in n.fetch(10):
-            self.response.out.write(str(r.term) +"<br/>")
-            self.response.out.write(str(r.rank) +"<br/>")
-            self.response.out.write(str(r.parent()) +"<br/>")
-            #self.response.out.write(str(db.get(r.parent())) +"<br/>")
-        
-        self.response.out.write("<p>Andrew says %s</p>" % 'hi')
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write(simplejson.dumps(md)) # Not found
+        #self.response.out.write("<p>Andrew says %s</p>" % 'hi')
             
         
       
