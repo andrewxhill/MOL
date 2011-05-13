@@ -3282,10 +3282,9 @@ MOL.modules.Search = function(mol) {
                        '  <div class="searchResults widgetTheme">' + 
                        '    <div class="resultHeader">Results</div>' + 
                        '    <ol class="resultList"></ol>' + 
-                       '  </div>' + 
-                       '  <div class="pageNavigation">' + 
-                       '     <button class="addAll">Add</button>' + 
-                       '     <button class="nextPage">More</button>' + 
+                       '    <div class="pageNavigation">' + 
+                       '       <button class="addAll">Map Selected Layers</button>' + 
+                       '    </div>' + 
                        '  </div>' + 
                        '</div>';
             }
