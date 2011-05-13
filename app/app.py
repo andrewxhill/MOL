@@ -127,54 +127,7 @@ class LatestHandler(BaseHandler):
 class Andrew(BaseHandler):
     """Handler for the search UI."""
     def get(self):
-        """
-        er = EcoregionLayer(
-                name = 'candyland',
-                id = 'NT0456',
-                ecoCodes = ['NT0456', 'NT0457'],
-                searchStrings = ['puma', 'concolor']
-            )
-        db.put(er)
-        er = Ecoregion(
-                key_name = "%s" % 'NT0405',
-                ecoName = 'name',
-                realm = 'realm',
-                biome = 1,
-                ecoNum = 3,
-                ecoId = 4,
-                g200Region = 'region',
-                g200Num = 5,
-                g200Biome = 8,
-                g200Stat = 0
-            )
-        db.put(er)
-        
-        query = EcoregionSet.all()
-        dsputs = []
-        ct = 0
-        for r in query.fetch(500):
-                ss = {}
-                er = []
-                skipped = True
-                for ek in r.ecoregions:
-                    nm = ek.name()
-                    nma = str(nm).split('/')
-                    if len(nma) == 2:
-                        er.append(db.Key.from_path('Ecoregion', nm))
-                    else:
-                        skipped = False
-                        if len(nma)==1:
-                            er.append(db.Key.from_path('Ecoregion', "wwf/%s" % nm))
-                        else:
-                            er.append(db.Key.from_path('Ecoregion', "wwf/%s" % nma[-1]))
-                if skipped is False:
-                    ct+=1
-                    r.ecoregions = er
-            dsputs.append(r.key())
-        db.delete(dsputs)
-        self.response.out.write("%s ER moves<br/>" % ct)
-        """
-        memcache.flush_all()
+        #memcache.flush_all()
         self.response.out.write("Andrew says %s" % 'hi')
             
         

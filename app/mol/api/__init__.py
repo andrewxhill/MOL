@@ -857,7 +857,6 @@ class ColorImage(BaseHandler):
         r = int(self.request.get('r', 0))
         g = int(self.request.get('g', 0))
         b = int(self.request.get('b', 0))
-        logging.error(r)
         memk = "%s/%s/%s/%s" % (name, r, g, b)
         val = memcache.get(memk)
         if val is None:

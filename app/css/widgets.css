@@ -116,10 +116,10 @@ button:hover{
 .mol-LayerControl-Layers .layer .layerNomial{
     float: left;
     width: 100%;
+    font-size: 0.6em;
 }
-.mol-LayerControl-Layers .layer .layerAuthor{
-    float: left;
-    font-size: 0.8em;
+.mol-LayerControl-Layers .layer .layerNomial:first-line{
+    font-size: 2em;
 }
 .mol-LayerControl-Layers .layer .type{
     float: left;

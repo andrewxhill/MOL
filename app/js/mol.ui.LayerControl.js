@@ -95,6 +95,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerId = layer.getKeyName(),
                             layerType = layer.getType(),
                             layerName = layer.getName(),
+                            layerSubName = layer.getSubName(),
                             layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display,
@@ -112,6 +113,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
+                            //layerUi.getSubName().text(layerSubName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
@@ -180,10 +182,10 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.layerNomial';
                 return x ? x : (this._layerName = this.findChild(s));
             },  
-            getAuthor: function() {
-                var x = this._layerAuthor,
+            getSubName: function() {
+                var x = this._layerSubName,
                     s = '.layerAuthor';
-                return x ? x : (this._layerAuthor = this.findChild(s));
+                return x ? x : (this._layerSubName = this.findChild(s));
             }, 
             getToggle: function() {
                 var x = this._layerToggle,
@@ -206,7 +208,6 @@ MOL.modules.LayerControl = function(mol) {
                         '    <button><img class="type" src="/static/maps/search/points.png"></button>' +
                         '    <div class="layerName">' +
                         '        <div class="layerNomial">Smilisca puma</div>' +
-                        '        <div class="layerAuthor">A. Steele</div>' +
                         '    </div>' +
                         '    <div class="buttonContainer">' +
                         '        <input class="toggle" type="checkbox">' +

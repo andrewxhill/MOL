@@ -50,6 +50,7 @@ MOL.modules.model = function(mol) {
                 this._type = params.type;
                 this._source = params.source;
                 this._name = params.name;
+                this._name2 = params.name2;
                 this._key_name = params.key_name;
                 this._json = params.json;
                 this._color = null;
@@ -82,6 +83,10 @@ MOL.modules.model = function(mol) {
             
             getName: function() {
                 return this._name;                
+            },
+            
+            getSubName: function() {
+                return this._name2;                
             },
 
             getKeyName: function() {

@@ -358,9 +358,10 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                name2: result.name2, 
                                 key_name: result.key_name
                             } 
-                     );
+                        );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -389,6 +390,7 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                name2: result.name2, 
                                 key_name: result.key_name,
                                 json: response
                             }
@@ -432,6 +434,7 @@ MOL.modules.Search = function(mol) {
                             source: res.source, 
                             type: res.type, 
                             name: res.name,
+                            name2: res.name2,
                             key_name: res.key_name
                         }
                     );

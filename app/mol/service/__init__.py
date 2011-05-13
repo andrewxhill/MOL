@@ -33,7 +33,6 @@ import StringIO
 
 def colorPng(img, r, g, b, isObj=False):
     val = None
-    logging.error(img)
     if isObj:
         imt = png.Reader(bytes=img)
     else:
@@ -911,7 +910,7 @@ class TileService(object):
         
     def fetchds(self):
         """Returns a tile based on its key if it is available in the datastore"""
-        tile = Tile.get_by_key_name(self.key)
+        tile = Tile.get_by_key_name(self.rawkey)
         if tile is not None:
             self.png = tile
             return True
@@ -930,7 +929,7 @@ class TileService(object):
             return False
             
     def setmc(self, k, status=None):
-        if status is not None:
+        if status is None:
             memcache.set(k, status, self.cachetime)
         else:
             memcache.set(k, self.png, self.cachetime)
@@ -953,6 +952,7 @@ class TileService(object):
             """first check to see if the colored tile is in memcache"""
             if self.query['r'] is not None:
                 if self.fetchmc(self.colorkey) is True: 
+                    self.setmc(self.colorkey)
                     self.status = 200
                     return
             

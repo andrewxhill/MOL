@@ -620,6 +620,7 @@ MOL.modules.model = function(mol) {
                 this._type = params.type;
                 this._source = params.source;
                 this._name = params.name;
+                this._name2 = params.name2;
                 this._key_name = params.key_name;
                 this._json = params.json;
                 this._color = null;
@@ -652,6 +653,10 @@ MOL.modules.model = function(mol) {
             
             getName: function() {
                 return this._name;                
+            },
+            
+            getSubName: function() {
+                return this._name2;                
             },
 
             getKeyName: function() {
@@ -1247,6 +1252,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerId = layer.getKeyName(),
                             layerType = layer.getType(),
                             layerName = layer.getName(),
+                            layerSubName = layer.getSubName(),
                             layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display,
@@ -1264,6 +1270,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
+                            layerUi.getSubName().text(layerSubName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
@@ -1332,10 +1339,10 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.layerNomial';
                 return x ? x : (this._layerName = this.findChild(s));
             },  
-            getAuthor: function() {
-                var x = this._layerAuthor,
+            getSubName: function() {
+                var x = this._layerSubName,
                     s = '.layerAuthor';
-                return x ? x : (this._layerAuthor = this.findChild(s));
+                return x ? x : (this._layerSubName = this.findChild(s));
             }, 
             getToggle: function() {
                 var x = this._layerToggle,
@@ -2783,9 +2790,10 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                name2: result.name2, 
                                 key_name: result.key_name
                             } 
-                     );
+                        );
                         config.action = 'add';
                         config.layer = layer;
                         bus.fireEvent(new LayerEvent(config));                               
@@ -2814,6 +2822,7 @@ MOL.modules.Search = function(mol) {
                                 type: result.type, 
                                 source: result.source, 
                                 name: result.name, 
+                                name2: result.name2, 
                                 key_name: result.key_name,
                                 json: response
                             }
@@ -2857,6 +2866,7 @@ MOL.modules.Search = function(mol) {
                             source: res.source, 
                             type: res.type, 
                             name: res.name,
+                            name2: res.name2,
                             key_name: res.key_name
                         }
                     );
