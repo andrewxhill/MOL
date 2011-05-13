@@ -1,9 +1,8 @@
 html { height: 100% }
 body { height: 100%; margin: 0px; padding: 0px; overflow: auto; min-width: 720px;
-       font-family: Arial, sans-serif; color: #141414; font-weight:700;
-       overflow-y: hidden}
+       font-family: Arial, sans-serif; color: #141414; font-weight:700;}
 #map { height: 100% }
-#meta { height: 0% }
+#metadata { height: 0px; overflow: hidden; }
 
 /* Set up RightControl defaults */
 .mol-Map-RightControl { margin-right: 5px; width: 290px; }
