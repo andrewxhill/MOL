@@ -313,7 +313,7 @@ class MasterTermSearch(object):
     def gbifnamesearch(self, query):
         if self.gbifquery:
             self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
-            self.gbifnames = memcache.get(self.gbifmemkey)  
+            self.gbifnames = None #memcache.get(self.gbifmemkey)  
             if self.gbifnames is None:
                 params = urllib.urlencode({
                         'maxResults': query.get('limit', 10),
@@ -333,10 +333,12 @@ class MasterTermSearch(object):
                 for i in result.content.split('\n'):
                     i = i.strip().split('\t')
                     if len(i)>1:
-                        self.gbifnames.append({'name': i[1].strip(), 'subname': 'GBIF Points', 
-                                               'category': 'points', 'source': 'GBIF', 'info': None,
-                                               'key_name': "points/gbif/%s" % i[0].strip()})
-                        ct+=1
+                        gname = i[1].strip()
+                        if 'subsp.' not in gname:
+                            self.gbifnames.append({'name': gname, 'subname': 'GBIF Points', 
+                                                   'category': 'points', 'source': 'GBIF', 'info': None,
+                                                   'key_name': "points/gbif/%s" % i[0].strip()})
+                            ct+=1
                 memcache.set(self.gbifmemkey, self.gbifnames, 10*self.cachetime)
             return self.gbifnames
         else:
