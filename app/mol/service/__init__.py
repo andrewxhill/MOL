@@ -270,6 +270,7 @@ class MasterTermSearch(object):
         self.rpc = None
         self.api_results = None
         self.cachetime = 6000
+        self.mmc = None
         self.mmc_result = None
         self.memkey = "MasterTermSearch/%s/%s/%s" % (self.query['term'],self.query['limit'],self.query['offset'])
         self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (self.query.get('term'),self.query.get('limit', 10),self.query.get('start', 0))
@@ -312,22 +313,30 @@ class MasterTermSearch(object):
             "key_name": key_name
             }
                 
-    def gbifnamesearch(self):
-        if self.gbifquery:
-            if self.gbifmemkey in self.mmc_result.keys():
-                self.gbifnames = self.mmc_result[self.gbifmemkey]
-            else:
-                params = urllib.urlencode({
-                        'maxResults': self.query.get('limit', 250),
-                        'startIndex': self.query.get('offset', 0),
-                        'query': self.query.get('term'),
-                        'returnType': 'nameId'})
-                url = 'http://data.gbif.org/species/nameSearch?%s' % params
-                self.rpc = urlfetch.create_rpc()
-                urlfetch.make_fetch_call(self.rpc, url)
+    def _memcache(self):
+        if self.mmc is None:
+            self.mmc = []
+            self.mmc.append(self.memkey)
+            if self.gbifquery:
+                self.mmc.append(self.gbifmemkey)
+            self.mmc_result = memcache.get_multi(self.mmc)
             
-    def _gbifresults(self):
+    def gbifnamesearch(self):
+        self._memcache()
         if self.gbifquery:
+            params = urllib.urlencode({
+                    'maxResults': self.query.get('limit', 250),
+                    'startIndex': self.query.get('offset', 0),
+                    'query': self.query.get('term'),
+                    'returnType': 'nameId'})
+            url = 'http://data.gbif.org/species/nameSearch?%s' % params
+            self.rpc = urlfetch.create_rpc()
+            urlfetch.make_fetch_call(self.rpc, url)
+            
+    def gbifresults(self):
+        if self.gbifquery:      
+            if self.gbifmemkey in self.mmc_result:
+                self.gbifnames = self.mmc_result[self.gbifmemkey]
             if self.gbifnames is None:
                 result = self.rpc.get_result()
                 self.gbifnames = []
@@ -346,14 +355,9 @@ class MasterTermSearch(object):
             return self.gbifnames
         else:
             return []
-        
+            
     def search(self):
-        mmc = []
-        if self.gbifquery:
-            mmc.append(self.gbifmemkey)
-        mmc.append(self.memkey)
-        self.mmc_result = memcache.get_multi(mmc)
-        self.gbifnamesearch()
+        self._memcache()      
         if self.memkey in self.mmc_result:
             self.keys = self.mmc_result[self.memkey]
         else:
@@ -366,8 +370,9 @@ class MasterTermSearch(object):
     def api_format(self):
         self.api_results = memcache.get(self.apimemkey)
         if self.api_results is None:
+            self.gbifnamesearch()
             self.search()
-            gbifnames = self._gbifresults()
+            gbifnames = self.gbifresults()
             delcache = False
             kct = -1
             ct = 0
