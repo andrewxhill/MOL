@@ -30,7 +30,7 @@ class OccurrenceSet(db.Model): #key_name = ecoregion/wwf/puma_concolor or someth
     subname = db.StringProperty()
     source = db.CategoryProperty() #wwf
     category = db.CategoryProperty() #ecoregion
-    info = db.BlobProperty() #some meta standard for sets of occ polygons
+    info = db.TextProperty() #some meta standard for sets of occ polygons
     dateCreated = db.DateTimeProperty(auto_now_add=True)
     
 class OccurrenceIndex(db.Model): #parent = MultiPolygon see below
@@ -47,7 +47,7 @@ class MultiPolygon(db.Model): #key_name = some_id
     subname = db.StringProperty()
     source = db.CategoryProperty() #'wwf' would be one
     category = db.CategoryProperty() #'ecoregion' would be one
-    info = db.BlobProperty() #some meta standard based on the type, but not restriced by the datastore model
+    info = db.TextProperty() #some meta standard based on the type, but not restriced by the datastore model
     dateCreated = db.DateTimeProperty(auto_now_add=True)
 
 class Tile(db.Model):

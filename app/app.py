@@ -140,7 +140,10 @@ class Andrew(BaseHandler):
                         'description': desc,
                         'type': dtype,
                         'spatial': {
-                                'reference': 'WGS84',
+                                'resolution': '1 degree',
+                                'datumcode': 'WGS84',
+                                'epsg': 6166,
+                                'type': 'shapefile',
                                 'extent': {'text': 'Global',
                                            'coordinates': {
                                                 'northWest':{
