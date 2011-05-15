@@ -130,8 +130,7 @@ class WebAppHandler(BaseHandler):
         offset = int(query.get('offset', 0))
         
         query = {"term": term, "limit": limit, "offset": offset}
-        mts = MasterTermSearch()
-        mts.search(query)
+        mts = MasterTermSearch(query)
         return mts.api_format()
 
 class PointsHandler(BaseHandler):

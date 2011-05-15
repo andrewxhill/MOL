@@ -258,9 +258,9 @@ class LayerService(object):
         return lambda: self._handle_layer_search_callback(provider, rpc)
 
 class MasterTermSearch(object):
-    def __init__(self):
+    def __init__(self, query, gbifquery=True):
         self.cachetime = 6000
-        self.query = {}
+        self.query = query
         self.types = {}
         self.sources = {}
         self.layers = {}
@@ -270,9 +270,11 @@ class MasterTermSearch(object):
         self.rpc = None
         self.api_results = None
         self.cachetime = 6000
-        self.memkey = None
-        self.gbifmemkey = None
-        self.gbifquery = True #tells service whether or not to include GBIF results
+        self.mmc_result = None
+        self.memkey = "MasterTermSearch/%s/%s/%s" % (self.query['term'],self.query['limit'],self.query['offset'])
+        self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (self.query.get('term'),self.query.get('limit', 10),self.query.get('start', 0))
+        self.gbifquery = gbifquery #tells service whether or not to include GBIF results
+        self.apimemkey = "MTSAPI/%s/%s/%s" % (self.query['term'],self.query['limit'],self.query['offset'])
         
     def _addresult(self, category, source, name, subname, info, key_name, ct):
         if category not in self.types.keys():
@@ -310,15 +312,15 @@ class MasterTermSearch(object):
             "key_name": key_name
             }
                 
-    def gbifnamesearch(self, query):
+    def gbifnamesearch(self):
         if self.gbifquery:
-            self.gbifmemkey = "GBIF/namesearch/%s/%s/%s" % (query.get('term'),query.get('limit', 10),query.get('start', 0))
-            self.gbifnames = memcache.get(self.gbifmemkey)  
-            if self.gbifnames is None:
+            if self.gbifmemkey in self.mmc_result.keys():
+                self.gbifnames = self.mmc_result[self.gbifmemkey]
+            else:
                 params = urllib.urlencode({
-                        'maxResults': query.get('limit', 10),
-                        'startIndex': query.get('offset', 0),
-                        'query': query.get('term'),
+                        'maxResults': self.query.get('limit', 250),
+                        'startIndex': self.query.get('offset', 0),
+                        'query': self.query.get('term'),
                         'returnType': 'nameId'})
                 url = 'http://data.gbif.org/species/nameSearch?%s' % params
                 self.rpc = urlfetch.create_rpc()
@@ -345,26 +347,31 @@ class MasterTermSearch(object):
         else:
             return []
         
-    def search(self,query,gbifquery=True):
-        self.gbifquery = gbifquery
-        self.gbifnamesearch(query)
-        self.memkey = "MasterTermSearch/%s/%s/%s" % (query['term'],query['limit'],query['offset'])
-        self.keys = memcache.get(self.memkey)
-        self.query = query
-        if self.keys is None:
+    def search(self):
+        mmc = []
+        if self.gbifquery:
+            mmc.append(self.gbifmemkey)
+        mmc.append(self.memkey)
+        self.mmc_result = memcache.get_multi(mmc)
+        self.gbifnamesearch()
+        if self.memkey in self.mmc_result:
+            self.keys = self.mmc_result[self.memkey]
+        else:
             osi = MasterSearchIndex.all(keys_only=True)
-            osi.filter("term =",str(query['term']).lower()).order("-rank")
-            res = osi.fetch(limit=query["limit"],offset=query["offset"])
+            osi.filter("term =",str(self.query['term']).lower()).order("-rank")
+            res = osi.fetch(limit=self.query["limit"],offset=self.query["offset"])
             self.keys = [i.parent() for i in res]
             memcache.set(self.memkey, self.keys, self.cachetime)
             
     def api_format(self):
+        self.api_results = memcache.get(self.apimemkey)
         if self.api_results is None:
-            ct = 0
+            self.search()
             gbifnames = self._gbifresults()
             delcache = False
-            for rk in self.keys:
-                r = db.get(rk)
+            kct = -1
+            ct = 0
+            for r in db.get(self.keys):
                 if r is not None:
                     self._addresult(r.category, r.source, r.name, r.subname, r.info, r.key().name(), ct)
                 
@@ -380,10 +387,12 @@ class MasterTermSearch(object):
                                         cur["key_name"], 
                                         ct)
                         ct+=1
+                    kct += 1
                 else:
-                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000))
-                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000))
-                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    rk = self.keys[kct]
+                    db.delete([MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000),
+                               MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000),
+                               OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000)])
                     delcache = True
             if delcache:
                 memcache.delete(self.memkey)
@@ -401,6 +410,7 @@ class MasterTermSearch(object):
             self.api_results = {"query": self.query, "types": self.types, 
                    "sources": self.sources, "layers": self.layers,
                    "names": self.names}
+            memcache.set(self.apimemkey, self.api_results, self.cachetime)
         return self.api_results
         
         
