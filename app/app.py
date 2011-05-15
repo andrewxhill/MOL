@@ -135,36 +135,57 @@ class Andrew(BaseHandler):
         refstring = "Cite me"
         agrstring = "Please use"
         datestring = "2001-04-20"
-        md = {'collection':{
-                        'name': name,
-                        'description': desc,
-                        'type': dtype,
-                        'spatial': {
-                                'resolution': '1 degree',
-                                'datumcode': 'WGS84',
-                                'epsg': 6166,
-                                'type': 'shapefile',
-                                'extent': {'text': 'Global',
-                                           'coordinates': {
-                                                'northWest':{
-                                                        'latitude': 90.0,
-                                                        'longitude': -180.0,
-                                                        },
-                                                 'southEast':{
-                                                        'latitude': -90.0,
-                                                        'longitude': 180.0,
-                                                        }
-                                                },
-                                          },
-                                    },
-                        'references': {0 : refstring, },
-                        'agreements': {0 : agrstring, },
-                        'date': datestring,
-                        }
-             }
-                        
-                                
-                        
+        md = {
+          'collection': {
+            'name': name,
+            'description': desc,
+            'type': dtype,
+            'spatial': {
+              'values': {
+                'min': -499,
+                'max': 888,
+                'nodata': -9999
+                }, 
+              'fileformat': {
+                'byteorder': 'I',
+                'layout': 'BIL',
+                'nbands': 1,
+                'nbits': 16
+                },
+              'resolution': '1 degree',
+              'datumcode': 'WGS84',
+              'epsg': 6166,
+              'type': 'shapefile',
+              'extent': {
+                'text': 'Global',
+                'coordinates': {
+                  'northWest': {
+                    'latitude': 90.0,
+                    'longitude': -180.0,
+                    },
+                  'southEast': {
+                    'latitude': -90.0,
+                    'longitude': 180.0,
+                    }
+                  },
+                },
+              },
+            'references': {
+              0 : refstring
+              },
+            'agreements': {
+              0 : agrstring 
+              },
+            'date': {
+              'min': 1305499662, 
+              'max': 4453569068,                             
+              'resolution': {
+                'unit': 'year', 
+                'value': 20
+                }
+              }
+            }
+          }
         
         self.response.headers['Content-Type'] = "application/json"
         self.response.out.write(simplejson.dumps(md)) # Not found
