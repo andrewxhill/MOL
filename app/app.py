@@ -129,15 +129,23 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        name = 'Lake Chad Flooded Savannah'
-        desc = ""
+        name = 'World Ecoregions'
+        src = 'World Wildlife Fund (WWF)'
+        url = 'http://www.worldwildlife.org/science/ecoregions/item1267.html'
+        desc = "The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities."
         dtype = "Ecoregion"
-        refstring = "Cite me"
-        agrstring = "Please use"
+        ref =  {'title': 'Terrestrial ecoregions of the world: a new map of life on earth',
+                'publication': 'BioScience, Volume 51, Issue 11, p.933-938',
+                'year': 2001,
+                'authors': "Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem, K."
+               }
+        agrstring = None
         datestring = "2001-04-20"
         md = {
           'collection': {
             'name': name,
+            'source': src,
+            'url': url,
             'description': desc,
             'type': dtype,
             'spatial': {
@@ -146,13 +154,8 @@ class Andrew(BaseHandler):
                 'max': 888,
                 'nodata': -9999
                 }, 
-              'fileformat': {
-                'byteorder': 'I',
-                'layout': 'BIL',
-                'nbands': 1,
-                'nbits': 16
-                },
-              'resolution': '1 degree',
+              'resolution': {'unit': 'degree',
+                             'value': 2},
               'datumcode': 'WGS84',
               'epsg': 6166,
               'type': 'shapefile',
@@ -171,7 +174,7 @@ class Andrew(BaseHandler):
                 },
               },
             'references': {
-              0 : refstring
+              0 : ref
               },
             'agreements': {
               0 : agrstring 
