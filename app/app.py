@@ -149,11 +149,6 @@ class Andrew(BaseHandler):
             'description': desc,
             'type': dtype,
             'spatial': {
-              'values': {
-                'min': -499,
-                'max': 888,
-                'nodata': -9999
-                }, 
               'resolution': {'unit': 'degree',
                              'value': 2},
               'datumcode': 'WGS84',
