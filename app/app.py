@@ -124,6 +124,30 @@ class LatestHandler(BaseHandler):
         self.redirect('http://biodiversity.colorado.edu/sandiego')
         
         
+class William(BaseHandler):
+    def get(self):
+        self.post()
+    def post(self):
+        key = self.request.get('key')
+        name = self.request.get('name')
+        key = "ecoregion/wwf/%s" % key.strip()
+        er = db.get(db.Key.from_path('MultiPolygon',key))
+        er.name = name
+        er.put()
+        mpi = MultiPolygonIndex(
+                parent = er,
+                term = name,
+                rank = 75
+                )
+        mpi.put()
+        mts = MasterSearchIndex(
+                parent = er,
+                term = name,
+                rank = 75
+                )
+        mts.put()
+            
+        
 class Andrew(BaseHandler):
     """Handler for the search UI."""
     def get(self):
@@ -195,6 +219,7 @@ application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/latest', LatestHandler),
           ('/andrew', Andrew),
+          ('/william', William),
           ('/about', AboutPage),
           ('/tech', TechPage),
           ('/demo', DemoPage),

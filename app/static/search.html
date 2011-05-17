@@ -10,10 +10,56 @@
     color: #141414;
     font-size: 14px;
 }
+#logoSplash{
+    visibility: hidden;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+}
+#logoSplash img{
+    width: 300px;
+    z-index: 1000;
+}
     </style>
+    <script>
+    function initImage() {
+      imageId = 'splash';
+      image = document.getElementById(imageId);
+      setOpacity(image, 99);
+      image.style.visibility = 'visible';
+      fadeOut(imageId,99);
+    }
+    function setOpacity(obj, opacity) {
+      opacity = (opacity == 100)?99.999:opacity;
+      // IE/Win
+      obj.style.filter = "alpha(opacity:"+opacity+")";
+      // Safari<1.2, Konqueror
+      obj.style.KHTMLOpacity = opacity/100;
+      // Older Mozilla and Firefox
+      obj.style.MozOpacity = opacity/100;
+      // Safari 1.2, newer Firefox and Mozilla, CSS3
+      obj.style.opacity = opacity/100;
+    }
+    function fadeOut(objId,opacity) {
+      if (document.getElementById) {
+        obj = document.getElementById(objId);
+        console.log(opacity);
+        if (opacity >= 0) {
+          setOpacity(obj, opacity);
+          opacity -= 10;
+          window.setTimeout("fadeOut('"+objId+"',"+opacity+")", 50);
+        } else {
+            document.getElementById("logoSplash").removeChild(document.getElementById('splash')); 
+        }
+      }
+    }
+    </script>
         <link href="/css/widgets.css" media="screen" rel="stylesheet" type="text/css" /> 
   </head>
-  <body>
+  <body onload="initImage()">
+  <div id="logoSplash" >
+    <img id="splash" src="/static/maps/logo_full.png">
+  </div>
   <div class="mol-TopLeftControl">
    <div class="mol-LayerControl-Search widgetTheme">
       <div class="title">Search:</div>

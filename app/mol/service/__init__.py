@@ -395,9 +395,9 @@ class MasterTermSearch(object):
                     kct += 1
                 else:
                     rk = self.keys[kct]
-                    db.delete([MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000),
-                               MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000),
-                               OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000)])
+                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000))
                     delcache = True
             if delcache:
                 memcache.delete(self.memkey)
@@ -418,9 +418,6 @@ class MasterTermSearch(object):
             memcache.set(self.apimemkey, self.api_results, self.cachetime)
         return self.api_results
         
-        
-        
-
 class LayerProvider(object):
     """An abstract base class for the Layer service."""
         
@@ -925,8 +922,8 @@ class TileService(object):
     def fetchurl(self):
         """Returns a tile from the remote server if needed"""
         if self.result is None:
+            self.rpc.wait()
             self.result = self.rpc.get_result() # This call blocks.
-            
         if self.result.status_code == 204: #means that the tileing job ran, but no data existed in the tile
             return 204
         elif self.result.status_code == 200:
@@ -937,7 +934,8 @@ class TileService(object):
         
     def fetchds(self):
         """Returns a tile based on its key if it is available in the datastore"""
-        tile = Tile.get_by_key_name(self.rawkey)
+        #tile = Tile.get_by_key_name(self.rawkey)
+        tile = None
         if tile is not None:
             self.png = tile
             return True
