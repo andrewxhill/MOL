@@ -60,7 +60,7 @@ class NewMapfile():
                                       </PolygonSymbolizer>
                                       <LineSymbolizer>
                                         <CssParameter name="stroke">#000000</CssParameter>
-                                        <CssParameter name="stroke-width">0.0</CssParameter>
+                                        <CssParameter name="stroke-width">0.7</CssParameter>
                                       </LineSymbolizer>
                                     </Rule>
                                   </Style>"""
