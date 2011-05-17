@@ -485,7 +485,9 @@ MOL.modules.Search = function(mol) {
                     filter = display.getNewFilter(),
                     keys = data[name.toLowerCase()],
                     self = this,
-                    option = null;
+                    option = null,
+                    tmpKeys = [],
+                    k = null;
 
                 filter.getFilterName().text(name);
                 filter.attr('id', name);
@@ -495,11 +497,10 @@ MOL.modules.Search = function(mol) {
                 allTypes.addStyleName("all");
                 allTypes.click(this._allTypesCallback(filter, name));
                 allTypes.addStyleName("selected");
-                var tmpKeys = []
                 for (k in keys) {
                     tmpKeys.push(k);
                 }
-                tmpKeys.sort()
+                tmpKeys.sort();
                 for (i in tmpKeys) {
                     k = tmpKeys[i];
                     option = filter.getNewOption();
