@@ -353,6 +353,7 @@ MOL.modules.Search = function(mol) {
 
                     case 'range':
                     case 'ecoregion':
+                    case 'pa':
                         layer = new Layer(
                             {
                                 type: result.type, 

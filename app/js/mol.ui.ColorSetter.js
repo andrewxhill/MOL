@@ -76,6 +76,9 @@ MOL.modules.ColorSetter = function(mol) {
                             case 'ecoregion':
                                 config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
                                 break;
+                            case 'pa':
+                                config.color = new mol.ui.ColorSetter.Color(44, 6, 209);
+                                break;
                             }                            
                             bus.fireEvent(new ColorEvent(config));
                         }                        

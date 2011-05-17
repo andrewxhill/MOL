@@ -424,9 +424,8 @@ MOL.modules.Map = function(mol) {
                     mapLayer = new mol.ui.Map.PointLayer(map, layer, this._markerCanvas);
                     break;
                 case 'range':
-                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
-                    break;
                 case 'ecoregion':
+                case 'pa':
                     mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
