@@ -59,8 +59,8 @@ class NewMapfile():
                                         <CssParameter name="fill">#000000</CssParameter>
                                       </PolygonSymbolizer>
                                       <LineSymbolizer>
-                                        <CssParameter name="stroke">#000000</CssParameter>
-                                        <CssParameter name="stroke-width">1.0</CssParameter>
+                                        <CssParameter name="stroke">black</CssParameter>
+                                        <CssParameter name="stroke-width">0.0</CssParameter>
                                         <CssParameter name="stroke-opacity">0.0</CssParameter>
                                       </LineSymbolizer>
                                     </Rule>
