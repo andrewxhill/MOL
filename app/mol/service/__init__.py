@@ -395,9 +395,9 @@ class MasterTermSearch(object):
                     kct += 1
                 else:
                     rk = self.keys[kct]
-                    db.delete([MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000),
-                               MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000),
-                               OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000)])
+                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000))
                     delcache = True
             if delcache:
                 memcache.delete(self.memkey)
@@ -937,7 +937,8 @@ class TileService(object):
         
     def fetchds(self):
         """Returns a tile based on its key if it is available in the datastore"""
-        tile = Tile.get_by_key_name(self.rawkey)
+        #tile = Tile.get_by_key_name(self.rawkey)
+        tile = None
         if tile is not None:
             self.png = tile
             return True

@@ -47,7 +47,7 @@ class MultiPolygon(db.Model): #key_name = some_id
     subname = db.StringProperty()
     source = db.CategoryProperty() #'wwf' would be one
     category = db.CategoryProperty() #'ecoregion' would be one
-    info = db.TextProperty() #some meta standard based on the type, but not restriced by the datastore model
+    info = db.TextProperty(default=None) #some meta standard based on the type, but not restriced by the datastore model
     dateCreated = db.DateTimeProperty(auto_now_add=True)
 
 class Tile(db.Model):

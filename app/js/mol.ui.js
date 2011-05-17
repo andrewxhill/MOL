@@ -229,7 +229,12 @@ MOL.modules.ui = function(mol) {
             focus: function() {
                 this._element.focus();
             },
-
+            
+            fadeout: function(n) {
+                var self = this;
+                this._element.animate({opacity:0},3000,'swing', function(){self._element.remove()});
+            },
+            
             /**
              * Gets all of the object's style names, as a space-separated list.
              */

@@ -245,8 +245,7 @@ MOL.modules.LayerControl = function(mol) {
                     r = new Layer();
                 this.findChild('.mol-LayerControl-Layers').append(r);
                 return r;
-            },
-            
+            },         
             _html: function(){
                 return  '<div class="mol-LayerControl-Menu ">' +
                         '    <div class="label">Layers</div>' +

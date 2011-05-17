@@ -92,7 +92,8 @@ button:hover{
     width: 100%;
     float: left;
     position: relative;
-}
+} 
+
 .mol-LayerControl-Layers .layer{
     position: relative;
     width: 97%;
