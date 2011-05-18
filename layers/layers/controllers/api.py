@@ -207,12 +207,12 @@ class ApiController(BaseController):
             
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
-        if os.path.isfile(tile) and overwrite is None:
+        if os.path.isfile(tile) and overwrite is False:
             logging.info('Returning existing tile: ' + tile)
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
-        elif os.path.isfile(null_tile) and overwrite is None:
+        elif os.path.isfile(null_tile) and overwrite is False:
             logging.info('No tile: ' + tile)
             response.status = 204
             del response.headers['content-type']
