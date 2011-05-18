@@ -145,7 +145,7 @@ button:hover{
     cursor: pointer;
 }
 .mol-LayerControl-Layers .layer.selected{
-    border: 3px solid rgba(25, 25, 25, 0.75);
+    border: 3px solid rgba(255, 122, 122, .55);
 }
 .mol-LayerControl-Layers .layer .layerName{
     float: left;
