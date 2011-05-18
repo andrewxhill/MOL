@@ -917,6 +917,7 @@ class TileService(object):
             tileurl = tileurl.replace('{source}', self.query['source'])
             tileurl = tileurl.replace('{id}', self.query['id'])
             self.url = tileurl
+            logging.error(tileurl)
             return tileurl
         
     def fetchurl(self):
