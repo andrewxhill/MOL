@@ -243,7 +243,7 @@ MOL.modules.LayerControl = function(mol) {
             getNewLayer: function(){
                 var Layer = mol.ui.LayerControl.Layer,
                     r = new Layer();
-                this.findChild('.mol-LayerControl-Layers').append(r);
+                this.findChild('.scrollContainer').append(r);
                 return r;
             },         
             _html: function(){
@@ -253,6 +253,8 @@ MOL.modules.LayerControl = function(mol) {
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
+                        '   <div class="scrollContainer">' +
+                        '   </div>';
                         '</div>';
             }
         }
