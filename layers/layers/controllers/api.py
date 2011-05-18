@@ -14,17 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from layers.lib.base import BaseController
-from layers.lib.taskqueue import worker_q
-from layers.lib.mol.service import GenerateTile, GenerateTiles
 from pylons import response, request, app_globals
 import logging
 import os
-os.environ["CELERY_CONFIG_MODULE"] = "layers.cando.settings"
 import simplejson
-from layers.lib.mol.service import Layer
-#from layers.cando.tiling.tasks import EcoregionProcessingThread
 import math
+import urllib
 import urllib2
 
 
@@ -46,53 +41,6 @@ def bboxfromxyz(x,y,z):
     miny = 180 / math.pi * (2 * math.atan( math.exp( miny * math.pi / 180.0)) - math.pi / 2.0)
     maxy = 180 / math.pi * (2 * math.atan( math.exp( maxy * math.pi / 180.0)) - math.pi / 2.0)
     return minx,miny,maxx,maxy
-
-
-class NewMapfile():
-    def __init__(self):
-        self.header = """<?xml version="1.0" encoding="utf-8"?>
-                                <!DOCTYPE Map>
-                                <Map bgcolor="transparent" srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs">
-                                  <Style name="style">
-                                    <Rule>
-                                      <PolygonSymbolizer>
-                                        <CssParameter name="fill">black</CssParameter>
-                                      </PolygonSymbolizer>
-                                      <LineSymbolizer>
-                                        <CssParameter name="stroke">black</CssParameter>
-                                        <CssParameter name="stroke-width">1.0</CssParameter>
-                                        <CssParameter name="stroke-opacity">1.0</CssParameter>
-                                      </LineSymbolizer>
-                                    </Rule>
-                                  </Style>"""
-        self.body = ""
-        self.footer = """</Map>"""
-        self.features = 0
-        
-    def newfeature(self,name,src,proj):
-        self.features += 1
-        tmp_xml = """
-                <Layer name="layer_name" srs="projection_string">
-                <StyleName>style</StyleName>
-                <Datasource>
-                  <Parameter name="type">shape</Parameter>
-                  <Parameter name="file">layer_src</Parameter>
-                </Datasource>
-              </Layer>""".replace("layer_name",name).replace("layer_src",src).replace("projection_string", proj)
-        self.body += tmp_xml
-        return True
-    
-    def returnfile(self):
-        return self.header + self.body + self.footer
-    
-    def savefile(self, filepath):
-        if not os.path.exists(os.path.dirname(filepath)):
-            os.makedirs(os.path.dirname(filepath))
-        f = open(filepath, "w+")
-        f.write(self.returnfile())
-        f.close()
-        return True
-        
         
 class ApiController(BaseController):
     
@@ -138,16 +86,12 @@ class ApiController(BaseController):
             shpdir = app_globals.ECOSHP_DIR
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
             proj = "+proj=latlong +datum=WGS84"
-            #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-            #proj = "+proj=latlong +datum=WGS84"
             
         elif datatype=="pa":
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.PASHP_DIR
             mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml') 
             proj = "+proj=latlong +datum=WGS84"
-            #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-            #proj = "+proj=latlong +datum=WGS84"
             
         mf = NewMapfile()
         

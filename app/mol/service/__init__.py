@@ -48,7 +48,7 @@ def colorPng(img, r, g, b, isObj=False):
         ct = planes
         col = len(ar[row])
         while ct <= col:
-            if ar[row][ct-1]==255:
+            if ar[row][ct-1]>0:
                 ar[row][ct-4] = r
                 ar[row][ct-3] = g
                 ar[row][ct-2] = b
@@ -922,8 +922,11 @@ class TileService(object):
     def fetchurl(self):
         """Returns a tile from the remote server if needed"""
         if self.result is None:
-            self.rpc.wait()
-            self.result = self.rpc.get_result() # This call blocks.
+            try:
+                self.rpc.wait()
+                self.result = self.rpc.get_result() # This call blocks.
+            except:
+                return 300
         if self.result.status_code == 204: #means that the tileing job ran, but no data existed in the tile
             return 204
         elif self.result.status_code == 200:
@@ -993,6 +996,8 @@ class TileService(object):
                 self.colortile()
                 self.setmc(self.colorkey, ct=int(self.cachetime/100))
                 self.status = 200
+            elif self.fetchurl() == 300:
+                self.status = 300
             elif self.fetchurl() == 204:
                 self.status = 204 #tiling ran, no data existed in the tile
                 self.setmc(self.rawkey, status = 204)
