@@ -789,6 +789,15 @@ MOL.modules.ui = function(mol) {
                     return this._element.text();
                 }
             },
+            
+            src: function(src) {
+                if (src) {
+                    this._element.src(src);
+                    return true;
+                } else {
+                    return this._element.src;
+                }
+            },
 
             /**
              * Proxies to JQuery.
@@ -1230,6 +1239,14 @@ MOL.modules.LayerControl = function(mol) {
                 this._display = display;
                 display.setEngine(this);            
                 
+                // Clicking the layer button toggles the layer stack:
+                widget = display.getLayerToggle();
+                widget.click(
+                    function(event) {
+                        display.toggleLayers();
+                    }
+                );
+                
                 // Clicking the add button fires a LayerControlEvent:
                 widget = display.getAddButton();
                 widget.click(
@@ -1237,7 +1254,7 @@ MOL.modules.LayerControl = function(mol) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
                     }
                 );
-
+                
                 // Clicking the delete button fires a LayerControlEvent:
                 widget = display.getDeleteButton();
                 widget.click(
@@ -1275,6 +1292,7 @@ MOL.modules.LayerControl = function(mol) {
                                 // Duplicate layer.
                                 return;
                             }
+                            display.toggleLayers(true);
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
@@ -1393,7 +1411,13 @@ MOL.modules.LayerControl = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
+                this._show = false;
             },     
+            getLayerToggle: function() {
+                var x = this._layersToggle,
+                    s = '.label';
+                return x ? x : (this._layersToggle = this.findChild(s));
+            },    
             getAddButton: function() {
                 var x = this._addButton,
                     s = '.add';
@@ -1408,16 +1432,46 @@ MOL.modules.LayerControl = function(mol) {
             getNewLayer: function(){
                 var Layer = mol.ui.LayerControl.Layer,
                     r = new Layer();
-                this.findChild('.mol-LayerControl-Layers').append(r);
+                this.findChild('.scrollContainer').append(r);
                 return r;
-            },         
+            },      
+            toggleLayers: function(status) {
+                var x = this._toggleLayerImg,
+                    c = this._layerContainer,
+                    s = '.layersToggle';
+                    n = '.scrollContainer';
+                if ( ! x ){
+                    x = this.findChild(s)
+                    this._toggleLayerImg = x;
+                }
+                if ( ! c ){
+                    c = this.findChild(n)
+                    this._layerContainer = c;
+                }
+                if (this._show != status) {
+                    if (this._show ) {  
+                        c.hide();
+                        x.attr("src","/static/maps/layers/expand.png");
+                        this._show = false;
+                    } else {
+                        c.show();
+                        x.attr("src","/static/maps/layers/collapse.png");
+                        this._show = true;
+                    }
+                }
+            },
+                    
             _html: function(){
                 return  '<div class="mol-LayerControl-Menu ">' +
-                        '    <div class="label">Layers</div>' +
+                        '    <div class="label">Layers ' +
+                        '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
+                        '    </div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
+                        '   <div class="scrollContainer">' +
+                        '   </div>';
                         '</div>';
             }
         }
