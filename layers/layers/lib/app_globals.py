@@ -21,6 +21,8 @@ class Globals(object):
         self.RANGESHP_DIR = "/ftp/range/shp"
         self.ECOTILE_DIR = "/ftp/ecoregion/tile"
         self.ECOSHP_DIR = "/ftp/ecoregion/shp"
+        self.PATILE_DIR = "/ftp/pa/tile"
+        self.PASHP_DIR = "/ftp/pa/shp"
         self.ERR_DIR = "/ftp/range/error/"
         self.SRC_DIR = "/ftp/range/new/"
         self.DST_DIR = "/ftp/range/shp/"

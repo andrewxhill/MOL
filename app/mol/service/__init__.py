@@ -418,9 +418,6 @@ class MasterTermSearch(object):
             memcache.set(self.apimemkey, self.api_results, self.cachetime)
         return self.api_results
         
-        
-        
-
 class LayerProvider(object):
     """An abstract base class for the Layer service."""
         
@@ -924,9 +921,10 @@ class TileService(object):
         
     def fetchurl(self):
         """Returns a tile from the remote server if needed"""
+        logging.error(self.url)
         if self.result is None:
             self.result = self.rpc.get_result() # This call blocks.
-            
+        logging.error(self.result.status_code)
         if self.result.status_code == 204: #means that the tileing job ran, but no data existed in the tile
             return 204
         elif self.result.status_code == 200:

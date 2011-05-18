@@ -141,6 +141,14 @@ class ApiController(BaseController):
             #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             #proj = "+proj=latlong +datum=WGS84"
             
+        elif datatype=="pa":
+            ids = request.GET['region_ids'].split(',')
+            shpdir = app_globals.PASHP_DIR
+            mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml') 
+            proj = "+proj=latlong +datum=WGS84"
+            #proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
+            #proj = "+proj=latlong +datum=WGS84"
+            
         mf = NewMapfile()
         
         
@@ -190,51 +198,57 @@ class ApiController(BaseController):
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
             
+        elif datatype=="pa":
+            mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml')   
+            tile_dir = os.path.join(app_globals.PATILE_DIR, id)   
+            tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
+            null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
+            empty_bytes=334
+            
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
-        if os.path.exists(tile) and overwrite is None:
+        if os.path.isfile(tile) and overwrite is None:
             logging.info('Returning existing tile: ' + tile)
             response.headers['Content-Type'] = 'image/png'
             response.status = 200
             return open(tile, 'rb').read()
-        elif os.path.exists(null_tile) and overwrite is None:
+        elif os.path.isfile(null_tile) and overwrite is None:
             logging.info('No tile: ' + tile)
             response.status = 204
             del response.headers['content-type']
             return None
             
-        if not os.path.exists(mapfile):
+        elif not os.path.exists(mapfile):
             logging.info('No mapfile : ' + mapfile)
             response.status = 404
             return None
-            
-        if not os.path.isdir(tile_dir):
-            logging.info('Making directories')
-            os.makedirs(tile_dir)
-        
-        
-        logging.info('Creating tiles')
-        tilestatus = GenerateTile.render(str(id), 
-                            str(tile_dir),
-                            str(mapfile), 
-                            int(x), 
-                            int(y), 
-                            int(z), 
-                            overwrite=overwrite,
-                            empty_bytes=empty_bytes)
-        
-        if tilestatus == 204:
-            response.status = 204
-            del response.headers['content-type']
-            return None
-        elif tilestatus:
-            logging.info('Returning tile : ' + tile)
-            response.headers['Content-Type'] = 'image/png'
-            response.status = 200
-            return open(tile, 'rb').read()
         else:
-            response.status = 404
-            return None
+            if not os.path.isdir(tile_dir):
+                logging.info('Making directories')
+                os.makedirs(tile_dir)
+            
+            logging.info('Creating tiles')
+            tilestatus = GenerateTile.render(str(id), 
+                                str(tile_dir),
+                                str(mapfile), 
+                                int(x), 
+                                int(y), 
+                                int(z), 
+                                overwrite=overwrite,
+                                empty_bytes=empty_bytes)
+            
+            if tilestatus == 204:
+                response.status = 204
+                del response.headers['content-type']
+                return None
+            elif tilestatus:
+                logging.info('Returning tile : ' + tile)
+                response.headers['Content-Type'] = 'image/png'
+                response.status = 200
+                return open(tile, 'rb').read()
+            else:
+                response.status = 404
+                return None
         
         
     def tiles(self, id):
