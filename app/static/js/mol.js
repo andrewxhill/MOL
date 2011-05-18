@@ -920,7 +920,12 @@ MOL.modules.ui = function(mol) {
             focus: function() {
                 this._element.focus();
             },
-
+            
+            fadeout: function(n) {
+                var self = this;
+                this._element.animate({opacity:0},3000,'swing', function(){self._element.remove()});
+            },
+            
             /**
              * Gets all of the object's style names, as a space-separated list.
              */
@@ -1145,6 +1150,9 @@ MOL.modules.ColorSetter = function(mol) {
                                 break;
                             case 'ecoregion':
                                 config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
+                                break;
+                            case 'pa':
+                                config.color = new mol.ui.ColorSetter.Color(44, 6, 209);
                                 break;
                             }                            
                             bus.fireEvent(new ColorEvent(config));
@@ -1402,8 +1410,7 @@ MOL.modules.LayerControl = function(mol) {
                     r = new Layer();
                 this.findChild('.mol-LayerControl-Layers').append(r);
                 return r;
-            },
-            
+            },         
             _html: function(){
                 return  '<div class="mol-LayerControl-Menu ">' +
                         '    <div class="label">Layers</div>' +
@@ -1977,9 +1984,8 @@ MOL.modules.Map = function(mol) {
                     mapLayer = new mol.ui.Map.PointLayer(map, layer, this._markerCanvas);
                     break;
                 case 'range':
-                    mapLayer = new mol.ui.Map.TileLayer(map, layer);
-                    break;
                 case 'ecoregion':
+                case 'pa':
                     mapLayer = new mol.ui.Map.TileLayer(map, layer);
                     break;
                 }
@@ -2400,17 +2406,7 @@ MOL.modules.Map = function(mol) {
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
                 this._map = new google.maps.Map($('#' + this._id)[0], mapOptions);
-                /*
-                var FT_TableID = 669006;
-                var ECO_CODES = ["NT1404","NT0904"];
-                for (e in ECO_CODES){
-                    var ECO_CODE = ECO_CODES[e];
-                    var FT_Query = "SELECT 'geometry' FROM "+FT_TableID+" WHERE 'eco_code' = '"+ECO_CODE+"';";
-                    var FT_Options = { suppressInfoWindows: false, query: FT_Query };
-                    var ft = new google.maps.FusionTablesLayer(FT_TableID, FT_Options);
-                    ft.setMap(this._map);
-                }*/
-            },          
+            },         
             
             
             /**
@@ -2784,6 +2780,7 @@ MOL.modules.Search = function(mol) {
 
                     case 'range':
                     case 'ecoregion':
+                    case 'pa':
                         layer = new Layer(
                             {
                                 type: result.type, 
@@ -2916,7 +2913,9 @@ MOL.modules.Search = function(mol) {
                     filter = display.getNewFilter(),
                     keys = data[name.toLowerCase()],
                     self = this,
-                    option = null;
+                    option = null,
+                    tmpKeys = [],
+                    k = null;
 
                 filter.getFilterName().text(name);
                 filter.attr('id', name);
@@ -2926,11 +2925,10 @@ MOL.modules.Search = function(mol) {
                 allTypes.addStyleName("all");
                 allTypes.click(this._allTypesCallback(filter, name));
                 allTypes.addStyleName("selected");
-                var tmpKeys = []
                 for (k in keys) {
                     tmpKeys.push(k);
                 }
-                tmpKeys.sort()
+                tmpKeys.sort();
                 for (i in tmpKeys) {
                     k = tmpKeys[i];
                     option = filter.getNewOption();
