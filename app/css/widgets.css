@@ -74,6 +74,9 @@ button:hover{
     border-bottom-right-radius: 3px;
     -moz-border-radius-topright: 3px;
     border-top-right-radius: 3px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
+    -moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.347656);
+    box-shadow: rgba(0, 0, 0, 0.347656) 2px 2px 3px; 
     background-image: -webkit-gradient(
         linear,
         left bottom,
@@ -90,6 +93,7 @@ button:hover{
     text-align: left;
     padding-left: 10px;
     cursor: pointer;
+    padding-bottom: 5px;
 }
 .mol-LayerControl-Menu div.label img{
     float: right;
