@@ -1,4 +1,7 @@
 /**
+ * Copyright 2010 Andrew W. Hill, Aaron Steele
+ * 
+ * 
  * This is the global MOL constructor for creating a sandbox environment composed
  * of modules. Everything that happens within this constructor is protected from
  * leaking into the global scope.

@@ -1,12 +1,4 @@
-mapreduce:
-- name: Delete all entities of a given kind
-  mapper:
-    input_reader: mapreduce.input_readers.DatastoreInputReader
-    handler: mappers.delete
-    params:
-    - name: entity_kind
-      default: mol.db.Species
-      
+mapreduce: 
 - name: Clean term index of terms with nonexisting parents
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader
@@ -15,9 +7,17 @@ mapreduce:
     - name: entity_kind
       default: mol.db.MasterSearchIndex
     - name: shard_count
-      default: 1
+      default: 2
     - name: processing_rate
-      default: 800 
+      default: 2000 
+      
+- name: Delete all entities of a given kind
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.delete
+    params:
+    - name: entity_kind
+      default: mol.db.Species
 
 - name: Move Index to MasterSearch
   mapper:
@@ -28,3 +28,15 @@ mapreduce:
       default: mol.db.MultiPolygonIndex
     - name: shard_count
       default: 8
+
+- name: Remove empty OS
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.clean_empty_os
+    params:
+    - name: entity_kind
+      default: mol.db.OccurrenceSet
+    - name: shard_count
+      default: 2
+    - name: processing_rate
+      default: 2500 

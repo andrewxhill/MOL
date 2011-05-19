@@ -51,5 +51,15 @@ def move_index_to_mastersearch(entity):
         term = entity.term,
         rank = entity.rank )
     yield op.db.Put(ms)
+    
+def clean_empty_os(entity):
+    #os
+    res = 0
+    try:
+        res = len(entity.polygons.fetch(1))
+    except:
+        res = 0
+    if res==0:
+        yield op.db.Delete(entity)
 
 

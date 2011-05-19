@@ -1,4 +1,7 @@
 /**
+ * Copyright 2010 Andrew W. Hill, Aaron Steele
+ * 
+ * 
  * This is the global MOL constructor for creating a sandbox environment composed
  * of modules. Everything that happens within this constructor is protected from
  * leaking into the global scope.
@@ -3331,7 +3334,7 @@ MOL.modules.Search = function(mol) {
                        '  <div class="title">Search:</div>' + 
                        '  <input class="value" type="text">' + 
                        '  <button class="execute">Go</button>' + 
-                       '  <button class="cancel"><img src="/static/cancel.png" ></button>' + 
+                       '  <button class="cancel"><img src="/static/maps/search/cancel.png" ></button>' + 
                        '</div>' + 
                        '<div class="mol-LayerControl-Results">' + 
                        '  <div class="filters">' + 

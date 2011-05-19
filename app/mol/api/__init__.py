@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Map Of Life
+# Copyright 2010 Andrew W. Hill, Aaron Steele
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ class WebAppHandler(BaseHandler):
         term = query.get('query', 'stenocercus')
         if term in ["", None, False]:
             term = 'stenocercus'
-        limit = int(query.get('limit', 50))
+        limit = int(query.get('limit', 500))
         offset = int(query.get('offset', 0))
         
         query = {"term": term, "limit": limit, "offset": offset}

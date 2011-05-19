@@ -850,7 +850,7 @@ MOL.modules.Search = function(mol) {
                        '  <div class="title">Search:</div>' + 
                        '  <input class="value" type="text">' + 
                        '  <button class="execute">Go</button>' + 
-                       '  <button class="cancel"><img src="/static/cancel.png" ></button>' + 
+                       '  <button class="cancel"><img src="/static/maps/search/cancel.png" ></button>' + 
                        '</div>' + 
                        '<div class="mol-LayerControl-Results">' + 
                        '  <div class="filters">' + 

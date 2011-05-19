@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2010 Map Of Life
+# Copyright 2010 Andrew W. Hill, Aaron Steele
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,6 +128,7 @@ class William(BaseHandler):
     def get(self):
         self.post()
     def post(self):
+        """
         key = self.request.get('key')
         name = self.request.get('name')
         key = "ecoregion/wwf/%s" % key.strip()
@@ -146,72 +147,22 @@ class William(BaseHandler):
                 rank = 75
                 )
         mts.put()
-            
+        """
         
 class Andrew(BaseHandler):
     """Handler for the search UI."""
     def get(self):
         self.post()
     def post(self):
-        name = 'World Ecoregions'
-        src = 'World Wildlife Fund (WWF)'
-        url = 'http://www.worldwildlife.org/science/ecoregions/item1267.html'
-        desc = "The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities."
-        dtype = "Ecoregion"
-        ref =  {'title': 'Terrestrial ecoregions of the world: a new map of life on earth',
-                'publication': 'BioScience, Volume 51, Issue 11, p.933-938',
-                'year': 2001,
-                'authors': "Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem, K."
-               }
-        agrstring = None
-        datestring = "2001-04-20"
-        md = {
-          'collection': {
-            'name': name,
-            'source': src,
-            'url': url,
-            'description': desc,
-            'type': dtype,
-            'spatial': {
-              'resolution': {'unit': 'degree',
-                             'value': 2},
-              'datumcode': 'WGS84',
-              'epsg': 6166,
-              'type': 'shapefile',
-              'extent': {
-                'text': 'Global',
-                'coordinates': {
-                  'northWest': {
-                    'latitude': 90.0,
-                    'longitude': -180.0,
-                    },
-                  'southEast': {
-                    'latitude': -90.0,
-                    'longitude': 180.0,
-                    }
-                  },
-                },
-              },
-            'references': {
-              0 : ref
-              },
-            'agreements': {
-              0 : agrstring 
-              },
-            'date': {
-              'min': 1305499662, 
-              'max': 4453569068,                             
-              'resolution': {
-                'unit': 'year', 
-                'value': 20
-                }
-              }
-            }
-          }
-        
-        self.response.headers['Content-Type'] = "application/json"
-        self.response.out.write(simplejson.dumps(md)) # Not found
-        #self.response.out.write("<p>Andrew says %s</p>" % 'hi')
+        q = OccurrenceSet.all().filter('name =','Abrawayaomys ruschii')
+        for r in q.fetch(5):
+            try:
+                res = 10
+                res = len(r.polygons.fetch(10))
+            except:
+                res = -1
+            self.response.out.write("<p>%s: %s: %s</p>" % (r.name,r.source,res))
+        self.response.out.write("<p>Andrew says %s</p>" % 'hi')
             
         
       

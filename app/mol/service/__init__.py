@@ -325,8 +325,8 @@ class MasterTermSearch(object):
         self._memcache()
         if self.gbifquery:
             params = urllib.urlencode({
-                    'maxResults': self.query.get('limit', 250),
-                    'startIndex': self.query.get('offset', 0),
+                    'maxResults': self.query.get('gbifLimit', 150),
+                    'startIndex': self.query.get('gbifOffset', 0),
                     'query': self.query.get('term'),
                     'returnType': 'nameId'})
             url = 'http://data.gbif.org/species/nameSearch?%s' % params
