@@ -59,6 +59,8 @@ def clean_empty_os(entity):
         res = len(entity.polygons.fetch(1))
     except:
         res = 0
+    if entity.name == 'Bufo bufo':
+        logging.error('Bufo bufo: %s' % res)
     if res==0:
         yield op.db.Delete(entity)
 

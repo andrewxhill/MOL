@@ -154,7 +154,7 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        q = OccurrenceSet.all().filter('name =','Abrawayaomys ruschii')
+        q = OccurrenceSet.all().filter('name =','Bufo bufo')
         for r in q.fetch(5):
             try:
                 res = 10

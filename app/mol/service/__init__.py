@@ -395,9 +395,9 @@ class MasterTermSearch(object):
                     kct += 1
                 else:
                     rk = self.keys[kct]
-                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(1000))
-                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(1000))
-                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(1000))
+                    db.delete(MasterSearchIndex.all(keys_only=True).ancestor(rk).fetch(100))
+                    db.delete(MultiPolygonIndex.all(keys_only=True).ancestor(rk).fetch(100))
+                    db.delete(OccurrenceSetIndex.all(keys_only=True).ancestor(rk).fetch(100))
                     delcache = True
             if delcache:
                 memcache.delete(self.memkey)
