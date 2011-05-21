@@ -247,10 +247,14 @@ MOL.modules.Search = function(mol) {
              */
             go: function(place) {
                 var q = place.q,
+                    visible = place.sv ? parseInt(place.sv) : 0,
                     display = this._display;
                 
-                if (q) {
+                if (visible) {
                     display.show();
+                }
+
+                if (q) {
                     display.getSearchBox().val(q);
                     this._onGoButtonClick();
                 }
