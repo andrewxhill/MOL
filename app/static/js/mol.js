@@ -65,6 +65,10 @@ MOL.modules.app = function(mol) {
 
             run: function() {
                 mol.log.info('App is now running!');
+            },
+            
+            getBus: function() {
+                return this._control.getBus();
             }
         }
     );
@@ -535,6 +539,10 @@ MOL.modules.location = function(mol) {
                 this._metadataEngine = new mol.ui.Metadata.Engine(this._api, this._bus);
                 this._metadataEngine.start(this._container);
             },
+
+            getBus: function() {
+                return this._bus;
+            },
             
             _addLocationHandler: function() {
                 var bus = this._bus,
@@ -546,17 +554,20 @@ MOL.modules.location = function(mol) {
                     function(event) {
                         var mapState = '',
                             searchState = '',
+                            layerState = '',
                             url = window.location.href,
                             action = event.getAction(),
                             mapEngine = self._mapEngine,
-                            searchEngine = self._searchEngine;
+                            searchEngine = self._searchEngine,
+                            layerControlEngine = self._layerControlEngine;
 
                         switch (action) {
                         case 'get-url':
                             mapState = mol.util.urlEncode(mapEngine.getPlaceState());
                             searchState = mol.util.urlEncode(searchEngine.getPlaceState());
-                            url = url + mapState + '&' + searchState;
-                            bus.fireEvent(LocationEvent({url: url}, 'take-url'));
+                            layerState = mol.util.urlEncode(layerControlEngine.getPlaceState());
+                            url = url + '#' + mapState + '&' + searchState + '&' + layerState;
+                            bus.fireEvent(new LocationEvent({url: url}, 'take-url'));
                             break;
                         }
                     }
@@ -1254,7 +1265,14 @@ MOL.modules.LayerControl = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('LayerControl.Engine.go()');
+                var visible = place.lv ? parseInt(place.lv) : 0,
+                    display = this._display;
+                
+                display.toggleLayers(visible);
+            },
+
+            getPlaceState: function() {
+                return {lv: this._display.isLayersVisible() ? 1 : 0};
             },
              
             /**
@@ -1318,7 +1336,8 @@ MOL.modules.LayerControl = function(mol) {
                             display = self._display,
                             LayerEvent = mol.events.LayerEvent,
                             ch = null,
-                            widget = null;
+                            widget = null,
+                            nullTest = null;
                     
                         switch (action) {                                                       
     
@@ -1331,13 +1350,21 @@ MOL.modules.LayerControl = function(mol) {
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
-                            //layerUi.getSubName().text(layerSubName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
-                            var ntst = function(){f = "/static/config/nulltest.js"; s = document.createElement('script'); s.setAttribute("type","text/javascript"); s.setAttribute("src", f); document.getElementsByTagName("head")[0].appendChild(s) };
+                            
+                            // What is this doing???
+                            var ntst = function() {
+                                var f = "/static/config/nulltest.js"; 
+                                var s = document.createElement('script'); 
+                                s.setAttribute("type","text/javascript"); 
+                                s.setAttribute("src", f); 
+                                document.getElementsByTagName("head")[0].appendChild(s);
+                            };
                             nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
-
+                            // End what is this doing???
+                            
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
                                 for (y in ch) {
@@ -1470,17 +1497,22 @@ MOL.modules.LayerControl = function(mol) {
                 this.findChild('.scrollContainer').append(r);
                 return r;
             },      
+            
+            isLayersVisible: function() {
+                return this._show;
+            },
+
             toggleLayers: function(status) {
                 var x = this._toggleLayerImg,
                     c = this._layerContainer,
-                    s = '.layersToggle';
+                    s = '.layersToggle',
                     n = '.scrollContainer';
                 if ( ! x ){
-                    x = this.findChild(s)
+                    x = this.findChild(s);
                     this._toggleLayerImg = x;
                 }
                 if ( ! c ){
-                    c = this.findChild(n)
+                    c = this.findChild(n);
                     this._layerContainer = c;
                 }
                 if (this._show != status) {
@@ -1506,7 +1538,7 @@ MOL.modules.LayerControl = function(mol) {
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
                         '   <div class="scrollContainer">' +
-                        '   </div>';
+                        '   </div>' +
                         '</div>';
             }
         }
@@ -1775,7 +1807,11 @@ MOL.modules.Map = function(mol) {
                     icon = layer.getIcon(),
                     urls = this._getIconUrls(icon),
                     iconUrl = urls.iconUrl,
-                    iconErrorUrl = urls.iconErrorUrl;
+                    iconErrorUrl = urls.iconErrorUrl,
+                    cuim = null,
+                    approxCuim = null,
+                    approxCoord = null,
+                    makeCircle = null;
                 this._points = [];
                 for (p in data.records.publishers) {
                     resources = data.records.publishers[p].resources;
@@ -1793,10 +1829,10 @@ MOL.modules.Map = function(mol) {
                                  * Coords and keeps a list of uniques, never recreating circles
                                  * of the samish size and samish place
                                  */
-                                var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
-                                var approxCuim = Math.floor(cuim/100);
-                                var approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100)
-                                var makeCircle = false;
+                                cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                                approxCuim = Math.floor(cuim/100);
+                                approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100);
+                                makeCircle = false;
                                 if (!(approxCuim in this._uncertaintySorter)){
                                     this._uncertaintySorter[approxCuim] = {};
                                     this._uncertaintySorter[approxCuim][approxCoord] = marker;
@@ -2127,7 +2163,27 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('Map.Engine.go()');
+                var ll = place.ll ? place.ll.split(',') : null,
+                    latlng = ll ? new google.maps.LatLng(parseFloat(ll[0]), parseFloat(ll[1])) : null,
+                    z = place.z,
+                    zoom = z ? parseInt(z) : null,
+                    map = this._map;
+
+                if (latlng) {
+                    map.setCenter(latlng);
+                }
+                if (zoom) {
+                    map.setZoom(zoom);
+                }
+            },
+
+            getPlaceState: function() {
+                var map = this._map;
+
+                return {
+                    ll: map.getCenter().toUrlValue(),
+                    z: map.getZoom()
+                };
             },
 
             _bindDisplay: function(display, container) {
@@ -2763,13 +2819,26 @@ MOL.modules.Search = function(mol) {
              */
             go: function(place) {
                 var q = place.q,
+                    visible = place.sv ? parseInt(place.sv) : 0,
                     display = this._display;
                 
-                if (q) {
+                if (visible) {
                     display.show();
+                }
+
+                if (q) {
                     display.getSearchBox().val(q);
                     this._onGoButtonClick();
                 }
+            },
+
+            getPlaceState: function() {
+                var display = this._display;
+                
+                return {
+                    q: display.getSearchBox().val(),
+                    sv: display.isVisible() ? 1 : 0
+                };
             },
              
             /**
