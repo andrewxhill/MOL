@@ -246,7 +246,14 @@ MOL.modules.Search = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('Search.Engine.go()');
+                var q = place.q,
+                    display = this._display;
+                
+                if (q) {
+                    display.show();
+                    display.getSearchBox().val(q);
+                    this._onGoButtonClick();
+                }
             },
              
             /**

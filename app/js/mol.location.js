@@ -61,12 +61,14 @@ MOL.modules.location = function(mol) {
             },
             
             routes: {
-                ":sandbox/map": "map"
+                ":sandbox": "sandbox"
             },
             
-            map: function(query) {
-                this._mapEngine.go('place');
-                this._layerControlEngine.go('place');
+            sandbox: function(query) {
+                var place = mol.util.urlDecode(query);
+                this._mapEngine.go(place);
+                this._searchEngine.go(place);
+                this._layerControlEngine.go(place);
             }
         }
     );
