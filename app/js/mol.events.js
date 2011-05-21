@@ -45,6 +45,23 @@ MOL.modules.events = function(mol) {
     );
 
     /**
+     * Place event.
+     */
+    mol.events.LocationEvent = mol.events.Event.extend(
+        {
+            init: function(location, action) {
+                this._super('LocationEvent', action);
+                this._location = location;
+            },
+
+            getLocation: function() {
+                return this._location;
+            }
+        }
+    );
+    mol.events.LocationEvent.TYPE = 'LocationEvent';
+
+    /**
      * Event for colors.
      */
     mol.events.ColorEvent = mol.events.Event.extend(
