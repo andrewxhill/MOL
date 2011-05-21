@@ -478,7 +478,18 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('Map.Engine.go()');
+                var ll = place.ll.split(','),
+                    latlng = ll ? new google.maps.LatLng(parseFloat(ll[0]), parseFloat(ll[1])) : null,
+                    z = place.z,
+                    zoom = z ? parseInt(z) : null,
+                    map = this._map;
+
+                if (latlng) {
+                    map.setCenter(latlng);
+                }
+                if (zoom) {
+                    map.setZoom(zoom);
+                }
             },
 
             _bindDisplay: function(display, container) {
