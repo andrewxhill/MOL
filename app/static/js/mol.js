@@ -33,52 +33,6 @@ function MOL() {
 
 MOL.modules = {};
 
-MOL.src = {};
-
-MOL.src.makeId = function() {
-    var text = "",
-        possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0; i < 5; i++ ) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-};
-
-MOL.src.files = [
-    'mol.app.js?id=' + MOL.src.makeId(), 
-    'mol.events.js?id=' + MOL.src.makeId(), 
-    'mol.ajax.js?id=' + MOL.src.makeId(), 
-    'mol.log.js?id=' + MOL.src.makeId(), 
-    'mol.exceptions.js?id=' + MOL.src.makeId(), 
-    'mol.location.js?id=' + MOL.src.makeId(), 
-    'mol.model.js?id=' + MOL.src.makeId(), 
-    'mol.util.js?id=' + MOL.src.makeId(),
-    'mol.ui.js?id=' + MOL.src.makeId(),
-    'mol.ui.ColorSetter.js?id=' + MOL.src.makeId(), 
-    'mol.ui.LayerControl.js?id=' + MOL.src.makeId(), 
-    'mol.ui.LayerList.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Map.js?id=' + MOL.src.makeId(), 
-    'mol.ui.Search.js?id=' + MOL.src.makeId(),
-    'mol.ui.Metadata.js?id=' + MOL.src.makeId()
-];
-
-/**
- * Dynamically loads JavaScript source modules by creating script elements and 
- * appending them to DOM in the head element.
- */
-MOL.src.load = function() {
-    var src = MOL.src.files,
-        file = null,
-        script = null;
-    for (x in src) {
-        file = "../../../js/" + src[x];
-        script = document.createElement('script');
-        script.setAttribute("type","text/javascript");
-        script.setAttribute("src", file);
-        document.getElementsByTagName("head")[0].appendChild(script);
-    }
-};
-
 
 
 
@@ -160,6 +114,23 @@ MOL.modules.events = function(mol) {
             }            
         }
     );
+
+    /**
+     * Place event.
+     */
+    mol.events.LocationEvent = mol.events.Event.extend(
+        {
+            init: function(location, action) {
+                this._super('LocationEvent', action);
+                this._location = location;
+            },
+
+            getLocation: function() {
+                return this._location;
+            }
+        }
+    );
+    mol.events.LocationEvent.TYPE = 'LocationEvent';
 
     /**
      * Event for colors.
@@ -532,6 +503,8 @@ MOL.modules.exceptions = function(mol) {
     );
 };
 /**
+ * Copyright 2011 Andrew W. Hill, Aaron Steele
+ * 
  * Location module for handling browser history and routing. Contains a Control
  * object used to initialize and start application ui modules and dispatch 
  * browser location changes.
@@ -544,6 +517,9 @@ MOL.modules.location = function(mol) {
             initialize: function(config) {
                 this._bus = config.bus || new mol.events.Bus();
                 this._api = config.api || new mol.ajax.Api(this._bus);
+
+                this._addLocationHandler();
+
                 this._colorSetter = new mol.ui.ColorSetter.Api({'bus': this._bus});
                 this._container = $('body');
 
@@ -556,17 +532,47 @@ MOL.modules.location = function(mol) {
                 this._searchEngine = new mol.ui.Search.Engine(this._api, this._bus);
                 this._searchEngine.start(this._container);
                 
-                this._metadataEngine = new mol.ui.Metadata.Engine(this._api,this._bus);
+                this._metadataEngine = new mol.ui.Metadata.Engine(this._api, this._bus);
                 this._metadataEngine.start(this._container);
             },
             
-            routes: {
-                ":sandbox/map": "map"
+            _addLocationHandler: function() {
+                var bus = this._bus,
+                    LocationEvent = mol.events.LocationEvent,
+                    self = this;
+                
+                bus.addHandler(
+                    LocationEvent.TYPE,
+                    function(event) {
+                        var mapState = '',
+                            searchState = '',
+                            url = window.location.href,
+                            action = event.getAction(),
+                            mapEngine = self._mapEngine,
+                            searchEngine = self._searchEngine;
+
+                        switch (action) {
+                        case 'get-url':
+                            mapState = mol.util.urlEncode(mapEngine.getPlaceState());
+                            searchState = mol.util.urlEncode(searchEngine.getPlaceState());
+                            url = url + mapState + '&' + searchState;
+                            bus.fireEvent(LocationEvent({url: url}, 'take-url'));
+                            break;
+                        }
+                    }
+                );
+                
             },
             
-            map: function(query) {
-                this._mapEngine.go('place');
-                this._layerControlEngine.go('place');
+            routes: {
+                ":sandbox": "sandbox"
+            },
+            
+            sandbox: function(query) {
+                var place = mol.util.urlDecode(query);
+                this._mapEngine.go(place);
+                this._searchEngine.go(place);
+                this._layerControlEngine.go(place);
             }
         }
     );
@@ -686,12 +692,31 @@ MOL.modules.model = function(mol) {
 MOL.modules.util = function(mol) {
     mol.util = {};
     
-    mol.util. urlEncode = function(obj) {
+    mol.util.urlEncode = function(obj) {
         var str = [];
         for(var p in obj)
             str.push(p + "=" + encodeURIComponent(obj[p]));
         return str.join("&");
     };
+
+    /**
+     * Parses a URL encoded GET query string into a JavaScript object.
+     * 
+     * @param query The query string
+     */
+    mol.util.urlDecode = function(query) {
+        var e,
+        a = /\+/g,  
+        r = /([^&=]+)=?([^&]*)/g,
+        d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+        q = query.replace('#', '').replace('?', '');
+        var urlParams = {};
+        while ((e = r.exec(q))) {
+            urlParams[d(e[1])] = d(e[2]);
+        }
+        return urlParams;
+    };
+
 };/**
  * UI module.
  */
@@ -720,6 +745,13 @@ MOL.modules.ui = function(mol) {
              * @param place the place to go
              */
             go: function(place) {
+                throw mol.exceptions.NotImplementedError;
+            },
+            
+            /**
+             * Gets an object of place state used to construct URL parameters.
+             */
+            getPlaceState: function() {
                 throw mol.exceptions.NotImplementedError;
             }
         }
@@ -2730,7 +2762,14 @@ MOL.modules.Search = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('Search.Engine.go()');
+                var q = place.q,
+                    display = this._display;
+                
+                if (q) {
+                    display.show();
+                    display.getSearchBox().val(q);
+                    this._onGoButtonClick();
+                }
             },
              
             /**
