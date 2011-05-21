@@ -50,6 +50,10 @@ MOL.modules.LayerControl = function(mol) {
                 
                 display.toggleLayers(visible);
             },
+
+            getPlaceState: function() {
+                return {lv: this._display.isLayersVisible() ? 1 : 0};
+            },
              
             /**
              * Binds the display.
@@ -112,7 +116,8 @@ MOL.modules.LayerControl = function(mol) {
                             display = self._display,
                             LayerEvent = mol.events.LayerEvent,
                             ch = null,
-                            widget = null;
+                            widget = null,
+                            nullTest = null;
                     
                         switch (action) {                                                       
     
@@ -125,13 +130,21 @@ MOL.modules.LayerControl = function(mol) {
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
-                            //layerUi.getSubName().text(layerSubName);
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
-                            var ntst = function(){f = "/static/config/nulltest.js"; s = document.createElement('script'); s.setAttribute("type","text/javascript"); s.setAttribute("src", f); document.getElementsByTagName("head")[0].appendChild(s) };
+                            
+                            // What is this doing???
+                            var ntst = function() {
+                                var f = "/static/config/nulltest.js"; 
+                                var s = document.createElement('script'); 
+                                s.setAttribute("type","text/javascript"); 
+                                s.setAttribute("src", f); 
+                                document.getElementsByTagName("head")[0].appendChild(s);
+                            };
                             nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
-
+                            // End what is this doing???
+                            
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
                                 for (y in ch) {
@@ -264,6 +277,11 @@ MOL.modules.LayerControl = function(mol) {
                 this.findChild('.scrollContainer').append(r);
                 return r;
             },      
+            
+            isLayersVisible: function() {
+                return this._show;
+            },
+
             toggleLayers: function(status) {
                 var x = this._toggleLayerImg,
                     c = this._layerContainer,
@@ -300,7 +318,7 @@ MOL.modules.LayerControl = function(mol) {
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
                         '   <div class="scrollContainer">' +
-                        '   </div>';
+                        '   </div>' +
                         '</div>';
             }
         }

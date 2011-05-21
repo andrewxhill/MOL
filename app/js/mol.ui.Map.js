@@ -496,6 +496,15 @@ MOL.modules.Map = function(mol) {
                 }
             },
 
+            getPlaceState: function() {
+                var map = this._map;
+
+                return {
+                    ll: map.getCenter().toUrlValue(),
+                    z: map.getZoom()
+                };
+            },
+
             _bindDisplay: function(display, container) {
                 this._display = display;
                 display.setEngine(this);                

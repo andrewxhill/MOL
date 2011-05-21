@@ -259,6 +259,15 @@ MOL.modules.Search = function(mol) {
                     this._onGoButtonClick();
                 }
             },
+
+            getPlaceState: function() {
+                var display = this._display;
+                
+                return {
+                    q: display.getSearchBox().val(),
+                    sv: display.isVisible() ? 1 : 0
+                };
+            },
              
             /**
              * Binds the display.

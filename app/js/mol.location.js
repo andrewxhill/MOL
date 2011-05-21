@@ -31,6 +31,10 @@ MOL.modules.location = function(mol) {
                 this._metadataEngine = new mol.ui.Metadata.Engine(this._api, this._bus);
                 this._metadataEngine.start(this._container);
             },
+
+            getBus: function() {
+                return this._bus;
+            },
             
             _addLocationHandler: function() {
                 var bus = this._bus,
@@ -42,17 +46,20 @@ MOL.modules.location = function(mol) {
                     function(event) {
                         var mapState = '',
                             searchState = '',
+                            layerState = '',
                             url = window.location.href,
                             action = event.getAction(),
                             mapEngine = self._mapEngine,
-                            searchEngine = self._searchEngine;
+                            searchEngine = self._searchEngine,
+                            layerControlEngine = self._layerControlEngine;
 
                         switch (action) {
                         case 'get-url':
                             mapState = mol.util.urlEncode(mapEngine.getPlaceState());
                             searchState = mol.util.urlEncode(searchEngine.getPlaceState());
-                            url = url + mapState + '&' + searchState;
-                            bus.fireEvent(LocationEvent({url: url}, 'take-url'));
+                            layerState = mol.util.urlEncode(layerControlEngine.getPlaceState());
+                            url = url + '#' + mapState + '&' + searchState + '&' + layerState;
+                            bus.fireEvent(new LocationEvent({url: url}, 'take-url'));
                             break;
                         }
                     }

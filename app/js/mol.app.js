@@ -15,6 +15,10 @@ MOL.modules.app = function(mol) {
 
             run: function() {
                 mol.log.info('App is now running!');
+            },
+            
+            getBus: function() {
+                return this._control.getBus();
             }
         }
     );
