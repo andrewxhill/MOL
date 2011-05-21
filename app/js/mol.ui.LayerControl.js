@@ -45,7 +45,10 @@ MOL.modules.LayerControl = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('LayerControl.Engine.go()');
+                var visible = place.lv ? parseInt(place.lv) : 0,
+                    display = this._display;
+                
+                display.toggleLayers(visible);
             },
              
             /**
@@ -264,14 +267,14 @@ MOL.modules.LayerControl = function(mol) {
             toggleLayers: function(status) {
                 var x = this._toggleLayerImg,
                     c = this._layerContainer,
-                    s = '.layersToggle';
+                    s = '.layersToggle',
                     n = '.scrollContainer';
                 if ( ! x ){
-                    x = this.findChild(s)
+                    x = this.findChild(s);
                     this._toggleLayerImg = x;
                 }
                 if ( ! c ){
-                    c = this.findChild(n)
+                    c = this.findChild(n);
                     this._layerContainer = c;
                 }
                 if (this._show != status) {

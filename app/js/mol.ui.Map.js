@@ -126,7 +126,11 @@ MOL.modules.Map = function(mol) {
                     icon = layer.getIcon(),
                     urls = this._getIconUrls(icon),
                     iconUrl = urls.iconUrl,
-                    iconErrorUrl = urls.iconErrorUrl;
+                    iconErrorUrl = urls.iconErrorUrl,
+                    cuim = null,
+                    approxCuim = null,
+                    approxCoord = null,
+                    makeCircle = null;
                 this._points = [];
                 for (p in data.records.publishers) {
                     resources = data.records.publishers[p].resources;
@@ -144,10 +148,10 @@ MOL.modules.Map = function(mol) {
                                  * Coords and keeps a list of uniques, never recreating circles
                                  * of the samish size and samish place
                                  */
-                                var cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
-                                var approxCuim = Math.floor(cuim/100);
-                                var approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100)
-                                var makeCircle = false;
+                                cuim = parseFloat(coordinate.coordinateUncertaintyInMeters);
+                                approxCuim = Math.floor(cuim/100);
+                                approxCoord = Math.floor(coordinate.decimalLatitude * 100) + ":" + Math.floor(coordinate.decimalLongitude * 100);
+                                makeCircle = false;
                                 if (!(approxCuim in this._uncertaintySorter)){
                                     this._uncertaintySorter[approxCuim] = {};
                                     this._uncertaintySorter[approxCuim][approxCoord] = marker;
@@ -478,7 +482,7 @@ MOL.modules.Map = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                var ll = place.ll.split(','),
+                var ll = place.ll ? place.ll.split(',') : null,
                     latlng = ll ? new google.maps.LatLng(parseFloat(ll[0]), parseFloat(ll[1])) : null,
                     z = place.z,
                     zoom = z ? parseInt(z) : null,
