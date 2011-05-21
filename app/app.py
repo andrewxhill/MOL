@@ -182,7 +182,8 @@ application = webapp.WSGIApplication(
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/playground/col', ColPage),
-          ('/sandbox/map', MapPage),
+          ('/sandbox', MapPage),
+          ('/sandbox/.*', MapPage),
           ('/admin/flush-memcache', AdminFlushMemcacheHandler),
           ('/hooks/post-commit', GitHubPostReceiveHooksHandler), ],
          debug=True)
