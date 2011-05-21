@@ -43,12 +43,16 @@
             {% if prod %}
                 <!-- Production, so load app without logging and run it. -->
                 MOL(function(env) {
-                   new env.app.Instance({logging: false}).run();
+                   MOL.app = new env.app.Instance({logging: false});
+                   MOL.app.run();
+                   MOL.env = env;
                 });           
             {% else %}   
                 <!-- Not production, so load app with logging and run it. -->
                 MOL(function(env) {
-                   new env.app.Instance({logging: true}).run();
+                   MOL.app = new env.app.Instance({logging: true});
+                   MOL.app.run();
+                   MOL.env = env;
                 });           
             {% endif %}
         });
