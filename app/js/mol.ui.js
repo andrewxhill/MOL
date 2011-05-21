@@ -27,6 +27,13 @@ MOL.modules.ui = function(mol) {
              */
             go: function(place) {
                 throw mol.exceptions.NotImplementedError;
+            },
+            
+            /**
+             * Gets an object of place state used to construct URL parameters.
+             */
+            getPlaceState: function() {
+                throw mol.exceptions.NotImplementedError;
             }
         }
     );
