@@ -248,7 +248,11 @@ MOL.modules.Search = function(mol) {
             go: function(place) {
                 var q = place.q,
                     visible = place.sv ? parseInt(place.sv) : 0,
-                    display = this._display;
+                    display = this._display,
+                    layerKeys = place.layers ? place.layers.split(',') : null,
+                    resultWidget = null,
+                    layerKey = null,
+                    self = this;
                 
                 if (visible) {
                     display.show();
@@ -256,7 +260,24 @@ MOL.modules.Search = function(mol) {
 
                 if (q) {
                     display.getSearchBox().val(q);
-                    this._onGoButtonClick();
+                    this._onGoButtonClick(
+                        function() {
+                            if (layerKeys) {
+                                for (k in layerKeys) {
+                                    layerKey = layerKeys[k];
+                                    for (x in self._resultWidgets) {
+                                        resultWidget = self._resultWidgets[x];
+                                        if (resultWidget.key_name === layerKey) {
+                                            resultWidget.widget.getCheckbox().setChecked(true);
+                                        }
+                                    }
+                                }
+                                self._onAddButtonClick();
+                            }
+                            
+                        }
+                        
+                    );
                 }
             },
 
@@ -561,7 +582,7 @@ MOL.modules.Search = function(mol) {
                 this._displayPage(layers);
             },
 
-            _onGoButtonClick: function() {
+            _onGoButtonClick: function(cb) {
                 var query = this._display.getSearchBox().val(),
                     LayerAction = mol.ajax.LayerAction,
                     action = new LayerAction('search', {query: query}),
@@ -582,6 +603,9 @@ MOL.modules.Search = function(mol) {
                         for (i in filterNames) {
                             fn = filterNames[i];
                             self._createNewFilter(fn,response);
+                        }
+                        if (callback) {
+                            cb();
                         }
                     },
 

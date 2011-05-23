@@ -10,6 +10,7 @@ MOL.modules.LayerList = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;
+                this._layerIds = [];
             },
 
             /**

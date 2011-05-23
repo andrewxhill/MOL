@@ -52,7 +52,10 @@ MOL.modules.LayerControl = function(mol) {
             },
 
             getPlaceState: function() {
-                return {lv: this._display.isLayersVisible() ? 1 : 0};
+                return {
+                    lv: this._display.isLayersVisible() ? 1 : 0,
+                    layers: _.keys(this._layerIds).join(',')
+                };
             },
              
             /**
