@@ -69,6 +69,7 @@ button:hover{
     border-bottom-left-radius: 3px;
 }
 .mol-LayerControl-Menu div.label{
+    width: 20px;
     -moz-border-radius-bottomright: 3px;
     border-bottom-right-radius: 3px;
     -moz-border-radius-topright: 3px;
@@ -90,13 +91,12 @@ button:hover{
     );
     color: #fff;
     text-align: left;
-    padding-left: 10px;
     cursor: pointer;
     padding-bottom: 5px;
 }
 .mol-LayerControl-Menu div.label img{
     float: right;
-    height: 15px;
+    height: 16px;
     padding-right: 2px;
 }
 .mol-LayerControl-Layers {
@@ -136,7 +136,7 @@ button:hover{
     overflow-x: visible;
 }
 
-.mol-LayerControl-Layers .layer{
+.mol-LayerControl-Layers .layer, .staticLink{
     position: relative;
     width: 96%;
     float: left;
@@ -147,6 +147,28 @@ button:hover{
     border: 3px solid rgba(0,0,0,0.01);
     cursor: pointer;
 }
+.mol-LayerControl-Layers .staticLink{
+    display: none;
+}
+.mol-LayerControl-Layers .staticLink .linkText{
+    float: left;
+    height: 20px;
+    line-height: 20px;
+    width: 95%;
+}
+.mol-LayerControl-Layers .staticLink input::selection {
+    background: #ababab; 
+    background-color: #ababab;
+}
+.mol-LayerControl-Layers .staticLink input::-webkit-selection {
+    background: #ababab; 
+    background-color: #ababab;
+}
+.mol-LayerControl-Layers .staticLink input::-moz-selection {
+    background: #ababab; 
+    background-color: #ababab;
+}
+
 .mol-LayerControl-Layers .layer.selected{
     border: 3px solid rgba(255, 122, 122, .55);
 }
