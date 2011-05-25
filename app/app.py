@@ -22,7 +22,7 @@ import os
 from google.appengine.api import memcache as m, mail
 import simplejson
 import logging
-from mol.db import MultiPolygon, MultiPolygonIndex, OccurrenceSet,MasterSearchIndex
+from mol.db import MultiPolygon, MultiPolygonIndex, OccurrenceIndex ,MasterSearchIndex
 from google.appengine.ext import db
 
 memcache = m.Client()
@@ -154,14 +154,13 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        q = OccurrenceSet.all().filter('name =','Bufo bufo')
-        for r in q.fetch(5):
+        q = OccurrenceIndex.all().ancestor(db.Key.from_path('MultiPolygon','ecoregion/wwf/AA0101'))
+        for r in q.fetch(200):
             try:
-                res = 10
-                res = len(r.polygons.fetch(10))
+                self.response.out.write('{"scope":"species",\n "name":"%s",\n "variables":{\n\t"name":"introduced",\n\t"value":True}\n},\n</p>' % (r.occurrenceSet.name))
             except:
-                res = -1
-            self.response.out.write("<p>%s: %s: %s</p>" % (r.name,r.source,res))
+                pass
+                
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
             
         

@@ -417,6 +417,852 @@ class MasterTermSearch(object):
                    "names": self.names}
             memcache.set(self.apimemkey, self.api_results, self.cachetime)
         return self.api_results
+
+class MetadataProvider(object):
+    def __init__(self):
+        pass
+    def getitem(self, query):
+        self.query = query
+        key_name = self.query.get('key_name')
+        fakeData = {
+            "ecoregion/wwf/AA0101": {
+                  "source":"World Wildlife Fund (WWF)",
+                  "type":"Ecoregion",
+                  "name":"Admiralty Islands lowland rain forests",
+                  "description":None,
+                  "temporal":{
+                     "creation": "2001-03-02T00:00Z",
+                     "upload": "2011-05-25T18:11Z",
+                     "coverage": {
+                         "start": "1990-01-01T00:00Z",
+                         "end": "2020-01-01T00:00Z"
+                     }
+                  },
+                  "storage":{
+                     "location":"/ftp/ecoregion/shp/AA0101.shp",
+                     "format":"esri-shape"
+                  },
+                  "spatial":{
+                     "crs":{
+                        "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                        "extent":{
+                           "text":"Global",
+                           "coordinates":{
+                              "0": 142.812,
+                              "1": -2.57692,
+                              "2": 147.879,
+                              "3": -1.3724
+                           }
+                        },
+                        "type":"vector",
+                        "info": {
+                           "resolution":{
+                              "type": "derived",
+                              "value":20,
+                              "unit":"kilometer"
+                           },
+                        }
+                     }
+                  }
+               },
+            "range/mol/animalia/species/puma_concolor": {
+                  "source":"IUCN Global Mammal Assessment",
+                  "type":"Range",
+                  "name":"Puma concolor",
+                  "description":None,
+                  "temporal":{
+                     "creation": "2001-03-02T00:00Z",
+                     "upload": "2011-05-25T18:11Z",
+                     "coverage": {
+                         "start": "1990-01-01T00:00Z",
+                         "end": "2020-01-01T00:00Z"
+                     }
+                  },
+                  "storage":{
+                     "location":"/ftp/range/shp/animalia/species/puma_concolor.shp",
+                     "format":"esri-shape"
+                  },
+                  "spatial":{
+                     "crs":{
+                        "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                        "extent":{
+                           "text":"Global",
+                           "coordinates":{
+                              "0": -135.365,
+                              "1": -53.1062,
+                              "2": -34.7901,
+                              "3": 59.6663
+                           }
+                        },
+                        "type":"vector",
+                        "info": {
+                           "resolution":{
+                              "type": "derived",
+                              "value":200,
+                              "unit":"kilometer"
+                           },
+                        },
+                     }
+                  },
+                "taxa": [
+                    {"scope": "species",
+                     "name": "Puma concolor"}
+                  ]
+               },
+            "pa/wdpa/assemblage/AA0101": {
+                  "source":"World Wildlife Fund (WWF)",
+                  "type":"assemblage list",
+                  "name":"Admiralty Islands lowland rain forests",
+                  "description":None,
+                  "temporal":{
+                     "creation": "2001-03-02T00:00Z",
+                     "upload": "2011-05-25T18:11Z",
+                     "coverage": {
+                         "start": "1990-01-01T00:00Z",
+                         "end": "2020-01-01T00:00Z"
+                     }
+                  },
+                  "storage":{
+                     "location":"/ftp/ecoregion/assemblages/AA0101.csv",
+                     "format":"csv"
+                  },
+                  "taxa": [
+                    {"scope":"species",
+                     "name":"Platymantis gilliardi",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Rana papua",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Kerivoula myrella",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pipistrellus angulatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Echymipera kalubu",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Hipposideros cervinus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Mosia nigrescens",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pteropus hypomelanus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Dobsonia anderseni",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Hipposideros diadema",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pteropus admiralitatum",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Eugongylus rufescens",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sphenomorphus jobiensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tachybaptus novaehollandiae",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Anas superciliosa",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Nycticorax caledonicus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pandion haliaetus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Haliastur indus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Accipiter hiogaster",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Calidris ruficollis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sterna bergii",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sterna albifrons",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Macropygia mackinlayi",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Chalcophaps stephani",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Caloenas nicobarica",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ptilinopus superbus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ducula pistrinaria",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ducula subflavescens",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Eclectus roratus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Charmosyna placentis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Cacomantis variolosus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ninox meeki",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tyto novaehollandiae",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aerodramus hirundinacea",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aerodramus spodiopygius",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Alcedo atthis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Todirhamphus saurophaga",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Merops ornatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Myzomela pammelaena",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pachycephala pectoralis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Rhipidura semirubra",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Monarcha infelix",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Coracina papuensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aplonis cantoroides",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aplonis metallica",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Zosterops hypoxanthus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Burhinus giganteus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tiliqua gigas",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Candoia aspera",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Candoia carinata",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Miniopterus macrocneme",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Hipposideros calcaratus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Macroglossus minimus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Nyctimene albiventer",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pteropus neohibernicus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Rousettus amplexicaudatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emballonura serii",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Nyctimene vizcaccia",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Rattus praetor",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Syconycteris australis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tachybaptus ruficollis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Egretta sacra",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ixobrychus flavicollis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aviceda subcristata",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Haliaeetus leucogaster",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Megapodius eremita",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sterna sumatrana",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Macropygia amboinensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Reinwardtoena browni",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Gallicolumba beccarii",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ptilinopus solomonensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ducula spilorrhoa",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Micropsitta meeki",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Trichoglossus haematodus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Cuculus saturatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Scythrops novaehollandiae",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tyto manusi",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Aerodramus vanikorensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ceyx lepidus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Todirhamphus sanctus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Pitta superba",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Philemon albitorques",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Rhipidura rufiventris",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Monarcha cinerascens",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Coracina tenuirostris",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Hirundo tahitica",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Nectarinia jugularis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Bufo marinus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Calidris acuminata",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Myiagra alecto",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Litoria thesaurensis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Spilocuscus kraemeri",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Collocalia esculenta",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sphenomorphus solomonis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Podiceps cristatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Corvus corax",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Amphiuma tridactylum",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Boiga irregularis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Dendrelaphis calligastra",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Gehyra oceanica",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Gekko vittatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Hemidactylus frenatus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Lepidodactylus lugubris",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Lepidodactylus pulcher",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Nactus pelagicus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Carlia fusca",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emoia caeruleocauda",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emoia cyanura",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emoia jakati",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emoia kordoana",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Emoia mivarti",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Geomyersia coggeri",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Lamprolepis smaragdina",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Lipinia noctua",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Sphenomorphus derroyae",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Tribolonotus brongersmai",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Acutotyphlops subocularis",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Litoria infrafrenata",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Discodeles vogti",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ramphotyphlops depressus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Ramphotyphlops flaviventer",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    },
+                    {"scope":"species",
+                     "name":"Stegonotus modestus",
+                     "variables":{
+                        "name":"introduced",
+                        "value":False}
+                    }
+                  ]
+               },
+            }
+        return fakeData[key_name]
         
 class LayerProvider(object):
     """An abstract base class for the Layer service."""
