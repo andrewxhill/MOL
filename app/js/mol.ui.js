@@ -105,6 +105,9 @@ MOL.modules.ui = function(mol) {
                     return this._element.text();
                 }
             },
+            select: function() {
+                this._element.select();
+            },
             
             src: function(src) {
                 if (src) {
