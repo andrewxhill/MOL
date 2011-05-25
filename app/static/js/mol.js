@@ -835,6 +835,9 @@ MOL.modules.ui = function(mol) {
                     return this._element.text();
                 }
             },
+            select: function() {
+                this._element.select();
+            },
             
             src: function(src) {
                 if (src) {
@@ -1303,11 +1306,29 @@ MOL.modules.LayerControl = function(mol) {
                     }
                 );
                 
+                // Clicking the share button gets the shareable URL for the current view:
+                widget = display.getShareButton();
+                widget.click(
+                    function(event) {
+                        bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url'));
+                    }
+                );
+                
+                bus.addHandler(
+                  "LocationEvent", 
+                  function(event){
+                    if (event.getAction() == 'take-url') {
+                        display.toggleShareLink(event.getLocation().url);
+                    }
+                  }
+                );                
+                
                 // Clicking the add button fires a LayerControlEvent:
                 widget = display.getAddButton();
                 widget.click(
                     function(event) {
                         bus.fireEvent(new LayerControlEvent('add-click'));
+                        display.toggleShareLink("", false);
                     }
                 );
                 
@@ -1320,11 +1341,12 @@ MOL.modules.LayerControl = function(mol) {
                         ch.remove();
                         bus.fireEvent(new LayerControlEvent('delete-click', layerId));
                         delete self._layerIds[layerId];
+                        self._display.toggleShareLink("", false);
                     }
                 );
                 
                 this._addDisplayToMap();
-
+                
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
@@ -1350,6 +1372,7 @@ MOL.modules.LayerControl = function(mol) {
                                 return;
                             }
                             display.toggleLayers(true);
+                            display.toggleShareLink("", false);
                             layerIds[layerId] = true;
                             layerUi = display.getNewLayer();
                             layerUi.getName().text(layerName);
@@ -1477,6 +1500,7 @@ MOL.modules.LayerControl = function(mol) {
                 this.setInnerHtml(this._html());
                 this._config = config;
                 this._show = false;
+                this._shareLink = false;
             },     
             getLayerToggle: function() {
                 var x = this._layersToggle,
@@ -1493,7 +1517,12 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.delete';
                 return x ? x : (this._deleteButton = this.findChild(s));
             },
-
+            getShareButton: function() {
+                var x = this._shareButton,
+                    s = '.share';
+                return x ? x : (this._shareButton = this.findChild(s));
+            },
+            
             getNewLayer: function(){
                 var Layer = mol.ui.LayerControl.Layer,
                     r = new Layer();
@@ -1505,6 +1534,35 @@ MOL.modules.LayerControl = function(mol) {
                 return this._show;
             },
 
+            toggleShareLink: function(url, status) {
+                var r = this._linkContainer,
+                    p = '.staticLink',
+                    u = '.link';
+                this._url = url;
+                if ( ! r ){
+                    r = this.findChild(p);
+                    this._linkContainer = r;
+                }
+                if (status == false) {
+                    r.hide();
+                    this._shareLink = false;
+                } else if (status==true) {
+                    r.show();
+                    this._shareLink = true;
+                } else {
+                    if (this._shareLink ) {  
+                        r.hide();
+                        this._shareLink = false;
+                    } else {
+                        r.show();
+                        this._shareLink = true;
+                    }
+                }
+                this.findChild('.linkText').val(url);
+                this.findChild('.linkText').select();
+                
+            },
+            
             toggleLayers: function(status) {
                 var x = this._toggleLayerImg,
                     c = this._layerContainer,
@@ -1533,13 +1591,17 @@ MOL.modules.LayerControl = function(mol) {
                     
             _html: function(){
                 return  '<div class="mol-LayerControl-Menu ">' +
-                        '    <div class="label">Layers ' +
+                        '    <div class="label">' +
                         '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                         '    </div>' +
+                        '    <div class="widgetTheme share button">Share</div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
                         '<div class="mol-LayerControl-Layers">' +
+                        '      <div class="staticLink widgetTheme" >' +
+                        '          <input type="text" class="linkText" />' +
+                        '      </div>' +
                         '   <div class="scrollContainer">' +
                         '   </div>' +
                         '</div>';
