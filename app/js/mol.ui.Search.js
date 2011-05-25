@@ -604,7 +604,7 @@ MOL.modules.Search = function(mol) {
                             fn = filterNames[i];
                             self._createNewFilter(fn,response);
                         }
-                        if (callback) {
+                        if (cb) {
                             cb();
                         }
                     },
