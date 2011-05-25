@@ -139,7 +139,8 @@ MOL.modules.LayerControl = function(mol) {
                             LayerEvent = mol.events.LayerEvent,
                             ch = null,
                             widget = null,
-                            nullTest = null;
+                            nullTest = null,
+                            styleNames = null;
                     
                         switch (action) {                                                       
     
@@ -157,7 +158,6 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.attr('id', layerId);
                             
                             
-                            // What is this doing???
                             var ntst = function() {
                                 var f = "/static/config/nulltest.js"; 
                                 var s = document.createElement('script'); 
@@ -166,12 +166,16 @@ MOL.modules.LayerControl = function(mol) {
                                 document.getElementsByTagName("head")[0].appendChild(s);
                             };
                             nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
-                            // End what is this doing???
+
                             
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
                                 for (y in ch) {
-                                    ch[y].removeStyleName('selected');
+                                    styleNames = ch[y].getStyleName().split(' ');
+                                    if (_.indexOf(styleNames, 'selected') > -1) {
+                                        ch[y].removeStyleName('selected');    
+                                        return;
+                                    }                                    
                                 }
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });

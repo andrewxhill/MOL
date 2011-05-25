@@ -491,6 +491,7 @@ MOL.modules.Map = function(mol) {
                 if (latlng) {
                     map.setCenter(latlng);
                 }
+
                 if (zoom) {
                     map.setZoom(zoom);
                 }

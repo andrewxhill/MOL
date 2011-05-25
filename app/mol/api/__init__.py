@@ -107,11 +107,28 @@ class WebAppHandler(BaseHandler):
             'LayerAction': {
                 'search': lambda x: self._layer_search(x),
                 'get-points': lambda x: self._layer_get_points(x)
+                },
+            'UrlAction': {
+                'shorten' : lambda x: self._shorten_url(x),
+                'expand' : lambda x: self._expand_url(x)
                 }
             }[a_name][a_type](a_query)
 
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(simplejson.dumps(response))
+
+    #................................................................
+    # Defering fow now.
+    def _shorten_url(self, query):
+        response = urlfetch.fetch(
+            url="https://www.googleapis.com/urlshortener/v1/url",
+            payload=simplejson.dumps({"longUrl": query.url}),
+            method=urlfetch.POST,
+            headers={"Content-Type":"application/json"})
+        if response.status_code != 200:
+            return None
+        return simplejson.loads(response.content).id
+    #................................................................
 
     def _layer_get_points(self, query):
         # TODO: Use self.layer_service()
