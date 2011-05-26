@@ -1300,29 +1300,34 @@ class GbifLayerProvider(LayerProvider):
         sources = [LayerSource.GBIF]
         super(GbifLayerProvider, self).__init__(types, sources)   
         self.cachetime = 60000   
+        self.memkey = None
     
     def geturl(self, query):
         params = urllib.urlencode({
                 'format': query.get('format', 'darwin'),
                 'coordinateStatus': True,
-                'maxResults': query.get('limit', 20),
+                'maxResults': query.get('limit', 100),
                 'startIndex': query.get('start', 0),
-                'scientificname': query.get('sciname')})
-        return 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
+                'scientificname': query.get('layerName')})
+        url = 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
+        self.memkey = url
+        return url
 
     def getdata(self, query):
         rpc = urlfetch.create_rpc()
         url = self.geturl(query)
         urlfetch.make_fetch_call(rpc, url)
-
-        try:
-            result = rpc.get_result() 
-            if result.status_code == 200:
-                return self.xmltojson(result.content, url)
-        except (urlfetch.DownloadError), e:
-            logging.error('GBIF request: %s (%s)' % (rpc, str(e)))
-            #self.error(404) 
-            return None
+        self.gbifjson = memcache.get(self.memkey)
+        if self.gbifjson is None:
+            try:
+                result = rpc.get_result() 
+                if result.status_code == 200:
+                    self.gbifjson = self.xmltojson(result.content, url)
+                    memcache.set(self.memkey,self.gbifjson,self.cachetime)
+            except (urlfetch.DownloadError), e:
+                logging.error('GBIF request: %s (%s)' % (rpc, str(e)))
+                #TODO issue a redirect to same url but asking for fewer records
+        return self.gbifjson
             
     def xmltojson(self,xmldata,url):
         NSXML = "http://portal.gbif.org/ws/response/gbif"
@@ -1377,7 +1382,7 @@ class GbifLayerProvider(LayerProvider):
                         assert occurrence["coordinates"]["coordinateUncertaintyInMeters"] > 0
                     except:
                         occurrence["coordinates"]["coordinateUncertaintyInMeters"] = None
-
+        logging.error(oct)
         return {"source": "GBIF", "sourceUrl": url, "accessDate": str(datetime.datetime.now()), "totalPublishers": pct, "totalResources": rct, "totalRecords": oct, "records": out}
         
     def getprofile(self, query, url, content):

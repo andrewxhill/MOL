@@ -119,7 +119,8 @@ class WebAppHandler(BaseHandler):
     def _layer_get_points(self, query):
         # TODO: Use self.layer_service()
         sciname = query.get('layerName')
-        content = self.gbif.getdata({'sciname':sciname})
+        query['sciname'] = sciname
+        content = self.gbif.getdata(query)
         return content
         
     def _layer_get_metadata(self, query):

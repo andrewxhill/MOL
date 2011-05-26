@@ -158,15 +158,6 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.attr('id', layerId);
                             
                             
-                            var ntst = function() {
-                                var f = "/static/config/nulltest.js"; 
-                                var s = document.createElement('script'); 
-                                s.setAttribute("type","text/javascript"); 
-                                s.setAttribute("src", f); 
-                                document.getElementsByTagName("head")[0].appendChild(s);
-                            };
-                            nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
-
                             
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
@@ -180,14 +171,14 @@ MOL.modules.LayerControl = function(mol) {
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });
                             
-                            widget = layerUi.getToggle();
-                            widget.setChecked(true);
-                            widget.click(
+                            self.toggle = layerUi.getToggle();
+                            self.toggle.setChecked(true);
+                            self.toggle.click(
                                 function(event) {
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
-                                                action: widget.isChecked() ? 'checked': 'unchecked',
+                                                action: self.toggle.isChecked() ? 'checked': 'unchecked',
                                                 layer: layer
                                             }
                                         )

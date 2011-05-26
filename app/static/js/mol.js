@@ -1390,15 +1390,6 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.attr('id', layerId);
                             
                             
-                            var ntst = function() {
-                                var f = "/static/config/nulltest.js"; 
-                                var s = document.createElement('script'); 
-                                s.setAttribute("type","text/javascript"); 
-                                s.setAttribute("src", f); 
-                                document.getElementsByTagName("head")[0].appendChild(s);
-                            };
-                            nullTest = (layerId == 'points/gbif/13816451') ? ntst() : function(){};
-
                             
                             layerUi.click(function(e) {
                                 ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
@@ -1412,14 +1403,14 @@ MOL.modules.LayerControl = function(mol) {
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });
                             
-                            widget = layerUi.getToggle();
-                            widget.setChecked(true);
-                            widget.click(
+                            self.toggle = layerUi.getToggle();
+                            self.toggle.setChecked(true);
+                            self.toggle.click(
                                 function(event) {
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
-                                                action: widget.isChecked() ? 'checked': 'unchecked',
+                                                action: self.toggle.isChecked() ? 'checked': 'unchecked',
                                                 layer: layer
                                             }
                                         )
@@ -1842,7 +1833,6 @@ MOL.modules.Map = function(mol) {
             show: function() {
                 var points = this._points,
                     map = this.getMap();
-
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh();
@@ -1856,7 +1846,7 @@ MOL.modules.Map = function(mol) {
 
             hide: function() {
                 var points = this._points;
-
+                
                 if (this.isVisible()) {
                     for (x in points) {
                         points[x].setMap(null);
@@ -2348,6 +2338,7 @@ MOL.modules.Map = function(mol) {
                             action = event.getAction(),
                             colorEventConfig = {};
                                                 
+                            console.log(action);
                         switch (action) {
 
                         case 'add':
@@ -3633,8 +3624,8 @@ MOL.modules.Metadata = function(mol) {
                 var meta = dat.findChild('#'+id.replace(/\//g,"\\/"))
                 meta.addStyleName('selected');
                 if (meta.getInnerHtml() == "") {
-                    action = new LayerAction('metadata-item', {key_name:id});
-                    callback = new ActionCallback(
+                    var action = new LayerAction('metadata-item', {key_name:id});
+                    var callback = new ActionCallback(
                         function(response) {
                             self._addMetadataResult(response);
                         },
@@ -3659,6 +3650,21 @@ MOL.modules.Metadata = function(mol) {
                             "<br/>" ;
                 meta.setInnerHtml(out);
             },
+            _itemCallback: function(e) {
+                var display = this._display,
+                    stE = new mol.ui.Element(e.target);
+                var id = stE.attr('id');
+                var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
+                var col = itm.getParent().getParent().getParent();
+                var colText = col.findChild('.collection').text() + ": ";
+                var itemText = itm.text();
+                this._showMetadata(id,colText,itemText);
+            },
+            _collCallback: function(e) {
+                var stE = new mol.ui.Element(e.target);
+                var id = stE.attr('id');
+                this._showMetadata(id, stE.text(), " ");
+            },
             _addDataset: function(layer) {
                 var itemId = layer.getKeyName(),
                     itemName = layer.getName(),
@@ -3671,11 +3677,7 @@ MOL.modules.Metadata = function(mol) {
                     var c = display.getNewCollection(collectionId);
                     c.getName().text(collectionName);
                     
-                    c.getName().click(function(e) {
-                        var stE = new mol.ui.Element(e.target);
-                        var id = stE.attr('id');
-                        self._showMetadata(id, stE.text(), " ");
-                    });
+                    c.getName().click( function(e) { self._collCallback(e) } );
                     
                     this._collections[collectionId] = {items: {}};
                 }
@@ -3683,15 +3685,7 @@ MOL.modules.Metadata = function(mol) {
                 if (!(itemId in this._collections[collectionId].items)){
                     var it = display.getNewItem(itemId,collectionId);
                     it.getName().text(itemName);
-                    it.getName().click(function(e) {
-                        var stE = new mol.ui.Element(e.target);
-                        var id = stE.attr('id');
-                        var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
-                        var col = itm.getParent().getParent().getParent();
-                        colText = col.findChild('.collection').text() + ": ";
-                        itemText = itm.text();
-                        self._showMetadata(id,colText,itemText);
-                    });
+                    it.getName().click(function(event){self._itemCallback(event)});
                     this._collections[collectionId].items[itemId] = 0;
                 }
             },
@@ -3717,13 +3711,12 @@ MOL.modules.Metadata = function(mol) {
                 this._display = display;
                 display.setEngine(this);   
                 
-                info = {name: 'puma concolor',
-                        id: 'lskdjf/dsjfl',
-                        collectionName: 'wdpa',
-                        getKeyName: function(){return 'lskdjf/dsjfl'},
-                        getName: function(){return 'Puma concolor'},
-                        getSubName: function(){return 'wdpa'},
-                        
+                var info = {name: 'puma concolor',
+                            id: 'lskdjf/dsjfl',
+                            collectionName: 'wdpa',
+                            getKeyName: function(){return 'lskdjf/dsjfl'},
+                            getName: function(){return 'Puma concolor'},
+                            getSubName: function(){return 'wdpa'}
                         }
                 //self._addDataset(info)
                 info.getKeyName = function() {return "lsdjf/sjdfa"};
@@ -3737,14 +3730,15 @@ MOL.modules.Metadata = function(mol) {
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
-                        var action = event.getAction(),
-                            layer = event.getLayer();
-                        switch (action) {    
+                        var act = event.getAction();
+                        console.log('mdata');
+                        switch (act) {    
                             case 'add':
                                 var layer = event.getLayer();
                                 self._addDataset(layer);
                                 break;
                             case 'view-metadata':
+                                var layer = event.getLayer();
                                 var colText = layer.getSubName() + ": ";
                                 var itemText = layer.getName();
                                 self._showMetadata(layer.getKeyName(), colText, itemText );
@@ -3832,7 +3826,6 @@ MOL.modules.Metadata = function(mol) {
                     Meta = mol.ui.Metadata.Meta,
                     r = new Collection(collectionId),
                     mo = new Meta(collectionId);
-                    
                 this.findChild('.data').append(mo);
                 this.findChild('.collection-list').append(r);
                 return r;
@@ -3843,8 +3836,7 @@ MOL.modules.Metadata = function(mol) {
                     r = new Item(itemId),
                     mo = new Meta(itemId);
                 this.findChild('.data').append(mo);
-                c = this.findChild('#container-'+collectionId.replace(/\//g,"\\/")).findChild('.item-list').append(r);
-                
+                this.findChild('#container-'+collectionId.replace(/\//g,"\\/")).findChild('.item-list').append(r);
                 return r;
             },
             getCollectionTitle: function(){
@@ -3864,7 +3856,7 @@ MOL.modules.Metadata = function(mol) {
             _html: function(){
                 return  '<div class="mol-Metadata">' +
 						'    <div class="top-bar">' +
-						'        <a href="#map">back to map</a>' +
+						'        <a href="#map">Back to Map</a>' +
 						'        <div class="details-menu">' +
 						'            <div class="view-option selected">basic</div>' +
 						'            <div class="view-option">full</div>' +

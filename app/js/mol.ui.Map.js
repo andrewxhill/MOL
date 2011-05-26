@@ -70,7 +70,6 @@ MOL.modules.Map = function(mol) {
             show: function() {
                 var points = this._points,
                     map = this.getMap();
-
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh();
@@ -84,7 +83,7 @@ MOL.modules.Map = function(mol) {
 
             hide: function() {
                 var points = this._points;
-
+                
                 if (this.isVisible()) {
                     for (x in points) {
                         points[x].setMap(null);
@@ -576,6 +575,7 @@ MOL.modules.Map = function(mol) {
                             action = event.getAction(),
                             colorEventConfig = {};
                                                 
+                            console.log(action);
                         switch (action) {
 
                         case 'add':
