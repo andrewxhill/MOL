@@ -1430,9 +1430,9 @@ MOL.modules.LayerControl = function(mol) {
                             widget.click(
                                 function(event) {
                                     bus.fireEvent(
-                                        new MetadataEvent(
+                                        new LayerEvent(
                                             {
-                                                action: 'metadata-item',
+                                                action: 'view-metadata',
                                                 layer: layer
                                             }
                                         )
@@ -3608,12 +3608,18 @@ MOL.modules.Metadata = function(mol) {
                 this._bus = bus;  
                 this._collections = {};
             },            
-            _showMetadata: function(id) {
+            _showMetadata: function(id, colText, itemText) {
                 var display = this._display,
                     self = this,
                     api = this._api,
                     ActionCallback = mol.ajax.ActionCallback,
                     LayerAction = mol.ajax.LayerAction;
+                
+                var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
+                itm.addStyleName('selected');
+                
+                display.getCollectionTitle().text(colText);
+                display.getItemTitle().text(itemText);
                 
                 var dat = display.findChild('.data');
                 var mo = dat.find('.meta-object');
@@ -3640,9 +3646,7 @@ MOL.modules.Metadata = function(mol) {
                 var display = this._display,
                     dat = display.findChild('.data');
                     id = result.key_name;
-                console.log(id);
                 var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
-                console.log(meta);
                 var out = result.data.source + 
                             "<br/>" + 
                             result.data.name +
@@ -3652,10 +3656,6 @@ MOL.modules.Metadata = function(mol) {
                 meta.setInnerHtml(out);
             },
             _addDataset: function(layer) {
-                //var itemId = "mol/item/ksljdf",
-                //    itemName = "Puma concolor",
-                //    collectionId = "mol/some/kdljfs",
-                //    collectionName = "MOL Range Maps",
                 var itemId = layer.getKeyName(),
                     itemName = layer.getName(),
                     collectionName = layer.getSubName(),
@@ -3668,17 +3668,13 @@ MOL.modules.Metadata = function(mol) {
                     c.getName().text(collectionName);
                     
                     c.getName().click(function(e) {
-                        //ch = display.getCollection();
-                        //console.log(ch);
                         var stE = new mol.ui.Element(e.target);
-                        var par = stE.getParent().getParent().find('li div');
+                        var id = stE.attr('id');
+                        var par = display.find('li div');
                         for (p in par){
                             par[p].removeStyleName('selected');
                         }
-                        self._showMetadata(stE.attr('id'));
-                        stE.addStyleName('selected');
-                        display.getCollectionTitle().text(stE.text());
-                        display.getItemTitle().text(" ");
+                        self._showMetadata(id, stE.text(), " ");
                     });
                     
                     this._collections[collectionId] = {items: {}};
@@ -3689,15 +3685,16 @@ MOL.modules.Metadata = function(mol) {
                     it.getName().text(itemName);
                     it.getName().click(function(e) {
                         var stE = new mol.ui.Element(e.target);
-                        var col = stE.getParent().getParent().getParent();
-                        var par = col.getParent().find('li div');
+                        var id = stE.attr('id');
+                        var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
+                        var par = display.find('li div');
+                        var col = itm.getParent().getParent().getParent();
                         for (p in par){
                             par[p].removeStyleName('selected');
                         }
-                        self._showMetadata(stE.attr('id'));
-                        stE.addStyleName('selected');
-                        display.getCollectionTitle().text(col.findChild('.collection').text() + ": ");
-                        display.getItemTitle().text(stE.text());
+                        colText = col.findChild('.collection').text() + ": ";
+                        itemText = itm.text();
+                        self._showMetadata(id,colText,itemText);
                     });
                     this._collections[collectionId].items[itemId] = 0;
                 }
@@ -3748,10 +3745,16 @@ MOL.modules.Metadata = function(mol) {
                             layer = event.getLayer();
                         switch (action) {    
                             case 'add':
-                                console.log('woot');
                                 var layer = event.getLayer();
                                 self._addDataset(layer);
+                                break;
+                            case 'view-metadata':
+                                var colText = layer.getSubName() + ": ";
+                                var itemText = layer.getName();
+                                self._showMetadata(layer.getKeyName(), colText, itemText );
+                                document.getElementById('metadata').scrollIntoView(true);
                             break;
+                            
                         }
                     }
                 );
@@ -3879,7 +3882,7 @@ MOL.modules.Metadata = function(mol) {
 						'    </div>' +
 						'    <div class="object-viewer">' +
 						'        <div class="details-window">' +
-						'            <div class="title"><span class="collection-path"></span><span class="item-path"></span></div>' +
+						'            <div class="title">Data: <span class="collection-path"></span><span class="item-path"></span></div>' +
 						'            <div class="data">' +
 						'            </div>' +
 						'        </div>' +

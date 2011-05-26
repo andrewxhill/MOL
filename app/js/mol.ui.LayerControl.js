@@ -198,9 +198,9 @@ MOL.modules.LayerControl = function(mol) {
                             widget.click(
                                 function(event) {
                                     bus.fireEvent(
-                                        new MetadataEvent(
+                                        new LayerEvent(
                                             {
-                                                action: 'metadata-item',
+                                                action: 'view-metadata',
                                                 layer: layer
                                             }
                                         )
