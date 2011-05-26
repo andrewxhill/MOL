@@ -1,0 +1,119 @@
+
+#metadata {
+    height: 100%;
+    width: 100%;
+}
+.mol-Metadata {
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    color: #141414;
+    font-size: 14px;
+}
+.mol-Metadata .top-bar {
+    width: 100%;
+    height: 26px;
+    background: #3b5874;
+    border-bottom: 1px solid black;
+    padding: 0px;
+    margin: 0px;
+    color: white;
+}
+.mol-Metadata .top-bar a {
+    float: left;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 200px;
+    text-decoration: none;
+    color: white;
+}
+.mol-Metadata .top-bar .details-menu {
+    float: right;
+    padding-right: 200px
+}
+.mol-Metadata .top-bar .details-menu .title, .view-option {
+    float: right;
+    margin-left: 8px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+.mol-Metadata .top-bar .details-menu .view-option {
+    font-style: italic;
+    font-size: 90%;
+}
+.mol-Metadata .top-bar .details-menu .view-option.selected, .view-option:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+.mol-Metadata .object-menu {
+    float: left;
+    width: 250px;
+    height: 100%;
+    background-color: #efefef;
+    overflow: auto;
+    border-right: 1px solid black;
+}
+.mol-Metadata .object-menu .title{
+    margin: 4px;
+    font-size: 140%;
+}
+.mol-Metadata .object-menu .collection{
+    font-size: 120%;
+    font-weight: bold;
+}
+.mol-Metadata .object-menu ul,li{
+    font-size: 105%;
+    font-weight: normal;
+    list-style: none;
+    margin-bottom: 5px;
+    padding-left: 0.5em;
+    cursor: pointer;
+}
+.mol-Metadata .object-menu .item.selected, 
+.item:hover,
+.collection.selected,
+.collection:hover{
+    background-color: #cdcdcd;
+}
+.mol-Metadata .object-viewer{
+    float: left;
+    height: 100%;
+    float: left;
+    margin-left: 10px;
+    min-width: 350px;
+}
+.mol-Metadata .object-viewer .details-menu{
+    float: left;
+    width: 100%;
+    margin-top: 10px;
+}
+.mol-Metadata .object-viewer .details-window{
+    float: left;
+    width: 100%;
+    min-width: 350px;
+    min-height: 350px;
+    margin-top: 8px;
+}
+.mol-Metadata .object-viewer .details-window .title{
+    font-size: 120%;
+    font-weight: bold;
+    width: 100%;
+    float: left;
+}
+.mol-Metadata .object-viewer .details-window .data{
+    width: 96%;
+    float: left;
+    margin: 2%;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object{
+    visibility: collapse;
+    width: 100%;
+    display: none;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object.selected{
+    float: left;
+    visibility: visible;
+    display: block;
+}
+
