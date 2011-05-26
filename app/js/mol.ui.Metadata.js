@@ -15,20 +15,6 @@ MOL.modules.Metadata = function(mol) {
     
     mol.ui.Metadata = {};
     /**
-     * Base class for map layers.
-     */
-    mol.ui.Metadata.Dataset = Class.extend(
-        {
-            init: function(dataset) {
-                this._dataset = dataset;
-            },
-            // Getters and setters:
-            getDataset: function() {
-                return this._dataset;
-            }
-        }
-    );
-    /**
      * The Map Engine.
      */
     mol.ui.Metadata.Engine = mol.ui.Engine.extend(
@@ -43,32 +29,101 @@ MOL.modules.Metadata = function(mol) {
             init: function(api, bus) {
                 this._api = api;
                 this._bus = bus;  
+                this._collections = {};
             },            
-
-            _addDataset: function(dataset) {
-                var datasetId = dataset.getId(),
-                    datasetType = dataset.getType();
-                mol.log.todo('Metadata._addDataset');
-                molDataset = new mol.ui.Metadata.Dataset(dataset);
-                this._molDatasets[datasetId] = mapDataset;
-            },
-
-            _datasetExists: function(datasetId) {
-                return this._molDatasets[datasetId] !== undefined;
-            },
-            
-            _getDataset: function(datasetId) {
-                return this._molDatasets[datasetId];
-            },
-
-            _removeDataset: function(datasetId) {
-                var dataset = this._getDataset(datasetId);
-
-                if (!dataset) {
-                    return false;
+            _showMetadata: function(id) {
+                var display = this._display,
+                    self = this,
+                    api = this._api,
+                    ActionCallback = mol.ajax.ActionCallback,
+                    LayerAction = mol.ajax.LayerAction;
+                
+                var dat = display.findChild('.data');
+                var mo = dat.find('.meta-object');
+                for (m in mo) {
+                    mo[m].removeStyleName('selected');
                 }
-                delete this._molDatasets[datasetId];                
-                return true;
+                var meta = dat.findChild('#'+id.replace(/\//g,"\\/"))
+                meta.addStyleName('selected');
+                if (meta.getInnerHtml() == "") {
+                    action = new LayerAction('metadata-item', {key_name:id});
+                    callback = new ActionCallback(
+                        function(response) {
+                            self._addMetadataResult(response);
+                        },
+
+                        function(error) {
+                            mol.log.error(error);
+                        }
+                    );
+                    api.execute(action, callback);  
+                }
+            },
+            _addMetadataResult: function(result) {
+                var display = this._display,
+                    dat = display.findChild('.data');
+                    id = result.key_name;
+                console.log(id);
+                var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
+                console.log(meta);
+                var out = result.data.source + 
+                            "<br/>" + 
+                            result.data.name +
+                            "<br/>" + 
+                            result.data.type +
+                            "<br/>" ;
+                meta.setInnerHtml(out);
+            },
+            _addDataset: function(layer) {
+                //var itemId = "mol/item/ksljdf",
+                //    itemName = "Puma concolor",
+                //    collectionId = "mol/some/kdljfs",
+                //    collectionName = "MOL Range Maps",
+                var itemId = layer.getKeyName(),
+                    itemName = layer.getName(),
+                    collectionName = layer.getSubName(),
+                    collectionId = layer.getSubName().replace(/\s/g,"_"),
+                    display = this._display,
+                    self = this;
+                
+                if (! (collectionId in this._collections)){
+                    var c = display.getNewCollection(collectionId);
+                    c.getName().text(collectionName);
+                    
+                    c.getName().click(function(e) {
+                        //ch = display.getCollection();
+                        //console.log(ch);
+                        var stE = new mol.ui.Element(e.target);
+                        var par = stE.getParent().getParent().find('li div');
+                        for (p in par){
+                            par[p].removeStyleName('selected');
+                        }
+                        self._showMetadata(stE.attr('id'));
+                        stE.addStyleName('selected');
+                        display.getCollectionTitle().text(stE.text());
+                        display.getItemTitle().text(" ");
+                    });
+                    
+                    this._collections[collectionId] = {items: {}};
+                }
+                    
+                if (!(itemId in this._collections[collectionId].items)){
+                    var it = display.getNewItem(itemId,collectionId);
+                    it.getName().text(itemName);
+                    it.getName().click(function(e) {
+                        var stE = new mol.ui.Element(e.target);
+                        var col = stE.getParent().getParent().getParent();
+                        var par = col.getParent().find('li div');
+                        for (p in par){
+                            par[p].removeStyleName('selected');
+                        }
+                        self._showMetadata(stE.attr('id'));
+                        stE.addStyleName('selected');
+                        display.getCollectionTitle().text(col.findChild('.collection').text() + ": ");
+                        display.getItemTitle().text(stE.text());
+                    });
+                    this._collections[collectionId].items[itemId] = 0;
+                }
             },
             
             /**
@@ -86,17 +141,41 @@ MOL.modules.Metadata = function(mol) {
              */
             _bindDisplay: function(display, text) {  
                 var self = this,
-                    bus = this._bus;
+                    bus = this._bus,
+                    LayerEvent = mol.events.LayerEvent;
                     
                 this._display = display;
                 display.setEngine(this);   
                 
-                this._bus.bind(
-                    mol.events.LayerEvent.TYPE,
+                info = {name: 'puma concolor',
+                        id: 'lskdjf/dsjfl',
+                        collectionName: 'wdpa',
+                        getKeyName: function(){return 'lskdjf/dsjfl'},
+                        getName: function(){return 'Puma concolor'},
+                        getSubName: function(){return 'wdpa'},
+                        
+                        }
+                //self._addDataset(info)
+                info.getKeyName = function() {return "lsdjf/sjdfa"};
+                //self._addDataset(info)
+                info.getKeyName = function() {return "lsdjf/fhsk"};
+                //self._addDataset(info)
+                info.getKeyName = function() {return "lsdjf/ejfe"};
+                //self._addDataset(info)
+                
+                
+                bus.addHandler(
+                    LayerEvent.TYPE, 
                     function(event) {
-                        var layer = event.getLayer();
-                        var keyname = layer.getKeyName();
-                        var datasetUi = self._display.addDataset(layer, keyname);
+                        var action = event.getAction(),
+                            layer = event.getLayer();
+                        switch (action) {    
+                            case 'add':
+                                console.log('woot');
+                                var layer = event.getLayer();
+                                self._addDataset(layer);
+                            break;
+                        }
                     }
                 );
                 
@@ -105,14 +184,52 @@ MOL.modules.Metadata = function(mol) {
     );
 
     /**
-     * The LayerWidget.
+     * The Meta Object.
      */
-    mol.ui.Metadata.DatasetUI = mol.ui.Display.extend(
+    mol.ui.Metadata.Meta = mol.ui.Display.extend(
         {
-            init: function(layer, keyname) {
-                this._super('<div>');
-                this.setStyleName(keyname);
-                this.setInnerHtml("Metadata for: "+keyname);
+            init: function(id) {
+                this._id = id;
+                this._super('<div class="meta-object" id="'+this._id+'"></div>');
+            }
+        }
+    );
+    /**
+     * The Item.
+     */
+    mol.ui.Metadata.Item = mol.ui.Display.extend(
+        {
+            init: function(itemId) {
+                this._id = itemId;
+                this._super('<li id="container-'+this._id+'"><div id="'+this._id+'" class="item">item 1</div></li>');
+            },
+            getName: function() {
+                var x = this._itemName,
+                    s = '.item';
+                return x ? x : (this._itemName = this.findChild(s));
+            }
+        }
+    );
+    /**
+     * The Collection.
+     */
+    mol.ui.Metadata.Collection = mol.ui.Display.extend(
+        {
+            init: function(collectionId) {
+                this._id = collectionId;
+                this._super('<li id="container-' + this._id + '">' +
+                        '<div id="' + this._id + '" class="collection">Collection 1</div>' +
+                        '<ul class="item-list">' +
+                        '</ul></li>');
+            },
+            getName: function() {
+                var x = this._collectionName,
+                    s = '.collection';
+                return x ? x : (this._collectionName = this.findChild(s));
+            },
+            setSelected: function() {
+                var s = '.collection';
+                this.findChild(s).select();
             }
         }
     );
@@ -132,18 +249,66 @@ MOL.modules.Metadata = function(mol) {
                 this._id = 'metadata';
                 this._super($('<div>').attr({'id': this._id}));
                 $('body').append(this.getElement());
-                this._datasets = {};
+                this.setInnerHtml(this._html());
             },
-            
-            addDataset: function(layer, keyname) {                
-                var layerWidget = null;
-                if (this._datasets[keyname]) {
-                    return;
-                }
-                this._datasets[keyname] = null;
-                //TODO: hit metadata api with keyname
-                this.append(new mol.ui.Metadata.DatasetUI(layer,keyname));                
-            },       
+            getNewCollection:  function(collectionId){
+                var Collection = mol.ui.Metadata.Collection,
+                    Meta = mol.ui.Metadata.Meta,
+                    r = new Collection(collectionId),
+                    mo = new Meta(collectionId);
+                    
+                this.findChild('.data').append(mo);
+                this.findChild('.collection-list').append(r);
+                return r;
+            },
+            getNewItem:  function(itemId,collectionId){
+                var Item = mol.ui.Metadata.Item,
+                    Meta = mol.ui.Metadata.Meta,
+                    r = new Item(itemId),
+                    mo = new Meta(itemId);
+                this.findChild('.data').append(mo);
+                c = this.findChild('#container-'+collectionId.replace(/\//g,"\\/")).findChild('.item-list').append(r);
+                
+                return r;
+            },
+            getCollectionTitle: function(){
+                var x = this._collectionTitle,
+                    s = '.collection-path';
+                return x ? x : (this._collectionTitle = this.findChild(s));
+            },
+            getItemTitle: function(){
+                var x = this._itemTitle,
+                    s = '.item-path';
+                return x ? x : (this._itemTitle = this.findChild(s));
+            },
+            selectItem: function(id) {
+                //TODO deselect all items/collections and select the one passed by ID
+            },
+                    
+            _html: function(){
+                return  '<div class="mol-Metadata">' +
+						'    <div class="top-bar">' +
+						'        <a href="#map">back to map</a>' +
+						'        <div class="details-menu">' +
+						'            <div class="view-option selected">basic</div>' +
+						'            <div class="view-option">full</div>' +
+						'            <div class="title">Metadata view:</div>' +
+						'        </div>' +
+						'    </div>' +
+						'    <div class="object-menu">' +
+						'        <div class="title">Mapped data</div>' +
+						'        <ul class="collection-list">' +
+						'        </ul>' +
+						'    </div>' +
+						'    <div class="object-viewer">' +
+						'        <div class="details-window">' +
+						'            <div class="title"><span class="collection-path"></span><span class="item-path"></span></div>' +
+						'            <div class="data">' +
+						'            </div>' +
+						'        </div>' +
+						'    </div>' +
+						'</div>';
+            }       
         }
     );
 };

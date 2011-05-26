@@ -180,11 +180,23 @@ MOL.modules.LayerControl = function(mol) {
                             widget.setChecked(true);
                             widget.click(
                                 function(event) {
-                                    console.log(widget);
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
                                                 action: widget.isChecked() ? 'checked': 'unchecked',
+                                                layer: layer
+                                            }
+                                        )
+                                    );
+                                }
+                            );
+                            widget = layerUi.getInfoLink();
+                            widget.click(
+                                function(event) {
+                                    bus.fireEvent(
+                                        new MetadataEvent(
+                                            {
+                                                action: 'metadata-item',
                                                 layer: layer
                                             }
                                         )

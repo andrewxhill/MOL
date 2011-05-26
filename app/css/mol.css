@@ -1,9 +1,9 @@
 html { height: 100% }
-body { height: 100%; margin: 0px; padding: 0px; overflow: auto; 
+body { height: 200%; margin: 0px; padding: 0px; overflow: hidden; 
        min-width: 720px; min-height: 500px;
        font-family: Arial, sans-serif; color: #141414; font-weight:700;}
-#map { height: 100%; min-height: 500px;}
-#metadata { height: 0px; overflow: hidden; }
+#map { height: 50%; min-height: 500px;}
+#metadata { height: 50%; overflow: hidden; }
 
 /* Set up RightControl defaults */
 .mol-Map-RightControl { margin-right: 5px; width: 290px; }

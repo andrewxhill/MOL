@@ -430,6 +430,7 @@ class MetadataProvider(object):
                   "type":"Ecoregion",
                   "name":"Admiralty Islands lowland rain forests",
                   "description":None,
+                  "collectionKey": "collection/ecoregions/wwf/1",
                   "temporal":{
                      "creation": "2001-03-02T00:00Z",
                      "upload": "2011-05-25T18:11Z",
@@ -470,6 +471,7 @@ class MetadataProvider(object):
                   "type":"Range",
                   "name":"Puma concolor",
                   "description":None,
+                  "collectionKey": "collection/ranges/mol/1",
                   "temporal":{
                      "creation": "2001-03-02T00:00Z",
                      "upload": "2011-05-25T18:11Z",
@@ -514,6 +516,7 @@ class MetadataProvider(object):
                   "type":"assemblage list",
                   "name":"Admiralty Islands lowland rain forests",
                   "description":None,
+                  "collectionKey": "collection/assemblage/wwf/1",
                   "temporal":{
                      "creation": "2001-03-02T00:00Z",
                      "upload": "2011-05-25T18:11Z",
@@ -1262,7 +1265,9 @@ class MetadataProvider(object):
                   ]
                },
             }
-        return fakeData[key_name]
+            
+        return {"key_name": key_name,
+                "data": fakeData["ecoregion/wwf/AA0101"]}
         
 class LayerProvider(object):
     """An abstract base class for the Layer service."""

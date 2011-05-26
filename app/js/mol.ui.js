@@ -96,7 +96,16 @@ MOL.modules.ui = function(mol) {
                 });
                 return res;
             },
+            
 
+            find: function(id) {
+                var res = new Array();
+                this._element.find(id).each(function(c,v){
+                    res.push(new mol.ui.Element(v));
+                });
+                return res;
+            },
+            
             text: function(text) {
                 if (text) {
                     this._element.text(text);
