@@ -49,7 +49,7 @@ MOL.modules.LayerList = function(mol) {
              * @override mol.ui.Engine.go
              */
             go: function(place) {
-                mol.log.todo('LayerControl.Engine.go()');
+
             },
             
             _layerWidgetConfig: function() {
