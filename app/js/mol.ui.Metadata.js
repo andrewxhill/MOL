@@ -38,6 +38,10 @@ MOL.modules.Metadata = function(mol) {
                     ActionCallback = mol.ajax.ActionCallback,
                     LayerAction = mol.ajax.LayerAction;
                 
+                var par = display.find('li div');
+                for (p in par){
+                    par[p].removeStyleName('selected');
+                }
                 var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
                 itm.addStyleName('selected');
                 
@@ -93,10 +97,6 @@ MOL.modules.Metadata = function(mol) {
                     c.getName().click(function(e) {
                         var stE = new mol.ui.Element(e.target);
                         var id = stE.attr('id');
-                        var par = display.find('li div');
-                        for (p in par){
-                            par[p].removeStyleName('selected');
-                        }
                         self._showMetadata(id, stE.text(), " ");
                     });
                     
@@ -110,11 +110,7 @@ MOL.modules.Metadata = function(mol) {
                         var stE = new mol.ui.Element(e.target);
                         var id = stE.attr('id');
                         var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
-                        var par = display.find('li div');
                         var col = itm.getParent().getParent().getParent();
-                        for (p in par){
-                            par[p].removeStyleName('selected');
-                        }
                         colText = col.findChild('.collection').text() + ": ";
                         itemText = itm.text();
                         self._showMetadata(id,colText,itemText);
