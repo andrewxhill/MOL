@@ -575,7 +575,6 @@ MOL.modules.Map = function(mol) {
                             action = event.getAction(),
                             colorEventConfig = {};
                                                 
-                            console.log(action);
                         switch (action) {
 
                         case 'add':
