@@ -138,6 +138,7 @@ MOL.modules.LayerControl = function(mol) {
                             display = self._display,
                             LayerEvent = mol.events.LayerEvent,
                             ch = null,
+                            toggle = null,
                             widget = null,
                             nullTest = null,
                             styleNames = null;
@@ -171,14 +172,14 @@ MOL.modules.LayerControl = function(mol) {
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });
                             
-                            self.toggle = layerUi.getToggle();
-                            self.toggle.setChecked(true);
-                            self.toggle.click(
+                            toggle = layerUi.getToggle();
+                            toggle.setChecked(true);
+                            toggle.click(
                                 function(event) {
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
-                                                action: self.toggle.isChecked() ? 'checked': 'unchecked',
+                                                action: toggle.isChecked() ? 'checked': 'unchecked',
                                                 layer: layer
                                             }
                                         )

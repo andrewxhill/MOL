@@ -141,29 +141,12 @@ MOL.modules.Metadata = function(mol) {
                     LayerEvent = mol.events.LayerEvent;
                     
                 this._display = display;
-                display.setEngine(this);   
-                
-                var info = {name: 'puma concolor',
-                            id: 'lskdjf/dsjfl',
-                            collectionName: 'wdpa',
-                            getKeyName: function(){return 'lskdjf/dsjfl'},
-                            getName: function(){return 'Puma concolor'},
-                            getSubName: function(){return 'wdpa'}
-                        }
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/sjdfa"};
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/fhsk"};
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/ejfe"};
-                //self._addDataset(info)
-                
+                display.setEngine(this); 
                 
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
                         var act = event.getAction();
-                        console.log('mdata');
                         switch (act) {    
                             case 'add':
                                 var layer = event.getLayer();

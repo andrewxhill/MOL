@@ -2034,7 +2034,7 @@ MOL.modules.Map = function(mol) {
                     //foreground = icons.foreground,
                     error = icons.error,
                     foreground = icons.foreground,
-                    background = icons.background,
+                    //background = icons.background,
                     ctx = markerCanvas.getContext(),
                     w = markerCanvas.getIconWidth(),
                     h = markerCanvas.getIconHeight(),
@@ -2046,7 +2046,7 @@ MOL.modules.Map = function(mol) {
                 }
                 
                 //ctx.drawImage(background, 0, 0, w, h);
-                ctx.drawImage(background, 0, 0, w, h);
+                //ctx.drawImage(background, 0, 0, w, h);
                 ctx.drawImage(icon, 0, 0, w, h);
                 ctx.drawImage(foreground, 0, 0, w, h);
                 //ctx.drawImage(foreground, 0, 0, w, h);
@@ -2229,7 +2229,7 @@ MOL.modules.Map = function(mol) {
 
                 this._bindDisplay(new mol.ui.Map.Display(), container);
 
-                this._markerCanvas = new MarkerCanvas(28, 24);
+                this._markerCanvas = new MarkerCanvas(21, 18);
 
                 this._addMapControlEventHandler();
                 this._addLayerEventHandler();
@@ -2498,11 +2498,11 @@ MOL.modules.Map = function(mol) {
                 this._ctx = this.getElement()[0].getContext("2d");
 
                 this._iconLayers = {
-                    background: new Image(),
+                    //background: new Image(),
                     foreground: new Image(),
                     error: new Image()
                 };
-                this._iconLayers.background.src = "/static/maps/placemarks/placemark-background.png";
+                //this._iconLayers.background.src = "/static/maps/placemarks/placemark-background.png";
                 this._iconLayers.foreground.src = "/static/maps/placemarks/placemark-foreground.png";
                 this._iconLayers.error.src = "/static/maps/placemarks/placemark-error.png";
             },
