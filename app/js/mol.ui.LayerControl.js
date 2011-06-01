@@ -79,7 +79,7 @@ MOL.modules.LayerControl = function(mol) {
                 widget = display.getLayerToggle();
                 widget.click(
                     function(event) {
-                        display.toggleLayers();
+                        self._display.toggleLayers();
                     }
                 );
                 

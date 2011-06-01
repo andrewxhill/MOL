@@ -1311,7 +1311,7 @@ MOL.modules.LayerControl = function(mol) {
                 widget = display.getLayerToggle();
                 widget.click(
                     function(event) {
-                        display.toggleLayers();
+                        self._display.toggleLayers();
                     }
                 );
                 
@@ -1370,6 +1370,7 @@ MOL.modules.LayerControl = function(mol) {
                             display = self._display,
                             LayerEvent = mol.events.LayerEvent,
                             ch = null,
+                            toggle = null,
                             widget = null,
                             nullTest = null,
                             styleNames = null;
@@ -1403,14 +1404,14 @@ MOL.modules.LayerControl = function(mol) {
                                 new mol.ui.Element(e.target).addStyleName('selected');
                             });
                             
-                            self.toggle = layerUi.getToggle();
-                            self.toggle.setChecked(true);
-                            self.toggle.click(
+                            toggle = layerUi.getToggle();
+                            toggle.setChecked(true);
+                            toggle.click(
                                 function(event) {
                                     bus.fireEvent(
                                         new LayerEvent(
                                             {
-                                                action: self.toggle.isChecked() ? 'checked': 'unchecked',
+                                                action: toggle.isChecked() ? 'checked': 'unchecked',
                                                 layer: layer
                                             }
                                         )
@@ -3708,29 +3709,12 @@ MOL.modules.Metadata = function(mol) {
                     LayerEvent = mol.events.LayerEvent;
                     
                 this._display = display;
-                display.setEngine(this);   
-                
-                var info = {name: 'puma concolor',
-                            id: 'lskdjf/dsjfl',
-                            collectionName: 'wdpa',
-                            getKeyName: function(){return 'lskdjf/dsjfl'},
-                            getName: function(){return 'Puma concolor'},
-                            getSubName: function(){return 'wdpa'}
-                        }
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/sjdfa"};
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/fhsk"};
-                //self._addDataset(info)
-                info.getKeyName = function() {return "lsdjf/ejfe"};
-                //self._addDataset(info)
-                
+                display.setEngine(this); 
                 
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
                         var act = event.getAction();
-                        console.log('mdata');
                         switch (act) {    
                             case 'add':
                                 var layer = event.getLayer();

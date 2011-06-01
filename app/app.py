@@ -24,6 +24,12 @@ import simplejson
 import logging
 from mol.db import MultiPolygon, MultiPolygonIndex, OccurrenceIndex ,MasterSearchIndex
 from google.appengine.ext import db
+import urllib
+from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
+from xml.etree import ElementTree as etree
+import cStringIO, datetime, random
+from google.appengine.api import images
+import png
 
 memcache = m.Client()
 
@@ -125,10 +131,31 @@ class LatestHandler(BaseHandler):
         
         
 class William(BaseHandler):
+    
+    def xmltojson(self):
+        coords = []
+        n = 0
+        while n<1000:
+            x = random.randint(-1800,1800)
+            y = random.randint(-900,900)
+            c = random.randint(10,10000)
+            coords.append({
+                "coordinates": {
+                    "decimalLongitude": float(x)/10,
+                    "decimalLatitude": float(y)/10,
+                    "coordinateUncertaintyInMeters": float(c)/10
+                    }
+                });
+            n+=1
+                    
+        return coords
     def get(self):
         self.post()
     def post(self):
-        pass
+        query = {'layerName': 'Puma concolor'}
+        self.gbifjson = self.xmltojson()
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write(simplejson.dumps(self.gbifjson)) 
         
 class Andrew(BaseHandler):
     """Handler for the search UI."""
