@@ -119,6 +119,8 @@
     visibility: visible;
     display: block;
     position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .object-title {
     float: left;
@@ -270,7 +272,6 @@
     float: left;
     width: 38%;
     padding: 3%;
-    background: #ffedd6;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .file-data .label{
     float: left;

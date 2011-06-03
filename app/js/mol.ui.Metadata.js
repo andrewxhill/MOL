@@ -82,16 +82,28 @@ MOL.modules.Metadata = function(mol) {
                 meta = display.addNewMeta(id);
                 meta.addStyleName('selected');
                 console.log(meta);
+                
                 meta.getSource().text(result.data.source + ": ");
                 meta.getType().text(result.data.type);
                 meta.getName().text(result.data.name);
-                //var out = result.data.source.toString() + 
-                //            "<br/>" + 
-                //            result.data.name.toString() +
-                //            "<br/>" + 
-                //            result.data.type.toString() +
-                //            "<br/>" ;
-                //meta.setInnerHtml(out);
+                
+                if (result.data.spatial) {
+                    meta.getSpatialText().text(result.data.spatial.crs.extent.text);
+                    meta.getWest().text(result.data.spatial.crs.extent.coordinates[0]);
+                    meta.getSouth().text(result.data.spatial.crs.extent.coordinates[1]);
+                    meta.getEast().text(result.data.spatial.crs.extent.coordinates[2]);
+                    meta.getNorth().text(result.data.spatial.crs.extent.coordinates[3]);
+                }
+                
+                for (n in result.data.variables) {
+                    meta.newVariable(result.data.variables[n].name,result.data.variables[n].value);
+                }
+                
+                if (result.data.storage.location != null){
+                    meta.getFileDate().text(result.data.storage.uploadDate);
+                    meta.getFileLocation().text(result.data.storage.location);
+                    meta.getFileFormat().text(result.data.storage.format);
+                }
             },
             _itemCallback: function(e) {
                 var display = this._display,
@@ -186,6 +198,7 @@ MOL.modules.Metadata = function(mol) {
         {
             init: function(id) {
                 this._id = id;
+                this._spatial = null;
                 this._super('<div class="meta-object" id="'+this._id+'">'+
                             '   <div class="object-title">' +
                             '       <span class="src-path"></span>' +
@@ -193,7 +206,122 @@ MOL.modules.Metadata = function(mol) {
                             '       <span class="type-path"></span>' +
                             '       <h2 class="name-path"></h2>' +
                             '   </div>' +
+                            '   <div class="permissions">' +
+                            '       Permissions: ' +
+                            '       <span class="permissions-text">unknown</span>' +
+                            '   </div>' +
+                            '   <div class="spatial"></div>' +
+                            '   <div class="small-left"></div>' +
                             '</div>');
+            },
+            _fileInit: function() {
+                this._file = new mol.ui.Element('<div class="file-data">' + 
+                                    '   <div class="label">Format:</div>' + 
+                                    '   <div class="file-format"></div>' + 
+                                    '   <div class="label">Download:</div>' + 
+                                    '   <a href="" class="file-location"></a>' + 
+                                    '   <div class="label">File date:</div>' + 
+                                    '   <div class="file-upload-date"></div>' + 
+                                    '</div>');
+                this.append(this._file);
+                return this._file;
+            },
+            _temporalInit: function() {
+                this._temporal = new mol.ui.Element('<div class="temporal">' +
+                                 '   <div class="title">Temporal span:</div>' +
+                                 '   <div class="start">n/a</div>' +
+                                 '   <div class="bar"></div>' +
+                                 '   <div class="end">n/a</div>' +
+                                 '<div>');
+                this.findChild('.small-left').append(this._temporal);
+                return this._temporal;
+            },
+            _variablesInit: function() {
+                this._variables = new mol.ui.Element('<div class="variables"><div class="title">Other info:</div></div>');
+                this.findChild('.small-left').append(this._variables);
+                return this._variables;
+            },
+            _spatialInit: function() {
+                this._spatial = new mol.ui.Element('<div class="text">Geography: <span class="spatial-text"></span></div>' +
+                                '<div class="spacolumn">' +
+                                '  <div class="title">Bounding Box</div>' +
+                                '  <div class="bounding-box">' +
+                                '      <div class="north">90</div>' +
+                                '      <div class="west">-180</div>' +
+                                '      <div class="east">180</div>' +
+                                '      <div class="south">-90</div>' +
+                                '  </div>' +
+                                '</div>' +
+                                '<div class="spacolumn">' +
+                                '  <div class="title">Overview</div>' +
+                                '  <div class="map-overview">' +
+                                '     <img src="http://axh.mol-lab.appspot.com/data/tile?key_name=range/mol/animalia/species/puma_concolor&source=MOL&x=0&y=0&z=0" />' +
+                                '  </div>' +
+                                '</div>');
+                this.findChild('.spatial').append(this._spatial);
+                return this._spatial;
+            },
+            getFileFormat: function(){
+                var fi = this._file ? this._file : this._fileInit(),
+                    x = this._ff,
+                    s = '.file-format';
+                return x ? x : (this._ff = this.findChild(s));
+            },
+            getFileLocation: function(){
+                var fi = this._file ? this._file : this._fileInit(),
+                    x = this._fl,
+                    s = '.file-location';
+                return x ? x : (this._fl = this.findChild(s));
+            },
+            getFileDate: function(){
+                var fi = this._file ? this._file : this._fileInit(),
+                    x = this._fu,
+                    s = '.file-upload-date';
+                return x ? x : (this._fu = this.findChild(s));
+            },
+            newVariable: function(name,value){
+                var vb = this._variables ? this._variables : this._variablesInit(),
+                    x = new mol.ui.Element('<div class="variable">' +
+                        '    <div class="name">'+name+':</div>' +
+                        '    <div class="value">'+value+'</div>' +
+                        '</div>');
+                this.findChild('.variables').append(x);
+                return x;
+            },
+            getNorth: function() {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._north,
+                    s = '.north';
+                return x ? x : (this._north = this.findChild(s));
+            },
+            getSouth: function() {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._south,
+                    s = '.south';
+                return x ? x : (this._south = this.findChild(s));
+            },
+            getEast: function() {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._east,
+                    s = '.east';
+                return x ? x : (this._east = this.findChild(s));
+            },
+            getWest: function() {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._west,
+                    s = '.west';
+                return x ? x : (this._west = this.findChild(s));
+            },
+            getSpatialText: function() {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._sptext,
+                    s = '.spatial-text';
+                return x ? x : (this._sptext = this.findChild(s));
+            },
+            getPerms: function() {
+                var x = this._perms,
+                    s = '.permissions-text';
+                return x ? x : (this._perms = this.findChild(s));
             },
             getSource: function() {
                 var x = this._src,
