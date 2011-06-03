@@ -3642,11 +3642,11 @@ MOL.modules.Metadata = function(mol) {
                     dat = display.findChild('.data');
                     id = result.key_name;
                 var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
-                var out = result.data.source + 
+                var out = result.data.source.toString() + 
                             "<br/>" + 
-                            result.data.name +
+                            result.data.name.toString() +
                             "<br/>" + 
-                            result.data.type +
+                            result.data.type.toString() +
                             "<br/>" ;
                 meta.setInnerHtml(out);
             },

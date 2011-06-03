@@ -31,7 +31,7 @@ MOL.modules.Metadata = function(mol) {
                 this._bus = bus;  
                 this._collections = {};
             },            
-            _showMetadata: function(id, colText, itemText) {
+            _showMetadata: function(id) {
                 var display = this._display,
                     self = this,
                     api = this._api,
@@ -45,8 +45,8 @@ MOL.modules.Metadata = function(mol) {
                 var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
                 itm.addStyleName('selected');
                 
-                display.getCollectionTitle().text(colText);
-                display.getItemTitle().text(itemText);
+                //display.getCollectionTitle().text(colText);
+                //display.getItemTitle().text(itemText);
                 
                 var dat = display.findChild('.data');
                 var mo = dat.find('.meta-object');
@@ -54,8 +54,12 @@ MOL.modules.Metadata = function(mol) {
                     mo[m].removeStyleName('selected');
                 }
                 var meta = dat.findChild('#'+id.replace(/\//g,"\\/"))
-                meta.addStyleName('selected');
-                if (meta.getInnerHtml() == "") {
+                
+                console.log(meta.id);
+                //console.log(meta.getId());
+                if (meta.attr('id') != null ) {
+                    meta.addStyleName('selected');
+                } else {
                     var action = new LayerAction('metadata-item', {key_name:id});
                     var callback = new ActionCallback(
                         function(response) {
@@ -73,24 +77,31 @@ MOL.modules.Metadata = function(mol) {
                 var display = this._display,
                     dat = display.findChild('.data');
                     id = result.key_name;
-                var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
-                var out = result.data.source + 
-                            "<br/>" + 
-                            result.data.name +
-                            "<br/>" + 
-                            result.data.type +
-                            "<br/>" ;
-                meta.setInnerHtml(out);
+                //var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
+                //meta = new this.display.Meta(itemId)
+                meta = display.addNewMeta(id);
+                meta.addStyleName('selected');
+                console.log(meta);
+                meta.getSource().text(result.data.source + ": ");
+                meta.getType().text(result.data.type);
+                meta.getName().text(result.data.name);
+                //var out = result.data.source.toString() + 
+                //            "<br/>" + 
+                //            result.data.name.toString() +
+                //            "<br/>" + 
+                //            result.data.type.toString() +
+                //            "<br/>" ;
+                //meta.setInnerHtml(out);
             },
             _itemCallback: function(e) {
                 var display = this._display,
                     stE = new mol.ui.Element(e.target);
                 var id = stE.attr('id');
-                var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
-                var col = itm.getParent().getParent().getParent();
-                var colText = col.findChild('.collection').text() + ": ";
-                var itemText = itm.text();
-                this._showMetadata(id,colText,itemText);
+                //var itm = display.find('#'+id.replace(/\//g,"\\/"))[0];
+                //var col = itm.getParent().getParent().getParent();
+                //var colText = col.findChild('.collection').text() + ": ";
+                //var itemText = itm.text();
+                this._showMetadata(id);
             },
             _collCallback: function(e) {
                 var stE = new mol.ui.Element(e.target);
@@ -175,8 +186,31 @@ MOL.modules.Metadata = function(mol) {
         {
             init: function(id) {
                 this._id = id;
-                this._super('<div class="meta-object" id="'+this._id+'"></div>');
-            }
+                this._super('<div class="meta-object" id="'+this._id+'">'+
+                            '   <div class="object-title">' +
+                            '       <span class="src-path"></span>' +
+                            '       <span class="arrow">   </span>' +
+                            '       <span class="type-path"></span>' +
+                            '       <h2 class="name-path"></h2>' +
+                            '   </div>' +
+                            '</div>');
+            },
+            getSource: function() {
+                var x = this._src,
+                    s = '.src-path';
+                return x ? x : (this._src = this.findChild(s));
+            },
+            getType: function() {
+                var x = this._type,
+                    s = '.type-path';
+                return x ? x : (this._type = this.findChild(s));
+            },
+            getName: function() {
+                var x = this._name,
+                    s = '.name-path';
+                return x ? x : (this._name = this.findChild(s));
+            },
+            
         }
     );
     /**
@@ -186,7 +220,9 @@ MOL.modules.Metadata = function(mol) {
         {
             init: function(itemId) {
                 this._id = itemId;
-                this._super('<li id="container-'+this._id+'"><div id="'+this._id+'" class="item">item 1</div></li>');
+                this._super('<li id="container-'+this._id +'">' + 
+                            '   <div id="'+this._id+'" class="item">item 1</div>' + 
+                            '</li>');
             },
             getName: function() {
                 var x = this._itemName,
@@ -248,11 +284,16 @@ MOL.modules.Metadata = function(mol) {
             getNewItem:  function(itemId,collectionId){
                 var Item = mol.ui.Metadata.Item,
                     Meta = mol.ui.Metadata.Meta,
-                    r = new Item(itemId),
-                    mo = new Meta(itemId);
-                this.findChild('.data').append(mo);
+                    r = new Item(itemId);
+                //this.findChild('.data').append(mo);
                 this.findChild('#container-'+collectionId.replace(/\//g,"\\/")).findChild('.item-list').append(r);
                 return r;
+            },
+            addNewMeta: function(itemId) {
+                var Meta = mol.ui.Metadata.Meta;
+                var mo = new Meta(itemId);
+                this.findChild('.data').append(mo);
+                return mo;
             },
             getCollectionTitle: function(){
                 var x = this._collectionTitle,
@@ -285,7 +326,7 @@ MOL.modules.Metadata = function(mol) {
 						'    </div>' +
 						'    <div class="object-viewer">' +
 						'        <div class="details-window">' +
-						'            <div class="title">Data: <span class="collection-path"></span><span class="item-path"></span></div>' +
+						'            <div class="title">Data:</div>' +
 						'            <div class="data">' +
 						'            </div>' +
 						'        </div>' +

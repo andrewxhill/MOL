@@ -22,7 +22,7 @@ import os
 from google.appengine.api import memcache as m, mail
 import simplejson
 import logging
-from mol.db import MultiPolygon, MultiPolygonIndex, OccurrenceIndex ,MasterSearchIndex
+from mol.db import MetaData, MultiPolygonIndex, OccurrenceIndex ,MasterSearchIndex
 from google.appengine.ext import db
 import urllib
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
@@ -158,20 +158,21 @@ class William(BaseHandler):
         self.response.out.write(simplejson.dumps(self.gbifjson)) 
         
 class Andrew(BaseHandler):
-    """Handler for the search UI."""
     def get(self):
         self.post()
     def post(self):
-        q = OccurrenceIndex.all().ancestor(db.Key.from_path('MultiPolygon','ecoregion/wwf/AA0101'))
-        for r in q.fetch(200):
-            try:
-                self.response.out.write('{"scope":"species",\n "name":"%s",\n "variables":{\n\t"name":"introduced",\n\t"value":True}\n},\n</p>' % (r.occurrenceSet.name))
-            except:
-                pass
-                
+        payload = self.request.get('payload')
+        key_name = self.request.get('key_name')
+        parent_key_name = self.request.get('parent_key_name')
+        parent_kind = self.request.get('parent_kind')
+        ps = db.Key.from_path(parent_kind,parent_key_name)
+        md = MetaData(
+                key_name = key_name,
+                parentKey = str(ps),
+                object = payload
+            )
+        db.put(md)
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
-            
-        
       
 application = webapp.WSGIApplication(
          [('/', MainPage),

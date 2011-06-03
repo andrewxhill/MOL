@@ -5,38 +5,93 @@
     <link href="/css/metadata.css" media="screen" rel="stylesheet" type="text/css" /> 
   </head>
   <body >
-    <div class="mol-Metadata">
-        <div class="top-bar">
-            <a href="#map">back to map</a>
-            <div class="details-menu">
-                <div class="view-option selected">basic</div>
-                <div class="view-option">full</div>
-                <div class="title">Metadata view:</div>
-            </div>
-        </div>
-        <div class="object-menu">
-            <div class="title">Mapped data</div>
-            <ul>
-                <li> 
-                    <div class='collection'>Collection 1</div>
-                    <ul>
-                        <li><div class="item">item 1</div></li>
-                        <li><div class="item">item 2</div></li>
-                    </ul>
-                </li>
-                <li>
-                    <div class='collection'>Collection 2</div>
-                    <ul>
-                        <li><div class="item selected">item 1</div></li>
-                        <li><div class="item">item 2</div></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <div class="object-viewer">
-            <div class="details-window">
-                <div class="title">Collection 2: Item 1</div>
-                <div class="data">item 1 metadata</div>
+    <div id="metadata">
+        <div class="mol-Metadata">    
+                <div class="top-bar">       
+                <a href="#map">Back to Map</a>        
+                <div class="details-menu">            
+                    <div class="view-option selected">basic</div>            
+                    <div class="view-option">full</div>            
+                    <div class="title">Metadata view:</div>        
+                </div>    
+            </div>    
+            <div class="object-menu">        
+                <div class="title">Mapped data</div>        
+                <ul class="collection-list">        
+                    <li id="container-WWF_Ecoregion">
+                        <div id="WWF_Ecoregion" class="collection">WWF Ecoregion</div>
+                        <ul class="item-list">
+                            <li id="container-ecoregion/wwf/AA0101">
+                                <div id="ecoregion/wwf/AA0101" class="item">Admiralty Islands lowland rain forests</div>
+                            </li>
+                            <li id="container-ecoregion/wwf/AA0102">
+                                <div id="ecoregion/wwf/AA0102" class="item selected">Banda Sea Islands moist deciduous forests</div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>     
+            </div>    
+            <div class="object-viewer">        
+                <div class="details-window">            
+                    <div class="title">Data:</div>            
+                    <div class="data">            
+                        <div class="meta-object" id="WWF_Ecoregion"></div>
+                        <div class="meta-object" id="ecoregion/wwf/AA0101"></div>
+                        <div class="meta-object selected" id="ecoregion/wwf/AA0102">
+                                <div class="object-title">
+                                    <span class="collection-path">WWF</span>
+                                    <span class="arrow"> -- </span>
+                                    <span class="type-path">Ecoregion</span>
+                                    <h2 class="name">Banda Sea Islands moist deciduous forests</h2>
+                                </div>
+                                <div class="permissions">
+                                    Permissions: 
+                                    <span class="permissions-text">unknown</span>
+                                </div>
+                                <div class="spatial">
+                                    <div class="text">Geography: <span class="spatial-text">unknown</span></div>
+                                    <div class="spacolumn">
+                                        <div class="title">Bounding Box</div>
+                                        <div class="bounding-box">
+                                            <div class="north">90.89023982</div>
+                                            <div class="west">-180.389232</div>
+                                            <div class="east">180.28392</div>
+                                            <div class="south">-90.238023</div>
+                                        </div>
+                                    </div>
+                                    <div class="spacolumn">
+                                        <div class="title">Overview</div>
+                                        <div class="map-overview">
+                                            <img src="http://axh.mol-lab.appspot.com/data/tile?key_name=range/mol/animalia/species/puma_concolor&source=MOL&x=0&y=0&z=0" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="small-left">
+                                    <div class="temporal">
+                                        <div class="title">Temporal span:</div>
+                                        <div class="start">n/a</div>
+                                        <div class="bar"></div>
+                                        <div class="end">n/a</div>
+                                    </div>
+                                    <div class="variables">
+                                        <div class="title">Other info:</div>
+                                        <div class="variable">
+                                            <div class="name">eco_code:</div>
+                                            <div class="value">AA0102</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="file-data">
+                                    <div class="label">Format:</div>
+                                    <div class="format">Esri Shapefile</div>
+                                    <div class="label">Download:</div>
+                                    <a href="" class="location">/ftp/ecoregion/shp/AA0102.shp</a>
+                                    <div class="label">File date:</div>
+                                    <div class="upload-date">2011-06-03 12:35:08.701490</div>
+                                </div>
+                            </div>
+                        </div>        
+                </div>    
             </div>
         </div>
     </div>
