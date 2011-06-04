@@ -46,8 +46,8 @@ class GoogleProjection:
 
 
 class OVRenderThread:
-    def __init__(self, tile_dir, shpfile, proj, w, h, params):
-        self.tile_dir = tile_dir
+    def __init__(self, ovimg, shpfile, proj, w, h, params):
+        self.png = ovimg
         self.m = mapnik.Map(w, h)
         self.m.background = mapnik.Color(params.get('background'))
         s = mapnik.Style()
@@ -107,12 +107,10 @@ class OVRenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(w, h)
         mapnik.render(self.m, im)
-        im.save(tile_uri, 'png')
+        im.save(self.png, 'png')
 
-def render(id, tile_dir, shpfile, proj, w, h, params):  
+def render(ovimg, shpfile, proj, w, h, params):  
     # Launch rendering threads
-    renderer = OVRenderThread(tile_dir, shpfile, proj, w, h, params)      
+    renderer = OVRenderThread(ovimg, shpfile, proj, w, h, params)      
     
-    tile_uri = str(os.path.join(tile_dir , id+'.png'))  
-    
-    renderer.render_tile(tile_uri, w, h)
+    renderer.render_tile(ovimg, w, h)
