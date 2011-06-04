@@ -71,14 +71,17 @@ class ApiController(BaseController):
                 }
                 
         if datatype=="ecoregion":
-            overview = os.path.join('/ftp/overviews/', id + '.png')
-            shpfile = os.path.join('/ftp/ecoregion/shp/', id + '.shp')
+            logging.error("Ecoregion overview")
+            overview = '/ftp/overviews/' + id + '.png'
+            shpfile = '/ftp/ecoregion/shp/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
             
         elif datatype=="pa":
-            overview = os.path.join('/ftp/overviews/', id + '.png')
-            shpfile = os.path.join('/ftp/pa/shp/', id + '.shp')
+            logging.error("Protected area overview")
+            overview = '/ftp/overviews/' + id + '.png'
+            shpfile = '/ftp/pa/shp/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
+        
         """
         shpfile = '/home/andrew/Documents/AA0101.shp'
         overview = '/home/andrew/Documents/tiles/Yoo.png'

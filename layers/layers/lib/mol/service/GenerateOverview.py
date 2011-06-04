@@ -57,6 +57,7 @@ class OVRenderThread:
         s.rules.append(r)
         self.m.append_style('My Style',s)
         self.lyr = mapnik.Layer('world',proj)
+        logging.info(shpfile)
         self.lyr.datasource = mapnik.Shapefile(file=shpfile)
         self.lyr.styles.append('My Style')
         self.m.layers.append(self.lyr)
