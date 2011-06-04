@@ -89,7 +89,7 @@ class OVRenderThread:
         mapnik.render(self.m, im)
         im.save(tile_uri, 'png')
 
-def GenerateOverview(tile_dir, shpfile, proj, w, h, bb, params):  
+def render(tile_dir, shpfile, proj, w, h, bb, params):  
     
     lW = bb[2] - bb[0]
     lH = bb[3] - bb[1]
