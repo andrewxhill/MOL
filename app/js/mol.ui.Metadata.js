@@ -210,6 +210,10 @@ MOL.modules.Metadata = function(mol) {
                             '       Permissions: ' +
                             '       <span class="permissions-text">unknown</span>' +
                             '   </div>' +
+                            '   <div class="citation">' +
+                            '       Citation: ' +
+                            '       <span class="citation-text">unknown</span>' +
+                            '   </div>' +
                             '   <div class="spatial"></div>' +
                             '   <div class="small-left"></div>' +
                             '</div>');

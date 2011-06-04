@@ -26,6 +26,12 @@ import urllib2
 log = logging.getLogger(__name__)
 
 
+OVERVIEW_BACKGROUND = 'steelblue'
+OVERVIEW_POLYGON = '#f2eff9'
+OVERVIEW_LINE = 'rgb(50%,50%,50%)'
+OVERVIEW_LINE_WIDTH = 0.1
+
+
 def bboxfromxyz(x,y,z):             
     pixels = 256
     
@@ -49,6 +55,42 @@ class ApiController(BaseController):
         url = request.params.get('url', None)
         return simplejson.dumps({'species_id':id, 'valid':Layer.isidvalid(id, url)})
     
+    def overview(self, id):
+        datatype = id
+        id = request.params.get('id', None)
+        w = request.params.get('w', 256)
+        h = request.params.get('h', 256)
+        
+        params = {
+                "background": request.params.get('background', OVERVIEW_BACKGROUND),
+                "polygon": request.params.get('polygon', OVERVIEW_POLYGON),
+                "line": request.params.get('line', OVERVIEW_LINE),
+                "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
+                }
+                
+        if datatype=="ecoregion":
+            overview = os.path.join('/ftp/overviews/', id + '.png')
+            shpfile = os.path.join('/ftp/ecoregion/shp/', id + '.shp')
+            proj = "+proj=latlong +datum=WGS84"
+            
+        elif datatype=="pa":
+            overview = os.path.join('/ftp/overviews/', id + '.png')
+            shpfile = os.path.join('/ftp/pa/shp/', id + '.shp')
+            proj = "+proj=latlong +datum=WGS84"
+            
+        GenerateOverview(overview, shpfile, proj, w, h, bb, params)
+        
+        try:
+            logging.info('Returning tile : ' + overview)
+            response.headers['Content-Type'] = 'image/png'
+            response.status = 200
+            return open(overview, 'rb').read()
+        except:
+            response.status = 404
+            return None
+        
+        
+        
     def newtileset(self, id):
         datatype = id
         '''For any new tileset that the frontend wants to create, this needs to be initiated.
