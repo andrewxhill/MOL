@@ -80,7 +80,7 @@ class ApiController(BaseController):
             shpfile = os.path.join('/ftp/pa/shp/', id + '.shp')
             proj = "+proj=latlong +datum=WGS84"
             
-        GenerateOverview.render(overview, shpfile, proj, w, h, bb, params)
+        GenerateOverview.render(overview, shpfile, proj, w, h, params)
         
         try:
             logging.info('Returning tile : ' + overview)

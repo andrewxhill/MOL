@@ -109,9 +109,9 @@ class OVRenderThread:
         mapnik.render(self.m, im)
         im.save(tile_uri, 'png')
 
-def render(id, tile_dir, shpfile, proj, w, h):  
+def render(id, tile_dir, shpfile, proj, w, h, params):  
     # Launch rendering threads
-    renderer = OVRenderThread(tile_dir, shpfile, proj, w, h)      
+    renderer = OVRenderThread(tile_dir, shpfile, proj, w, h, params)      
     
     tile_uri = str(os.path.join(tile_dir , id+'.png'))  
     
