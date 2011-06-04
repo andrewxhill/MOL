@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 from pylons import response, request, app_globals
+from layers.lib.base import *
+from layers.lib.mol.service import GenerateTile, GenerateOverview
 import logging
 import os
 import simplejson

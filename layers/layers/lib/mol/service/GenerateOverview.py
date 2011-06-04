@@ -68,12 +68,32 @@ class OVRenderThread:
         # Projects between tile pixel co-ordinates and LatLong (EPSG:4326)
 
 
-    def render_tile(self, tile_uri, w, h, bb):
+    def render_tile(self, tile_uri, w, h):
         
         self.m.resize(w, h)
         
-        c0 = self.prj.forward(mapnik.Coord(bb[0], bb[1]))
-        c1 = self.prj.forward(mapnik.Coord(bb[2], bb[3]))
+        #self.m.zoom_to_box(self.lyr.envelope())
+        bb = (self.lyr.envelope().minx,self.lyr.envelope().miny,self.lyr.envelope().maxx,self.lyr.envelope().maxy)
+        lW = bb[2] - bb[0]
+        lH = bb[3] - bb[1]
+        lR = lW/lH
+        r = w/h
+        
+        mW = 0
+        mH = 0
+        if lR > r:
+            mH = (lW * h)/(w * lH)
+        elif r < lR:
+            mW = (w * lH) / (lW * h)
+        
+        x1 = bb[0] - 0.5*mW
+        x2 = bb[2] + 0.5*mW
+        
+        y1 = bb[1] - 0.5*mH
+        y2 = bb[3] + 0.5*mH
+        
+        c0 = self.prj.forward(mapnik.Coord(x1, y1))
+        c1 = self.prj.forward(mapnik.Coord(x2,y2))
 
         # Bounding box for the tile
         if hasattr(mapnik, 'mapnik_version') and mapnik.mapnik_version() >= 800:
@@ -81,7 +101,7 @@ class OVRenderThread:
         else:
             bb = mapnik.Envelope(c0.x, c0.y, c1.x, c1.y)
         self.m.zoom_to_box(bb)
-        #self.m.zoom_to_box(self.lyr.envelope())
+        
         self.m.buffer_size = 128
 
         # Render image with default Agg renderer
@@ -89,32 +109,10 @@ class OVRenderThread:
         mapnik.render(self.m, im)
         im.save(tile_uri, 'png')
 
-def render(tile_dir, shpfile, proj, w, h, bb, params):  
-    
-    lW = bb[2] - bb[0]
-    lH = bb[3] - bb[1]
-    lR = lW/lH
-    r = w/h
-    
-    mW = 0
-    mH = 0
-    if lR > r:
-        mH = (lW * h)/(w * lH)
-    elif r < lR:
-        mW = (w * lH) / (lW * h)
-    
-    x1 = bb[0] - 0.5*mW
-    x2 = bb[2] + 0.5*mW
-    
-    y1 = bb[1] - 0.5*mH
-    y2 = bb[3] + 0.5*mH
-    
-    bb = (x1,y1,x2,y2)
-    
+def render(id, tile_dir, shpfile, proj, w, h):  
     # Launch rendering threads
-    renderer = OVRenderThread(tile_dir, shpfile, proj, w, h, params)      
+    renderer = OVRenderThread(tile_dir, shpfile, proj, w, h)      
     
-    tile_uri = str(os.path.join(tile_dir , 'ov.png'))  
+    tile_uri = str(os.path.join(tile_dir , id+'.png'))  
     
-    renderer.render_tile(tile_uri, w, h, bb)
-    
+    renderer.render_tile(tile_uri, w, h)
