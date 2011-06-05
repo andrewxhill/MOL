@@ -37,6 +37,7 @@ from mol.service import MasterTermSearch
 from mol.service import TileService
 from mol.service import LayerService
 from mol.service import MetadataProvider
+from mol.service import OverviewImageProvider
 from mol.service import GbifLayerProvider
 from mol.service import LayerType
 from mol.service import LayerService
@@ -115,7 +116,7 @@ class WebAppHandler(BaseHandler):
 
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(simplejson.dumps(response))
-
+        
     def _layer_get_points(self, query):
         # TODO: Use self.layer_service()
         sciname = query.get('layerName')
@@ -143,6 +144,29 @@ class WebAppHandler(BaseHandler):
         mts = MasterTermSearch(query)
         return mts.api_format()
 
+class OverviewImageHandler(BaseHandler):
+    
+    def get(self):
+        #range/mol/animalia/species/abditomys_latidens
+        key_name = self.request.params.get('key_name', 'ecoregion/wwf/100') #or ecoregion, or protected area
+        #datatype = self.request.params.get('type', 'range').lower() #or ecoregion, or protected area
+        h = int(self.request.params.get('h', 500))
+        w = int(self.request.params.get('w', 500))
+        
+        params = {'key_name': key_name,
+                  'height': h,
+                  'width': w }
+                  
+        ov = OverviewImageProvider(params)
+        ov.getimg()
+        logging.error(ov.url)
+        if ov.img is not None:
+            self.response.headers['Content-Type'] = "image/png"
+            self.response.out.write(ov.img)
+        else:
+            self.error(204)
+            return self.response.set_status(204)
+    
 class PointsHandler(BaseHandler):
     '''RequestHandler for GBIF occurrence point datasets
        Uses the GbifLayerProvider Service to return GBIF datasets
@@ -1849,9 +1873,10 @@ application = webapp.WSGIApplication(
          [('/webapp', WebAppHandler),
          
           ('/data/points', PointsHandler), 
+          ('/data/overview', OverviewImageHandler),
           ('/data/tile', TileHandler),
           ('/data/metadata', MetadataHandler),
-
+          
           ('/search/taxonomy', TaxonomyHandler),
           
           ('/util/layers', LayersHandler), 

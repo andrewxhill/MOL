@@ -460,6 +460,43 @@ class LayerProvider(object):
         return self._sources
     sources = property(getSources)
 
+class OverviewImageProvider(object):
+    def __init__(self, params):
+        self.key_name = params.get('key_name')
+        self.w = params.get('width')
+        self.h = params.get('height')
+        self.img = None
+        self.cachetime = 60000   
+        self.memkey = None
+        self.url = None
+        
+        d = self.key_name.split('/', 2)
+        self.datatype, self.source, self.id = d[0].lower(),d[1],d[2]
+        
+    def geturl(self):
+        params = urllib.urlencode({
+                'w': self.w,
+                'h': self.h,
+                'id': self.id})
+        self.url = 'http://mol.colorado.edu/layers/api/overview/%s?%s' % (self.datatype,params)
+        self.memkey = self.url
+        
+    def getimg(self):
+        
+        rpc = urlfetch.create_rpc()
+        self.geturl()
+        urlfetch.make_fetch_call(rpc, self.url)
+        self.img = None #memcache.get(self.memkey)
+        if self.img is None:
+            try:
+                result = rpc.get_result() 
+                if result.status_code == 200:
+                    self.img = result.content
+                    memcache.set(self.memkey,self.img,self.cachetime)
+            except (urlfetch.DownloadError), e:
+                logging.error('MOL overview request: %s (%s)' % (rpc, str(e)))
+        
+    
 class GbifLayerProvider(LayerProvider):
     
     def __init__(self):

@@ -55,7 +55,6 @@ MOL.modules.Metadata = function(mol) {
                 }
                 var meta = dat.findChild('#'+id.replace(/\//g,"\\/"))
                 
-                console.log(meta.id);
                 //console.log(meta.getId());
                 if (meta.attr('id') != null ) {
                     meta.addStyleName('selected');
@@ -81,7 +80,6 @@ MOL.modules.Metadata = function(mol) {
                 //meta = new this.display.Meta(itemId)
                 meta = display.addNewMeta(id);
                 meta.addStyleName('selected');
-                console.log(meta);
                 
                 meta.getSource().text(result.data.source + ": ");
                 meta.getType().text(result.data.type);
@@ -93,6 +91,9 @@ MOL.modules.Metadata = function(mol) {
                     meta.getSouth().text(result.data.spatial.crs.extent.coordinates[1]);
                     meta.getEast().text(result.data.spatial.crs.extent.coordinates[2]);
                     meta.getNorth().text(result.data.spatial.crs.extent.coordinates[3]);
+                    var url = "/data/overview?w=256&h=128&key_name="+result.key_name;
+                    console.log(url);
+                    meta.overviewImg(url);
                 }
                 
                 for (n in result.data.variables) {
@@ -259,7 +260,7 @@ MOL.modules.Metadata = function(mol) {
                                 '<div class="spacolumn">' +
                                 '  <div class="title">Overview</div>' +
                                 '  <div class="map-overview">' +
-                                '     <img src="http://axh.mol-lab.appspot.com/data/tile?key_name=range/mol/animalia/species/puma_concolor&source=MOL&x=0&y=0&z=0" />' +
+                                '     ' +
                                 '  </div>' +
                                 '</div>');
                 this.findChild('.spatial').append(this._spatial);
@@ -291,6 +292,18 @@ MOL.modules.Metadata = function(mol) {
                         '</div>');
                 this.findChild('.variables').append(x);
                 return x;
+            },
+            overviewImg: function(src) {
+                var sp = this._spatial ? this._spatial : this._spatialInit(),
+                    x = this._ovimg,
+                    s = '.map-overview';
+                if (x) {
+                    return x;
+                } else {
+                    this._ovimg = new mol.ui.Element('<img class="overview-img"  src="'+src+'"/>');
+                    this.findChild(s).append(this._ovimg);
+                    return this._ovimg;
+                }
             },
             getNorth: function() {
                 var sp = this._spatial ? this._spatial : this._spatialInit(),

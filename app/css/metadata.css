@@ -207,7 +207,7 @@
     border: 1px solid grey;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .spatial .map-overview img{
-    width: 128px;
+    width: 256px;
     height: 128px;
     
 }
