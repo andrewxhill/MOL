@@ -58,18 +58,19 @@ class OVRenderThread:
         self.m.append_style('My Style',s)
         self.lyr = mapnik.Layer('world',proj)
         logging.info(shpfile)
-        self.lyr.datasource = mapnik.Shapefile(file=shpfile)
+        logging.error(os.path.exists(shpfile))
+        self.lyr.datasource = mapnik.Shapefile(file=str(shpfile))
         self.lyr.styles.append('My Style')
         self.m.layers.append(self.lyr)
         
         # Load style XML
-       #mapnik.load_map(self.m, mapfile, True)
+        #mapnik.load_map(self.m, mapfile, True)
         # Obtain <Map> projection
         self.prj = mapnik.Projection(self.m.srs)
         # Projects between tile pixel co-ordinates and LatLong (EPSG:4326)
 
 
-    def render_tile(self, tile_uri, w, h):
+    def render_tile(self, w, h):
         
         self.m.resize(w, h)
         
@@ -109,9 +110,10 @@ class OVRenderThread:
         im = mapnik.Image(w, h)
         mapnik.render(self.m, im)
         im.save(self.png, 'png')
+        #im.save('/home/andrew/Documents/tiles/crap.png', 'png')
 
 def render(ovimg, shpfile, proj, w, h, params):  
     # Launch rendering threads
     renderer = OVRenderThread(ovimg, shpfile, proj, w, h, params)      
     
-    renderer.render_tile(ovimg, w, h)
+    renderer.render_tile(w, h)
