@@ -109,7 +109,7 @@ class OVRenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(w, h)
         mapnik.render(self.m, im)
-        im.save(self.png, 'png')
+        im.save(str(self.png), 'png')
         #im.save('/home/andrew/Documents/tiles/crap.png', 'png')
 
 def render(ovimg, shpfile, proj, w, h, params):  
