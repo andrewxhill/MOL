@@ -60,8 +60,8 @@ class ApiController(BaseController):
     def overview(self, id):
         datatype = id
         id = request.params.get('id', None)
-        w = request.params.get('w', 256)
-        h = request.params.get('h', 256)
+        w = int(request.params.get('w', 256))
+        h = int(request.params.get('h', 256))
         
         params = {
                 "background": request.params.get('background', OVERVIEW_BACKGROUND),
