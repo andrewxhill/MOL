@@ -49,6 +49,7 @@
 .mol-Metadata .object-menu {
     float: left;
     width: 250px;
+    max-width: 35%;
     height: 100%;
     background-color: #efefef;
     overflow: auto;
@@ -82,6 +83,9 @@
     float: left;
     margin-left: 10px;
     min-width: 350px;
+    min-height: 350px;
+    max-height: 85%;
+    max-width: 63%;
 }
 .mol-Metadata .object-viewer .details-menu{
     float: left;
@@ -92,7 +96,6 @@
     float: left;
     width: 100%;
     min-width: 350px;
-    min-height: 350px;
     margin-top: 8px;
 }
 .mol-Metadata .object-viewer .details-window .title{
@@ -115,5 +118,165 @@
     float: left;
     visibility: visible;
     display: block;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
-
+.mol-Metadata .object-viewer .details-window .data .meta-object .object-title {
+    float: left;
+    width: 100%;
+    margin-bottom: 12px;
+    margin-left: 8px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .permissions {
+    float: left;
+    width: 95%;
+    margin-left: 5%;
+    margin-bottom: 8px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .permissions .permissions-text {
+    font-size: 0.9em;
+    font-style: italic;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial {
+    float: left;
+    width: 95%;
+    margin-left: 5%;
+    margin-bottom: 12px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .text{
+    float: left;
+    width: 100%;
+    margin-bottom: 8px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .spacolumn{
+    float: left;
+    position: relative;
+    width: 48%;
+    height: 192px;
+    text-align: center;
+    font-size: 0.9em;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .spacolumn .title{
+    float: left;
+    width: 100%;
+    text-align: center;
+    height: 20px;
+}
+    
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .bounding-box{
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    margin-left: -128px;
+    width: 256px;
+    height: 128px;
+    line-height: 20px;
+    background-image:url('/static/maps/metadata/crose.png');
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .bounding-box .north{
+    float: left;
+    width: 100%;
+    height: 54px;
+    text-align: center;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .bounding-box .west{
+    float: left;
+    width: 50%;
+    height: 59px;
+    text-align: left;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .bounding-box .east{
+    float: left;
+    width: 50%;
+    height: 59px;
+    text-align: right;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .bounding-box .south{
+    float: left;
+    width: 100%;
+    text-align: center;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .map-overview{
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    margin-left: -128px;
+    width: 256px;
+    height: 128px;
+    border: 1px solid grey;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .spatial .map-overview img{
+    width: 256px;
+    height: 128px;
+    
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left {
+    position: relative;
+    float: left;
+    width: 44%;
+    margin-left: 5%;
+    margin-right: 3%;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal {
+    float: left;
+    width: 100%;
+    margin-bottom: 12px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal .title{
+    float: left;
+    width: 100%;
+    float: left;
+    margin-bottom: 5px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal .start{
+    float: left;
+    width: 100%;
+    text-align: left;
+    font-style: italic;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal .bar{
+    float: left;
+    width: 100%;
+    height: 20px;
+    background-image: url('/static/maps/metadata/timebar.png');
+    background-repeat:no-repeat;
+    background-position:center; 
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal .end{
+    float: left;
+    width: 100%;
+    text-align:right;
+    font-style: italic;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables {
+    float: left;
+    width: 100%;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable  {
+    float: left;
+    margin-top: 6px;
+    margin-bottom: 2px;
+    width: 100%;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable .name {
+    float: left;
+    width: 100px;
+    margin-left: 4px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable .value {
+    float: left;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .file-data {
+    position: relative;
+    float: left;
+    width: 38%;
+    padding: 3%;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .file-data .label{
+    float: left;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 2px;
+    font-size: 1.1em;
+}

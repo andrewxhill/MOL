@@ -84,7 +84,6 @@ class RenderThread:
         # Render image with default Agg renderer
         im = mapnik.Image(render_size, render_size)
         mapnik.render(self.m, im)
-        print tile_uri
         im.save(tile_uri, 'png')
 
 def render(name, tile_dir, mapfile, x, y, z, overwrite=False, empty_bytes=334):                   

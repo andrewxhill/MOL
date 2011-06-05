@@ -120,7 +120,7 @@ MOL.modules.ui = function(mol) {
             
             src: function(src) {
                 if (src) {
-                    this._element.src(src);
+                    this._element.src = src;
                     return true;
                 } else {
                     return this._element.src;
