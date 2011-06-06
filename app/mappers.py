@@ -23,6 +23,7 @@ import cStringIO
 import png
 import logging
 import simplejson
+from mapreduce import operation as op
 
 memcache = m.Client()
 
@@ -55,22 +56,24 @@ def change_occurrenceset_key(entity):
 
     """
     # Calculates the new OccurrenceSet key_name:
-    key_name = entity.key.name()
+    key_name = entity.key().name()
     if key_name.rfind('ecoregion') > -1:
         new_key_name = key_name.replace('ecoregion', 'ecoregion-group')
     elif key_name.rfind('pa') > -1:
         new_key_name = key_name.replace('pa', 'pa-group')
 
     # Creates the new OccurrenceSet entity:
-    new_key = OccurrenceSet(
-        key_name=new_key_name,
-        name = entity.name,
-        subname = entity.subname,
-        source = entity.source,
-        category = entity.category,
-        info = entity.info,
-        dateCreated = entity.dateCreated).put()
+    yield op.db.Put(OccurrenceSet(
+            key_name=new_key_name,
+            name = entity.name,
+            subname = entity.subname,
+            source = entity.source,
+            category = entity.category,
+            info = entity.info,
+            dateCreated = entity.dateCreated))
     
+    new_key = db.Key.from_path('OccurrenceSet', new_key_name)
+
     # Updates all OccurrenceSet decendants with a new parent:
     for decendent in db.query_descendants(entity):
         kind = decendent.key().kind()
@@ -87,16 +90,17 @@ def change_occurrenceset_key(entity):
         else:
             logging.error('Unknown decendant of OccurrenceSet: %s' % decendant)
             continue
-        new_decendant.put()
-        decendent.delete()
+        yield op.db.Put(new_decendant)
+        yield op.db.Delete(decendent)
 
     # Updates reference property in OccurrenceSetIndex:
-    for osi in entity.polygons.get():
+    osi = entity.polygons.get()
+    if osi:
         osi.occurrenceSet = new_key
-        osi.put()
+        yield op.db.Put(osi)
 
     # Deletes the OccurrenceSet:
-    entity.delete()
+    yield op.db.Delete(entity)
     
 def delete(entity):
     """Deletes the entity from the datastore."""
