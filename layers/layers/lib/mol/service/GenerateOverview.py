@@ -65,7 +65,7 @@ class OVRenderThread:
         self.m.append_style('Raster Style',s)
         
         self.bg = mapnik.Layer('GDAL Layer from TIFF file')
-        self.bg.datasource = mapnik.Gdal(file='/ftp/resources/blue_marble_2048.tif')
+        self.bg.datasource = mapnik.Gdal(base='/ftp/resources/',file='blue_marble_2048.tif')
         self.bg.styles.append('Raster Style')
         self.m.layers.append(self.bg)
 
