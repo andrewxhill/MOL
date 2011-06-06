@@ -67,6 +67,7 @@ class OVRenderThread:
         self.bg = mapnik.Layer('GDAL Layer from TIFF file')
         self.bg.datasource = mapnik.Gdal(file='/ftp/resources/blue_marble_2048.tif')
         self.bg.styles.append('Raster Style')
+        self.m.layers.append(self.bg)
 
         self.lyr = mapnik.Layer('world',proj)
         self.lyr.datasource = mapnik.Shapefile(file=str(shpfile))
