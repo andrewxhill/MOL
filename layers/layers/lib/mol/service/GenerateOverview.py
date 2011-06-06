@@ -58,16 +58,6 @@ class OVRenderThread:
         r.symbols.append(mapnik.LineSymbolizer(mapnik.Color(params.get('line')),params.get('line-width')))
         s.rules.append(r)
         self.m.append_style('My Style',s)
-        s = mapnik.Style()
-        r = mapnik.Rule()
-        r.symbols.append(mapnik.RasterSymbolizer())
-        s.rules.append(r)
-        self.m.append_style('Raster Style',s)
-        
-        self.bg = mapnik.Layer('GDAL Layer from TIFF file')
-        self.bg.datasource = mapnik.Gdal(base='/ftp/resources/',file='blue_marble_2048.tif')
-        self.bg.styles.append('Raster Style')
-        self.m.layers.append(self.bg)
 
         self.lyr = mapnik.Layer('world',proj)
         self.lyr.datasource = mapnik.Shapefile(file=str(shpfile))

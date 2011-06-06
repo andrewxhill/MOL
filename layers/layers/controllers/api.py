@@ -28,8 +28,8 @@ import urllib2
 log = logging.getLogger(__name__)
 
 
-OVERVIEW_BACKGROUND = 'steelblue'
-OVERVIEW_POLYGON = '#f2eff9'
+OVERVIEW_BACKGROUND = 'transparent'
+OVERVIEW_POLYGON = '#3a3a3a'
 OVERVIEW_LINE = 'rgb(50%,50%,50%)'
 OVERVIEW_LINE_WIDTH = 0.1
 
@@ -82,6 +82,8 @@ class ApiController(BaseController):
             shpfile = '/ftp/pa/shp/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
         
+        shpfile = '/home/andrew/Documents/AA0101.shp'
+        overview = '/home/andrew/Documents/tiles/AA0101.png'
         """
         shpfile = '/home/andrew/Documents/AA0101.shp'
         overview = '/home/andrew/Documents/tiles/Yoo.png'
