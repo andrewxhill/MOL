@@ -26,6 +26,82 @@ import simplejson
 
 memcache = m.Client()
 
+- OccurrenceSetIndex (parent)
+- MasterSearchIndex (parent)
+- OccurenceIndex (reference)
+
+
+def change_occurrenceset_key(entity):
+    """Changes an OccurrenceSet entity key.
+
+    Note: Entity keys are immutable, so we're just creating a new OccurrenceSet 
+    entity and deleting the old one.
+
+    Incoming OccurrenceSet key_names look like this:
+        wwf/ecoregion/id
+        wdpa/pa/id
+
+    We want to change key_names so that they look like this:
+        wwf/ecoregion-group/id
+        wdpa/pa-group/id
+    
+    The following entities have an OccurrenceSet parent, so their keys need
+    to change as well. Again, since keys are immutable, these entities will
+    be deleted and new ones will be created:
+        OccurrenceSetIndex
+        MasterSearchIndex
+
+    The following entities have an OccurrenceSet ReferenceProperty which will
+    get replaced:
+        OccurrenceIndex
+    
+    Arguments:
+        entity - An OccurrenceSet entity
+
+    """
+    # Calculates the new OccurrenceSet key_name:
+    key_name = entity.key.name()
+    if key_name.rfind('ecoregion') > -1:
+        new_key_name = key_name.replace('ecoregion', 'ecoregion-group')
+    elif key_name.rfind('pa') > -1:
+        new_key_name = key_name.replace('pa', 'pa-group')
+
+    # Creates the new OccurrenceSet entity:
+    new_key = OccurrenceSet(
+        key_name=new_key_name,
+        name = entity.name,
+        subname = entity.subname,
+        source = entity.source,
+        category = entity.category,
+        info = entity.info,
+        dateCreated = entity.dateCreated).put()
+    
+    # Updates all OccurrenceSet decendants with a new parent:
+    for decendent in db.query_descendants(entity):
+        kind = decendent.key().kind()
+        if  kind == 'OccurrenceSetIndex':
+            new_decendant = OccurrenceSetIndex(
+                parent=new_key,
+                term=decendent.term,
+                rank=decendent.rank)
+        elif kind == 'MasterSearchIndex':
+            new_decendant = MasterSearchIndex(
+                parent=new_key,
+                term=decendent.term,
+                rank=decendent.rank)
+        else:
+            logging.error('Unknown decendant of OccurrenceSet: %s' % decendant)
+            continue
+        new_decendant.put()
+        decendent.delete()
+
+    # Updates reference property in OccurrenceSetIndex:
+    for osi in entity.polygons.get():
+        osi.occurrenceSet = new_key
+        osi.put()
+
+    # Deletes the OccurrenceSet:
+    entity.delete()
     
 def delete(entity):
     """Deletes the entity from the datastore."""
