@@ -81,10 +81,10 @@ class ApiController(BaseController):
             overview = '/ftp/overviews/' + id + '.png'
             shpfile = '/ftp/pa/shp/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
-        
+        """
         shpfile = '/home/andrew/Documents/AA0101.shp'
         overview = '/home/andrew/Documents/tiles/AA0101.png'
-        """
+        
         shpfile = '/home/andrew/Documents/AA0101.shp'
         overview = '/home/andrew/Documents/tiles/Yoo.png'
         proj = "+proj=latlong +datum=WGS84"
