@@ -26,11 +26,6 @@ import simplejson
 
 memcache = m.Client()
 
-- OccurrenceSetIndex (parent)
-- MasterSearchIndex (parent)
-- OccurenceIndex (reference)
-
-
 def change_occurrenceset_key(entity):
     """Changes an OccurrenceSet entity key.
 
