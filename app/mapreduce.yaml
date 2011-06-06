@@ -11,6 +11,15 @@ mapreduce:
     - name: processing_rate
       default: 2000 
       
+- name: Change OccurrenceSet key_name
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.change_occurrenceset_key
+    params:
+    - name: entity_kind
+      default: mol.db.OccurrenceSet
+
+
 - name: Delete all entities of a given kind
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader

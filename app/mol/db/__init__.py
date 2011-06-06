@@ -16,12 +16,11 @@
 #
 from google.appengine.ext import db
 
-
 class MetaData(db.Model):
     object = db.TextProperty()
     parentKey = db.StringProperty()
   
-class MasterSearchIndex(db.Model): #parent = OccurrenceSet see below
+class MasterSearchIndex(db.Model): #parent = OccurrenceSet or MultiPolygon (see below)
     term = db.CategoryProperty() #string values to search for sets
     rank = db.RatingProperty(default=0) #weight of term for an order by
   
