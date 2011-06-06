@@ -163,12 +163,16 @@ class Andrew(BaseHandler):
     def post(self):
         payload = self.request.get('payload')
         key_name = self.request.get('key_name')
-        parent_key_name = self.request.get('parent_key_name')
-        parent_kind = self.request.get('parent_kind')
-        ps = db.Key.from_path(parent_kind,parent_key_name)
+        ps = None
+        try:
+            parent_key_name = self.request.get('parent_key_name')
+            parent_kind = self.request.get('parent_kind')
+            ps = str(db.Key.from_path(parent_kind,parent_key_name))
+        except:
+            ps = None
         md = MetaData(
                 key_name = key_name,
-                parentKey = str(ps),
+                parentKey = ps,
                 object = payload
             )
         db.put(md)

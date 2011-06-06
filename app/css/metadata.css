@@ -125,24 +125,47 @@
 .mol-Metadata .object-viewer .details-window .data .meta-object .object-title {
     float: left;
     width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
     margin-left: 8px;
 }
-.mol-Metadata .object-viewer .details-window .data .meta-object .permissions {
+.mol-Metadata .object-viewer .details-window .data .meta-object .name-path {
+    float: left;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-right: 20px;
+    margin-top: 7px;
+    margin-bottom: 10px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .url {
+    float: left;
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .description {
+    float: left;
+    width: 95%;
+    margin-left: 5%;
+    font-size: 0.95em;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .agreements, .references, .description {
     float: left;
     width: 95%;
     margin-left: 5%;
     margin-bottom: 8px;
 }
-.mol-Metadata .object-viewer .details-window .data .meta-object .permissions .permissions-text {
+.mol-Metadata .object-viewer .details-window .data .meta-object .agreement-text, .reference-text, .description-text {
     font-size: 0.9em;
     font-style: italic;
+    float: left;
+    width: 95%;
+    margin-left: 4%;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .spatial {
     float: left;
     width: 95%;
     margin-left: 5%;
     margin-bottom: 12px;
+    margin-top: 4px;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .spatial .text{
     float: left;
@@ -152,7 +175,7 @@
 .mol-Metadata .object-viewer .details-window .data .meta-object .spatial .spacolumn{
     float: left;
     position: relative;
-    width: 48%;
+    width: 49%;
     height: 192px;
     text-align: center;
     font-size: 0.9em;
@@ -214,9 +237,8 @@
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left {
     position: relative;
     float: left;
-    width: 44%;
+    width: 47%;
     margin-left: 5%;
-    margin-right: 3%;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left .temporal {
     float: left;
@@ -252,11 +274,14 @@
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables {
     float: left;
     width: 100%;
+    border: 1px dotted #16396f;
+    padding: 2px 2px 6px 2px;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable  {
     float: left;
-    margin-top: 6px;
-    margin-bottom: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-top: 1px dotted #16396f;
     width: 100%;
 }
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable .name {
@@ -267,16 +292,25 @@
 .mol-Metadata .object-viewer .details-window .data .meta-object .small-left .variables .variable .value {
     float: left;
 }
-.mol-Metadata .object-viewer .details-window .data .meta-object .file-data {
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-right {
     position: relative;
     float: left;
-    width: 38%;
-    padding: 3%;
+    width: 46%;
+    margin-left: 2%;
 }
-.mol-Metadata .object-viewer .details-window .data .meta-object .file-data .label{
+.mol-Metadata .object-viewer .details-window .data .meta-object .file-data {
+    position: relative;
+    float: right;
+    width: 96%;
+    border: 1px dotted #16396f;
+    padding: 2px 0px 6px 6px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-right .file-data div{
     float: left;
     width: 100%;
-    margin-top: 10px;
-    margin-bottom: 2px;
-    font-size: 1.1em;
+    padding-top: 6px;
+}
+.mol-Metadata .object-viewer .details-window .data .meta-object .small-right .file-data .title{
+    float: left;
+    width: 100%;
 }

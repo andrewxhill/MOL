@@ -3643,9 +3643,16 @@ MOL.modules.Metadata = function(mol) {
             _addMetadataResult: function(result) {
                 var display = this._display,
                     dat = display.findChild('.data');
-                    id = result.key_name;
-                //var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
-                //meta = new this.display.Meta(itemId)
+                    id = result.key_name,
+                    item = true,
+                    imgUrl = null;
+                    
+                if (result.key_name.indexOf('collection') === 0) {
+                    item = false;
+                    imgUrl = "http://maps.google.com/maps/api/staticmap?zoom=0&center=20,0&size=256x128&sensor=false"
+                } else {
+                    imgUrl = "/data/overview?w=256&h=128&key_name="+result.key_name;
+                }
                 meta = display.addNewMeta(id);
                 meta.addStyleName('selected');
                 
@@ -3653,22 +3660,43 @@ MOL.modules.Metadata = function(mol) {
                 meta.getType().text(result.data.type);
                 meta.getName().text(result.data.name);
                 
+                if (result.data.url) {
+                    //result.data.url
+                    meta.getUrl().text("original data");
+                    meta.getUrl().attr('href',result.data.url);
+                }
+                if ( result.data.description ){
+                    meta.getDescription().text("Description: " + result.data.description);
+                }              
+                if ( result.data.agreements ){
+                    for ( a in result.data.agreements) {
+                        meta.newAgreement().text( result.data.agreements[a] );
+                    }
+                }       
+                if ( result.data.references ){
+                    for ( r in result.data.references) {
+                        meta.newReference().text(
+                            result.data.references[r].authors + " " +
+                            result.data.references[r].year + ". " +
+                            result.data.references[r].title + ". " +
+                            result.data.references[r].publication 
+                        );
+                    }
+                }
                 if (result.data.spatial) {
                     meta.getSpatialText().text(result.data.spatial.crs.extent.text);
                     meta.getWest().text(result.data.spatial.crs.extent.coordinates[0]);
                     meta.getSouth().text(result.data.spatial.crs.extent.coordinates[1]);
                     meta.getEast().text(result.data.spatial.crs.extent.coordinates[2]);
                     meta.getNorth().text(result.data.spatial.crs.extent.coordinates[3]);
-                    var url = "/data/overview?w=256&h=128&key_name="+result.key_name;
-                    console.log(url);
-                    meta.overviewImg(url);
+                    
+                    meta.overviewImg(imgUrl);
                 }
-                
                 for (n in result.data.variables) {
                     meta.newVariable(result.data.variables[n].name,result.data.variables[n].value);
                 }
                 
-                if (result.data.storage.location != null){
+                if (result.data.storage){
                     meta.getFileDate().text(result.data.storage.uploadDate);
                     meta.getFileLocation().text(result.data.storage.location);
                     meta.getFileFormat().text(result.data.storage.format);
@@ -3687,17 +3715,19 @@ MOL.modules.Metadata = function(mol) {
             _collCallback: function(e) {
                 var stE = new mol.ui.Element(e.target);
                 var id = stE.attr('id');
-                this._showMetadata(id, stE.text(), " ");
+                this._showMetadata(id); //, stE.text(), " ");
             },
             _addDataset: function(layer) {
                 var itemId = layer.getKeyName(),
                     itemName = layer.getName(),
                     collectionName = layer.getSubName(),
-                    collectionId = layer.getSubName().replace(/\s/g,"_"),
                     display = this._display,
-                    self = this;
+                    self = this,
+                    tmp = itemId.split("/"),
+                    collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest";
                 
                 if (! (collectionId in this._collections)){
+                    console.log(collectionId);
                     var c = display.getNewCollection(collectionId);
                     c.getName().text(collectionName);
                     
@@ -3773,30 +3803,28 @@ MOL.modules.Metadata = function(mol) {
                             '       <span class="src-path"></span>' +
                             '       <span class="arrow">   </span>' +
                             '       <span class="type-path"></span>' +
-                            '       <h2 class="name-path"></h2>' +
                             '   </div>' +
-                            '   <div class="permissions">' +
-                            '       Permissions: ' +
-                            '       <span class="permissions-text">unknown</span>' +
-                            '   </div>' +
-                            '   <div class="citation">' +
-                            '       Citation: ' +
-                            '       <span class="citation-text">unknown</span>' +
-                            '   </div>' +
+                            '   <div class="name-path"></div>' +
+                            '   <a href="" class="url"></a>' +
+                            '   <div class="description"></div>' +
                             '   <div class="spatial"></div>' +
                             '   <div class="small-left"></div>' +
+                            '   <div class="small-right"></div>' +
+                            '   <div class="agreements"> </div>' +
+                            '   <div class="references"> </div>' +
                             '</div>');
             },
             _fileInit: function() {
-                this._file = new mol.ui.Element('<div class="file-data">' + 
-                                    '   <div class="label">Format:</div>' + 
-                                    '   <div class="file-format"></div>' + 
-                                    '   <div class="label">Download:</div>' + 
-                                    '   <a href="" class="file-location"></a>' + 
-                                    '   <div class="label">File date:</div>' + 
-                                    '   <div class="file-upload-date"></div>' + 
-                                    '</div>');
-                this.append(this._file);
+                this._file = new mol.ui.Element();
+                this._file.setStyleName('file-data');
+                this._file.setInnerHtml('<div class="label">Format:</div>' + 
+                                        '   <div class="file-format"></div>' + 
+                                        '   <div class="label">Download:</div>' + 
+                                        '   <a href="" class="file-location"></a>' + 
+                                        '   <div class="label">File date:</div>' + 
+                                        '   <div class="file-upload-date">' +
+                                        '</div>');
+                this.findChild('.small-right').append(this._file);
                 return this._file;
             },
             _temporalInit: function() {
@@ -3810,12 +3838,15 @@ MOL.modules.Metadata = function(mol) {
                 return this._temporal;
             },
             _variablesInit: function() {
-                this._variables = new mol.ui.Element('<div class="variables"><div class="title">Other info:</div></div>');
+                this._variables = new mol.ui.Element();
+                this._variables.setStyleName('variables');
+                this._variables.setInnerHtml('<div class="title">Other info:</div>');
                 this.findChild('.small-left').append(this._variables);
                 return this._variables;
             },
             _spatialInit: function() {
-                this._spatial = new mol.ui.Element('<div class="text">Geography: <span class="spatial-text"></span></div>' +
+                this._spatial = new mol.ui.Element();
+                this._spatial.setInnerHtml('<div class="text">Geography: <span class="spatial-text"></span></div>' +
                                 '<div class="spacolumn">' +
                                 '  <div class="title">Bounding Box</div>' +
                                 '  <div class="bounding-box">' +
@@ -3828,11 +3859,29 @@ MOL.modules.Metadata = function(mol) {
                                 '<div class="spacolumn">' +
                                 '  <div class="title">Overview</div>' +
                                 '  <div class="map-overview">' +
-                                '     ' +
                                 '  </div>' +
                                 '</div>');
                 this.findChild('.spatial').append(this._spatial);
                 return this._spatial;
+            },
+            getDescription: function() {
+                var x = this._desc,
+                    s = '.description';
+                return x ? x : (this._desc = this.findChild(s));
+            },
+            newAgreement: function(){
+                var s = '.agreements',
+                    n = new mol.ui.Element();
+                n.setStyleName('agreement-text');
+                this.findChild(s).append(n);
+                return n;                
+            },
+            newReference: function(){
+                var s = '.references',
+                    n = new mol.ui.Element();
+                n.setStyleName('reference-text');
+                this.findChild(s).append(n);
+                return n;                
             },
             getFileFormat: function(){
                 var fi = this._file ? this._file : this._fileInit(),
@@ -3854,10 +3903,10 @@ MOL.modules.Metadata = function(mol) {
             },
             newVariable: function(name,value){
                 var vb = this._variables ? this._variables : this._variablesInit(),
-                    x = new mol.ui.Element('<div class="variable">' +
-                        '    <div class="name">'+name+':</div>' +
-                        '    <div class="value">'+value+'</div>' +
-                        '</div>');
+                    x = new mol.ui.Element();
+                    x.setStyleName('variable');
+                    x.setInnerHtml('<div class="name">'+name+':</div>' +
+                                   '<div class="value">'+value+'</div>');
                 this.findChild('.variables').append(x);
                 return x;
             },
@@ -3903,11 +3952,6 @@ MOL.modules.Metadata = function(mol) {
                     s = '.spatial-text';
                 return x ? x : (this._sptext = this.findChild(s));
             },
-            getPerms: function() {
-                var x = this._perms,
-                    s = '.permissions-text';
-                return x ? x : (this._perms = this.findChild(s));
-            },
             getSource: function() {
                 var x = this._src,
                     s = '.src-path';
@@ -3922,6 +3966,11 @@ MOL.modules.Metadata = function(mol) {
                 var x = this._name,
                     s = '.name-path';
                 return x ? x : (this._name = this.findChild(s));
+            },
+            getUrl: function() {
+                var x = this._url,
+                    s = '.url';
+                return x ? x : (this._url = this.findChild(s));
             },
             
         }
@@ -3987,16 +4036,16 @@ MOL.modules.Metadata = function(mol) {
             },
             getNewCollection:  function(collectionId){
                 var Collection = mol.ui.Metadata.Collection,
-                    Meta = mol.ui.Metadata.Meta,
-                    r = new Collection(collectionId),
-                    mo = new Meta(collectionId);
-                this.findChild('.data').append(mo);
+                    //Meta = mol.ui.Metadata.Meta,
+                    r = new Collection(collectionId);
+                    //mo = new Meta(collectionId);
+                //this.findChild('.data').append(mo);
                 this.findChild('.collection-list').append(r);
                 return r;
             },
             getNewItem:  function(itemId,collectionId){
                 var Item = mol.ui.Metadata.Item,
-                    Meta = mol.ui.Metadata.Meta,
+                    //Meta = mol.ui.Metadata.Meta,
                     r = new Item(itemId);
                 //this.findChild('.data').append(mo);
                 this.findChild('#container-'+collectionId.replace(/\//g,"\\/")).findChild('.item-list').append(r);

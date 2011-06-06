@@ -50,15 +50,25 @@ class OVRenderThread:
         self.png = ovimg
         self.m = mapnik.Map(w, h)
         self.m.background = mapnik.Color(params.get('background'))
+        
+        
         s = mapnik.Style()
         r=mapnik.Rule()
         r.symbols.append(mapnik.PolygonSymbolizer(mapnik.Color(params.get('polygon'))))
         r.symbols.append(mapnik.LineSymbolizer(mapnik.Color(params.get('line')),params.get('line-width')))
         s.rules.append(r)
         self.m.append_style('My Style',s)
+        s = mapnik.Style()
+        r = mapnik.Rule()
+        r.symbols.append(mapnik.RasterSymbolizer())
+        s.rules.append(r)
+        self.m.append_style('Raster Style',s)
+        
+        self.bg = mapnik.Layer('GDAL Layer from TIFF file')
+        self.bg.datasource = mapnik.Gdal(file='/ftp/resources/blue_marble_2048.tif')
+        self.bg.styles.append('Raster Style')
+
         self.lyr = mapnik.Layer('world',proj)
-        logging.info(shpfile)
-        logging.error(os.path.exists(shpfile))
         self.lyr.datasource = mapnik.Shapefile(file=str(shpfile))
         self.lyr.styles.append('My Style')
         self.m.layers.append(self.lyr)

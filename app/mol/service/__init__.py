@@ -425,15 +425,17 @@ class MetadataProvider(object):
     def getitem(self, query):
         self.query = query
         key_name = self.query.get('key_name')
-        fakeData = {"collectionKey": "collection/ecoregions/wwf/1", "name": "Banda Sea Islands moist deciduous forests", "temporal": {"coverage": {"start": None, "end": None}}, "storage": {"format": "Esri Shapefile", "uploadDate": "2011-06-03 12:35:08.701490", "location": "/ftp/ecoregion/shp/AA0102.shp"}, "source": "World Wildlife Fund (WWF)", "spatial": {"crs": {"info": {"resolution": {"type": None, "value": None, "unit": None}}, "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "type": "multipolygon", "extent": {"text": None, "coordinates": {"1": -8.34339466646, "0": 127.139602677, "3": -5.27165698158, "2": 133.197601577}}, "format": "vector"}}, "creationDate": None, "type": "Ecoregion", "variables": [{"name": "eco_code", "value": "AA0102"}], "description": None}
+        fakeItem = {"collectionKey": "collection/ecoregions/wwf/1", "name": "Banda Sea Islands moist deciduous forests", "temporal": {"coverage": {"start": None, "end": None}}, "storage": {"format": "Esri Shapefile", "uploadDate": "2011-06-03 12:35:08.701490", "location": "/ftp/ecoregion/shp/AA0102.shp"}, "source": "World Wildlife Fund (WWF)", "spatial": {"crs": {"info": {"resolution": {"type": None, "value": None, "unit": None}}, "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "type": "multipolygon", "extent": {"text": None, "coordinates": {"1": -8.34339466646, "0": 127.139602677, "3": -5.27165698158, "2": 133.197601577}}, "format": "vector"}}, "creationDate": None, "type": "Ecoregion", "variables": [{"name": "eco_code", "value": "AA0102"}], "description": None}
+        fakeCol = {"source":"World Wildlife Fund (WWF)",  "type":"Ecoregion",  "name":"World Ecoregions",  "description":"The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities.",  "url":"http://www.worldwildlife.org/science/ecoregions/item1267.html",  "agreements":{},  "creationDate": "2001",  "uploadDate": str(datetime.datetime.now()),  "changeDate": "2001",  "allowed_uses":{"visualization": "unknown",  "download": "unknown",},  "references":{"0":{"authors":"Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem,K.",  "year":2001,  "publication":"BioScience, Volume 51, Issue 11, p.933-938",  "title":"Terrestrial ecoregions of the world: a new map of life on earth"}}, "spatial":{"crs":{"srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "extent":{"text":"Global",  "coordinates":{"0": -90.0, "1": -180.0, "2": 90.0, "3": 180.0}}, "format": "vector", "type": "multipolygon", "info": {"resolution": {"type": None,  "value": None,  "unit": None}},},}}
         n = MetaData.get_by_key_name(key_name)
         if n is not None:
             data = n.object
             return {"key_name": key_name,
                     "data": simplejson.loads(data)}
         else:
-            data = fakeData
-            return {"key_name": key_name,
+            data = fakeCol
+            kn = "collection/ecoregions/wwf/1"
+            return {"key_name": kn,
                     "data": data}
         
 class LayerProvider(object):
