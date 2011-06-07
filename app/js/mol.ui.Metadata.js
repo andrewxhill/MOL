@@ -117,10 +117,10 @@ MOL.modules.Metadata = function(mol) {
                 }
                 if (result.data.spatial) {
                     meta.getSpatialText().text(result.data.spatial.crs.extent.text);
-                    meta.getWest().text(result.data.spatial.crs.extent.coordinates[0]);
-                    meta.getSouth().text(result.data.spatial.crs.extent.coordinates[1]);
-                    meta.getEast().text(result.data.spatial.crs.extent.coordinates[2]);
-                    meta.getNorth().text(result.data.spatial.crs.extent.coordinates[3]);
+                    meta.getWest().text(result.data.spatial.crs.extent.coordinates[0].toFixed(4));
+                    meta.getSouth().text(result.data.spatial.crs.extent.coordinates[1].toFixed(4));
+                    meta.getEast().text(result.data.spatial.crs.extent.coordinates[2].toFixed(4));
+                    meta.getNorth().text(result.data.spatial.crs.extent.coordinates[3].toFixed(4));
                     
                     meta.overviewImg(imgUrl);
                 }
