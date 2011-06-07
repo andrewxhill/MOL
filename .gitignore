@@ -1,3 +1,11 @@
+# Chef #
+########
+utilities/chef/metadata.json
+utilities/chef/.chef
+utilities/chef/client-config
+utilities/chef/.DS_Store
+utilities/chef/.rake_test_cache
+
 # Celery Schedule #
 ###################
 celerybeat-schedule
