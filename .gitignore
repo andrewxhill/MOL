@@ -5,7 +5,7 @@ utilities/chef/.chef
 utilities/chef/client-config
 utilities/chef/.DS_Store
 utilities/chef/.rake_test_cache
-utilities/chef/.client-config
+utilities/chef/.client-configy
 
 # Celery Schedule #
 ###################
