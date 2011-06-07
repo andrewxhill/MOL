@@ -1,0 +1,4 @@
+= DESCRIPTION:
+
+This cookbook is used in the Getting Started Guide as an example.  All it does is render a template to /tmp/chef-getting-started.txt.
+
