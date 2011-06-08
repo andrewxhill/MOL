@@ -1,0 +1,18 @@
+#
+# Shorewall version 4 - Rules File
+#
+# For information on the settings in this file, type "man shorewall-rules"
+#
+# The manpage is also online at
+# http://www.shorewall.net/manpages/shorewall-rules.html
+#
+####################################################################################################################################################
+#ACTION		SOURCE		DEST		PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME
+#							PORT	PORT(S)		DEST		LIMIT		GROUP
+#SECTION ESTABLISHED
+#SECTION RELATED
+SECTION NEW
+#Rules Created by Chef
+<% @rule_list.each do |rule| -%>
+  <%= rule %>
+<% end -%>
