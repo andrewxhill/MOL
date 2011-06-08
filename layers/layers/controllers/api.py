@@ -140,6 +140,7 @@ class ApiController(BaseController):
             proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             
         elif datatype in ["ecoregion","ecoregion-group"]:
+            """the above two could be split to be dealt with more efficiently, same with ~line 206 and protected areas"""
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
             """
