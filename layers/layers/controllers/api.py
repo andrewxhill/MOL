@@ -203,14 +203,14 @@ class ApiController(BaseController):
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
             
-        elif datatype=="ecoregion":
+        elif datatype in ["ecoregion","ecoregion-group"]:
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
             
-        elif datatype=="pa":
+        elif datatype in ["pa","pa-group"]:
             mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.PATILE_DIR, id)   
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
