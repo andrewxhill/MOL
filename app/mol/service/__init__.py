@@ -435,6 +435,7 @@ class MetadataProvider(object):
         else:
             data = fakeCol
             kn = "collection/ecoregions/wwf/1"
+            data = None
             return {"key_name": kn,
                     "data": data}
         

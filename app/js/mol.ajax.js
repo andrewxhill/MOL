@@ -70,6 +70,8 @@ MOL.modules.ajax = function(mol) {
              * @param type - the action type (only 'search' for now)
              */
             init: function(type, params) {
+                console.log(type);
+                console.log(params);
                 this._super('LayerAction', type, params);                
             }
         }

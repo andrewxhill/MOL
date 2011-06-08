@@ -131,19 +131,34 @@ class ApiController(BaseController):
         if datatype=="range":
             ids = request.GET['range_ids'].split(',')
             shpdir = app_globals.RANGESHP_DIR
+            """
+            use the overview() api above as an example of how to do with with pure python, no mapnik file
+            instead, a couchdb object could just be a list of all ids used to add layers to the map
+            """
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
+            """Mapnik does not perform on the fly reprojections. Ranges were batch reprojected so tiling works right"""
             proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             
-        elif datatype=="ecoregion":
+        elif datatype in ["ecoregion","ecoregion-group"]:
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.ECOSHP_DIR
+            """
+            use the overview() api above as an example of how to do with with pure python, no mapnik file
+            instead, a couchdb object could just be a list of all ids used to add layers to the map
+            """
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml') 
+            """Mapnik does not perform on the fly reprojections. These should be reprojected before they will work perfect"""
             proj = "+proj=latlong +datum=WGS84"
             
-        elif datatype=="pa":
+        elif datatype in ["pa","pa-group"]:
             ids = request.GET['region_ids'].split(',')
             shpdir = app_globals.PASHP_DIR
+            """
+            use the overview() api above as an example of how to do with with pure python, no mapnik file
+            instead, a couchdb object could just be a list of all ids used to add layers to the map
+            """
             mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml') 
+            """Mapnik does not perform on the fly reprojections. These should be reprojected before they will work perfect"""
             proj = "+proj=latlong +datum=WGS84"
             
         mf = NewMapfile()
