@@ -1,0 +1,18 @@
+{
+  "id": "eighty",
+  "comment": "Aaron Steele",
+  "uid": 2001,
+  "groups": "sysadmin",
+  "shell": "/bin/bash",
+  "openid": "eightysteele.myopenid.com",
+  "ssh_keys": "<your public ssh key>"
+}
+{
+  "id": "andrew",
+  "comment": "Andrew W. Hill",
+  "uid": 2002,
+  "groups": "sysadmin",
+  "shell": "/bin/bash",
+  "openid": "andrewxhill.myopenid.com",
+  "ssh_keys": "AAAAB3NzaC1yc2EAAAADAQABAAABAQDFp+FdEY7/XrXYt3LYceTBX1mDkkGP/6yt/YUXjRNE/0BTszZjbOWTco5UYlembGTHsMXTODNR/qJeQI+IWPFffpfls/I3PFK4Mn11I1KSpdXmf7pXc3Acdi5Xv7fk9tgzVUPjeOAGcczo2gz5pNJ+hbVg+/2reI4nhYAo/fSJskEhxKKDlqKhGnm4DcC2zRQj0om/jN5eqeSj7xl3RVBbAcx6r+bddsRlaGmYPJhyuUid68jBwUXujiLAS8K9h++7oof9KLaHYXqpJoXFNPu0BCqR/wHaelFiE8kGsW5LDp7GQ3qQa7Bmu+fQRZ76ufIlDKAp3Fx17FtxDurOEcXH"
+}
