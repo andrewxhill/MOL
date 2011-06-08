@@ -43,6 +43,14 @@ template "nginx.conf" do
   mode 0644
 end
 
+template "index.html" do
+  path "/var/www/index.html"
+  source "index.html.erb"
+  owner "root"
+  group "root"
+  mode 0755
+end
+
 template "#{node[:nginx][:dir]}/sites-available/layers" do
   source "layers.erb"
   owner "root"
