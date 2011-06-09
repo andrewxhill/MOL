@@ -1,0 +1,18 @@
+{
+  "id": "eighty",
+  "comment": "Aaron Steele",
+  "uid": 2001,
+  "groups": "sysadmin",
+  "shell": "/bin/bash",
+  "openid": "profiles.google.com/u/0/eightysteele",
+  "ssh_keys": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDLbikeOm/IJcAAl9HGHAv1oE6xu9dL+S3pAjcRyyngTpyBvvfU0TpPGFh2nf58IQ6nhh4HNcFqy1orks2JLC39zXcHnQGTFAMFwVyGwl4t3fAV4F1NYQ77F3uVTb/EQhzMw5BAr95JuKBZ5SChvg+kuA6rg4mUeVV8Quxb9/uP/iMMdcy1FWvIXNcV07RUpTpoEBWigFRoMEvSa08FF5GSWZtF3wHhyYG6Ivjy1b5apLJwutu5d1uLYeWA+WHibWluVprdMU5cU8WJLfCS0Se36fQI6lpY86Udjw2vmSPkiZytwK9qpGFoJuZTcChrbgFur1LU8G10AHdSYQ+nG3E5"
+}
+{
+  "id": "andrew",
+  "comment": "Andrew W. Hill",
+  "uid": 2002,
+  "groups": "sysadmin",
+  "shell": "/bin/bash",
+  "openid": "andrewxhill.myopenid.com",
+  "ssh_keys": "AAAAB3NzaC1yc2EAAAADAQABAAABAQDFp+FdEY7/XrXYt3LYceTBX1mDkkGP/6yt/YUXjRNE/0BTszZjbOWTco5UYlembGTHsMXTODNR/qJeQI+IWPFffpfls/I3PFK4Mn11I1KSpdXmf7pXc3Acdi5Xv7fk9tgzVUPjeOAGcczo2gz5pNJ+hbVg+/2reI4nhYAo/fSJskEhxKKDlqKhGnm4DcC2zRQj0om/jN5eqeSj7xl3RVBbAcx6r+bddsRlaGmYPJhyuUid68jBwUXujiLAS8K9h++7oof9KLaHYXqpJoXFNPu0BCqR/wHaelFiE8kGsW5LDp7GQ3qQa7Bmu+fQRZ76ufIlDKAp3Fx17FtxDurOEcXH"
+}
