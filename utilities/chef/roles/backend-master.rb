@@ -11,4 +11,5 @@ run_list(
     "recipe[nginx]",
     "recipe[python]",
     "recipe[pylons]"
+    "recipe[git]"
 )
