@@ -12,5 +12,5 @@ run_list(
     "recipe[python]",
     "recipe[pylons]",
     "recipe[git]",
-    "recipe[mol]"
+    "recipe[mol-layers]"
 )
