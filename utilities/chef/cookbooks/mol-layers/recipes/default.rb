@@ -40,10 +40,6 @@ template "layers" do
   group "root"
   mode 0755
 end
-# remove existing directory if needed
-execute "remove MOL dir" do
-  command "rm -r #{node[:mol][:base_dir]}"
-end
 # download mol source and checkout specific version/branch
 execute "fetch MOL from GitHub" do
   command "git clone https://github.com/andrewxhill/MOL.git #{node[:mol][:base_dir]}"
@@ -51,15 +47,21 @@ execute "fetch MOL from GitHub" do
 end
 execute "use branch of MOL" do
   command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
-  not_if { FileTest.exists?(node[:mol][:base_dir]) }
 end
-
-# get ownship of base MOL directory on node
+# set ownership of base MOL directory on node
 directory "#{node[:mol][:base_dir]}" do
   owner 'root'
   group 'root'
   mode 0755
   recursive true
+end
+# download mol source and checkout specific version/branch
+execute "fetch data from git data repo" do
+  command "git clone  #{node[:mol][:remote_data_repo]} #{node[:mol][:base_data_dir]}"
+  not_if { FileTest.exists?(node[:mol][:base_dir]) }
+end
+execute "use specified branch/tag of data repo" do
+  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_branch]}"
 end
 #restart services
 service "nginx" do

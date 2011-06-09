@@ -70,16 +70,16 @@ class ApiController(BaseController):
                 "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
                 }
                 
+        overview = app_globals.OVERVIEW_DIR +'/' + id + '.png'
+        
         if datatype=="ecoregion":
-            logging.error("Ecoregion overview")
-            overview = '/ftp/overviews/' + id + '.png'
-            shpfile = '/ftp/ecoregion/shp/' + id + '.shp'
+            logging.info("Ecoregion overview")
+            shpfile = app_globals.ECOSHP_DIR + '/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
             
         elif datatype=="pa":
-            logging.error("Protected area overview")
-            overview = '/ftp/overviews/' + id + '.png'
-            shpfile = '/ftp/pa/shp/' + id + '.shp'
+            logging.info("Protected area overview")
+            shpfile = app_globals.PASHP_DIR + '/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
         """
         shpfile = '/home/andrew/Documents/AA0101.shp'

@@ -20,5 +20,8 @@
 
 default[:mol][:branch] = "master"
 default[:mol][:base_dir] = "/MOL"
+default[:mol][:base_data_dir] = "/mol-data"
+default[:mol][:remote_data_repo] = "http://mol.colorado.edu/mol-data"
+default[:mol][:remote_data_branch] = "master"
 default[:mol][:ini_file] = "development.ini"
 default[:mol][:layers_port] = "5003"
