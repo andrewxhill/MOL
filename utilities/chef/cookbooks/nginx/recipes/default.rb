@@ -51,13 +51,6 @@ template "index.html" do
   mode 0755
 end
 
-template "#{node[:nginx][:dir]}/sites-enabled/layers" do
-  source "layers.erb"
-  owner "root"
-  group "root"
-  mode 0644
-end
-
 template "#{node[:nginx][:dir]}/sites-enabled/default" do
   action :delete
 end

@@ -9,6 +9,9 @@
     "dependencies": {
       "git": [
 
+      ],
+      "nginx": [
+
       ]
     },
     "recipes": {

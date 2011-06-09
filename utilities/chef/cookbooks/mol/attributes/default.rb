@@ -1,9 +1,9 @@
 #
-# Cookbook Name:: pylons
+# Cookbook Name:: mol
 # Recipe:: default
 # Author:: Andrew W. Hill (<andrewxhill@gmail.com>)
 #
-# Copyright 2010, Opscode, Inc
+# Copyright 2011, Andrew W. Hill
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,4 +19,5 @@
 #
 
 default[:mol][:branch] = "master"
-default[:mol][:base_dir] = "MOL"
+default[:mol][:base_dir] = "/MOL"
+default[:mol][:ini_file] = "development.ini"

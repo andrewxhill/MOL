@@ -1,0 +1,16 @@
+#!/bin/sh -e
+cd <%= node[:mol][:base_dir] %>/layers
+case "$1" in
+  start)
+    paster serve --daemon --pid-file=<%= node[:mol][:base_dir] %>/layers/paster.pid --log-file=<%= node[:mol][:base_dir] %>/layers/paster.log <%= node[:mol][:base_dir] %>/layers/<%= node[:mol][:ini_file] %> start
+    ;;
+  stop)
+    paster serve --daemon --pid-file=<%= node[:mol][:base_dir] %>/layers/paster.pid --log-file=<%= node[:mol][:base_dir] %>/layers/paster.log  <%= node[:mol][:base_dir] %>/layers/<%= node[:mol][:ini_file] %> stop
+    ;;
+  restart)
+    paster serve  --daemon --pid-file=<%= node[:mol][:base_dir] %>/layers/paster.pid --log-file=<%= node[:mol][:base_dir] %>/layers/paster.log <%= node[:mol][:base_dir] %>/layers/<%= node[:mol][:ini_file] %> restart
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|restart}"
+    exit 1
+esac
