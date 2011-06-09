@@ -10,6 +10,6 @@ run_list(
     "recipe[runit]",
     "recipe[nginx]",
     "recipe[python]",
-    "recipe[pylons]"
+    "recipe[pylons]",
     "recipe[git]"
 )
