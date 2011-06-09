@@ -11,11 +11,6 @@ run_list(
     "recipe[nginx]",
     "recipe[python]",
     "recipe[pylons]",
-    "recipe[git]"
+    "recipe[git]",
+    "recipe[mol]"
 )
-
-directory "#{molrepo}" do
-  owner 'root'
-  group 'root'
-  mode 0755
-end

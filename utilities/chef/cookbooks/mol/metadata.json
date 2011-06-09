@@ -1,0 +1,39 @@
+{
+    "suggestions": {
+    },
+    "attributes": {
+    },
+    "maintainer_email": "andrewxhill@gmail.com",
+    "conflicting": {
+    },
+    "dependencies": {
+      "git": [
+
+      ]
+    },
+    "recipes": {
+      "mol": "Clone and setup MOL from Github"
+    },
+    "providing": {
+    },
+    "platforms": {
+      "debian": [
+
+      ],
+      "ubuntu": [
+
+      ]
+    },
+    "license": "Apache 2.0",
+    "version": "0.1",
+    "replacing": {
+    },
+    "groupings": {
+    },
+    "name": "mol",
+    "recommendations": {
+    },
+    "description": "Installs MOL",
+    "maintainer": "Andrew W Hill",
+    "long_description": "= DESCRIPTION:\n\nClones MOL from github and sets up apps\n\n= REQUIREMENTS:\n\nOpscode cookbooks, http://github.com/opscode/cookbooks/tree/master:\n\n* git\n\n= LICENSE & AUTHOR:\n\nAuthor:: Andrew W. Hill (<andrewxhill@gmail.com>)\nCopyright:: 2011, Andrew W. Hill \n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n"
+  }
