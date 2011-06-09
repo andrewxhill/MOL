@@ -25,16 +25,6 @@ end
 package "python-mapnik" do
   action :install
 end
-# download mol source and checkout specific version/branch
-execute "fetch MOL from GitHub" do
-  command "git clone https://github.com/andrewxhill/MOL.git #{node[:mol][:base_dir]}"
-  not_if { FileTest.exists?(node[:mol][:base_dir]) }
-end
-execute "use branch of MOL" do
-  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
-  not_if { FileTest.exists?(node[:mol][:base_dir]) }
-end
-
 #enable the layers app site in nginx
 template "#{node[:nginx][:dir]}/sites-enabled/layers" do
   source "layers-site.erb"
@@ -50,6 +40,20 @@ template "layers" do
   group "root"
   mode 0755
 end
+# remove existing directory if needed
+execute "remove MOL dir" do
+  command "rm -r #{node[:mol][:base_dir]}"
+end
+# download mol source and checkout specific version/branch
+execute "fetch MOL from GitHub" do
+  command "git clone https://github.com/andrewxhill/MOL.git #{node[:mol][:base_dir]}"
+  not_if { FileTest.exists?(node[:mol][:base_dir]) }
+end
+execute "use branch of MOL" do
+  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
+  not_if { FileTest.exists?(node[:mol][:base_dir]) }
+end
+
 # get ownship of base MOL directory on node
 directory "#{node[:mol][:base_dir]}" do
   owner 'root'
@@ -60,7 +64,7 @@ end
 #restart services
 service "nginx" do
   supports :status => true, :restart => true, :reload => true
-  action [ :enable, :start ]
+  action [ :enable, :start, :restart ]
 end
 service "layers" do
   supports :status => false, :restart => true, :reload => false
