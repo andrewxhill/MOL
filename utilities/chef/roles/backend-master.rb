@@ -8,5 +8,7 @@ default_attributes "config" => {
 run_list(
     "recipe[build-essential]",
     "recipe[runit]",
-    "recipe[nginx]"
+    "recipe[nginx]",
+    "recipe[python]",
+    "recipe[pylons]"
 )
