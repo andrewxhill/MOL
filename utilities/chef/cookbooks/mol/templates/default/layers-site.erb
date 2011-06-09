@@ -10,7 +10,7 @@ server {
         }
         
         location /layers {
-                proxy_pass http://127.0.0.1:5002/layers;
+                proxy_pass http://127.0.0.1:<%= node[:mol][:layers_port] %>/layers;
                 allow all;
         }        
         

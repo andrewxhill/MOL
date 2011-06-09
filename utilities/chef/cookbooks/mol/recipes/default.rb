@@ -19,12 +19,11 @@
 include_recipe "git"
 include_recipe "nginx"
 
-# create base MOL directory on node
-directory "#{node[:mol][:base_dir]}" do
-  owner 'root'
-  group 'root'
-  mode 0755
-  recursive true
+package "python-gdal" do
+  action :install
+end
+package "python-mapnik" do
+  action :install
 end
 # download mol source and checkout specific version/branch
 execute "fetch MOL from GitHub" do
@@ -35,6 +34,7 @@ execute "use branch of MOL" do
   command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
   not_if { FileTest.exists?(node[:mol][:base_dir]) }
 end
+
 #enable the layers app site in nginx
 template "#{node[:nginx][:dir]}/sites-enabled/layers" do
   source "layers-site.erb"
@@ -50,12 +50,19 @@ template "layers" do
   group "root"
   mode 0755
 end
+# get ownship of base MOL directory on node
+directory "#{node[:mol][:base_dir]}" do
+  owner 'root'
+  group 'root'
+  mode 0755
+  recursive true
+end
 #restart services
 service "nginx" do
   supports :status => true, :restart => true, :reload => true
   action [ :enable, :start ]
 end
 service "layers" do
-  supports :status => true, :restart => true, :reload => true
+  supports :status => false, :restart => true, :reload => false
   action [ :enable, :start ]
 end

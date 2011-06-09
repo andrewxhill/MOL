@@ -21,3 +21,4 @@
 default[:mol][:branch] = "master"
 default[:mol][:base_dir] = "/MOL"
 default[:mol][:ini_file] = "development.ini"
+default[:mol][:layers_port] = "5003"
