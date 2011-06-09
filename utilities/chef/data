@@ -1,0 +1,19 @@
+knife data bag show BAG [ITEM] (options)
+        --server-url URL             Chef Server URL
+    -k, --key KEY                    API Client Key
+        --color                      Use colored output
+    -c, --config CONFIG              The configuration file to use
+        --defaults                   Accept default values for all questions
+    -e, --editor EDITOR              Set the editor to use for interactive commands
+    -E, --environment ENVIRONMENT    Set the Chef environment
+    -F, --format FORMAT              Which format to use for output
+        --no-color                   Don't use colors in the output
+    -n, --no-editor                  Do not open EDITOR, just accept the data as is
+    -u, --user USER                  API Client Username
+        --print-after                Show the data after a destructive operation
+    -s, --secret                     The secret key to use to decrypt data bag item values
+        --secret-file SECRET_FILE    A file containing the secret key to use to decrypt data bag item values
+    -V, --verbose                    More verbose output. Use twice for max verbosity
+    -v, --version                    Show chef version
+    -y, --yes                        Say yes to all prompts for confirmation
+    -h, --help                       Show this message
