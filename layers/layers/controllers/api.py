@@ -71,6 +71,9 @@ class ApiController(BaseController):
                 }
                 
         overview = app_globals.OVERVIEW_DIR +'/' + id + '.png'
+        if not os.path.isdir(app_globals.OVERVIEW_DIR):
+            logging.info('Making directories')
+            os.makedirs(app_globals.OVERVIEW_DIR)
         
         if datatype=="ecoregion":
             logging.info("Ecoregion overview")
