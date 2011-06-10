@@ -18,6 +18,8 @@
 # limitations under the License.
 #
 
+default[:mol][:node_existed] = true
+default[:mol][:repo] = "https://github.com/andrewxhill/MOL.git"
 default[:mol][:branch] = "master"
 default[:mol][:base_dir] = "/MOL"
 default[:mol][:base_data_dir] = "/mol-data"

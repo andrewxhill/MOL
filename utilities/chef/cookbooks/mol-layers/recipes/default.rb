@@ -25,12 +25,55 @@ end
 package "python-mapnik" do
   action :install
 end
+# download mol source and checkout specific version/branch
+execute "fetch MOL from GitHub" do
+  command "git clone #{node[:mol][:repo]} #{node[:mol][:base_dir]}"
+  node.set['mol']['node_existed'] = false
+  not_if { FileTest.exists?(node[:mol][:base_dir]) }
+end
+execute "switch to specified branch/tag of MOL" do
+  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
+  not_if { node[:mol][:node_existed] }
+end
+execute "pull updates of MOL" do
+  command "cd #{node[:mol][:base_dir]} && git pull #{node[:mol][:repo]} #{node[:mol][:branch]}"
+end
+# set ownership of base MOL directory on node
+directory "#{node[:mol][:base_dir]}" do
+  owner 'root'
+  group 'root'
+  mode 0755
+  recursive true
+  not_if { node[:mol][:node_existed] }
+end
+# download mol source and checkout specific version/branch
+execute "fetch data from git data repo" do
+  command "git clone  #{node[:mol][:remote_data_repo]} #{node[:mol][:base_data_dir]}"
+  node.set['mol']['node_existed'] = false
+  not_if { FileTest.exists?(node[:mol][:base_data_dir]) }
+end
+execute "switch to specified branch/tag of data repo" do
+  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_branch]}"
+  not_if { node[:mol][:node_existed] }
+end
+execute "pull updates of data repo" do
+  command "cd #{node[:mol][:base_data_dir]} && git pull #{node[:mol][:remote_data_repo]} #{node[:mol][:remote_data_branch]}"
+end
+# set ownership of base mol-data directory on node
+directory "#{node[:mol][:base_data_dir]}" do
+  owner 'root'
+  group 'root'
+  mode 0755
+  recursive true
+  not_if { node[:mol][:node_existed] }
+end
 #enable the layers app site in nginx
 template "#{node[:nginx][:dir]}/sites-enabled/layers" do
   source "layers-site.erb"
   owner "root"
   group "root"
   mode 0644
+  not_if { FileTest.exists?("#{node[:nginx][:dir]}/sites-enabled/layers") }
 end
 #setup init.d script for the layers pylons app
 template "layers" do
@@ -39,36 +82,14 @@ template "layers" do
   owner "root"
   group "root"
   mode 0755
-end
-# download mol source and checkout specific version/branch
-execute "fetch MOL from GitHub" do
-  command "git clone https://github.com/andrewxhill/MOL.git #{node[:mol][:base_dir]}"
-  not_if { FileTest.exists?(node[:mol][:base_dir]) }
-end
-execute "use branch of MOL" do
-  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
-end
-# set ownership of base MOL directory on node
-directory "#{node[:mol][:base_dir]}" do
-  owner 'root'
-  group 'root'
-  mode 0755
-  recursive true
-end
-# download mol source and checkout specific version/branch
-execute "fetch data from git data repo" do
-  command "git clone  #{node[:mol][:remote_data_repo]} #{node[:mol][:base_data_dir]}"
-  not_if { FileTest.exists?(node[:mol][:base_dir]) }
-end
-execute "use specified branch/tag of data repo" do
-  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_branch]}"
+  not_if { FileTest.exists?("/etc/init.d/layers") }
 end
 #restart services
 service "nginx" do
   supports :status => true, :restart => true, :reload => true
-  action [ :enable, :start, :restart ]
+  action [ :enable, :stop, :start ]
 end
 service "layers" do
   supports :status => false, :restart => true, :reload => false
-  action [ :enable, :start ]
+  action [ :enable, :stop, :start ]
 end

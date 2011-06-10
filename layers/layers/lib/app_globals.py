@@ -14,16 +14,15 @@ class Globals(object):
         'app_globals' variable
 
         """
-        self.TILE_DIR = '/mol-data/range/tile'
         self.NEW_SHP_SCAN_DIR = '/mol-data/new/animalia/species'
         #self.TILE_DIR = "/ftp/tile/animalia/species"
-        self.TILE_DIR = "/mol-data/range/tile"
+        self.TILE_DIR = "/tmp/range/tile"
         self.RANGESHP_DIR = "/mol-data/range/shp"
-        self.ECOTILE_DIR = "/mol-data/ecoregion/tile"
+        self.ECOTILE_DIR = "/tmp/ecoregion/tile"
         self.ECOSHP_DIR = "/mol-data/ecoregion/shp"
-        self.PATILE_DIR = "/mol-data/pa/tile"
+        self.PATILE_DIR = "/tmp/pa/tile"
         self.PASHP_DIR = "/mol-data/pa/shp"
-        self.OVERVIEW_DIR = "/mol-data/overviews"
+        self.OVERVIEW_DIR = "/tmp/overviews"
         self.ERR_DIR = "/mol-data/range/error/"
         self.SRC_DIR = "/mol-data/range/new/"
         self.DST_DIR = "/mol-data/range/shp/"
