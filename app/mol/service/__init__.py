@@ -1043,9 +1043,7 @@ class TileService(object):
             y1 = [2*int(y)-1,2*int(y)]
         for x0 in x1:
             for y0 in y1:
-                key_name = '/'.join([self.query['type'],
-                                              self.query['source'],
-                                              self.query['id']])
+                key_name = self.query['type'] + "/" + self.query['source'] + "/" + self.query['id']
                 params = {
                         'key_name': key_name,
                         'z': z,

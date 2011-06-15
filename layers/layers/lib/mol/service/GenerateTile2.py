@@ -63,8 +63,8 @@ class RenderThread:
         self.lyr.styles.append('My Style')
         self.m.layers.append(self.lyr)
         
-        self.prj = mapnik.Projection(self.m.srs)
-        #self.prj = mapnik.Projection(proj)
+        #self.prj = mapnik.Projection(self.m.srs)
+        self.prj = mapnik.Projection(proj)
         #self.tileproj = self.prj
         self.tileproj = GoogleProjection(z + 1)
         

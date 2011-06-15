@@ -245,7 +245,7 @@ class TileHandler(BaseHandler):
             self.response.out.write(tp.png)
             return
         elif tp.status == 204:
-            return self.response.set_status(204)
+            return self.response.set_status(200)
         elif tp.status == 300:
             url = tp.url + "&retry=1"
             self.redirect(url)

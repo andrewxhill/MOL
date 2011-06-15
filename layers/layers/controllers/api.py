@@ -212,8 +212,7 @@ class ApiController(BaseController):
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
-            proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
-            
+            proj = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs"
         elif datatype in ["ecoregion","ecoregion-group"]:
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id, r, g, b)   
