@@ -48,7 +48,8 @@ class GoogleProjection:
 class RenderThread:
     #def __init__(self, , shpfile, proj, w, h, params):
     def __init__(self, tile_dir, shpfile, proj, z, params):
-        self.m = mapnik.Map(256, 256)
+        goog = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs +over"
+        self.m = mapnik.Map(256, 256, goog)
         self.m.background = mapnik.Color(params.get('background'))
         
         s = mapnik.Style()
