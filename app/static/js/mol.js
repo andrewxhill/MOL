@@ -381,6 +381,8 @@ MOL.modules.ajax = function(mol) {
              * @param type - the action type (only 'search' for now)
              */
             init: function(type, params) {
+                console.log(type);
+                console.log(params);
                 this._super('LayerAction', type, params);                
             }
         }
@@ -685,6 +687,10 @@ MOL.modules.model = function(mol) {
             
             getId: function() {
                 return this._key_name;
+            },
+            
+            getLid: function() {
+                return this._key_name.split('/',2)[2];
             },
             
             getColor: function() {
@@ -2107,6 +2113,7 @@ MOL.modules.Map = function(mol) {
                 var self = this,
                     keyName = this.getLayer().getKeyName(),
                     layerSource = this.getLayer().getSource(),
+                    layerType = this.getLayer().getType(),
                     color = this.getColor();
 
                 this._mapType = new google.maps.ImageMapType(
@@ -2115,12 +2122,12 @@ MOL.modules.Map = function(mol) {
                             var normalizedCoord = self._getNormalizedCoord(coord, zoom),
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',
+                                backendTileApi = 'http://96.126.97.48/layers/api/tile/',
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {
                                 return null;
-                            }                    
-                                                        
+                            }              
                             tileParams = tileParams + 'key_name=' + keyName;
                             tileParams = tileParams + '&source=' + layerSource;
                             tileParams = tileParams + '&r=' + color.getRed(),
@@ -2128,11 +2135,13 @@ MOL.modules.Map = function(mol) {
                             tileParams = tileParams + '&b=' + color.getBlue(),
                             tileParams = tileParams + '&x=' + normalizedCoord.x;
                             tileParams = tileParams + '&y=' + normalizedCoord.y;
-                            tileParams = tileParams + '&z=' + zoom;
-                            tileurl = "/data/tile?" + tileParams;
-
+                            tileParams = tileParams + '&z=' + zoom;      
+                            if (zoom < 5){
+                                tileurl = "/data/tile?" + tileParams;
+                            } else {
+                                tileurl = backendTileApi + layerType + "?" + tileParams;
+                            }
                             mol.log.info(tileurl);
-
                             return tileurl;
                         },
                         tileSize: new google.maps.Size(256, 256),

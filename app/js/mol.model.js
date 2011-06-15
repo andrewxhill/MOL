@@ -97,6 +97,10 @@ MOL.modules.model = function(mol) {
                 return this._key_name;
             },
             
+            getLid: function() {
+                return this._key_name.split('/',2)[2];
+            },
+            
             getColor: function() {
                 return this._color;                
             },

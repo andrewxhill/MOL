@@ -472,6 +472,8 @@ class OverviewImageProvider(object):
         self.cachetime = 60000   
         self.memkey = None
         self.url = None
+        #self.backend = "http://mol.colorado.edu/layers"
+        self.backend = "http://96.126.97.48/layers"
         
         d = self.key_name.split('/', 2)
         self.datatype, self.source, self.id = d[0].lower(),d[1],d[2]
@@ -480,8 +482,8 @@ class OverviewImageProvider(object):
         params = urllib.urlencode({
                 'w': self.w,
                 'h': self.h,
-                'id': self.id})
-        self.url = 'http://mol.colorado.edu/layers/api/overview/%s?%s' % (self.datatype,params)
+                'id': self.id}) 
+        self.url = self.backend + '/api/overview/%s?%s' % (self.datatype,params)
         self.memkey = self.url
         
     def getimg(self):
@@ -956,6 +958,8 @@ class TileService(object):
         self.status = False
         self.rpc = urlfetch.create_rpc()
         self.cachetime = int(41943040 / (2**int(self.query['z'])))
+        #self.backend = "http://mol.colorado.edu/layers"
+        self.backend = "http://96.126.97.48/layers"
         
     def colortile(self):
         """Colors a tile based on R,G,B values"""
@@ -972,7 +976,7 @@ class TileService(object):
         if self.url is not None:
             return self.url
         else:
-            tileurl = "http://mol.colorado.edu/layers/api/tile/{type}?source={source}&id={id}&x={x}&y={y}&z={z}"
+            tileurl = self.backend + "/api/tile/{type}?source={source}&id={id}&x={x}&y={y}&z={z}"
             tileurl = tileurl.replace('{z}', str(self.query['z']))
             tileurl = tileurl.replace('{x}', str(self.query['x']))
             tileurl = tileurl.replace('{y}', str(self.query['y']))

@@ -32,11 +32,11 @@ execute "fetch MOL from GitHub" do
   not_if { FileTest.exists?(node[:mol][:base_dir]) }
 end
 execute "switch to specified branch/tag of MOL" do
-  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:branch]}"
+  command "cd #{node[:mol][:base_dir]} && git checkout #{node[:mol][:checkout_point]}"
   not_if { node[:mol][:node_existed] }
 end
 execute "pull updates of MOL" do
-  command "cd #{node[:mol][:base_dir]} && git pull #{node[:mol][:repo]} #{node[:mol][:branch]}"
+  command "cd #{node[:mol][:base_dir]} && git pull #{node[:mol][:repo]} #{node[:mol][:checkout_point]}"
 end
 # set ownership of base MOL directory on node
 directory "#{node[:mol][:base_dir]}" do
@@ -53,11 +53,10 @@ execute "fetch data from git data repo" do
   not_if { FileTest.exists?(node[:mol][:base_data_dir]) }
 end
 execute "switch to specified branch/tag of data repo" do
-  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_branch]}"
-  not_if { node[:mol][:node_existed] }
+  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_checkout_point]}"
 end
 execute "pull updates of data repo" do
-  command "cd #{node[:mol][:base_data_dir]} && git pull #{node[:mol][:remote_data_repo]} #{node[:mol][:remote_data_branch]}"
+  command "cd #{node[:mol][:base_data_dir]} && git pull #{node[:mol][:remote_data_repo]} #{node[:mol][:remote_data_checkout_point]}"
 end
 # set ownership of base mol-data directory on node
 directory "#{node[:mol][:base_data_dir]}" do
