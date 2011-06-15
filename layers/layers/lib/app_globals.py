@@ -41,5 +41,5 @@ class Globals(object):
         self.Q_ITEM_JOB_TYPE = 'jobtype'
         self.TILE_QUEUE_THREADS = 1
         self.TILE_MAX_ZOOM = 6
-        self.TILE_JOB_LIMIT = 4 #number of tiling threads
+        self.TILE_JOB_LIMIT = 2 #number of tiling threads
         self.QUEUED_LAYERS = {}
