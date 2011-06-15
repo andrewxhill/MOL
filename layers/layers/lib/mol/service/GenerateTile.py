@@ -57,7 +57,10 @@ class RenderThread:
         s = mapnik.Style()
         r=mapnik.Rule()
         r.symbols.append(mapnik.PolygonSymbolizer(mapnik.Color(params.get('polygon'))))
-        r.symbols.append(mapnik.LineSymbolizer(mapnik.Color(params.get('line')),params.get('line-width')))
+        l = mapnik.LineSymbolizer(mapnik.Color(params.get('line')),params.get('line-width'))
+        l.stroke.opacity = 1.0
+        l.stroke.width = 1.0
+        r.symbols.append(l)
         s.rules.append(r)
         self.m.append_style('style',s)
         
