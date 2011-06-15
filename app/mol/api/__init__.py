@@ -222,6 +222,7 @@ class TileHandler(BaseHandler):
         r = self.request.params.get('r', 0)
         g = self.request.params.get('g', 0)
         b = self.request.params.get('b', 0)
+        queue = True if self.request.params.get('queue', None) is None else False
         tp = None
         
         d = key_name.split('/', 2)
@@ -236,7 +237,8 @@ class TileHandler(BaseHandler):
                 'y': y,
                 'r': r,
                 'g': g,
-                'b': b })
+                'b': b,
+                'queue': queue })
         tp.gettile()
         if tp.status == 200:
             self.response.headers['Content-Type'] = "image/png"

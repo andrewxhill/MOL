@@ -64,7 +64,8 @@ class RenderThread:
         self.m.layers.append(self.lyr)
         
         self.prj = mapnik.Projection(self.m.srs)
-        self.tileproj = GoogleProjection(z + 1)
+        self.tileproj = self.prj
+        #self.tileproj = GoogleProjection(z + 1)
         
 
     def render_tile(self, tile_uri, x, y, z):

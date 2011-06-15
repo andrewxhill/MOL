@@ -161,21 +161,7 @@ class Andrew(BaseHandler):
     def get(self):
         self.post()
     def post(self):
-        payload = self.request.get('payload')
-        key_name = self.request.get('key_name')
-        ps = None
-        try:
-            parent_key_name = self.request.get('parent_key_name')
-            parent_kind = self.request.get('parent_kind')
-            ps = str(db.Key.from_path(parent_kind,parent_key_name))
-        except:
-            ps = None
-        md = MetaData(
-                key_name = key_name,
-                parentKey = ps,
-                object = payload
-            )
-        db.put(md)
+        m.flush_all()
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
       
 application = webapp.WSGIApplication(

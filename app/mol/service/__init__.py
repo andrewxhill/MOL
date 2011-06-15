@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
+from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch, taskqueue
 from google.appengine.api.datastore_file_stub import DatastoreFileStub
 from google.appengine.ext import db
 import logging
@@ -942,16 +942,6 @@ class TileService(object):
     
     def __init__(self,query):
         self.query = query
-        self.memkey = "%s/%s/%s/%s/%s/%s/%s/%s/%s" % (
-                        self.query['type'],
-                        self.query['source'],
-                        self.query['id'],
-                        self.query['z'],
-                        self.query['x'],
-                        self.query['y'],
-                        self.query['r'],
-                        self.query['g'],
-                        self.query['b'])
         self.metadata = None
         self.png = None
         self.url = None
@@ -961,6 +951,8 @@ class TileService(object):
         self.cachetime = int(4194304 / (2**int(self.query['z'])))
         #self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
+        self.queue = self.query['queue']
+        
     """
     def colortile(self):
         if self.query['r'] is not None:
@@ -1033,7 +1025,46 @@ class TileService(object):
         else:
             memcache.set(k, self.png, ct)
     
-    
+    def precache(self):
+        ctdown = 0
+        x = self.query['x']
+        y = self.query['y']
+        z = int(self.query['z'])+1
+        r = self.query['r'] 
+        g = self.query['g'] 
+        b = self.query['b']
+        if int(x) == 0: 
+            x1 = [0,1]
+        else:
+            x1 = [2*int(x)-1,2*int(x)]
+        if int(y) == 0: 
+            y1 = [0,1]
+        else:
+            y1 = [2*int(y)-1,2*int(y)]
+        for x0 in x1:
+            for y0 in y1:
+                key_name = '/'.join([self.query['type'],
+                                              self.query['source'],
+                                              self.query['id']])
+                params = {
+                        'key_name': key_name,
+                        'z': z,
+                        'x': str(x0),
+                        'y': str(y0),
+                        'r': r,
+                        'g': g,
+                        'b': b,
+                        'queue': False }
+                task = taskqueue.Task(name="%s-%s-%s-%s-%s-%s-%s-%s" % (datetime.datetime.now().strftime("%Y-%m-%d"),key_name.replace('/','-'),x0,y0,z,r,g,b),
+                            params=params, 
+                            countdown=ctdown, 
+                            url = '/data/tile', 
+                            method='GET')
+                try:
+                    task.add(queue_name='tile-processing-queue')
+                except:
+                    pass
+                ctdown += 2
     def gettile(self):
         """gets a tile based on query parameters"""
         if self.png is not None:
@@ -1043,7 +1074,7 @@ class TileService(object):
             self.url = self.tileurl() 
             urlfetch.make_fetch_call(self.rpc, self.url)
             
-            mcstatus = self.fetchmc(self.memkey)
+            mcstatus = self.fetchmc(self.url)
             if mcstatus in [404, 204]:
                 self.status = mcstatus
                 return
@@ -1058,21 +1089,25 @@ class TileService(object):
             """
             if mcstatus is True: 
                 self.status = 200
-                self.setmc(self.memkey)
+                if self.queue:
+                    self.precache()
+                self.setmc(self.url)
                 return
             elif self.fetchds() is True:
-                self.setmc(self.memkey)
+                self.setmc(self.url)
                 self.status = 200
             elif self.fetchurl() == 300:
                 self.status = 300
             elif self.fetchurl() == 204:
                 self.status = 204 #tiling ran, no data existed in the tile
-                self.setmc(self.memkey, status = 204)
+                self.setmc(self.url, status = 204)
             elif self.fetchurl() is True:
-                self.setmc(self.memkey)
+                self.setmc(self.url)
+                if self.queue:
+                    self.precache()
                 self.status = 200
             else: 
-                self.setmc(self.memkey, status = 404)
+                self.setmc(self.url, status = 404)
                 self.status = 404
             return self.status
 
