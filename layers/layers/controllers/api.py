@@ -255,6 +255,12 @@ class ApiController(BaseController):
             
             logging.info('Creating tiles')
             
+            params = {
+                    "background": request.params.get('background', OVERVIEW_BACKGROUND),
+                    "polygon": 'rgb(%s,%s,%s)' % (r,g,b),
+                    "line": 'rgb(%s,%s,%s)' % (r,g,b),
+                    "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
+                    } 
             if datatype in ["ecoregion-group","pa-group"]:
                 """when these sets are moved to couchdb or pulled from PGSQL instead of 
                    only being recorded in the mapfile.xml, they can be assembled using 
@@ -265,16 +271,11 @@ class ApiController(BaseController):
                                     int(x), 
                                     int(y), 
                                     int(z), 
+                                    params,
                                     overwrite=overwrite,
                                     empty_bytes=empty_bytes)
             else:
                 
-                params = {
-                        "background": request.params.get('background', OVERVIEW_BACKGROUND),
-                        "polygon": 'rgb(%s,%s,%s)' % (r,g,b),
-                        "line": 'rgb(%s,%s,%s)' % (r,g,b),
-                        "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
-                        } 
                 tilestatus = GenerateTile2.render(
                                     str(tile_dir), 
                                     str(shpfile), 

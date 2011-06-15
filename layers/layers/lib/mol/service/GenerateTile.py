@@ -47,11 +47,20 @@ class GoogleProjection:
         return (f, h)
         
 class RenderThread:
-    def __init__(self, tile_dir, mapfile, maxZoom):
+    def __init__(self, tile_dir, mapfile, maxZoom, params):
         self.tile_dir = tile_dir
         self.m = mapnik.Map(256, 256)
         # Load style XML
         mapnik.load_map(self.m, mapfile, True)
+        
+        self.m.background = mapnik.Color(params.get('background'))
+        s = mapnik.Style()
+        r=mapnik.Rule()
+        r.symbols.append(mapnik.PolygonSymbolizer(mapnik.Color(params.get('polygon'))))
+        r.symbols.append(mapnik.LineSymbolizer(mapnik.Color(params.get('line')),params.get('line-width')))
+        s.rules.append(r)
+        self.m.append_style('style',s)
+        
         # Obtain <Map> projection
         self.prj = mapnik.Projection(self.m.srs)
         # Projects between tile pixel co-ordinates and LatLong (EPSG:4326)
@@ -86,7 +95,7 @@ class RenderThread:
         mapnik.render(self.m, im)
         im.save(tile_uri, 'png')
 
-def render(name, tile_dir, mapfile, x, y, z, overwrite=False, empty_bytes=334):                   
+def render(name, tile_dir, mapfile, x, y, z, params, overwrite=False, empty_bytes=334):                   
     print 'Rendering:'
     # Launch rendering threads
     renderer = RenderThread(tile_dir, mapfile, z)        
@@ -116,7 +125,7 @@ def render(name, tile_dir, mapfile, x, y, z, overwrite=False, empty_bytes=334):
         except:
             pass
     
-    renderer.render_tile(tile_uri, x, y, z)
+    renderer.render_tile(tile_uri, x, y, z, params)
     bytes = os.stat(tile_uri)[6]
     empty = ''
     if bytes == empty_bytes:

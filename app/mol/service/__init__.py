@@ -1044,19 +1044,21 @@ class TileService(object):
         for x0 in x1:
             for y0 in y1:
                 key_name = self.query['type'] + "/" + self.query['source'] + "/" + self.query['id']
-                params = {
-                        'key_name': key_name,
-                        'z': z,
-                        'x': str(x0),
-                        'y': str(y0),
-                        'r': r,
-                        'g': g,
-                        'b': b,
-                        'queue': False }
-                task = taskqueue.Task(name="%s-%s-%s-%s-%s-%s-%s-%s" % (datetime.datetime.now().strftime("%Y-%m-%d"),key_name.replace('/','-'),x0,y0,z,r,g,b),
-                            params=params, 
+                url = ''.join(['/data/tile?' ,
+                              'key_name=' , key_name ,
+                              '&z=' , str(z) ,
+                              '&x=' , str(x0) ,
+                              '&y=' , str(y0) ,
+                              '&r=' , str(r) ,
+                              '&g=' , str(g) ,
+                              '&b=' , str(b) ,
+                              '&queue=False'])
+                task = taskqueue.Task(
+                            #name="%s-%s-%s-%s-%s-%s-%s-%s" % (datetime.datetime.now().strftime("%Y-%m-%d-%I-%M%p"),
+                            name="%s-%s-%s-%s-%s-%s-%s-%s" % (datetime.datetime.now().strftime("%Y-%m-%d"),
+                            key_name.replace('/','-'),x0,y0,z,r,g,b),
                             countdown=ctdown, 
-                            url = '/data/tile', 
+                            url = url, 
                             method='GET')
                 try:
                     task.add(queue_name='tile-processing-queue')
