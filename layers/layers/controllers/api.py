@@ -201,7 +201,8 @@ class ApiController(BaseController):
             key_name = request.params.get('key_name', None)
             tmpk = key_name.split('/',2)
             id = tmpk[2]
-            datatype = tmpk[0]
+            datatype = str(tmpk[0])
+            logging.info('Id from Key_Name: ' + datatype)
             
         overwrite = True if request.params.get('overwrite', None) is not None else False
         
