@@ -948,7 +948,7 @@ class TileService(object):
         self.result = None
         self.status = False
         self.rpc = urlfetch.create_rpc()
-        self.cachetime = int(4194304 / (2**int(self.query['z'])))
+        self.cachetime = int(41943040 / (2**int(self.query['z'])))
         #self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
         self.queue = self.query['queue']

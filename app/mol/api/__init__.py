@@ -241,9 +241,12 @@ class TileHandler(BaseHandler):
                 'queue': queue })
         tp.gettile()
         if tp.status == 200:
-            self.response.headers['Content-Type'] = "image/png"
-            self.response.out.write(tp.png)
-            return
+            if queue:
+                self.response.headers['Content-Type'] = "image/png"
+                self.response.out.write(tp.png)
+                return
+            else:
+                return self.response.set_status(200)
         elif tp.status == 204:
             return self.response.set_status(200)
         elif tp.status == 300:
