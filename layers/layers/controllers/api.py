@@ -75,7 +75,12 @@ class ApiController(BaseController):
             logging.info('Making directories')
             os.makedirs(app_globals.OVERVIEW_DIR)
         
-        if datatype=="ecoregion":
+        if datatype=="range":
+            logging.info("Range overview")
+            shpfile = app_globals.RANGESHP_DIR + '/' + id + '.shp'
+            proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
+            
+        elif datatype=="ecoregion":
             logging.info("Ecoregion overview")
             shpfile = app_globals.ECOSHP_DIR + '/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
