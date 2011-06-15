@@ -199,7 +199,9 @@ class ApiController(BaseController):
         id = request.params.get('id', None)
         if id is None:
             key_name = request.params.get('key_name', None)
-            id = key_name.split('/',2)[2]
+            tmpk = key_name.split('/',2)
+            id = tmpk[2]
+            datatype = tmpk[0]
             
         overwrite = True if request.params.get('overwrite', None) is not None else False
         
