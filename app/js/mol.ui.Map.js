@@ -366,7 +366,7 @@ MOL.modules.Map = function(mol) {
                             tileParams = tileParams + '&x=' + normalizedCoord.x;
                             tileParams = tileParams + '&y=' + normalizedCoord.y;
                             tileParams = tileParams + '&z=' + zoom;      
-                            if (zoom < 5){
+                            if (zoom < 9){
                                 tileurl = "/data/tile?" + tileParams;
                             } else {
                                 tileurl = backendTileApi + layerType + "?" + tileParams;

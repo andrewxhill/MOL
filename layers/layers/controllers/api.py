@@ -16,7 +16,7 @@
 #
 from pylons import response, request, app_globals
 from layers.lib.base import *
-from layers.lib.mol.service import GenerateTile, GenerateOverview
+from layers.lib.mol.service import GenerateTile, GenerateTile2, GenerateOverview
 import logging
 import os
 import simplejson
@@ -84,14 +84,7 @@ class ApiController(BaseController):
             logging.info("Protected area overview")
             shpfile = app_globals.PASHP_DIR + '/' + id + '.shp'
             proj = "+proj=latlong +datum=WGS84"
-        """
-        shpfile = '/home/andrew/Documents/AA0101.shp'
-        overview = '/home/andrew/Documents/tiles/AA0101.png'
-        
-        shpfile = '/home/andrew/Documents/AA0101.shp'
-        overview = '/home/andrew/Documents/tiles/Yoo.png'
-        proj = "+proj=latlong +datum=WGS84"
-        """
+            
         GenerateOverview.render(overview, shpfile, proj, w, h, params)
         
         try:
@@ -195,6 +188,9 @@ class ApiController(BaseController):
         x = request.params.get('x', None)
         y = request.params.get('y', None)
         z = request.params.get('z', None)
+        r = int(request.params.get('r', 255))
+        g = int(request.params.get('g', 255))
+        b = int(request.params.get('b', 255))
         id = request.params.get('id', None)
         if id is None:
             key_name = request.params.get('key_name', None)
@@ -206,25 +202,31 @@ class ApiController(BaseController):
         
         if datatype=="range":
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
+            shpfile = app_globals.RANGESHP_DIR + '/' + id + '.shp'
             tile_dir = os.path.join(app_globals.TILE_DIR, id)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
+            proj = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs"
             
         elif datatype in ["ecoregion","ecoregion-group"]:
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
             tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
+            shpfile = app_globals.ECOSHP_DIR + '/' + id + '.shp'
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
+            proj = "+proj=latlong +datum=WGS84"
             
         elif datatype in ["pa","pa-group"]:
             mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml')   
-            tile_dir = os.path.join(app_globals.PATILE_DIR, id)   
+            tile_dir = os.path.join(app_globals.PATILE_DIR, id)  
+            shpfile = app_globals.PASHP_DIR + '/' + id + '.shp' 
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
-            
+            proj = "+proj=latlong +datum=WGS84"
+        
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
         if os.path.isfile(tile) and overwrite is False:
@@ -248,15 +250,35 @@ class ApiController(BaseController):
                 os.makedirs(tile_dir)
             
             logging.info('Creating tiles')
-            tilestatus = GenerateTile.render(str(id), 
-                                str(tile_dir),
-                                str(mapfile), 
-                                int(x), 
-                                int(y), 
-                                int(z), 
-                                overwrite=overwrite,
-                                empty_bytes=empty_bytes)
             
+            if datatype in ["ecoregion-group","pa-group"]:
+                tilestatus = GenerateTile.render(str(id), 
+                                    str(tile_dir),
+                                    str(mapfile), 
+                                    int(x), 
+                                    int(y), 
+                                    int(z), 
+                                    overwrite=overwrite,
+                                    empty_bytes=empty_bytes)
+            else:
+                
+                params = {
+                        "background": request.params.get('background', OVERVIEW_BACKGROUND),
+                        "polygon": 'rgb(%s,%s,%s)' % (r,g,b),
+                        "line": 'rgb(%s,%s,%s)' % (r,g,b),
+                        "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
+                        }
+                tilestatus = GenerateTile2.render(
+                                    str(tile_dir), 
+                                    str(shpfile), 
+                                    int(x), 
+                                    int(y), 
+                                    int(z), 
+                                    params, 
+                                    proj, 
+                                    overwrite=overwrite, 
+                                    empty_bytes=empty_bytes)
+                
             if tilestatus == 204:
                 response.status = 204
                 del response.headers['content-type']
