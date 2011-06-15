@@ -98,7 +98,7 @@ class RenderThread:
 def render(name, tile_dir, mapfile, x, y, z, params, overwrite=False, empty_bytes=334):                   
     print 'Rendering:'
     # Launch rendering threads
-    renderer = RenderThread(tile_dir, mapfile, z)        
+    renderer = RenderThread(tile_dir, mapfile, z, params)        
         
     # check if we have directories in place
     zoom = "%s" % z
@@ -125,7 +125,7 @@ def render(name, tile_dir, mapfile, x, y, z, params, overwrite=False, empty_byte
         except:
             pass
     
-    renderer.render_tile(tile_uri, x, y, z, params)
+    renderer.render_tile(tile_uri, x, y, z)
     bytes = os.stat(tile_uri)[6]
     empty = ''
     if bytes == empty_bytes:
