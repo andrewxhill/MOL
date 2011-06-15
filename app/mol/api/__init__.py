@@ -219,9 +219,9 @@ class TileHandler(BaseHandler):
         x = int(self.request.params.get('x', 0))
         y = int(self.request.params.get('y', 0))
         z = int(self.request.params.get('z', 0))
-        r = self.request.params.get('r', None)
-        g = self.request.params.get('g', None)
-        b = self.request.params.get('b', None)
+        r = self.request.params.get('r', 0)
+        g = self.request.params.get('g', 0)
+        b = self.request.params.get('b', 0)
         tp = None
         
         d = key_name.split('/', 2)
