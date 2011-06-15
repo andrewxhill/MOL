@@ -48,7 +48,6 @@ class GoogleProjection:
 class RenderThread:
     #def __init__(self, , shpfile, proj, w, h, params):
     def __init__(self, tile_dir, shpfile, proj, z, params):
-        self.png = ovimg
         self.m = mapnik.Map(256, 256)
         self.m.background = mapnik.Color(params.get('background'))
         
