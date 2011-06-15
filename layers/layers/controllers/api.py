@@ -203,7 +203,7 @@ class ApiController(BaseController):
         if datatype=="range":
             mapfile = os.path.join(app_globals.RANGESHP_DIR, id + '.mapfile.xml')  
             shpfile = app_globals.RANGESHP_DIR + '/' + id + '.shp'
-            tile_dir = os.path.join(app_globals.TILE_DIR, id)    
+            tile_dir = os.path.join(app_globals.TILE_DIR, id, r, g, b)    
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
@@ -211,7 +211,7 @@ class ApiController(BaseController):
             
         elif datatype in ["ecoregion","ecoregion-group"]:
             mapfile = os.path.join(app_globals.ECOSHP_DIR, id + '.mapfile.xml')   
-            tile_dir = os.path.join(app_globals.ECOTILE_DIR, id)   
+            tile_dir = os.path.join(app_globals.ECOTILE_DIR, id, r, g, b)   
             shpfile = app_globals.ECOSHP_DIR + '/' + id + '.shp'
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
@@ -220,13 +220,13 @@ class ApiController(BaseController):
             
         elif datatype in ["pa","pa-group"]:
             mapfile = os.path.join(app_globals.PASHP_DIR, id + '.mapfile.xml')   
-            tile_dir = os.path.join(app_globals.PATILE_DIR, id)  
+            tile_dir = os.path.join(app_globals.PATILE_DIR, id, r, g, b)  
             shpfile = app_globals.PASHP_DIR + '/' + id + '.shp' 
             tile = os.path.join(tile_dir, z, x, "%s.png" % y)  
             null_tile = os.path.join(tile_dir, z, x, "%s.null" % y)  
             empty_bytes=334
             proj = "+proj=latlong +datum=WGS84"
-        
+            
         logging.info('Generating new ' + datatype +' tile: ' + id)
         
         if os.path.isfile(tile) and overwrite is False:
@@ -252,6 +252,9 @@ class ApiController(BaseController):
             logging.info('Creating tiles')
             
             if datatype in ["ecoregion-group","pa-group"]:
+                """when these sets are moved to couchdb or pulled from PGSQL instead of 
+                   only being recorded in the mapfile.xml, they can be assembled using 
+                   the methods in GenerateTile2 found in else"""
                 tilestatus = GenerateTile.render(str(id), 
                                     str(tile_dir),
                                     str(mapfile), 
@@ -267,7 +270,7 @@ class ApiController(BaseController):
                         "polygon": 'rgb(%s,%s,%s)' % (r,g,b),
                         "line": 'rgb(%s,%s,%s)' % (r,g,b),
                         "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
-                        }
+                        } 
                 tilestatus = GenerateTile2.render(
                                     str(tile_dir), 
                                     str(shpfile), 
