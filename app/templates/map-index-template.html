@@ -44,7 +44,7 @@
             {% if prod %}
                 <!-- Production, so load app without logging and run it. -->
                 MOL(function(env) {
-                   MOL.app = new env.app.Instance({logging: true});
+                   MOL.app = new env.app.Instance({logging: false});
                    MOL.app.run();
                    MOL.env = env;
                 });           

@@ -193,9 +193,9 @@ class ApiController(BaseController):
         x = request.params.get('x', None)
         y = request.params.get('y', None)
         z = request.params.get('z', None)
-        r = str(request.params.get('r', 255))
-        g = str(request.params.get('g', 255))
-        b = str(request.params.get('b', 255))
+        r = str(request.params.get('r', 0))
+        g = str(request.params.get('g', 0))
+        b = str(request.params.get('b', 0))
         id = request.params.get('id', None)
         if id is None:
             key_name = request.params.get('key_name', None)
