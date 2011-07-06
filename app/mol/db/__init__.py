@@ -19,6 +19,12 @@ from google.appengine.ext import db
 class MetaData(db.Model):
     object = db.TextProperty()
     parentKey = db.StringProperty()
+    
+class MetaDataIndex(db.Expando): #parent=MetaData
+    """Index relation entity for MetaData."""
+    data_name = db.StringProperty()
+    data_source = db.StringProperty()
+    keywords = db.StringListProperty()
   
 class MasterSearchIndex(db.Model): #parent = OccurrenceSet or MultiPolygon (see below)
     term = db.CategoryProperty() #string values to search for sets

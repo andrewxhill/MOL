@@ -1,4 +1,16 @@
 mapreduce: 
+- name: Builds MetaDataIndex by mapping over MetaData
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.build_metadata_index
+    params:
+    - name: entity_kind
+      default: mol.db.MetaData
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
 - name: Clean term index of terms with nonexisting parents
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader

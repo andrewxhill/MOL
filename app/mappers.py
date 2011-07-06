@@ -27,6 +27,42 @@ from mapreduce import operation as op
 
 memcache = m.Client()
 
+def explode(str):
+    if str is None:
+        return []
+    return [x.strip().lower() for x in str.split()]
+
+def delete_metadata_index(entity):
+    yield op.db.Delete(entity)
+    
+def build_metadata_index(entity):
+    """Builds and puts() a MetaDataIndex entity for each MetaData entity."""
+    md = simplejson.loads(entity.object)
+    md_name = md.get('name')
+    if md_name:
+        md_name = md_name.lower()
+    md_source = md.get('source')
+    if md_source:
+        md_source = md_source.lower()
+    md_description = md.get('description')
+    if md_description:
+        md_description = md_description.lower()
+
+    # Builds keywords list:
+    keywords = []
+    for x in [md_name, md_source, md_description]:
+        if not x:
+            continue
+        keywords.append(x.strip().lower())
+        keywords.extend(explode(x))
+
+    yield op.db.Put(
+        MetaDataIndex(
+            parent=entity,
+            data_name=md_name,
+            data_source=md_source,
+            keywords=keywords))
+
 def change_occurrenceset_key(entity):
     """Changes an OccurrenceSet entity key.
 

@@ -23,7 +23,7 @@ from google.appengine.ext.db import KindError
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 from gviz import gviz_api
-from mol.db import Species, SpeciesIndex, Tile
+from mol.db import Species, SpeciesIndex, Tile, MetaDataIndex, MetaData
 from xml.etree import ElementTree as etree
 import datetime
 import logging
@@ -526,6 +526,20 @@ class TaxonomyHandler(BaseHandler):
             self.response.out.write(")")
     """
 
+class MetaDataDiscoveryHandler(webapp.RequestHandler):
+    """Discovery API for metadata."""
+    def get(self):
+        q = self.request.get('q')
+        if not q:
+            self.error(404)
+        keywords = [x.strip().lower() for x in q.split(',')]
+        query = db.Query(MetaDataIndex, keys_only=True)
+        for x in keywords:
+            query.filter('keywords =', x)
+        results = [simplejson.loads(md.object) for md in db.get([x.parent() for x in query])]
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(simplejson.dumps(results))
+        
 class MetadataHandler(webapp.RequestHandler):
     def get(self):
         key_name = self.request.params.get('key_name', 'ecoregion/wwf/AA0101') #or ecoregion, or protected area
@@ -1881,6 +1895,7 @@ application = webapp.WSGIApplication(
           ('/data/overview', OverviewImageHandler),
           ('/data/tile', TileHandler),
           ('/data/metadata', MetadataHandler),
+          ('/data/metadata/discovery', MetaDataDiscoveryHandler),
           
           ('/search/taxonomy', TaxonomyHandler),
           
