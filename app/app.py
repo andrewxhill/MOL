@@ -163,7 +163,21 @@ class Andrew(BaseHandler):
     def post(self):
         m.flush_all()
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
-      
+
+class MetadataLoader(BaseHandler):
+    def post(self):
+        payload = self.request.get('payload')
+        key_name = self.request.get('key_name')
+        parent_key_name = self.request.get('parent_key_name')
+        parent_kind = self.request.get('parent_kind')
+        key = db.Key.from_path(
+          parent_kind, 
+          parent_key_name,
+          'MetaData',
+          key_name)
+        MetaData(key=key, object=payload).put()
+    
+    
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/latest', LatestHandler),
@@ -179,6 +193,7 @@ application = webapp.WSGIApplication(
           ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
+          ('/metadataloader', MetadataLoader),
           ('/playground/col', ColPage),
           ('/sandbox', MapPage),
           ('/sandbox/.*', MapPage),
