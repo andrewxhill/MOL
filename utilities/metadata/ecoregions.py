@@ -182,12 +182,13 @@ if __name__== '__main__':
     url = 'http://axh.mol-lab.appspot.com/andrew'
     #url = 'http://localhost:8080/andrew'
     #os.chdir("/home/andrew/Documents")
-    values = {'payload' : simplejson.dumps(newCollection()),
+    values = {'payload' : simplejson.dumps(newCollection())
               'key_name' : 'collection/ecoregions/wwf/1'}
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
     the_page = response.read()
+
     
     for f in glob.glob("*.shp"):
         #if f == 'AA0101.shp':

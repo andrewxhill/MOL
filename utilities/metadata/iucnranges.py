@@ -170,24 +170,24 @@ def newCollection():
         
 if __name__== '__main__':
     os.chdir("shp/animalia/species")
-    url = 'http://axh.mol-lab.appspot.com/andrew'
-    #url = 'http://localhost:8080/andrew'
+    #url = 'http://axh.mol-lab.appspot.com/andrew'
+    url = 'http://localhost:8080/metadataloader'
     #os.chdir("/home/andrew/Documents")
     values = {'payload' : simplejson.dumps(newCollection()),
-              'key_name' : 'collection/ranges/iucn/1'}
+              'key_name' : 'range/mol/animalia/species/1'}
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
     the_page = response.read()
     
     for f in glob.glob("*.shp"):
-        #if f == 'AA0101.shp':
         c = f.replace('.shp', '')
         out = newMetadata(f)
-        values = {'payload' : simplejson.dumps(out),
-                  'key_name' : 'range/iucn/%s' % c,
-                  'parent_key_name' : 'range/iucn/%s' % c,
-                  'parent_kind' : 'MultiPolygon'}
+        values = dict(
+            payload=simplejson.dumps(out),
+            key_name='range/mol/animalia/species/%s' % c,
+            parent_key_name='range/mol/animalia/species/%s' % c,
+            parent_kind='MultiPolygon')
         try:
             data = urllib.urlencode(values)
             req = urllib2.Request(url, data)
