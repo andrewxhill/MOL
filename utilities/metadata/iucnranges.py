@@ -104,8 +104,7 @@ def newMetadata(f):
     out.newVariable('ORIGIN', origin)
     out.newVariable('SEASONAL', seasonal)
     out.newVariable('BINOMIAL', binomial)
-            
-    out.extentText = region
+
     feat = lyr.GetFeature(0)
     geom = feat.GetGeometryRef()
     
@@ -125,7 +124,7 @@ def newCollection():
           "source":"International Union for Conservation of Nature (IUCN)",
           "type":"Range",
           "name":"Digital Distribution Maps of The IUCN Red List of Threatened Species",
-          "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Speciesª. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
+          "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
           "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
           "agreements":{},
           "creationDate": "2009-11",
@@ -169,7 +168,8 @@ def newCollection():
         }
         
 if __name__== '__main__':
-    os.chdir("shp/animalia/species")
+    os.chdir("/shp/animalia/species/")
+#    os.chdir("/Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/")
     url = 'http://axh.mol-lab.appspot.com/andrew'
     #url = 'http://localhost:8080/andrew'
     #os.chdir("/home/andrew/Documents")
@@ -181,7 +181,6 @@ if __name__== '__main__':
     the_page = response.read()
     
     for f in glob.glob("*.shp"):
-        #if f == 'AA0101.shp':
         c = f.replace('.shp', '')
         out = newMetadata(f)
         values = {'payload' : simplejson.dumps(out),
@@ -191,6 +190,7 @@ if __name__== '__main__':
         try:
             data = urllib.urlencode(values)
             req = urllib2.Request(url, data)
+            print 'File %s metadata: %s' % (c, values)
             response = urllib2.urlopen(req)
             the_page = response.read()
         except:
