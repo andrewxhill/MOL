@@ -165,19 +165,25 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
+  """Loads metadata from scripts in /utitlities/metadata."""
+  def get(self):
+    self.post()
+    
     def post(self):
-        payload = self.request.get('payload')
-        key_name = self.request.get('key_name')
-        parent_key_name = self.request.get('parent_key_name')
-        parent_kind = self.request.get('parent_kind')
-        key = db.Key.from_path(
-          parent_kind, 
-          parent_key_name,
-          'MetaData',
-          key_name)
-        MetaData(key=key, object=payload).put()
-    
-    
+      payload = self.request.get('payload')
+      key_name = self.request.get('key_name')
+      parent_key_name = self.request.get('parent_key_name')
+      parent_kind = self.request.get('parent_kind')
+      if not parent_key_name or not parent_kind:
+        MetaData(key=db.Key.from_path('MetaData', key_name)).put()
+      else:
+        MetaData(
+          key=db.Key.from_path(
+            parent_kind, 
+            parent_key_name,
+            'MetaData',
+            key_name)).put()
+
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/latest', LatestHandler),

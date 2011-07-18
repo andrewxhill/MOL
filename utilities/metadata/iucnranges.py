@@ -1,6 +1,12 @@
-import ogr, glob, os
+#!/usr/bin/env python
+
+import ogr
+import glob
+import os
 import urllib, urllib2
 import simplejson, datetime
+import logging
+from optparse import OptionParser
 
 class NewRange():
     def __init__(self):
@@ -167,10 +173,20 @@ def newCollection():
            ]
         }
         
+def _getoptions():
+    """Parses command line options and returns them."""
+    parser = OptionParser()
+    parser.add_option("-d", "--data-dir", dest="datadir",
+                      help="Data directory",
+                      default=None)
+    return parser.parse_args()[0]
+
 if __name__== '__main__':
-    os.chdir("shp/animalia/species")
+    logging.basicConfig(level=logging.DEBUG)
+    options = _getoptions()    
+    logging.info('Working directory: %s' %options.datadir)
+    os.chdir(options.datadir)
     url = 'http://localhost:8080/metadataloader'
-    #os.chdir("/Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/")
     values = dict(
         payload=simplejson.dumps(newCollection()),
         key_name='range/mol/animalia/species/1')
@@ -190,7 +206,6 @@ if __name__== '__main__':
         try:
             data = urllib.urlencode(values)
             req = urllib2.Request(url, data)
-            print 'File %s metadata: %s' % (c, values)
             response = urllib2.urlopen(req)
             the_page = response.read()
         except:
