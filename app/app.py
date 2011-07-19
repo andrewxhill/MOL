@@ -34,9 +34,9 @@ import png
 memcache = m.Client()
 
 if 'SERVER_SOFTWARE' in os.environ:
-  PROD = not os.environ['SERVER_SOFTWARE'].startswith('Development')
+    PROD = not os.environ['SERVER_SOFTWARE'].startswith('Development')
 else:
-  PROD = True
+    PROD = True
 
 class ColPage(webapp.RequestHandler):
     def get(self):
@@ -55,23 +55,23 @@ class BaseHandler(webapp.RequestHandler):
 class PeoplePage(BaseHandler):
     def get(self):
         self.push_html('people.html')
-        
+
 class TechPage(BaseHandler):
     def get(self):
         self.push_html('tech.html')
-        
+
 class BlogPage(BaseHandler):
     def get(self):
         self.push_html('blog.html')
-        
+
 class DemoPage(BaseHandler):
     def get(self):
         self.push_html('demo.html')
-        
+
 class AboutPage(BaseHandler):
     def get(self):
         self.push_html('about.html')
-        
+
 class MainPage(BaseHandler):
     def get(self):
         self.push_html('home.html')
@@ -79,7 +79,7 @@ class MainPage(BaseHandler):
 ''' For testing... '''
 class MapPage(BaseHandler):
     def get(self):
-      self.render_template('map-index-template.html', {'prod': PROD})
+        self.render_template('map-index-template.html', {'prod': PROD})
         #self.push_html('map.html');
 class LayerWidget(BaseHandler):
     def get(self):
@@ -92,12 +92,12 @@ class AdminFlushMemcacheHandler(BaseHandler):
             self.response.out.write('Memcache failed to flush')
         else:
             self.response.out.write('Memcache flushed')
-     
-class GitHubPostReceiveHooksHandler(BaseHandler):    
-    
+
+class GitHubPostReceiveHooksHandler(BaseHandler):
+
     # Add your email address here if you want push notifications:
     SEND_LIST = ['eightysteele@gmail.com']
-    
+
     def post(self):
         payload = self.request.get('payload')
         json = simplejson.loads(payload)
@@ -112,8 +112,8 @@ class GitHubPostReceiveHooksHandler(BaseHandler):
         mail.send_mail(sender="Map of Life <admin@mol-lab.appspotmail.com>",
               to=', '.join(self.SEND_LIST),
               subject=title,
-              body=body)     
-            
+              body=body)
+
 class SearchHandler(BaseHandler):
     """Handler for the search UI."""
     def get(self):
@@ -128,10 +128,10 @@ class LatestHandler(BaseHandler):
     """Handler for the search UI."""
     def get(self):
         self.redirect('http://biodiversity.colorado.edu/sandiego')
-        
-        
+
+
 class William(BaseHandler):
-    
+
     def xmltojson(self):
         coords = []
         n = 0
@@ -147,7 +147,7 @@ class William(BaseHandler):
                     }
                 });
             n+=1
-                    
+
         return coords
     def get(self):
         self.post()
@@ -155,8 +155,8 @@ class William(BaseHandler):
         query = {'layerName': 'Puma concolor'}
         self.gbifjson = self.xmltojson()
         self.response.headers['Content-Type'] = "application/json"
-        self.response.out.write(simplejson.dumps(self.gbifjson)) 
-        
+        self.response.out.write(simplejson.dumps(self.gbifjson))
+
 class Andrew(BaseHandler):
     def get(self):
         self.post()
@@ -165,24 +165,21 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
-  """Loads metadata from scripts in /utitlities/metadata."""
-  def get(self):
-    self.post()
-    
+    """Loads metadata from scripts in /utitlities/metadata."""
     def post(self):
-      payload = self.request.get('payload')
-      key_name = self.request.get('key_name')
-      parent_key_name = self.request.get('parent_key_name')
-      parent_kind = self.request.get('parent_kind')
-      if not parent_key_name or not parent_kind:
-        MetaData(key=db.Key.from_path('MetaData', key_name)).put()
-      else:
-        MetaData(
-          key=db.Key.from_path(
-            parent_kind, 
-            parent_key_name,
-            'MetaData',
-            key_name)).put()
+        payload = self.request.get('payload')
+        key_name = self.request.get('key_name')
+        parent_key_name = self.request.get('parent_key_name')
+        parent_kind = self.request.get('parent_kind')
+        if not parent_key_name or not parent_kind:
+            MetaData(key=db.Key.from_path('MetaData', key_name)).put()
+        else:
+            MetaData(
+                key=db.Key.from_path(
+                    parent_kind,
+                    parent_key_name,
+                    'MetaData',
+                    key_name)).put()
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
