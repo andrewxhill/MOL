@@ -477,7 +477,8 @@ MOL.modules.Search = function(mol) {
                             type: res.type, 
                             name: res.name,
                             name2: res.name2,
-                            key_name: res.key_name
+                            key_name: res.key_name,
+                            info: JSON.parse(res.info)
                         }
                     );
 

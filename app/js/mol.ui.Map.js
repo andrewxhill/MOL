@@ -67,17 +67,27 @@ MOL.modules.Map = function(mol) {
                 this._uncertaintySorter = {};
             },
 
-            show: function() {
+            show: function(zoomToExtent) {
                 var points = this._points,
-                    map = this.getMap();
+                    point = null,
+                    Marker = google.maps.Marker,
+                    map = this.getMap(),
+                    bounds = new google.maps.LatLngBounds();
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh();
                     }
                     for (x in points) {
-                        points[x].setMap(map);
+                        point = points[x];
+                        point.setMap(map);
+                        if (zoomToExtent && (point instanceof Marker)) {
+                            bounds.extend(point.getPosition());
+                        }
                     }
                     this._onMap = true;
+                    if (zoomToExtent) {
+                        map.fitBounds(bounds);
+                    }
                 }
             },
 
@@ -602,7 +612,7 @@ MOL.modules.Map = function(mol) {
 
                         case 'checked':
                             if (mapLayer) {
-                                mapLayer.show();
+                                mapLayer.show(true);
                             }                                
                             break;                            
 
