@@ -319,13 +319,33 @@ MOL.modules.Map = function(mol) {
                 throw mol.exceptions.NotImplementedError('_getTileUrlParams()');
             },
 
-            show: function() {
+            show: function(zoomToExtent) {
+                var layer = this.getLayer(),
+                    layerInfo = layer.getInfo(),
+                    north = null,
+                    west = null,
+                    south = null,
+                    east = null,
+                    bounds = null,
+                    LatLngBounds = google.maps.LatLngBounds,
+                    LatLng = google.maps.LatLng,
+                    map = this.getMap();
                 if (!this.isVisible()) {
                     if (!this._mapType) {
                         this.refresh();
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
+                    if (zoomToExtent && layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
+                        north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
+                        west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
+                        south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
+                        east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
+                        bounds = new LatLngBounds();
+                        bounds.extend(new LatLng(north, west));
+                        bounds.extend(new LatLng(south, east));
+                        map.fitBounds(bounds);
+                    }
                 }
             },
 

@@ -16,6 +16,7 @@
 #
 
 from google.appengine.ext import webapp
+import random
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
@@ -79,7 +80,7 @@ class MainPage(BaseHandler):
 ''' For testing... '''
 class MapPage(BaseHandler):
     def get(self):
-        self.render_template('map-index-template.html', {'prod': PROD})
+        self.render_template('map-index-template.html', {'prod': PROD, 'r': random.random()})
         #self.push_html('map.html');
 class LayerWidget(BaseHandler):
     def get(self):
@@ -203,6 +204,7 @@ application = webapp.WSGIApplication(
           ('/playground/col', ColPage),
           ('/sandbox', MapPage),
           ('/sandbox/.*', MapPage),
+          ('/admin/sandbox/.*', MapPage),
           ('/admin/flush-memcache', AdminFlushMemcacheHandler),
           ('/hooks/post-commit', GitHubPostReceiveHooksHandler), ],
          debug=True)
