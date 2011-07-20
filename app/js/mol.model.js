@@ -53,8 +53,13 @@ MOL.modules.model = function(mol) {
                 this._name2 = params.name2;
                 this._key_name = params.key_name;
                 this._json = params.json;
+                this._info = params.info;
                 this._color = null;
                 this._icon = null;
+            },
+            
+            getInfo: function() {
+                return this._info;
             },
 
             hasPoints: function() {

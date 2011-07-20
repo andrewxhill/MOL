@@ -1,21 +1,10 @@
-
-/**
- * Map module that wraps a Google Map and gives it the ability to handle app 
- * level events and perform AJAX calls to the server. It surfaces custom
- * map controls with predefined slots. 
- * 
- * Event binding:
- *     ADD_MAP_CONTROL - Adds a control to the map.
- *     ADD_LAYER - Displays the layer on the map.
- * 
- * Event triggering:
- *     None
- */
 MOL.modules.Metadata = function(mol) { 
     
     mol.ui.Metadata = {};
+
     /**
-     * The Map Engine.
+     * 
+     *      
      */
     mol.ui.Metadata.Engine = mol.ui.Engine.extend(
         {
@@ -53,7 +42,7 @@ MOL.modules.Metadata = function(mol) {
                 for (m in mo) {
                     mo[m].removeStyleName('selected');
                 }
-                var meta = dat.findChild('#'+id.replace(/\//g,"\\/"))
+                var meta = dat.findChild('#'+id.replace(/\//g,"\\/"));
                 
                 //console.log(meta.getId());
                 if (meta.attr('id') != null ) {
@@ -74,14 +63,15 @@ MOL.modules.Metadata = function(mol) {
             },
             _addMetadataResult: function(result) {
                 var display = this._display,
-                    dat = display.findChild('.data');
+                    dat = display.findChild('.data'),
                     id = result.key_name,
                     item = true,
-                    imgUrl = null;
+                    imgUrl = null,
+                    meta = null;
                     
                 if (result.key_name.indexOf('collection') === 0) {
                     item = false;
-                    imgUrl = "http://maps.google.com/maps/api/staticmap?zoom=0&center=20,0&size=256x128&sensor=false"
+                    imgUrl = "http://maps.google.com/maps/api/staticmap?zoom=0&center=20,0&size=256x128&sensor=false";
                 } else {
                     imgUrl = "/data/overview?w=256&h=128&key_name="+result.key_name;
                 }
@@ -163,7 +153,7 @@ MOL.modules.Metadata = function(mol) {
                     var c = display.getNewCollection(collectionId);
                     c.getName().text(collectionName);
                     
-                    c.getName().click( function(e) { self._collCallback(e) } );
+                    c.getName().click( function(e) { self._collCallback(e); } );
                     
                     this._collections[collectionId] = {items: {}};
                 }
@@ -171,7 +161,7 @@ MOL.modules.Metadata = function(mol) {
                 if (!(itemId in this._collections[collectionId].items)){
                     var it = display.getNewItem(itemId,collectionId);
                     it.getName().text(itemName);
-                    it.getName().click(function(event){self._itemCallback(event)});
+                    it.getName().click(function(event){self._itemCallback(event);});
                     this._collections[collectionId].items[itemId] = 0;
                 }
             },
@@ -200,16 +190,19 @@ MOL.modules.Metadata = function(mol) {
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
-                        var act = event.getAction();
+                        var act = event.getAction(),
+                            layer = null,
+                            colText = null,
+                            itemText = null;
                         switch (act) {    
                             case 'add':
-                                var layer = event.getLayer();
+                                layer = event.getLayer();
                                 self._addDataset(layer);
                                 break;
                             case 'view-metadata':
-                                var layer = event.getLayer();
-                                var colText = layer.getSubName() + ": ";
-                                var itemText = layer.getName();
+                                layer = event.getLayer();
+                                colText = layer.getSubName() + ": ";
+                                itemText = layer.getName();
                                 self._showMetadata(layer.getKeyName(), colText, itemText );
                                 document.getElementById('metadata').scrollIntoView(true);
                             break;
@@ -403,8 +396,7 @@ MOL.modules.Metadata = function(mol) {
                 var x = this._url,
                     s = '.url';
                 return x ? x : (this._url = this.findChild(s));
-            },
-            
+            }            
         }
     );
     /**

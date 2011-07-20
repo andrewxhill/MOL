@@ -67,17 +67,27 @@ MOL.modules.Map = function(mol) {
                 this._uncertaintySorter = {};
             },
 
-            show: function() {
+            show: function(zoomToExtent) {
                 var points = this._points,
-                    map = this.getMap();
+                    point = null,
+                    Marker = google.maps.Marker,
+                    map = this.getMap(),
+                    bounds = new google.maps.LatLngBounds();
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh();
                     }
                     for (x in points) {
-                        points[x].setMap(map);
+                        point = points[x];
+                        point.setMap(map);
+                        if (zoomToExtent && (point instanceof Marker)) {
+                            bounds.extend(point.getPosition());
+                        }
                     }
                     this._onMap = true;
+                    if (zoomToExtent) {
+                        map.fitBounds(bounds);
+                    }
                 }
             },
 
@@ -309,13 +319,33 @@ MOL.modules.Map = function(mol) {
                 throw mol.exceptions.NotImplementedError('_getTileUrlParams()');
             },
 
-            show: function() {
+            show: function(zoomToExtent) {
+                var layer = this.getLayer(),
+                    layerInfo = layer.getInfo(),
+                    north = null,
+                    west = null,
+                    south = null,
+                    east = null,
+                    bounds = null,
+                    LatLngBounds = google.maps.LatLngBounds,
+                    LatLng = google.maps.LatLng,
+                    map = this.getMap();
                 if (!this.isVisible()) {
                     if (!this._mapType) {
                         this.refresh();
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
+                    if (zoomToExtent && layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
+                        north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
+                        west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
+                        south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
+                        east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
+                        bounds = new LatLngBounds();
+                        bounds.extend(new LatLng(north, west));
+                        bounds.extend(new LatLng(south, east));
+                        map.fitBounds(bounds);
+                    }
                 }
             },
 
@@ -602,7 +632,7 @@ MOL.modules.Map = function(mol) {
 
                         case 'checked':
                             if (mapLayer) {
-                                mapLayer.show();
+                                mapLayer.show(true);
                             }                                
                             break;                            
 

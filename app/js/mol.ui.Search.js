@@ -401,7 +401,8 @@ MOL.modules.Search = function(mol) {
                                 source: result.source, 
                                 name: result.name, 
                                 name2: result.name2, 
-                                key_name: result.key_name
+                                key_name: result.key_name,
+                                info: result.info
                             } 
                         );
                         config.action = 'add';
@@ -477,7 +478,8 @@ MOL.modules.Search = function(mol) {
                             type: res.type, 
                             name: res.name,
                             name2: res.name2,
-                            key_name: res.key_name
+                            key_name: res.key_name,
+                            info: JSON.parse(res.info)
                         }
                     );
 
