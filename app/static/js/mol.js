@@ -2111,7 +2111,7 @@ MOL.modules.Map = function(mol) {
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
-                    if (zoomToExtent && layerInfo) {
+                    if (zoomToExtent && layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
                         north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
                         west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
                         south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
