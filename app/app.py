@@ -172,14 +172,17 @@ class MetadataLoader(BaseHandler):
         parent_key_name = self.request.get('parent_key_name')
         parent_kind = self.request.get('parent_kind')
         if not parent_key_name or not parent_kind:
-            MetaData(key=db.Key.from_path('MetaData', key_name)).put()
+            MetaData(
+                key=db.Key.from_path('MetaData', key_name),
+                object=payload).put()
         else:
             MetaData(
                 key=db.Key.from_path(
                     parent_kind,
                     parent_key_name,
                     'MetaData',
-                    key_name)).put()
+                    key_name),
+                object=payload).put()
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
