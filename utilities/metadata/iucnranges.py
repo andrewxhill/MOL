@@ -179,14 +179,18 @@ def _getoptions():
     parser.add_option("-d", "--data-dir", dest="datadir",
                       help="Data directory",
                       default=None)
+    parser.add_option("-u", "--url", dest="url",
+                      help="URL to load to",
+                      default='http://localhost:8080/metadataloader')
     return parser.parse_args()[0]
 
 if __name__== '__main__':
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()    
     logging.info('Working directory: %s' %options.datadir)
+    logging.info('URL: %s' %options.url)
     os.chdir(options.datadir)
-    url = 'http://localhost:8080/metadataloader'
+    url = options.url
     values = dict(
         payload=simplejson.dumps(newCollection()),
         key_name='range/mol/animalia/species/1')

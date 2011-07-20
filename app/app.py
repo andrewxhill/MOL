@@ -23,7 +23,7 @@ import os
 from google.appengine.api import memcache as m, mail
 import simplejson
 import logging
-from mol.db import MetaData, MultiPolygonIndex, OccurrenceIndex ,MasterSearchIndex
+from mol.db import MetaData, MultiPolygonIndex, OccurrenceIndex, MasterSearchIndex, MultiPolygon
 from google.appengine.ext import db
 import urllib
 from google.appengine.api import apiproxy_stub, apiproxy_stub_map, urlfetch
@@ -166,7 +166,7 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
-    """Loads metadata from scripts in /utitlities/metadata."""
+    """Loads metadata from scripts in /utilities/metadata."""
     def post(self):
         payload = self.request.get('payload')
         key_name = self.request.get('key_name')
@@ -185,6 +185,53 @@ class MetadataLoader(BaseHandler):
                     key_name),
                 object=payload).put()
 
+class TestDataLoader(BaseHandler):
+    """Loads test data for use in a local instance of the datastore."""
+    def get(self):
+        # parent entity for puma concolor MoL Range Map
+        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/mol/animalia/species/puma_concolor'),
+                           category="range", 
+                           info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
+                           name="Puma concolor", 
+                           source="MoL", 
+                           subname="MoL Range Map").put()
+        # puma concolor MoL Range Map
+        MasterSearchIndex( term="puma concolor", 
+                           parent = newkey, 
+                           rank=1).put()
+        # parent entity for puma concolor WDPA Bioinventory Map
+        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'pa-group/wdpa-group/MA133'),
+                           category="pa", 
+                           info=None, 
+                           name="Puma concolor", 
+                           source="WDPA", 
+                           subname="WDPA Bioinventory").put()
+        # puma concolor WDPA Bioinventory Map
+        MasterSearchIndex( term="puma concolor", 
+                           parent = newkey, 
+                           rank=2).put()
+        # parent entity for puma concolor WWF Ecoregion Map
+        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'ecoregion-group/wwf/14766'),
+                           category="ecoregion", 
+                           info='{"description": "WildFinder database species-ecoregion dataset", "family": "Felidae", "species": "Puma concolor", "order": "Carnivora", "genus": "Puma", "class": "Mammalia"}', 
+                           name="Puma concolor", 
+                           source="WWF", 
+                           subname="WWF Ecoregion Set").put()
+        # puma concolor WWF Ecoregion Map
+        MasterSearchIndex( term="puma concolor", 
+                           parent = newkey, 
+                           rank=3).put()
+    
+class TestDataInfo(BaseHandler):
+    """Shows content of an Entity's info property."""
+    def get(self):
+        e = self.request.get('e')
+        entities = e.split(',')
+        for ent in entities:
+            key = db.Key(encoded=ent)
+            entity = db.get(key)
+            self.response.out.write(entity.info)
+
 application = webapp.WSGIApplication(
          [('/', MainPage),
           ('/latest', LatestHandler),
@@ -196,11 +243,12 @@ application = webapp.WSGIApplication(
           ('/blog', BlogPage),
           ('/people', PeoplePage),
           ('/search', SearchHandler),
-          ('/latest', LatestHandler),
           ('/layerwidget', LayerWidget),
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/metadataloader', MetadataLoader),
+          ('/testdataloader', TestDataLoader),
+          ('/testdatainfo', TestDataInfo),
           ('/playground/col', ColPage),
           ('/sandbox', MapPage),
           ('/sandbox/.*', MapPage),
