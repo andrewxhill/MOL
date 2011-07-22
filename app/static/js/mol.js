@@ -2933,7 +2933,8 @@ MOL.modules.Search = function(mol) {
                     search: 'Search',
                     info: 'more info',
                     next: 'Next Page',
-                    add: 'Add'
+                    add: 'Add',
+                    selectAll: ''
                 };
                 this._bindDisplay(new mol.ui.Search.Display(), text);
             },
@@ -3010,6 +3011,24 @@ MOL.modules.Search = function(mol) {
                 //display.getFiltersWidget().hide();
                 display.getResultsContainer().hide();
                 //display.getNavigationWidget().hide();
+
+                widget = display.getSelectAllLink();
+                widget.text(text.selectAll);
+                widget.click(
+                    // Selects all the result check boxes:
+                    function(event) {
+                        var resultWidgets = self._resultWidgets || [],
+                            rw = null,
+                            result = null,
+                            isChecked = null;
+                        for (x in resultWidgets) {
+                            result = resultWidgets[x];
+                            rw = result.widget;
+                            rw.findChild('.checkbox').setChecked(true);
+                        }                       
+                        self._display.getGoButton().click();
+                    }
+                );
 
                 // Go button
                 widget = display.getGoButton();
@@ -3542,13 +3561,19 @@ MOL.modules.Search = function(mol) {
                     s = '.value';
                 return x ? x : (this._searchBox = this.findChild(s));
             }, 
-                        
+                                    
             getGoButton: function() {
                 var x = this._goButton,
                     s = '.execute';
                 return x ? x : (this._goButton = this.findChild(s));
             },
             
+            getSelectAllLink: function() {
+                var x = this._selectAllLink,
+                    s = '.selectAll';
+                return x ? x : (this._selectAllLink = this.findChild(s));
+            },
+
             getNextButton: function() {
                 var x = this._nextButton,
                     s = '.nextPage';
@@ -3601,7 +3626,10 @@ MOL.modules.Search = function(mol) {
                        '  <div class="filters">' + 
                        '  </div>' + 
                        '  <div class="searchResults widgetTheme">' + 
-                       '    <div class="resultHeader">Results</div>' + 
+                       '    <div class="resultHeader">' +
+                       '       Results' +
+                       '       <a href="" class="selectAll">select all</a>' +
+                       '    </div>' + 
                        '    <ol class="resultList"></ol>' + 
                        '    <div class="pageNavigation">' + 
                        '       <button class="addAll">Map Selected Layers</button>' + 
