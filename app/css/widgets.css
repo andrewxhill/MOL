@@ -379,6 +379,13 @@ button:hover{
     -moz-border-radius: 3px;
     border-radius: 3px;
 }
+
+.mol-LayerControl-Results .searchResults .selectAll {
+    color: #E6FAE6;
+    padding-left: 2px;
+    font-size: 0.9em;
+} 
+
 .mol-LayerControl-Results .searchResults .resultList{
     position: relative;
     list-style-type: none;

@@ -1224,13 +1224,13 @@ MOL.modules.ColorSetter = function(mol) {
                                 break;
 
                             case 'range':
-                                config.color = new mol.ui.ColorSetter.Color(83, 42, 16);
+                                config.color = new mol.ui.ColorSetter.Color(183, 42, 16);
                                 break;
                             case 'ecoregion':
                                 config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
                                 break;
                             case 'pa':
-                                config.color = new mol.ui.ColorSetter.Color(44, 6, 209);
+                                config.color = new mol.ui.ColorSetter.Color(244, 6, 209);
                                 break;
                             }                            
                             bus.fireEvent(new ColorEvent(config));
