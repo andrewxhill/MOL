@@ -113,12 +113,31 @@ MOL.modules.LayerControl = function(mol) {
                 widget = display.getDeleteButton();
                 widget.click(
                     function(event) {
-                        ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
-                        layerId = ch.attr('id');
-                        ch.remove();
-                        bus.fireEvent(new LayerControlEvent('delete-click', layerId));
-                        delete self._layerIds[layerId];
-                        self._display.toggleShareLink("", false);
+                        var styleNames = null,
+                            e = null;
+                        //ch = new mol.ui.Element(event.target).getParent().findChildren('.layer');
+                        //ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
+                        ch = $('.layer.widgetTheme.selected');
+                        ch.each(function(index) {
+                            e = new mol.ui.Element(ch[index]);
+                            styleNames = e.getStyleName().split(' ');
+                            if (_.indexOf(styleNames, 'selected') > -1) {
+                                layerId = e.attr('id');
+                                e.remove();
+                                bus.fireEvent(new LayerControlEvent('delete-click', layerId));
+                                delete self._layerIds[layerId];
+                                self._display.toggleShareLink("", false);
+                            } 
+                        });                                
+                        
+
+
+                        // ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
+                        // layerId = ch.attr('id');
+                        // ch.remove();
+                        // bus.fireEvent(new LayerControlEvent('delete-click', layerId));
+                        // delete self._layerIds[layerId];
+                        // self._display.toggleShareLink("", false);
                     }
                 );
                 
@@ -165,11 +184,14 @@ MOL.modules.LayerControl = function(mol) {
                                 for (y in ch) {
                                     styleNames = ch[y].getStyleName().split(' ');
                                     if (_.indexOf(styleNames, 'selected') > -1) {
-                                        ch[y].removeStyleName('selected');    
-                                        return;
-                                    }                                    
-                                }
-                                new mol.ui.Element(e.target).addStyleName('selected');
+                                        if (!e.shiftKey) {
+                                            ch[y].removeStyleName('selected');    
+                                            //return;
+                                        }
+                                    } else {
+                                        new mol.ui.Element(e.target).addStyleName('selected');
+                                    }                                   
+                                }                                
                             });
                             
                             toggle = layerUi.getToggle();
