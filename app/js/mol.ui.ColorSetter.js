@@ -77,7 +77,7 @@ MOL.modules.ColorSetter = function(mol) {
                                 config.color = new mol.ui.ColorSetter.Color(131, 209, 6);
                                 break;
                             case 'pa':
-                                config.color = new mol.ui.ColorSetter.Color(150, 6, 209);
+                                config.color = new mol.ui.ColorSetter.Color(255, 191, 0);
                                 break;
                             }                            
                             bus.fireEvent(new ColorEvent(config));
