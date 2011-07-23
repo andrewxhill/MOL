@@ -169,21 +169,10 @@ MOL.modules.LayerControl = function(mol) {
                             
                             layerUi.click(
                                 function(event) {                                                                                  
-                                    var e = null;
-                                    ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
-                                    ch.each(
-                                        function(index) {
-                                            e = new mol.ui.Element(ch[index]);
-                                            styleNames = e.getStyleName().split(' ');
-                                            if (_.indexOf(styleNames, 'selected') > -1) {
-                                                if (!event.shiftKey) {
-                                                    e.removeStyleName('selected');    
-                                                    //return;
-                                                }
-                                            } else {
-                                                new mol.ui.Element(event.target).addStyleName('selected');
-                                            }                                   
-                                        });                                
+                                    if (!event.shiftKey) {
+                                        $('.layer.widgetTheme').removeClass('selected');
+                                    } 
+                                    layerUi.setSelected(!layerUi.isSelected());
                                 });
                             
                             toggle = layerUi.getToggle();
@@ -272,6 +261,19 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.info';
                 return x ? x : (this._layerInfoLink = this.findChild(s));
             },  
+
+            isSelected: function() {
+                var styleNames = this.getStyleName().split(' ');
+                return _.indexOf(styleNames, 'selected') > -1;
+            },
+
+            setSelected: function(selected) {
+                if (!selected) {
+                    this.removeClass('selected');      
+                } else {
+                    this.addClass('selected');
+                }
+            },
 
             _html: function() {
                 return  '<div class="layer widgetTheme">' +

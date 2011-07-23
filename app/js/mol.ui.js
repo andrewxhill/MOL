@@ -168,6 +168,14 @@ MOL.modules.ui = function(mol) {
                 this.attr('checked', checked);
             },
 
+            addClass: function(classname) {
+                this._element.addClass(classname);
+            },
+
+            removeClass: function(classname) {
+                this._element.removeClass(classname);                
+            },
+
             isChecked: function() {
                 if (!this._element.is(':checked')) {
                     return false;
