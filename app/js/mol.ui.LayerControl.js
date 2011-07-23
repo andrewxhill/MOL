@@ -115,29 +115,19 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var styleNames = null,
                             e = null;
-                        //ch = new mol.ui.Element(event.target).getParent().findChildren('.layer');
-                        //ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
                         ch = $('.layer.widgetTheme.selected');
-                        ch.each(function(index) {
-                            e = new mol.ui.Element(ch[index]);
-                            styleNames = e.getStyleName().split(' ');
-                            if (_.indexOf(styleNames, 'selected') > -1) {
-                                layerId = e.attr('id');
-                                e.remove();
-                                bus.fireEvent(new LayerControlEvent('delete-click', layerId));
-                                delete self._layerIds[layerId];
-                                self._display.toggleShareLink("", false);
-                            } 
-                        });                                
-                        
-
-
-                        // ch = new mol.ui.Element($('.layer.widgetTheme.selected')[0]);
-                        // layerId = ch.attr('id');
-                        // ch.remove();
-                        // bus.fireEvent(new LayerControlEvent('delete-click', layerId));
-                        // delete self._layerIds[layerId];
-                        // self._display.toggleShareLink("", false);
+                        ch.each(
+                            function(index) {
+                                e = new mol.ui.Element(ch[index]);
+                                styleNames = e.getStyleName().split(' ');
+                                if (_.indexOf(styleNames, 'selected') > -1) {
+                                    layerId = e.attr('id');
+                                    e.remove();
+                                    bus.fireEvent(new LayerControlEvent('delete-click', layerId));
+                                    delete self._layerIds[layerId];
+                                    self._display.toggleShareLink("", false);
+                                } 
+                            });                                
                     }
                 );
                 
@@ -177,22 +167,24 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
-                            
-                            
-                            layerUi.click(function(e) {
-                                ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
-                                for (y in ch) {
-                                    styleNames = ch[y].getStyleName().split(' ');
-                                    if (_.indexOf(styleNames, 'selected') > -1) {
-                                        if (!e.shiftKey) {
-                                            ch[y].removeStyleName('selected');    
-                                            //return;
-                                        }
-                                    } else {
-                                        new mol.ui.Element(e.target).addStyleName('selected');
-                                    }                                   
-                                }                                
-                            });
+                            layerUi.click(
+                                function(event) {                                                                                  
+                                    var e = null;
+                                    ch = new mol.ui.Element(e.target).getParent().findChildren('.layer');
+                                    ch.each(
+                                        function(index) {
+                                            e = new mol.ui.Element(ch[index]);
+                                            styleNames = e.getStyleName().split(' ');
+                                            if (_.indexOf(styleNames, 'selected') > -1) {
+                                                if (!event.shiftKey) {
+                                                    e.removeStyleName('selected');    
+                                                    //return;
+                                                }
+                                            } else {
+                                                new mol.ui.Element(event.target).addStyleName('selected');
+                                            }                                   
+                                        });                                
+                                });
                             
                             toggle = layerUi.getToggle();
                             toggle.setChecked(true);
