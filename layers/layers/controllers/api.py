@@ -279,6 +279,7 @@ class ApiController(BaseController):
                                     empty_bytes=empty_bytes)
             else:
                 params['line'] = 'rgb(%s,%s,%s)' % (0, 0, 0)
+                params['line-width'] = 2.0
                 tilestatus = GenerateTile2.render(
                                     str(tile_dir), 
                                     str(shpfile), 
