@@ -278,7 +278,7 @@ class ApiController(BaseController):
                                     overwrite=overwrite,
                                     empty_bytes=empty_bytes)
             else:
-                
+                params['line'] = 'rgb(%s,%s,%s)' % (0, 0, 0)
                 tilestatus = GenerateTile2.render(
                                     str(tile_dir), 
                                     str(shpfile), 
