@@ -532,7 +532,7 @@ class GbifLayerProvider(LayerProvider):
         params = urllib.urlencode({
                 'format': query.get('format', 'darwin'),
                 'coordinateStatus': True,
-                'maxResults': query.get('limit', 200),
+                'maxResults': query.get('limit', 150),
                 'startIndex': query.get('start', 0),
                 'scientificname': query.get('layerName')})
         url = 'http://data.gbif.org/ws/rest/occurrence/list?%s' % params
