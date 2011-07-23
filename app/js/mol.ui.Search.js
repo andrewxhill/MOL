@@ -235,7 +235,8 @@ MOL.modules.Search = function(mol) {
                     info: 'more info',
                     next: 'Next Page',
                     add: 'Add',
-                    selectAll: ''
+                    selectAll: 'All',
+                    selectNone: 'None'
                 };
                 this._bindDisplay(new mol.ui.Search.Display(), text);
             },
@@ -326,6 +327,24 @@ MOL.modules.Search = function(mol) {
                             result = resultWidgets[x];
                             rw = result.widget;
                             rw.findChild('.checkbox').setChecked(true);
+                        }                       
+                        self._display.getGoButton().click();
+                    }
+                );
+
+                widget = display.getSelectNoneLink();
+                widget.text(text.selectNone);
+                widget.click(
+                    // Selects all the result check boxes:
+                    function(event) {
+                        var resultWidgets = self._resultWidgets || [],
+                            rw = null,
+                            result = null,
+                            isChecked = null;
+                        for (x in resultWidgets) {
+                            result = resultWidgets[x];
+                            rw = result.widget;
+                            rw.findChild('.checkbox').setChecked(false);
                         }                       
                         self._display.getGoButton().click();
                     }
@@ -875,6 +894,12 @@ MOL.modules.Search = function(mol) {
                 return x ? x : (this._selectAllLink = this.findChild(s));
             },
 
+            getSelectNoneLink: function() {
+                var x = this._selectNoneLink,
+                    s = '.selectNone';
+                return x ? x : (this._selectNoneLink = this.findChild(s));
+            },
+
             getNextButton: function() {
                 var x = this._nextButton,
                     s = '.nextPage';
@@ -929,7 +954,8 @@ MOL.modules.Search = function(mol) {
                        '  <div class="searchResults widgetTheme">' + 
                        '    <div class="resultHeader">' +
                        '       Results' +
-                       '       <a href="" class="selectAll">select all</a>' +
+                       '       <a href="" class="selectNone">none</a>' +
+                       '       <a href="" class="selectAll">all</a>' +
                        '    </div>' + 
                        '    <ol class="resultList"></ol>' + 
                        '    <div class="pageNavigation">' + 

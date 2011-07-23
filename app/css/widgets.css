@@ -384,6 +384,16 @@ button:hover{
     color: #E6FAE6;
     padding-left: 2px;
     font-size: 0.9em;
+    float: right;
+    padding-right: 10px;
+}
+
+.mol-LayerControl-Results .searchResults .selectNone {
+    color: #E6FAE6;
+    padding-left: 2px;
+    font-size: 0.9em;
+    float: right;
+    padding-right: 10px;
 } 
 
 .mol-LayerControl-Results .searchResults .resultList{
