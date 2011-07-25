@@ -436,7 +436,7 @@ MOL.modules.Search = function(mol) {
                         layer = new Layer(
                             {
                                 type: result.type, 
-                                source: result.source, 
+                                source: result.source,
                                 name: result.name, 
                                 name2: result.name2, 
                                 key_name: result.key_name,
@@ -513,6 +513,7 @@ MOL.modules.Search = function(mol) {
                         {
                             widget: fw, 
                             source: res.source, 
+                            //source: result.source === 'MOL' ? 'IUCN' : result.source, 
                             type: res.type, 
                             name: res.name,
                             name2: res.name2,

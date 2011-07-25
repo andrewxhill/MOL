@@ -172,10 +172,16 @@ MOL.modules.events = function(mol) {
             init: function(config) {
                 this._super('LayerEvent', config.action);
                 this._layer = config.layer;
+                this._zoomLayerIds = config.zoomLayerIds;
             },
 
             getLayer: function() {
                 return this._layer;
+            },
+
+
+            getZoomLayerIds: function() {
+                return this._zoomLayerIds;
             }
         }
     );
@@ -191,7 +197,7 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LayerControlEvent = mol.events.Event.extend(
         {
-            init: function(action, layerId) {
+            init: function(action, layerId, zoomLayerIds) {
                 this._super('LayerControlEvent', action);
                 this._layerId = layerId;
             },
@@ -1359,7 +1365,41 @@ MOL.modules.LayerControl = function(mol) {
                         display.toggleShareLink("", false);
                     }
                 );
-                
+
+                // Zoom button click
+                widget = display.getZoomButton();
+                widget.click(
+                    function(event) {
+                        var styleNames = null,
+                            zoomLayerIds = [],
+                            e = null;
+                        ch = $('.layer.widgetTheme.selected');
+                        ch.each(
+                            function(index) {
+                                e = new mol.ui.Element(ch[index]);
+                                styleNames = e.getStyleName().split(' ');
+                                if (_.indexOf(styleNames, 'selected') > -1) {
+                                    layerId = e.attr('id');
+                                    zoomLayerIds.push(layerId);
+                                }                                 
+                            }
+                        );
+                        _.delay(
+                            function() {
+                                bus.fireEvent(
+                                    new LayerEvent(
+                                        {
+                                            action:'zoom', 
+                                            layer: null,
+                                            zoomLayerIds: zoomLayerIds
+                                        }
+                                    )
+                                );
+                            }, 200
+                        );
+                    }
+                );
+
                 // Clicking the delete button fires a LayerControlEvent:
                 widget = display.getDeleteButton();
                 widget.click(
@@ -1389,10 +1429,10 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer.getKeyName(),
-                            layerType = layer.getType(),
-                            layerName = layer.getName(),
-                            layerSubName = layer.getSubName(),
+                            layerId = layer ? layer.getKeyName() : null,
+                            layerType = layer? layer.getType() : null,
+                            layerName = layer ? layer.getName() : null,
+                            layerSubName = layer ? layer.getSubName() : null,
                             layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display,
@@ -1404,7 +1444,7 @@ MOL.modules.LayerControl = function(mol) {
                             styleNames = null;
                     
                         switch (action) {                                                       
-    
+                            
                         case 'add':
                             if (layerIds[layerId]) {
                                 // Duplicate layer.
@@ -1418,6 +1458,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
+                            // Handles layer selection.
                             layerUi.click(
                                 function(event) {                                                                                  
                                     if (!event.shiftKey) {
@@ -1574,7 +1615,11 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.share';
                 return x ? x : (this._shareButton = this.findChild(s));
             },
-            
+            getZoomButton: function() {
+                var x = this._zoomButton,
+                    s = '.zoom';
+                return x ? x : (this._zoomButton = this.findChild(s));
+            },           
             getNewLayer: function(){
                 var Layer = mol.ui.LayerControl.Layer,
                     r = new Layer();
@@ -1647,6 +1692,7 @@ MOL.modules.LayerControl = function(mol) {
                         '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                         '    </div>' +
                         '    <div class="widgetTheme share button">Share</div>' +
+                        '    <div class="widgetTheme zoom button">Zoom</div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
@@ -1838,6 +1884,9 @@ MOL.modules.Map = function(mol) {
             refresh: function() {
                 throw new mol.exceptions.NotImplementedError('refresh()');
             },
+            bounds: function() {
+                throw new mol.exceptions.NotImplementedError('bounds()');
+            },
             
             // Getters and setters:
             getLayer: function() {
@@ -1866,27 +1915,29 @@ MOL.modules.Map = function(mol) {
                 this._uncertaintySorter = {};
             },
 
-            show: function(zoomToExtent) {
+            show: function() {
                 var points = this._points,
                     point = null,
                     Marker = google.maps.Marker,
                     map = this.getMap(),
-                    bounds = new google.maps.LatLngBounds();
+                    bounds = null;
                 if (!this.isVisible()) {
                     if (!points) {
-                        this.refresh();
+                        this.refresh(
+                            function() {
+                                for (x in points) {
+                                    point = points[x];
+                                    point.setMap(map);
+                                }
+                                this._onMap = true;
+                            }
+                        );
                     }
-                    for (x in points) {
-                        point = points[x];
-                        point.setMap(map);
-                        if (zoomToExtent && (point instanceof Marker)) {
-                            bounds.extend(point.getPosition());
-                        }
-                    }
-                    this._onMap = true;
-                    if (zoomToExtent) {
-                        map.fitBounds(bounds);
-                    }
+                    //for (x in points) {
+                    //    point = points[x];
+                    //    point.setMap(map);
+                    //}
+                    //this._onMap = true;
                 }
             },
 
@@ -1901,11 +1952,29 @@ MOL.modules.Map = function(mol) {
                 }
             },
 
+            bounds: function() {
+                var points = this._points,
+                    point = null,
+                    Marker = google.maps.Marker,
+                    bounds = new google.maps.LatLngBounds();
+                if (this._bounds) {
+                    return this._bounds;
+                }
+                for (x in points) {
+                    point = points[x];
+                    if (point instanceof Marker) {
+                        bounds.extend(point.getPosition());
+                    }
+                }
+                this._bounds = bounds;
+                return bounds;
+            },
+
             isVisible: function() {                
                 return this._onMap;
             },
 
-            refresh: function() {
+            refresh: function(cb) {
                 var color = this.getColor(),
                     self = this;
 
@@ -1916,6 +1985,9 @@ MOL.modules.Map = function(mol) {
                             self._createPoints();    
                         } else {
                             self._updateLayerColor();
+                        }
+                        if (cb) {
+                            cb();
                         }
                     }
                 );  
@@ -2125,7 +2197,7 @@ MOL.modules.Map = function(mol) {
                     west = null,
                     south = null,
                     east = null,
-                    bounds = null,
+                    bounds = this.bounds(),
                     LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
                     map = this.getMap();
@@ -2135,17 +2207,34 @@ MOL.modules.Map = function(mol) {
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
-                    if (zoomToExtent && layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
-                        north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
-                        west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
-                        south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
-                        east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
-                        bounds = new LatLngBounds();
-                        bounds.extend(new LatLng(north, west));
-                        bounds.extend(new LatLng(south, east));
+                    if (zoomToExtent && bounds) {
                         map.fitBounds(bounds);
                     }
                 }
+            },
+
+            bounds: function() {
+                var layer = this.getLayer(),
+                    layerInfo = layer.getInfo(),
+                    north = null,
+                    west = null,
+                    south = null,
+                    east = null,
+                    bounds = new google.maps.LatLngBounds(),
+                    LatLng = google.maps.LatLng;
+                if (this._bounds) {
+                    return this._bounds;
+                }
+                if (layerInfo && layerInfo.extentNorthWest && layerInfo.extentSouthEast) {
+                    north = parseFloat(layerInfo.extentNorthWest.split(',')[0]),
+                    west = parseFloat(layerInfo.extentNorthWest.split(',')[1]),
+                    south = parseFloat(layerInfo.extentSouthEast.split(',')[0]),
+                    east = parseFloat(layerInfo.extentSouthEast.split(',')[1]),
+                    bounds.extend(new LatLng(north, west));
+                    bounds.extend(new LatLng(south, east));
+                } 
+                this._bounds = bounds;
+                return bounds;
             },
 
             hide: function() {
@@ -2402,10 +2491,12 @@ MOL.modules.Map = function(mol) {
                     LayerEvent.TYPE,
                     function(event) {
                         var layer = event.getLayer(),
-                            layerId = layer.getId(),     
-                            mapLayer = self._getMapLayer(layerId),                        
+                            layerId = layer ? layer.getId() : null,     
+                            zoomLayerIds = event.getZoomLayerIds(),
+                            mapLayer = layerId ? self._getMapLayer(layerId) : null,                        
                             action = event.getAction(),
-                            colorEventConfig = {};
+                            colorEventConfig = {},
+                            bounds = new google.maps.LatLngBounds();
                                                 
                         switch (action) {
 
@@ -2422,6 +2513,13 @@ MOL.modules.Map = function(mol) {
                             bus.fireEvent(new ColorEvent(colorEventConfig));
                             break;
 
+                        case 'zoom':
+                            for (x in zoomLayerIds) {
+                                bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());                               
+                            }
+                            map.fitBounds(bounds);
+                            break;
+
                         case 'delete':
                             if (!mapLayer) {
                                 return;
@@ -2431,7 +2529,7 @@ MOL.modules.Map = function(mol) {
 
                         case 'checked':
                             if (mapLayer) {
-                                mapLayer.show(true);
+                                mapLayer.show();
                             }                                
                             break;                            
 
@@ -3159,7 +3257,7 @@ MOL.modules.Search = function(mol) {
                         layer = new Layer(
                             {
                                 type: result.type, 
-                                source: result.source, 
+                                source: result.source,
                                 name: result.name, 
                                 name2: result.name2, 
                                 key_name: result.key_name,
@@ -3236,6 +3334,7 @@ MOL.modules.Search = function(mol) {
                         {
                             widget: fw, 
                             source: res.source, 
+                            //source: result.source === 'MOL' ? 'IUCN' : result.source, 
                             type: res.type, 
                             name: res.name,
                             name2: res.name2,
