@@ -138,7 +138,7 @@ MOL.modules.LayerControl = function(mol) {
                                         }
                                     )
                                 );
-                            }, 1000
+                            }, 200
                         );
                     }
                 );
