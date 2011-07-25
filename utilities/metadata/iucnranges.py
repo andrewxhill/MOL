@@ -172,7 +172,7 @@ def newCollection():
                  "name": "Reptilia"}
            ]
         }
-        
+
 def _getoptions():
     """Parses command line options and returns them."""
     parser = OptionParser()
