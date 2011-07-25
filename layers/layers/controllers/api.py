@@ -265,6 +265,12 @@ class ApiController(BaseController):
                     "line-width": request.params.get('linewidth', OVERVIEW_LINE_WIDTH)
                     } 
             if datatype in ["ecoregion-group","pa-group"]:
+                
+                # Border around PA tiles
+                if datatype == "pa-group":
+                    params['line'] = 'rgb(%s,%s,%s)' % (0, 0, 0)
+                    params['line-width'] = 2.0
+
                 """when these sets are moved to couchdb or pulled from PGSQL instead of 
                    only being recorded in the mapfile.xml, they can be assembled using 
                    the methods in GenerateTile2 found in else"""
@@ -278,8 +284,6 @@ class ApiController(BaseController):
                                     overwrite=overwrite,
                                     empty_bytes=empty_bytes)
             else:
-                params['line'] = 'rgb(%s,%s,%s)' % (0, 0, 0)
-                params['line-width'] = 2.0
                 tilestatus = GenerateTile2.render(
                                     str(tile_dir), 
                                     str(shpfile), 
