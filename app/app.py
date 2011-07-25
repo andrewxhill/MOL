@@ -193,8 +193,8 @@ class TestDataLoader(BaseHandler):
                            category="range", 
                            info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
                            name="Puma concolor", 
-                           source="MoL", 
-                           subname="MoL Range Map").put()
+                           source="MOL", 
+                           subname="MOL Range Map").put()
         # puma concolor MoL Range Map
         MasterSearchIndex( term="puma concolor", 
                            parent = newkey, 

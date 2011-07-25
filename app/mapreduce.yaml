@@ -61,3 +61,15 @@ mapreduce:
       default: 2
     - name: processing_rate
       default: 2500 
+
+- name: Change MOL ranges to IUCN ranges
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.change_mol_to_iucn
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 2
+    - name: processing_rate
+      default: 2500 

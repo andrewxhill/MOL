@@ -15,6 +15,11 @@ indexes:
   - name: rank
     direction: desc
 
+- kind: MultiPolygon
+  properties:
+  - name: __key__
+    direction: desc
+
 - kind: MultiPolygonIndex
   properties:
   - name: term
