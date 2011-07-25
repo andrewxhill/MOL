@@ -175,4 +175,9 @@ def clean_empty_os(entity):
     if res==0:
         yield op.db.Delete(entity)
 
+def change_mol_to_iucn(entity):
+    if entity.source == 'MOL' and entity.subname=='MOL Range Map':
+        entity.source = 'IUCN'
+        entity.subname = 'IUCN Range Map'
+        yield op.db.Put(entity)
 
