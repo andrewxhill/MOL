@@ -97,10 +97,16 @@ MOL.modules.events = function(mol) {
             init: function(config) {
                 this._super('LayerEvent', config.action);
                 this._layer = config.layer;
+                this._zoomLayerIds = config.zoomLayerIds;
             },
 
             getLayer: function() {
                 return this._layer;
+            },
+
+
+            getZoomLayerIds: function() {
+                return this._zoomLayerIds;
             }
         }
     );
@@ -116,7 +122,7 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LayerControlEvent = mol.events.Event.extend(
         {
-            init: function(action, layerId) {
+            init: function(action, layerId, zoomLayerIds) {
                 this._super('LayerControlEvent', action);
                 this._layerId = layerId;
             },

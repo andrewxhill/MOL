@@ -108,7 +108,41 @@ MOL.modules.LayerControl = function(mol) {
                         display.toggleShareLink("", false);
                     }
                 );
-                
+
+                // Zoom button click
+                widget = display.getZoomButton();
+                widget.click(
+                    function(event) {
+                        var styleNames = null,
+                            zoomLayerIds = [],
+                            e = null;
+                        ch = $('.layer.widgetTheme.selected');
+                        ch.each(
+                            function(index) {
+                                e = new mol.ui.Element(ch[index]);
+                                styleNames = e.getStyleName().split(' ');
+                                if (_.indexOf(styleNames, 'selected') > -1) {
+                                    layerId = e.attr('id');
+                                    zoomLayerIds.push(layerId);
+                                }                                 
+                            }
+                        );
+                        _.delay(
+                            function() {
+                                bus.fireEvent(
+                                    new LayerEvent(
+                                        {
+                                            action:'zoom', 
+                                            layer: null,
+                                            zoomLayerIds: zoomLayerIds
+                                        }
+                                    )
+                                );
+                            }, 1000
+                        );
+                    }
+                );
+
                 // Clicking the delete button fires a LayerControlEvent:
                 widget = display.getDeleteButton();
                 widget.click(
@@ -138,10 +172,10 @@ MOL.modules.LayerControl = function(mol) {
                     function(event) {
                         var action = event.getAction(),
                             layer = event.getLayer(),
-                            layerId = layer.getKeyName(),
-                            layerType = layer.getType(),
-                            layerName = layer.getName(),
-                            layerSubName = layer.getSubName(),
+                            layerId = layer ? layer.getKeyName() : null,
+                            layerType = layer? layer.getType() : null,
+                            layerName = layer ? layer.getName() : null,
+                            layerSubName = layer ? layer.getSubName() : null,
                             layerIds = self._layerIds,
                             layerUi = null,
                             display = self._display,
@@ -153,7 +187,7 @@ MOL.modules.LayerControl = function(mol) {
                             styleNames = null;
                     
                         switch (action) {                                                       
-    
+                            
                         case 'add':
                             if (layerIds[layerId]) {
                                 // Duplicate layer.
@@ -167,6 +201,7 @@ MOL.modules.LayerControl = function(mol) {
                             layerUi.getType().attr("src","/static/maps/search/"+ layerType +".png");
                             layerUi.attr('id', layerId);
                             
+                            // Handles layer selection.
                             layerUi.click(
                                 function(event) {                                                                                  
                                     if (!event.shiftKey) {
@@ -323,7 +358,11 @@ MOL.modules.LayerControl = function(mol) {
                     s = '.share';
                 return x ? x : (this._shareButton = this.findChild(s));
             },
-            
+            getZoomButton: function() {
+                var x = this._zoomButton,
+                    s = '.zoom';
+                return x ? x : (this._zoomButton = this.findChild(s));
+            },           
             getNewLayer: function(){
                 var Layer = mol.ui.LayerControl.Layer,
                     r = new Layer();
@@ -396,6 +435,7 @@ MOL.modules.LayerControl = function(mol) {
                         '       <img class="layersToggle" src="/static/maps/layers/expand.png">' +
                         '    </div>' +
                         '    <div class="widgetTheme share button">Share</div>' +
+                        '    <div class="widgetTheme zoom button">Zoom</div>' +
                         '    <div class="widgetTheme delete button">Delete</div>' +
                         '    <div class="widgetTheme add button">Add</div>' +
                         '</div>' +
