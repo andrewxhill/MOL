@@ -861,6 +861,7 @@ MOL.modules.ui = function(mol) {
                     return this._element.text();
                 }
             },
+
             select: function() {
                 this._element.select();
             },
@@ -1920,7 +1921,8 @@ MOL.modules.Map = function(mol) {
                     point = null,
                     Marker = google.maps.Marker,
                     map = this.getMap(),
-                    bounds = null;
+                    bounds = null,
+                    self = this;
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh(
@@ -1929,15 +1931,16 @@ MOL.modules.Map = function(mol) {
                                     point = points[x];
                                     point.setMap(map);
                                 }
-                                this._onMap = true;
+                                self._onMap = true;
                             }
                         );
+                    } else {
+                        for (x in points) {
+                            point = points[x];
+                            point.setMap(map);
+                        }
+                        self._onMap = true;
                     }
-                    //for (x in points) {
-                    //    point = points[x];
-                    //    point.setMap(map);
-                    //}
-                    //this._onMap = true;
                 }
             },
 
