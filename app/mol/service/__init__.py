@@ -616,7 +616,7 @@ class GbifLayerProvider(LayerProvider):
             "query": {
                 "search": query.get('sciname'),
                 "offset": query.get('start', 0),
-                "limit": query.get('limit', 200),
+                "limit": query.get('limit', 400),
                 "source": url,
                 "type": "points",
                 "advancedOptions": {"coordinatestatus": True}
