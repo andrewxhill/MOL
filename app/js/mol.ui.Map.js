@@ -668,12 +668,13 @@ MOL.modules.Map = function(mol) {
                             break;
 
                         case 'zoom':
-                            for (x in zoomLayerIds) {
-                                bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());                               
+                            if (zoomLayerIds.length !== 0) {
+                                for (x in zoomLayerIds) {
+                                    bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());
+                                }
+                                map.fitBounds(bounds);
                             }
-                            map.fitBounds(bounds);
                             break;
-
                         case 'delete':
                             if (!mapLayer) {
                                 return;

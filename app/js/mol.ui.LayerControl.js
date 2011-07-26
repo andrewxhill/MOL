@@ -124,7 +124,9 @@ MOL.modules.LayerControl = function(mol) {
                                 styleNames = e.getStyleName().split(' ');
                                 if (_.indexOf(styleNames, 'selected') > -1) {
                                     layerId = e.attr('id');
-                                    zoomLayerIds.push(layerId);
+                                    if (!(layerId.indexOf('pa') !== -1) && !(layerId.indexOf('ecoregion') !== -1)) {
+                                        zoomLayerIds.push(layerId);
+                                    }
                                 }                                 
                             }
                         );
