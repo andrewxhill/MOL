@@ -1393,7 +1393,9 @@ MOL.modules.LayerControl = function(mol) {
                                 styleNames = e.getStyleName().split(' ');
                                 if (_.indexOf(styleNames, 'selected') > -1) {
                                     layerId = e.attr('id');
-                                    zoomLayerIds.push(layerId);
+                                    if (!(layerId.indexOf('pa') !== -1) && !(layerId.indexOf('ecoregion') !== -1)) {
+                                        zoomLayerIds.push(layerId);
+                                    }
                                 }                                 
                             }
                         );
@@ -2526,12 +2528,13 @@ MOL.modules.Map = function(mol) {
                             break;
 
                         case 'zoom':
-                            for (x in zoomLayerIds) {
-                                bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());                               
+                            if (zoomLayerIds.length !== 0) {
+                                for (x in zoomLayerIds) {
+                                    bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());
+                                }
+                                map.fitBounds(bounds);
                             }
-                            map.fitBounds(bounds);
                             break;
-
                         case 'delete':
                             if (!mapLayer) {
                                 return;
