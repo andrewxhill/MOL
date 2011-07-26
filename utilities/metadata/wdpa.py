@@ -1,6 +1,12 @@
-import ogr, glob, os
+#!/usr/bin/env python
+
+import ogr
+import glob
+import os
 import urllib, urllib2
 import simplejson, datetime
+import logging
+from optparse import OptionParser
 
 class NewProtectedArea():
     def __init__(self):
@@ -73,11 +79,11 @@ class NewProtectedArea():
             }
 
 def newMetadata(f):
-    eco_code = f.replace('.shp','')
+    wdpaid = f.replace('.shp','')
     out = NewProtectedArea()
     out.source = "IUCN and UNEP"
     out.type = "Protected Area"
-    out.location = "/ftp/pa/shp/%s.shp" % eco_code
+    out.location = "/ftp/pa/shp/%s.shp" % wdpaid
     out.format = "Esri Shapefile"
     out.geoFormat = "vector"
     out.geoType = "multipolygon"
@@ -87,16 +93,20 @@ def newMetadata(f):
     lyr = ds.GetLayerByName( wdpaid )
     feat_def = lyr.GetLayerDefn()
     
-    name, country, category, marine = None, None, None, None
+    name, country, category, designation, govn_type, marine = None, None, None, None, None, None
     for feat in lyr:
         if name is None:
-            name = feat.GetField('NAME')
+            name = feat.GetField('NAME_ENG')
         if country is None:
             country = feat.GetField('COUNTRY')
         if category is None:
             category = feat.GetField('IUCNCAT')
+        if designation is None:
+            designation = feat.GetField('DESIG_ENG')
+        if govn_type is None:
+            govn_type = feat.GetField('GOVN_TYPE')
         if marine is None:
-            marine = feat.GetField('MARINE')
+            marine = feat.GetField('MARINE_C')
     out.newVariable('NAME', name)
     out.newVariable('COUNTRY', country)
     out.newVariable('IUCNCAT', category)
@@ -106,7 +116,7 @@ def newMetadata(f):
     feat = lyr.GetFeature(0)
     geom = feat.GetGeometryRef()
     
-    out.name = feat.GetField('NAME')
+    out.name = feat.GetField('NAME_ENG')
     
     out.srs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
     extent = lyr.GetExtent()
@@ -165,26 +175,42 @@ def newCollection():
             },
         }
         
+def _getoptions():
+    """Parses command line options and returns them."""
+    parser = OptionParser()
+    parser.add_option("-d", "--data-dir", dest="datadir",
+                      help="Data directory",
+                      default=None)
+    parser.add_option("-u", "--url", dest="url",
+                      help="URL to load to",
+                      default='http://localhost:8080/metadataloader')
+    return parser.parse_args()[0]
+
 if __name__== '__main__':
-    os.chdir("/ftp/pa/shp")
-    url = 'http://axh.mol-lab.appspot.com/andrew'
-    #url = 'http://localhost:8080/andrew'
-    #os.chdir("/home/andrew/Documents")
-    values = {'payload' : simplejson.dumps(newCollection()),
-              'key_name' : 'collection/protectedareas/wdpa/1'}
+#    os.chdir("/ftp/pa/shp")
+#    url = 'http://axh.mol-lab.appspot.com/andrew'
+    logging.basicConfig(level=logging.DEBUG)
+    options = _getoptions()    
+    logging.info('Working directory: %s' %options.datadir)
+    logging.info('URL: %s' %options.url)
+    os.chdir(options.datadir)
+    url = options.url
+    values = dict(
+        payload=simplejson.dumps(newCollection()),
+        key_name='collection/protectedareas/wdpa/1')
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
     the_page = response.read()
     
     for f in glob.glob("*.shp"):
-        #if f == 'AA0101.shp':
         c = f.replace('.shp', '')
         out = newMetadata(f)
-        values = {'payload' : simplejson.dumps(out),
-                  'key_name' : 'protectedareas/wdpa/%s' % c,
-                  'parent_key_name' : 'protectedareas/wdpa/%s' % c,
-                  'parent_kind' : 'MultiPolygon'}
+        values = dict(
+            payload=simplejson.dumps(out),
+            key_name='protectedareas/wdpa/%s' % c,
+            parent_key_name='protectedareas/wdpa/%s' % c,
+            parent_kind='MultiPolygon')
         try:
             data = urllib.urlencode(values)
             req = urllib2.Request(url, data)
@@ -192,6 +218,3 @@ if __name__== '__main__':
             the_page = response.read()
         except:
             print c
-            
-    
-    

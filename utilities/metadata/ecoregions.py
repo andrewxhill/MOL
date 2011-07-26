@@ -1,6 +1,12 @@
-import ogr, glob, os
+#!/usr/bin/env python
+
+import ogr
+import glob
+import os
 import urllib, urllib2
 import simplejson, datetime
+import logging
+from optparse import OptionParser
 
 class NewEcoregion():
     def __init__(self):
@@ -176,28 +182,44 @@ def newCollection():
                  "name": "Amphibia"}
            ]
         }
-        
+
+def _getoptions():
+    """Parses command line options and returns them."""
+    parser = OptionParser()
+    parser.add_option("-d", "--data-dir", dest="datadir",
+                      help="Data directory",
+                      default=None)
+    parser.add_option("-u", "--url", dest="url",
+                      help="URL to load to",
+                      default='http://localhost:8080/metadataloader')
+    return parser.parse_args()[0]
+
 if __name__== '__main__':
-    os.chdir("/ftp/ecoregion/shp")
-    url = 'http://axh.mol-lab.appspot.com/andrew'
-    #url = 'http://localhost:8080/andrew'
-    #os.chdir("/home/andrew/Documents")
-    values = {'payload' : simplejson.dumps(newCollection())
-              'key_name' : 'collection/ecoregions/wwf/1'}
+#    os.chdir("/ftp/ecoregion/shp")
+#    url = 'http://axh.mol-lab.appspot.com/andrew'
+    logging.basicConfig(level=logging.DEBUG)
+    options = _getoptions()    
+    logging.info('Working directory: %s' %options.datadir)
+    logging.info('URL: %s' %options.url)
+    os.chdir(options.datadir)
+    url = options.url
+    values = dict(
+        payload=simplejson.dumps(newCollection()),
+        key_name='collection/ecoregions/wwf/1')
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)
     the_page = response.read()
-
     
     for f in glob.glob("*.shp"):
         #if f == 'AA0101.shp':
         c = f.replace('.shp', '')
         out = newMetadata(f)
-        values = {'payload' : simplejson.dumps(out),
-                  'key_name' : 'ecoregion/wwf/%s' % c,
-                  'parent_key_name' : 'ecoregion/wwf/%s' % c,
-                  'parent_kind' : 'MultiPolygon'}
+        values = dict(
+            payload=simplejson.dumps(out),
+            key_name='ecoregion/wwf/%s' % c,
+            parent_key_name='ecoregion/wwf/%s' % c,
+            parent_kind='MultiPolygon')
         try:
             data = urllib.urlencode(values)
             req = urllib2.Request(url, data)
@@ -205,6 +227,3 @@ if __name__== '__main__':
             the_page = response.read()
         except:
             print c
-            
-    
-    

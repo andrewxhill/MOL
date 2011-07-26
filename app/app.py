@@ -166,7 +166,10 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
-    """Loads metadata from scripts in /utilities/metadata."""
+    """ Loads metadata from scripts in /utilities/metadata.
+        Example:
+        ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/metadataloader
+    """
     def post(self):
         payload = self.request.get('payload')
         key_name = self.request.get('key_name')
