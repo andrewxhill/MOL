@@ -182,11 +182,21 @@ MOL.modules.Metadata = function(mol) {
             _bindDisplay: function(display, text) {  
                 var self = this,
                     bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent;
+                    LayerEvent = mol.events.LayerEvent,
+                    widget = null;
                     
                 this._display = display;
                 display.setEngine(this); 
                 
+                widget = display.getMapLink();
+                if (widget) {
+                    widget.click(
+                        function(event) {
+                            bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                        }
+                    );
+                }
+
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
@@ -195,18 +205,23 @@ MOL.modules.Metadata = function(mol) {
                             colText = null,
                             itemText = null;
                         switch (act) {    
-                            case 'add':
-                                layer = event.getLayer();
-                                self._addDataset(layer);
-                                break;
-                            case 'view-metadata':
-                                layer = event.getLayer();
-                                colText = layer.getSubName() + ": ";
-                                itemText = layer.getName();
-                                self._showMetadata(layer.getKeyName(), colText, itemText );
-                                document.getElementById('metadata').scrollIntoView(true);
+                        case 'add':
+                            layer = event.getLayer();
+                            self._addDataset(layer);
                             break;
-                            
+                        case 'view-metadata':
+                            layer = event.getLayer();
+                            colText = layer.getSubName() + ": ";
+                            itemText = layer.getName();
+                            self._showMetadata(layer.getKeyName(), colText, itemText );
+                            document.getElementById('metadata').scrollIntoView(true);
+                            widget = self._display.getMapLink();
+                            widget.click(
+                                function(event) {
+                                    bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                                }
+                            );
+                            break;                            
                         }
                     }
                 );
@@ -491,6 +506,13 @@ MOL.modules.Metadata = function(mol) {
                     s = '.item-path';
                 return x ? x : (this._itemTitle = this.findChild(s));
             },
+
+            getMapLink: function() {
+              var x = this._mapLink,
+                  s = '.mapLink';
+                return x ? x : (this._mapLink = this.findChild(s));
+            },
+
             selectItem: function(id) {
                 //TODO deselect all items/collections and select the one passed by ID
             },
@@ -498,7 +520,7 @@ MOL.modules.Metadata = function(mol) {
             _html: function(){
                 return  '<div class="mol-Metadata">' +
 						'    <div class="top-bar">' +
-						'        <a href="#map">Back to Map</a>' +
+						'        <a class="mapLink" href="#">Back to Map</a>' +
 						'        <div class="details-menu">' +
 						'            <div class="view-option selected">basic</div>' +
 						'            <div class="view-option">full</div>' +

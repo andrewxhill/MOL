@@ -49,6 +49,7 @@ MOL.modules.location = function(mol) {
                             layerState = '',
                             url = window.location.href,
                             action = event.getAction(),
+                            refresh = event.getRefresh(),
                             mapEngine = self._mapEngine,
                             searchEngine = self._searchEngine,
                             layerControlEngine = self._layerControlEngine;
@@ -59,6 +60,10 @@ MOL.modules.location = function(mol) {
                             searchState = mol.util.urlEncode(searchEngine.getPlaceState());
                             layerState = mol.util.urlEncode(layerControlEngine.getPlaceState());
                             url = url + '#' + mapState + '&' + searchState + '&' + layerState;
+                            if (refresh) {
+                                self.sandbox(mapState + '&' + searchState + '&' + layerState);
+                                return;
+                            }
                             bus.fireEvent(new LocationEvent({url: url}, 'take-url'));
                             break;
                         }
@@ -72,6 +77,7 @@ MOL.modules.location = function(mol) {
             },
             
             sandbox: function(query) {
+                mol.log.info(query);
                 var place = mol.util.urlDecode(query);
                 this._mapEngine.go(place);
                 this._searchEngine.go(place);

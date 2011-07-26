@@ -336,7 +336,7 @@ MOL.modules.LayerControl = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
-                this._show = true;
+                this._show = false;
                 this._shareLink = false;
             },     
             getLayerToggle: function() {
