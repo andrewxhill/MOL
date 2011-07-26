@@ -124,9 +124,14 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LocationEvent = mol.events.Event.extend(
         {
-            init: function(location, action) {
+            init: function(location, action, refresh) {
                 this._super('LocationEvent', action);
                 this._location = location;
+                this._refresh = refresh;
+            },
+
+            getRefresh: function() {                
+                return this._refresh;
             },
 
             getLocation: function() {
@@ -565,6 +570,7 @@ MOL.modules.location = function(mol) {
                             layerState = '',
                             url = window.location.href,
                             action = event.getAction(),
+                            refresh = event.getRefresh(),
                             mapEngine = self._mapEngine,
                             searchEngine = self._searchEngine,
                             layerControlEngine = self._layerControlEngine;
@@ -575,6 +581,10 @@ MOL.modules.location = function(mol) {
                             searchState = mol.util.urlEncode(searchEngine.getPlaceState());
                             layerState = mol.util.urlEncode(layerControlEngine.getPlaceState());
                             url = url + '#' + mapState + '&' + searchState + '&' + layerState;
+                            if (refresh) {
+                                self.sandbox(mapState + '&' + searchState + '&' + layerState);
+                                return;
+                            }
                             bus.fireEvent(new LocationEvent({url: url}, 'take-url'));
                             break;
                         }
@@ -588,6 +598,7 @@ MOL.modules.location = function(mol) {
             },
             
             sandbox: function(query) {
+                mol.log.info(query);
                 var place = mol.util.urlDecode(query);
                 this._mapEngine.go(place);
                 this._searchEngine.go(place);
@@ -1353,7 +1364,8 @@ MOL.modules.LayerControl = function(mol) {
                   "LocationEvent", 
                   function(event){
                     if (event.getAction() == 'take-url') {
-                        display.toggleShareLink(event.getLocation().url);
+                        self._shareUrl = event.getLocation().url;
+                        display.toggleShareLink(self._shareUrl);
                     }
                   }
                 );                
@@ -1593,7 +1605,7 @@ MOL.modules.LayerControl = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
-                this._show = false;
+                this._show = true;
                 this._shareLink = false;
             },     
             getLayerToggle: function() {
@@ -3973,11 +3985,21 @@ MOL.modules.Metadata = function(mol) {
             _bindDisplay: function(display, text) {  
                 var self = this,
                     bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent;
+                    LayerEvent = mol.events.LayerEvent,
+                    widget = null;
                     
                 this._display = display;
                 display.setEngine(this); 
                 
+                widget = display.getMapLink();
+                if (widget) {
+                    widget.click(
+                        function(event) {
+                            bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                        }
+                    );
+                }
+
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
@@ -3986,18 +4008,23 @@ MOL.modules.Metadata = function(mol) {
                             colText = null,
                             itemText = null;
                         switch (act) {    
-                            case 'add':
-                                layer = event.getLayer();
-                                self._addDataset(layer);
-                                break;
-                            case 'view-metadata':
-                                layer = event.getLayer();
-                                colText = layer.getSubName() + ": ";
-                                itemText = layer.getName();
-                                self._showMetadata(layer.getKeyName(), colText, itemText );
-                                document.getElementById('metadata').scrollIntoView(true);
+                        case 'add':
+                            layer = event.getLayer();
+                            self._addDataset(layer);
                             break;
-                            
+                        case 'view-metadata':
+                            layer = event.getLayer();
+                            colText = layer.getSubName() + ": ";
+                            itemText = layer.getName();
+                            self._showMetadata(layer.getKeyName(), colText, itemText );
+                            document.getElementById('metadata').scrollIntoView(true);
+                            widget = self._display.getMapLink();
+                            widget.click(
+                                function(event) {
+                                    bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                                }
+                            );
+                            break;                            
                         }
                     }
                 );
@@ -4282,6 +4309,13 @@ MOL.modules.Metadata = function(mol) {
                     s = '.item-path';
                 return x ? x : (this._itemTitle = this.findChild(s));
             },
+
+            getMapLink: function() {
+              var x = this._mapLink,
+                  s = '.mapLink';
+                return x ? x : (this._mapLink = this.findChild(s));
+            },
+
             selectItem: function(id) {
                 //TODO deselect all items/collections and select the one passed by ID
             },
@@ -4289,7 +4323,7 @@ MOL.modules.Metadata = function(mol) {
             _html: function(){
                 return  '<div class="mol-Metadata">' +
 						'    <div class="top-bar">' +
-						'        <a href="#map">Back to Map</a>' +
+						'        <a class="mapLink" href="#">Back to Map</a>' +
 						'        <div class="details-menu">' +
 						'            <div class="view-option selected">basic</div>' +
 						'            <div class="view-option">full</div>' +
