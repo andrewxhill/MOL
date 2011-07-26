@@ -2192,8 +2192,8 @@ MOL.modules.Map = function(mol) {
             _getTileUrlParams: function() {
                 throw mol.exceptions.NotImplementedError('_getTileUrlParams()');
             },
-
-            show: function(zoomToExtent) {
+            
+            show: function() {
                 var layer = this.getLayer(),
                     layerInfo = layer.getInfo(),
                     north = null,
@@ -2210,9 +2210,6 @@ MOL.modules.Map = function(mol) {
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
-                    if (zoomToExtent && bounds) {
-                        map.fitBounds(bounds);
-                    }
                 }
             },
 
