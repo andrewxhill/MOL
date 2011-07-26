@@ -19,6 +19,7 @@ MOL.modules.Metadata = function(mol) {
                 this._api = api;
                 this._bus = bus;  
                 this._collections = {};
+                this._collectionIds = {};
             },            
             _showMetadata: function(id) {
                 var display = this._display,
@@ -139,6 +140,17 @@ MOL.modules.Metadata = function(mol) {
                 var id = stE.attr('id');
                 this._showMetadata(id); //, stE.text(), " ");
             },
+
+            _deleteDataset: function(layerId) {
+                var collectionId = this._collectionIds[layerId],
+                    collection = null;
+                if (collectionId in this._collections) {
+                    collection = this._display.getCollection(collectionId);
+                    collection.remove();
+                    delete this._collections[collectionId];
+                }
+            },
+
             _addDataset: function(layer) {
                 var itemId = layer.getKeyName(),
                     itemName = layer.getName(),
@@ -146,20 +158,23 @@ MOL.modules.Metadata = function(mol) {
                     display = this._display,
                     self = this,
                     tmp = itemId.split("/"),
-                    collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest";
+                    collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest",
+                    c = null,
+                    it = null;
                 
                 if (! (collectionId in this._collections)){
                     console.log(collectionId);
-                    var c = display.getNewCollection(collectionId);
+                    c = display.getNewCollection(collectionId);
                     c.getName().text(collectionName);
                     
                     c.getName().click( function(e) { self._collCallback(e); } );
                     
                     this._collections[collectionId] = {items: {}};
+                    this._collectionIds[layer.getId()] = collectionId;
                 }
                     
                 if (!(itemId in this._collections[collectionId].items)){
-                    var it = display.getNewItem(itemId,collectionId);
+                    it = display.getNewItem(itemId,collectionId);
                     it.getName().text(itemName);
                     it.getName().click(function(event){self._itemCallback(event);});
                     this._collections[collectionId].items[itemId] = 0;
@@ -183,19 +198,24 @@ MOL.modules.Metadata = function(mol) {
                 var self = this,
                     bus = this._bus,
                     LayerEvent = mol.events.LayerEvent,
+                    LayerControlEvent = mol.events.LayerControlEvent,
                     widget = null;
                     
                 this._display = display;
                 display.setEngine(this); 
                 
-                widget = display.getMapLink();
-                if (widget) {
-                    widget.click(
-                        function(event) {
-                            bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                bus.addHandler(
+                    LayerControlEvent.TYPE,
+                    function(event) {
+                        var act = event.getAction(),
+                            layerId = event.getLayerId();
+                        switch (act) {    
+                        case 'delete-click':
+                            self._deleteDataset(layerId);
+                            break;
                         }
-                    );
-                }
+                    }
+                );
 
                 bus.addHandler(
                     LayerEvent.TYPE, 
@@ -473,6 +493,12 @@ MOL.modules.Metadata = function(mol) {
                 $('body').append(this.getElement());
                 this.setInnerHtml(this._html());
             },
+
+            getCollection: function(collectionId) {
+                console.log(collectionId);
+                return this.findChild('#container-'+collectionId.replace(/\//g,"\\/"));
+            },
+
             getNewCollection:  function(collectionId){
                 var Collection = mol.ui.Metadata.Collection,
                     //Meta = mol.ui.Metadata.Meta,
