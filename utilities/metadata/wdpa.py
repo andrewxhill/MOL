@@ -116,7 +116,7 @@ def newMetadata(f):
     feat = lyr.GetFeature(0)
     geom = feat.GetGeometryRef()
     
-    out.name = feat.GetField('NAME_ENG')
+    out.name = feat.GetField('NAME_ENG    ')
     
     out.srs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
     extent = lyr.GetExtent()
