@@ -124,9 +124,14 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LocationEvent = mol.events.Event.extend(
         {
-            init: function(location, action) {
+            init: function(location, action, refresh) {
                 this._super('LocationEvent', action);
                 this._location = location;
+                this._refresh = refresh;
+            },
+
+            getRefresh: function() {                
+                return this._refresh;
             },
 
             getLocation: function() {
@@ -565,6 +570,7 @@ MOL.modules.location = function(mol) {
                             layerState = '',
                             url = window.location.href,
                             action = event.getAction(),
+                            refresh = event.getRefresh(),
                             mapEngine = self._mapEngine,
                             searchEngine = self._searchEngine,
                             layerControlEngine = self._layerControlEngine;
@@ -575,6 +581,10 @@ MOL.modules.location = function(mol) {
                             searchState = mol.util.urlEncode(searchEngine.getPlaceState());
                             layerState = mol.util.urlEncode(layerControlEngine.getPlaceState());
                             url = url + '#' + mapState + '&' + searchState + '&' + layerState;
+                            if (refresh) {
+                                self.sandbox(mapState + '&' + searchState + '&' + layerState);
+                                return;
+                            }
                             bus.fireEvent(new LocationEvent({url: url}, 'take-url'));
                             break;
                         }
@@ -588,6 +598,7 @@ MOL.modules.location = function(mol) {
             },
             
             sandbox: function(query) {
+                mol.log.info(query);
                 var place = mol.util.urlDecode(query);
                 this._mapEngine.go(place);
                 this._searchEngine.go(place);
@@ -861,6 +872,7 @@ MOL.modules.ui = function(mol) {
                     return this._element.text();
                 }
             },
+
             select: function() {
                 this._element.select();
             },
@@ -1352,7 +1364,8 @@ MOL.modules.LayerControl = function(mol) {
                   "LocationEvent", 
                   function(event){
                     if (event.getAction() == 'take-url') {
-                        display.toggleShareLink(event.getLocation().url);
+                        self._shareUrl = event.getLocation().url;
+                        display.toggleShareLink(self._shareUrl);
                     }
                   }
                 );                
@@ -1380,7 +1393,9 @@ MOL.modules.LayerControl = function(mol) {
                                 styleNames = e.getStyleName().split(' ');
                                 if (_.indexOf(styleNames, 'selected') > -1) {
                                     layerId = e.attr('id');
-                                    zoomLayerIds.push(layerId);
+                                    if (!(layerId.indexOf('pa') !== -1) && !(layerId.indexOf('ecoregion') !== -1)) {
+                                        zoomLayerIds.push(layerId);
+                                    }
                                 }                                 
                             }
                         );
@@ -1592,7 +1607,7 @@ MOL.modules.LayerControl = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
-                this._show = false;
+                this._show = true;
                 this._shareLink = false;
             },     
             getLayerToggle: function() {
@@ -1920,7 +1935,8 @@ MOL.modules.Map = function(mol) {
                     point = null,
                     Marker = google.maps.Marker,
                     map = this.getMap(),
-                    bounds = null;
+                    bounds = null,
+                    self = this;
                 if (!this.isVisible()) {
                     if (!points) {
                         this.refresh(
@@ -1929,15 +1945,16 @@ MOL.modules.Map = function(mol) {
                                     point = points[x];
                                     point.setMap(map);
                                 }
-                                this._onMap = true;
+                                self._onMap = true;
                             }
                         );
+                    } else {
+                        for (x in points) {
+                            point = points[x];
+                            point.setMap(map);
+                        }
+                        self._onMap = true;
                     }
-                    //for (x in points) {
-                    //    point = points[x];
-                    //    point.setMap(map);
-                    //}
-                    //this._onMap = true;
                 }
             },
 
@@ -2189,8 +2206,8 @@ MOL.modules.Map = function(mol) {
             _getTileUrlParams: function() {
                 throw mol.exceptions.NotImplementedError('_getTileUrlParams()');
             },
-
-            show: function(zoomToExtent) {
+            
+            show: function() {
                 var layer = this.getLayer(),
                     layerInfo = layer.getInfo(),
                     north = null,
@@ -2207,9 +2224,6 @@ MOL.modules.Map = function(mol) {
                     }
                     this.getMap().overlayMapTypes.push(this._mapType);
                     this._onMap = true;
-                    if (zoomToExtent && bounds) {
-                        map.fitBounds(bounds);
-                    }
                 }
             },
 
@@ -2514,12 +2528,13 @@ MOL.modules.Map = function(mol) {
                             break;
 
                         case 'zoom':
-                            for (x in zoomLayerIds) {
-                                bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());                               
+                            if (zoomLayerIds.length !== 0) {
+                                for (x in zoomLayerIds) {
+                                    bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());
+                                }
+                                map.fitBounds(bounds);
                             }
-                            map.fitBounds(bounds);
                             break;
-
                         case 'delete':
                             if (!mapLayer) {
                                 return;
@@ -3810,6 +3825,7 @@ MOL.modules.Metadata = function(mol) {
                 this._api = api;
                 this._bus = bus;  
                 this._collections = {};
+                this._collectionIds = {};
             },            
             _showMetadata: function(id) {
                 var display = this._display,
@@ -3930,6 +3946,17 @@ MOL.modules.Metadata = function(mol) {
                 var id = stE.attr('id');
                 this._showMetadata(id); //, stE.text(), " ");
             },
+
+            _deleteDataset: function(layerId) {
+                var collectionId = this._collectionIds[layerId],
+                    collection = null;
+                if (collectionId in this._collections) {
+                    collection = this._display.getCollection(collectionId);
+                    collection.remove();
+                    delete this._collections[collectionId];
+                }
+            },
+
             _addDataset: function(layer) {
                 var itemId = layer.getKeyName(),
                     itemName = layer.getName(),
@@ -3937,20 +3964,23 @@ MOL.modules.Metadata = function(mol) {
                     display = this._display,
                     self = this,
                     tmp = itemId.split("/"),
-                    collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest";
+                    collectionId = "collection/" + tmp[0] + "/" + tmp[1] + "/latest",
+                    c = null,
+                    it = null;
                 
                 if (! (collectionId in this._collections)){
                     console.log(collectionId);
-                    var c = display.getNewCollection(collectionId);
+                    c = display.getNewCollection(collectionId);
                     c.getName().text(collectionName);
                     
                     c.getName().click( function(e) { self._collCallback(e); } );
                     
                     this._collections[collectionId] = {items: {}};
+                    this._collectionIds[layer.getId()] = collectionId;
                 }
                     
                 if (!(itemId in this._collections[collectionId].items)){
-                    var it = display.getNewItem(itemId,collectionId);
+                    it = display.getNewItem(itemId,collectionId);
                     it.getName().text(itemName);
                     it.getName().click(function(event){self._itemCallback(event);});
                     this._collections[collectionId].items[itemId] = 0;
@@ -3973,11 +4003,26 @@ MOL.modules.Metadata = function(mol) {
             _bindDisplay: function(display, text) {  
                 var self = this,
                     bus = this._bus,
-                    LayerEvent = mol.events.LayerEvent;
+                    LayerEvent = mol.events.LayerEvent,
+                    LayerControlEvent = mol.events.LayerControlEvent,
+                    widget = null;
                     
                 this._display = display;
                 display.setEngine(this); 
                 
+                bus.addHandler(
+                    LayerControlEvent.TYPE,
+                    function(event) {
+                        var act = event.getAction(),
+                            layerId = event.getLayerId();
+                        switch (act) {    
+                        case 'delete-click':
+                            self._deleteDataset(layerId);
+                            break;
+                        }
+                    }
+                );
+
                 bus.addHandler(
                     LayerEvent.TYPE, 
                     function(event) {
@@ -3986,18 +4031,23 @@ MOL.modules.Metadata = function(mol) {
                             colText = null,
                             itemText = null;
                         switch (act) {    
-                            case 'add':
-                                layer = event.getLayer();
-                                self._addDataset(layer);
-                                break;
-                            case 'view-metadata':
-                                layer = event.getLayer();
-                                colText = layer.getSubName() + ": ";
-                                itemText = layer.getName();
-                                self._showMetadata(layer.getKeyName(), colText, itemText );
-                                document.getElementById('metadata').scrollIntoView(true);
+                        case 'add':
+                            layer = event.getLayer();
+                            self._addDataset(layer);
                             break;
-                            
+                        case 'view-metadata':
+                            layer = event.getLayer();
+                            colText = layer.getSubName() + ": ";
+                            itemText = layer.getName();
+                            self._showMetadata(layer.getKeyName(), colText, itemText );
+                            document.getElementById('metadata').scrollIntoView(true);
+                            widget = self._display.getMapLink();
+                            widget.click(
+                                function(event) {
+                                    bus.fireEvent(new MOL.env.events.LocationEvent({}, 'get-url', true));
+                                }
+                            );
+                            break;                            
                         }
                     }
                 );
@@ -4249,6 +4299,12 @@ MOL.modules.Metadata = function(mol) {
                 $('body').append(this.getElement());
                 this.setInnerHtml(this._html());
             },
+
+            getCollection: function(collectionId) {
+                console.log(collectionId);
+                return this.findChild('#container-'+collectionId.replace(/\//g,"\\/"));
+            },
+
             getNewCollection:  function(collectionId){
                 var Collection = mol.ui.Metadata.Collection,
                     //Meta = mol.ui.Metadata.Meta,
@@ -4282,6 +4338,13 @@ MOL.modules.Metadata = function(mol) {
                     s = '.item-path';
                 return x ? x : (this._itemTitle = this.findChild(s));
             },
+
+            getMapLink: function() {
+              var x = this._mapLink,
+                  s = '.mapLink';
+                return x ? x : (this._mapLink = this.findChild(s));
+            },
+
             selectItem: function(id) {
                 //TODO deselect all items/collections and select the one passed by ID
             },
@@ -4289,7 +4352,7 @@ MOL.modules.Metadata = function(mol) {
             _html: function(){
                 return  '<div class="mol-Metadata">' +
 						'    <div class="top-bar">' +
-						'        <a href="#map">Back to Map</a>' +
+						'        <a class="mapLink" href="#">Back to Map</a>' +
 						'        <div class="details-menu">' +
 						'            <div class="view-option selected">basic</div>' +
 						'            <div class="view-option">full</div>' +

@@ -354,7 +354,7 @@ MOL.modules.Map = function(mol) {
                     west = null,
                     south = null,
                     east = null,
-                    bounds = this.bounds(),
+                    bounds = this.
                     LatLngBounds = google.maps.LatLngBounds,
                     LatLng = google.maps.LatLng,
                     map = this.getMap();
@@ -668,13 +668,12 @@ MOL.modules.Map = function(mol) {
                             break;
 
                         case 'zoom':
-                            if (zoomLayerIds.length !== 0) {
-                                for (x in zoomLayerIds) {
-                                    bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());
-                                }
-                                map.fitBounds(bounds);
+                            for (x in zoomLayerIds) {
+                                bounds.union(self._getMapLayer(zoomLayerIds[x]).bounds());                               
                             }
+                            map.fitBounds(bounds);
                             break;
+
                         case 'delete':
                             if (!mapLayer) {
                                 return;

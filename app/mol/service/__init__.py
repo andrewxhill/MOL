@@ -540,7 +540,7 @@ class GbifLayerProvider(LayerProvider):
         return url
 
     def getdata(self, query):
-        rpc = urlfetch.create_rpc()
+        rpc = urlfetch.create_rpc(deadline=10)
         url = self.geturl(query)
         urlfetch.make_fetch_call(rpc, url)
         self.gbifjson = memcache.get(self.memkey)
@@ -616,7 +616,7 @@ class GbifLayerProvider(LayerProvider):
             "query": {
                 "search": query.get('sciname'),
                 "offset": query.get('start', 0),
-                "limit": query.get('limit', 200),
+                "limit": query.get('limit', 400),
                 "source": url,
                 "type": "points",
                 "advancedOptions": {"coordinatestatus": True}

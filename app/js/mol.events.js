@@ -49,9 +49,14 @@ MOL.modules.events = function(mol) {
      */
     mol.events.LocationEvent = mol.events.Event.extend(
         {
-            init: function(location, action) {
+            init: function(location, action, refresh) {
                 this._super('LocationEvent', action);
                 this._location = location;
+                this._refresh = refresh;
+            },
+
+            getRefresh: function() {                
+                return this._refresh;
             },
 
             getLocation: function() {

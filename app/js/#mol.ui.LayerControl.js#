@@ -124,9 +124,7 @@ MOL.modules.LayerControl = function(mol) {
                                 styleNames = e.getStyleName().split(' ');
                                 if (_.indexOf(styleNames, 'selected') > -1) {
                                     layerId = e.attr('id');
-                                    if (!(layerId.indexOf('pa') !== -1) && !(layerId.indexOf('ecoregion') !== -1)) {
-                                        zoomLayerIds.push(layerId);
-                                    }
+                                    zoomLayerIds.push(layerId);
                                 }                                 
                             }
                         );
@@ -338,7 +336,7 @@ MOL.modules.LayerControl = function(mol) {
                 this._super();
                 this.setInnerHtml(this._html());
                 this._config = config;
-                this._show = true;
+                this._show = false;
                 this._shareLink = false;
             },     
             getLayerToggle: function() {
