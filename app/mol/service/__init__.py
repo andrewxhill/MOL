@@ -425,10 +425,188 @@ class MetadataProvider(object):
     def getitem(self, query):
         self.query = query
         key_name = self.query.get('key_name')
-        fakeItem = {"collectionKey": "collection/ecoregions/wwf/1", "name": "Banda Sea Islands moist deciduous forests", "temporal": {"coverage": {"start": None, "end": None}}, "storage": {"format": "Esri Shapefile", "uploadDate": "2011-06-03 12:35:08.701490", "location": "/ftp/ecoregion/shp/AA0102.shp"}, "source": "World Wildlife Fund (WWF)", "spatial": {"crs": {"info": {"resolution": {"type": None, "value": None, "unit": None}}, "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "type": "multipolygon", "extent": {"text": None, "coordinates": {"1": -8.34339466646, "0": 127.139602677, "3": -5.27165698158, "2": 133.197601577}}, "format": "vector"}}, "creationDate": None, "type": "Ecoregion", "variables": [{"name": "eco_code", "value": "AA0102"}], "description": None}
-        fakeCol = {"source":"World Wildlife Fund (WWF)",  "type":"Ecoregion",  "name":"World Ecoregions",  "description":"The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities.",  "url":"http://www.worldwildlife.org/science/ecoregions/item1267.html",  "agreements":{},  "creationDate": "2001",  "uploadDate": str(datetime.datetime.now()),  "changeDate": "2001",  "allowed_uses":{"visualization": "unknown",  "download": "unknown",},  "references":{"0":{"authors":"Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem,K.",  "year":2001,  "publication":"BioScience, Volume 51, Issue 11, p.933-938",  "title":"Terrestrial ecoregions of the world: a new map of life on earth"}}, "spatial":{"crs":{"srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "extent":{"text":"Global",  "coordinates":{"0": -90.0, "1": -180.0, "2": 90.0, "3": 180.0}}, "format": "vector", "type": "multipolygon", "info": {"resolution": {"type": None,  "value": None,  "unit": None}},},}}
-        
 
+#        fakeItem = {"collectionKey": "collection/ecoregion/wwf/latest", "name": "Banda Sea Islands moist deciduous forests", "temporal": {"coverage": {"start": None, "end": None}}, "storage": {"format": "Esri Shapefile", "uploadDate": "2011-06-03 12:35:08.701490", "location": "/ftp/ecoregion/shp/AA0102.shp"}, "source": "World Wildlife Fund (WWF)", "spatial": {"crs": {"info": {"resolution": {"type": None, "value": None, "unit": None}}, "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "type": "multipolygon", "extent": {"text": None, "coordinates": {"1": -8.34339466646, "0": 127.139602677, "3": -5.27165698158, "2": 133.197601577}}, "format": "vector"}}, "creationDate": None, "type": "Ecoregion", "variables": [{"name": "eco_code", "value": "AA0102"}], "description": None}
+
+        # The fakeWWFEcoregionSetCollectionMetadata needs to have information about where the checklists come from.
+        fakeWWFEcoregionSetCollectionMetadata = {"source":"World Wildlife Fund (WWF)",  "type":"Bioinventory",  "name":"World Ecoregions",  "description":"The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities.",  "url":"http://www.worldwildlife.org/science/ecoregions/item1267.html",  "agreements":{},  "creationDate": "2001",  "uploadDate": str(datetime.datetime.now()),  "changeDate": "2001",  "allowed_uses":{"visualization": "unknown",  "download": "unknown",},  "references":{"0":{"authors":"Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem,K.",  "year":2001,  "publication":"BioScience, Volume 51, Issue 11, p.933-938",  "title":"Terrestrial ecoregions of the world: a new map of life on earth"}}, "spatial":{"crs":{"srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "extent":{"text":"Global",  "coordinates":{"0": -90.0, "1": -180.0, "2": 90.0, "3": 180.0}}, "format": "vector", "type": "multipolygon", "info": {"resolution": {"type": None,  "value": None,  "unit": None}},},}}
+        fakeWWFEcoregionCollectionMetadata = {"source":"World Wildlife Fund (WWF)",  "type":"Ecoregion",  "name":"World Ecoregions",  "description":"The WWF's Conservation Science Program (CSP) has developed a biogeographic regionalization of the Earth's terrestrial biodiversity. WWF termed the biogeographic units ecoregions, defined as relatively large units of land or water containing distinct assemblages of natural communities sharing a large majority of species, dynamics, and environmental conditions. Ecoregions represent the original distribution of distinct assemblages of species and communities.",  "url":"http://www.worldwildlife.org/science/ecoregions/item1267.html",  "agreements":{},  "creationDate": "2001",  "uploadDate": str(datetime.datetime.now()),  "changeDate": "2001",  "allowed_uses":{"visualization": "unknown",  "download": "unknown",},  "references":{"0":{"authors":"Olson, D.M.; Dinerstein, E.; Wikramanayake, E.; Burgess, N.; Powell, G.; Underwood, E. C.; D'Amico, J.; Itoua, I.; Strand, H.; Morrison, J.; Loucks, C.; Allnutt, T.; Ricketts, T.H.; Kura, Y.; Wettengel, W.; Kassem,K.",  "year":2001,  "publication":"BioScience, Volume 51, Issue 11, p.933-938",  "title":"Terrestrial ecoregions of the world: a new map of life on earth"}}, "spatial":{"crs":{"srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs", "extent":{"text":"Global",  "coordinates":{"0": -90.0, "1": -180.0, "2": 90.0, "3": 180.0}}, "format": "vector", "type": "multipolygon", "info": {"resolution": {"type": None,  "value": None,  "unit": None}},},}}
+        # The fakeGBIFCollectionMetadata needs to have information about the taxon and the original sources.
+        fakeGBIFCollectionMetadata = { 
+            "source":"Data Publishers of the Global Biodiversity Information Facility (GBIF)", 
+            "type":"Occurrence Points", 
+            "name":"Global Biodiversity Information Facility", 
+            "description":"Occurrence records accessed from various data publishers through the aggregate index of the Global Biodiversity Information Facility",
+            "url":"",
+            "agreements":{},
+            "creationDate":str(datetime.datetime.now()),
+            "uploadDate":str(datetime.datetime.now()),
+            "changeDate":str(datetime.datetime.now()),
+            "allowed_uses":{
+                  "visualization": "unknown",
+                  "download": "unknown",
+                 },
+             "spatial":{
+                "crs":{
+                   "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                   "extent":{
+                      "text":"Global",
+                      "coordinates":{
+                         "0": -90.0,
+                         "1": -180.0,
+                         "2": 90.0,
+                         "3": 180.0
+                      }
+                   },
+                   "format": "vector",
+                   "type": "multipolygon",
+                   "info": {
+                        "resolution": {
+                            "type": None,
+                            "value": None,
+                            "unit": None
+                        }
+                    },
+                },
+            },
+            
+        }        
+        fakeJetzRangeCollectionMetadata = {
+          "source":"Walter Jetz Lab",
+          "type":"Range",
+          "name":"Digital Distribution Maps of Birds",
+          "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
+          "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
+          "agreements":{},
+          "creationDate": "2009-11",
+          "uploadDate": str(datetime.datetime.now()),
+          "changeDate": "2010-10",
+          "allowed_uses":{
+              "visualization": "unknown",
+              "download": "unknown",
+             },
+             "spatial":{
+                "crs":{
+                   "srs": "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs",
+                   "extent":{
+                      "text":"Global",
+                      "coordinates":{
+                         "0": -90.0,
+                         "1": -180.0,
+                         "2": 90.0,
+                         "3": 180.0
+                      }
+                   },
+                   "format": "vector",
+                   "type": "multipolygon",
+                   "info": {
+                        "resolution": {
+                            "type": None,
+                            "value": None,
+                            "unit": None
+                        }
+                    },
+                },
+            },
+           "taxa": [
+                {"scope": "class",
+                 "name": "Aves"}
+           ]
+        }
+         
+        fakeWDPACollectionMetadata = {
+          "source":"IUCN and UNEP",
+          "type":"Bioinventory",
+          "name":"World Database on Protected Areas",
+          "description":"An interactive database for protected areas worldwide, reconciling governmental, expert and general public opinions on protected areas. It encompasses the World Database on Protected Areas and provides a platform for the protected area constituency.",
+          "url":"http://www.protectedplanet.net/about",
+          "agreements":{},
+          "creationDate": "2010",
+          "uploadDate": str(datetime.datetime.now()),
+          "changeDate": "2010",
+          "allowed_uses":{
+              "visualization": "unknown",
+              "download": "unknown",
+             },
+              "references":{
+                 "0":{
+                    "authors":"IUCN and UNEP",
+                    "year":2010,
+                    "publication":"UNEP-WCMC. Cambridge, UK. www.protectedplanet.net",
+                    "title":"The World Database on Protected Areas (WDPA)"
+                    }
+                 },
+             "spatial":{
+                "crs":{
+                   "srs": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+                   "extent":{
+                      "text":"Global",
+                      "coordinates":{
+                         "0": -90.0,
+                         "1": -180.0,
+                         "2": 90.0,
+                         "3": 180.0
+                      }
+                   },
+                   "format": "vector",
+                   "type": "multipolygon",
+                   "info": {
+                        "resolution": {
+                            "type": None,
+                            "value": None,
+                            "unit": None
+                        }
+                    },
+                },
+            },
+        }
+        
+        fakeIUCNRangeCollectionMetadata = {
+          "source":"International Union for Conservation of Nature (IUCN)",
+          "type":"Range",
+          "name":"Digital Distribution Maps of The IUCN Red List of Threatened Species",
+          "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
+          "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
+          "agreements":{},
+          "creationDate": "2009-11",
+          "uploadDate": str(datetime.datetime.now()),
+          "changeDate": "2010-10",
+          "allowed_uses":{
+              "visualization": "unknown",
+              "download": "unknown",
+             },
+             "spatial":{
+                "crs":{
+                   "srs": "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs",
+                   "extent":{
+                      "text":"Global",
+                      "coordinates":{
+                         "0": -90.0,
+                         "1": -180.0,
+                         "2": 90.0,
+                         "3": 180.0
+                      }
+                   },
+                   "format": "vector",
+                   "type": "multipolygon",
+                   "info": {
+                        "resolution": {
+                            "type": None,
+                            "value": None,
+                            "unit": None
+                        }
+                    },
+                },
+            },
+           "taxa": [
+                {"scope": "class",
+                 "name": "Mammalia"},
+                {"scope": "class",
+                 "name": "Amphibia"},
+                {"scope": "class",
+                 "name": "Reptilia"}
+           ]
+        }
         # This is a hack. ecoregions bulkloaded with parent key stored in MetaData.parentKey
         # while ranges bulkloaded with parent key encoded in key.
         # Thank JRW for these comments!
@@ -449,10 +627,27 @@ class MetadataProvider(object):
                     key_name=key_name,
                     data=simplejson.loads(data))
 
-        data = fakeCol
-        kn = "collection/ecoregions/wwf/1"
-        data = None
-        return {"key_name": kn,
+        # Even worse hack, because this is annoying me too much and time is awaiting for the demo.
+        if key_name.__contains__('collection/ecoregion-group'):
+            data = fakeWWFEcoregionSetCollectionMetadata
+        elif key_name.__contains__('collection/ecoregion'):
+            data = fakeWWFEcoregionCollectionMetadata
+        elif key_name.__contains__('collection/range/mol'):
+            data = fakeIUCNRangeCollectionMetadata
+        elif key_name.__contains__('collection/pa-group/wdpa-group'):
+            data = fakeWDPACollectionMetadata
+        elif key_name.__contains__('collection/pa/wdpa'):
+            data = fakeWDPACollectionMetadata
+        elif key_name.__contains__('collection/range/jetz'):
+            data = fakeWDPACollectionMetadata
+        elif key_name.__contains__('collection/points/gbif'):
+            data = fakeGBIFCollectionMetadata
+        else:
+            data = {
+                    "source":"Map of Life",
+                    "type": key_name
+            }
+        return {"key_name": key_name,
                 "data": data}
             
         
@@ -489,8 +684,9 @@ class OverviewImageProvider(object):
         self.cachetime = 60000   
         self.memkey = None
         self.url = None
-        #self.backend = "http://mol.colorado.edu/layers"
+#        self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
+#        self.backend = "http://127.0.0.1:5003/layers"
         
         d = self.key_name.split('/', 2)
         self.datatype, self.source, self.id = d[0].lower(),d[1],d[2]
@@ -968,6 +1164,7 @@ class TileService(object):
         self.cachetime = int(41943040 / (2**int(self.query['z'])))
         #self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
+#        self.backend = "http://127.0.0.1:5003/layers"
         self.queue = self.query['queue']
         
     """

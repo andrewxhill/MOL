@@ -126,52 +126,52 @@ def newMetadata(f):
     return out.json()
 
 def newCollection():
-    return {
-          "source":"International Union for Conservation of Nature (IUCN)",
-          "type":"Range",
-          "name":"Digital Distribution Maps of The IUCN Red List of Threatened Species",
-          "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
-          "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
-          "agreements":{},
-          "creationDate": "2009-11",
-          "uploadDate": str(datetime.datetime.now()),
-          "changeDate": "2010-10",
-          "allowed_uses":{
-              "visualization": "unknown",
-              "download": "unknown",
-             },
-             "spatial":{
-                "crs":{
-                   "srs": "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs",
-                   "extent":{
-                      "text":"Global",
-                      "coordinates":{
-                         "0": -90.0,
-                         "1": -180.0,
-                         "2": 90.0,
-                         "3": 180.0
-                      }
-                   },
-                   "format": "vector",
-                   "type": "multipolygon",
-                   "info": {
-                        "resolution": {
-                            "type": None,
-                            "value": None,
-                            "unit": None
-                        }
+        return {
+              "source":"International Union for Conservation of Nature (IUCN)",
+              "type":"Range",
+              "name":"Digital Distribution Maps of The IUCN Red List of Threatened Species",
+              "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
+              "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
+              "agreements":{},
+              "creationDate": "2009-11",
+              "uploadDate": str(datetime.datetime.now()),
+              "changeDate": "2010-10",
+              "allowed_uses":{
+                  "visualization": "unknown",
+                  "download": "unknown",
+                 },
+                 "spatial":{
+                    "crs":{
+                       "srs": "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +over +no_defs",
+                       "extent":{
+                          "text":"Global",
+                          "coordinates":{
+                             "0": -90.0,
+                             "1": -180.0,
+                             "2": 90.0,
+                             "3": 180.0
+                          }
+                       },
+                       "format": "vector",
+                       "type": "multipolygon",
+                       "info": {
+                            "resolution": {
+                                "type": None,
+                                "value": None,
+                                "unit": None
+                            }
+                        },
                     },
                 },
-            },
-           "taxa": [
-                {"scope": "class",
-                 "name": "Mammalia"},
-                {"scope": "class",
-                 "name": "Amphibia"},
-                {"scope": "class",
-                 "name": "Reptilia"}
-           ]
-        }
+               "taxa": [
+                    {"scope": "class",
+                     "name": "Mammalia"},
+                    {"scope": "class",
+                     "name": "Amphibia"},
+                    {"scope": "class",
+                     "name": "Reptilia"}
+               ]
+            }
 
 def _getoptions():
     """Parses command line options and returns them."""
@@ -191,9 +191,12 @@ if __name__== '__main__':
     logging.info('URL: %s' %options.url)
     os.chdir(options.datadir)
     url = options.url
+#    values = dict(
+#        payload=simplejson.dumps(newCollection()),
+#        key_name='range/mol/animalia/species/1')
     values = dict(
         payload=simplejson.dumps(newCollection()),
-        key_name='range/mol/animalia/species/1')
+        key_name='collection/range/mol/latest')
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
     response = urllib2.urlopen(req)

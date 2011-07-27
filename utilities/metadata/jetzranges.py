@@ -219,9 +219,9 @@ def newMetadata(f):
 
 def newCollection():
     return {
-          "source":"International Union for Conservation of Nature (IUCN)",
+          "source":"Walter Jetz Lab",
           "type":"Range",
-          "name":"Digital Distribution Maps of The IUCN Red List of Threatened Species",
+          "name":"Digital Distribution Maps of Birds",
           "description":"This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global biodiversity in order to highlight taxa threatened with extinction, and thereby promote their conservation.",
           "url":"http://www.iucnredlist.org/spatial-data/2010.4/GISData/RLSpatial_metadata_Oct2010.pdf",
           "agreements":{},

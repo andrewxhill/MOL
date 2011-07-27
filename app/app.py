@@ -294,16 +294,21 @@ class TestDataLoader(BaseHandler):
     """Loads test data for use in a local instance of the datastore."""
     def get(self):
         # parent entity for puma concolor IUCN Range Map
-        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/mol/animalia/species/puma_concolor'),
-                           category="range", 
-                           info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
-                           name="Puma concolor", 
-                           source="IUCN", 
-                           subname="IUCN Range Map").put()
+        newkey = MultiPolygon(
+                              key=db.Key.from_path('MultiPolygon','range/mol/animalia/species/puma_concolor'),
+                              category="range",
+                              info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
+                              name="Puma concolor", 
+                              source="IUCN", 
+                              subname="IUCN Range Map").put()
+        MultiPolygonIndex( term="puma concolor", 
+                           parent = newkey, 
+                           rank=1).put()
         # puma concolor MoL Range Map
         MasterSearchIndex( term="puma concolor", 
                            parent = newkey, 
                            rank=1).put()
+        
         # parent entity for puma concolor WDPA Bioinventory Map
         newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'pa-group/wdpa-group/MA133'),
                            category="pa", 
