@@ -188,13 +188,13 @@ class MetadataLoader(BaseHandler):
                     key_name),
                 object=payload).put()
 
-class MultiPolygonLoader(BaseHandler):
-    """ Loads MultiPolygons from scripts in /utilities/metadata.
+class EntityLoader(BaseHandler):
+    """ Loads MultiPolygons, MultiPolygonIndexes, MasterSearchIndexes, and Metdata from scripts in /utilities/metadata.
         Example:
-        ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/multipolygonloader -k MultiPolygon
+        ./jetzranges.py -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/entityloader
     """
     def post(self):
-        payload = self.request.get('payload')
+        mdpayload = self.request.get('mdpayload')
         name=self.request.get('name')
         subname=self.request.get('subname')
         source=self.request.get('source')
@@ -202,148 +202,104 @@ class MultiPolygonLoader(BaseHandler):
         category=self.request.get('category')
         key_name = self.request.get('key_name')
         parent_key_name = self.request.get('parent_key_name')
-        parent_kind = self.request.get('parent_kind')
-        if not parent_key_name or not parent_kind:
-            MultiPolygon(
-                key=db.Key.from_path('MultiPolygon', key_name),
-                object=payload,
-                name=name,
-                subname=subname,
-                source=source,
-                info=info,
-                category=category
-                ).put()
-        else:
-            MultiPolygon(
-                key=db.Key.from_path(
-                    parent_kind,
-                    parent_key_name,
-                    'MultiPolygon',
-                    key_name),
-                object=payload,
-                name=name,
-                subname=subname,
-                source=source,
-                info=info,
-                category=category
-                ).put()
+        mpiterm = self.request.get('mpiterm')
+        msiterm = self.request.get('msiterm')
+        mpirank = int(self.request.get('mpirank'))
+        msirank = int(self.request.get('msirank'))
+
+        newkey = MultiPolygon(
+            key=db.Key.from_path('MultiPolygon', key_name),
+            name=name,
+            subname=subname,
+            source=source,
+            info=info,
+            category=category
+            ).put()
+        MetaData(
+                 key=db.Key.from_path(
+                 'MultiPolygon',
+                 parent_key_name,
+                 'MetaData',
+                 key_name),
+                 object=mdpayload
+                 ).put()
+        MultiPolygonIndex( term=mpiterm, 
+                           parent = newkey, 
+                           rank=mpirank).put()
+        MasterSearchIndex( term=msiterm, 
+                           parent = newkey, 
+                           rank=msirank).put()
     
-class MultiPolygonIndexLoader(BaseHandler):
-    """ Loads MultiPolygonIndexes from scripts in /utilities/metadata.
-        Example:
-        ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/multipolygonindexloader -k MultiPolygonIndex
-    """
-    def post(self):
-        payload = self.request.get('payload')
-        term=self.request.get('term')
-        rank=int(self.request.get('rank'))
-        key_name = self.request.get('key_name')
-        parent_key_name = self.request.get('parent_key_name')
-        parent_kind = self.request.get('parent_kind')
-        if not parent_key_name or not parent_kind:
-            MultiPolygonIndex(
-                key=db.Key.from_path('MultiPolygonIndex', key_name),
-                object=payload,
-                term=term,
-                rank=rank
-                ).put()
-        else:
-            MultiPolygonIndex(
-                key=db.Key.from_path(
-                    parent_kind,
-                    parent_key_name,
-                    'MultiPolygonIndex',
-                    key_name),
-                object=payload,
-                term=term,
-                rank=rank
-                ).put()
-    
-class MasterSearchIndexLoader(BaseHandler):
-    """ Loads MasterSearchIndexes from scripts in /utilities/metadata.
-        Example:
-        ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/mastersearchindexloader -k MasterSearchIndex
-    """
-    def post(self):
-        payload = self.request.get('payload')
-        key_name = self.request.get('key_name')
-        term=self.request.get('term')
-        rank=int(self.request.get('rank'))
-        parent_key_name = self.request.get('parent_key_name')
-        parent_kind = self.request.get('parent_kind')
-        if not parent_key_name or not parent_kind:
-            MasterSearchIndex(
-                key=db.Key.from_path('MasterSearchIndex', key_name),
-                object=payload,
-                term=term,
-                rank=rank
-                ).put()
-        else:
-            MasterSearchIndex(
-                key=db.Key.from_path(
-                    parent_kind,
-                    parent_key_name,
-                    'MasterSearchIndex',
-                    key_name),
-                object=payload,
-                term=term,
-                rank=rank
-                ).put()
     
 class TestDataLoader(BaseHandler):
     """Loads test data for use in a local instance of the datastore."""
     def get(self):
-        # parent entity for puma concolor IUCN Range Map
-        newkey = MultiPolygon(
-                              key=db.Key.from_path('MultiPolygon','range/mol/animalia/species/puma_concolor'),
-                              category="range",
-                              info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
-                              name="Puma concolor", 
-                              source="IUCN", 
-                              subname="IUCN Range Map").put()
-        MultiPolygonIndex( term="puma concolor", 
-                           parent = newkey, 
-                           rank=1).put()
-        # puma concolor MoL Range Map
-        MasterSearchIndex( term="puma concolor", 
-                           parent = newkey, 
-                           rank=1).put()
-        
-        # parent entity for puma concolor WDPA Bioinventory Map
-        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'pa-group/wdpa-group/MA133'),
-                           category="pa", 
-                           info=None, 
-                           name="Puma concolor", 
-                           source="WDPA", 
-                           subname="WDPA Bioinventory").put()
-        # puma concolor WDPA Bioinventory Map
-        MasterSearchIndex( term="puma concolor", 
-                           parent = newkey, 
-                           rank=2).put()
-        # parent entity for puma concolor WWF Ecoregion Map
-        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'ecoregion-group/wwf/14766'),
-                           category="ecoregion", 
-                           info='{"description": "WildFinder database species-ecoregion dataset", "family": "Felidae", "species": "Puma concolor", "order": "Carnivora", "genus": "Puma", "class": "Mammalia"}', 
-                           name="Puma concolor", 
-                           source="WWF", 
-                           subname="WWF Ecoregion Set").put()
-        # puma concolor WWF Ecoregion Map
-        MasterSearchIndex( term="puma concolor", 
-                           parent = newkey, 
-                           rank=3).put()
-        # parent entity for rhea pennata Jetz Range Map
-        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/jetz/animalia/species/rhea_pennata'),
+        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/jetz/animalia/species/struthio_camelus'),
                            category="range", 
                            info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
-                           name="Rhea pennata", 
+                           name="Struthio camelus", 
                            source="Jetz", 
-                           subname="Jetz Range Map").put()
+                           subname="Jetz Test Range Map").put()
         # rhea pennata Jetz Range Map
-        MasterSearchIndex( term="rhea pennata", 
+        MasterSearchIndex( term="Struthio camelus", 
+                           parent = newkey, 
+                           rank=42).put()
+        # rhea pennata Jetz Range Map
+        MultiPolygonIndex( term="Struthio camelus", 
                            parent = newkey, 
                            rank=1).put()
+    
+#        # parent entity for puma concolor IUCN Range Map
+#        newkey = MultiPolygon(
+#                              key=db.Key.from_path('MultiPolygon','range/mol/animalia/species/puma_concolor'),
+#                              category="range",
+#                              info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
+#                              name="Puma concolor", 
+#                              source="IUCN", 
+#                              subname="IUCN Range Map").put()
+#        MultiPolygonIndex( term="puma concolor", 
+#                           parent = newkey, 
+#                           rank=1).put()
+#        # puma concolor MoL Range Map
+#        MasterSearchIndex( term="puma concolor", 
+#                           parent = newkey, 
+#                           rank=1).put()
+#        
+#        # parent entity for puma concolor WDPA Bioinventory Map
+#        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'pa-group/wdpa-group/MA133'),
+#                           category="pa", 
+#                           info=None, 
+#                           name="Puma concolor", 
+#                           source="WDPA", 
+#                           subname="WDPA Bioinventory").put()
+#        # puma concolor WDPA Bioinventory Map
+#        MasterSearchIndex( term="puma concolor", 
+#                           parent = newkey, 
+#                           rank=2).put()
+#        # parent entity for puma concolor WWF Ecoregion Map
+#        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon', 'ecoregion-group/wwf/14766'),
+#                           category="ecoregion", 
+#                           info='{"description": "WildFinder database species-ecoregion dataset", "family": "Felidae", "species": "Puma concolor", "order": "Carnivora", "genus": "Puma", "class": "Mammalia"}', 
+#                           name="Puma concolor", 
+#                           source="WWF", 
+#                           subname="WWF Ecoregion Set").put()
+#        # puma concolor WWF Ecoregion Map
+#        MasterSearchIndex( term="puma concolor", 
+#                           parent = newkey, 
+#                           rank=3).put()
+        # parent entity for rhea pennata Jetz Range Map
+        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/jetz/animalia/species/struthio_camelus'),
+                           category="range", 
+                           info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
+                           name="Struthio camelus", 
+                           source="Jetz", 
+                           subname="Jetz Test Range Map").put()
         # rhea pennata Jetz Range Map
-        MultiPolygonIndex( term="rhea pennata", 
+        MasterSearchIndex( term="Struthio camelus", 
+                           parent = newkey, 
+                           rank=42).put()
+        # rhea pennata Jetz Range Map
+        MultiPolygonIndex( term="Struthio camelus", 
                            parent = newkey, 
                            rank=1).put()
     
@@ -372,9 +328,7 @@ application = webapp.WSGIApplication(
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/metadataloader', MetadataLoader),
-          ('/multipolygonloader', MultiPolygonLoader),
-          ('/multipolygonindexloader', MultiPolygonIndexLoader),
-          ('/mastersearchindexloader', MasterSearchIndexLoader),
+          ('/entityloader', EntityLoader),
           ('/testdataloader', TestDataLoader),
           ('/testdatainfo', TestDataInfo),
           ('/playground/col', ColPage),

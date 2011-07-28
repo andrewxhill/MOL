@@ -18,6 +18,7 @@ class Globals(object):
         #self.TILE_DIR = "/ftp/tile/animalia/species"
         self.TILE_DIR = "/tmp/range/tile"
         self.RANGESHP_DIR = "/mol-data/range/shp"
+        self.JETZRANGESHP_DIR = "/mol-data/range/jetz"
         self.ECOTILE_DIR = "/tmp/ecoregion/tile"
         self.ECOSHP_DIR = "/mol-data/ecoregion/shp"
         self.PATILE_DIR = "/tmp/pa/tile"

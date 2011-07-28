@@ -2285,6 +2285,7 @@ MOL.modules.Map = function(mol) {
                                 bound = Math.pow(2, zoom),
                                 tileParams = '',
                                 backendTileApi = 'http://96.126.97.48/layers/api/tile/',
+//                                backendTileApi = 'http://127.0.0.1:5003/layers/api/tile/',
                                 tileurl = null;                                
 
                             if (!normalizedCoord) {

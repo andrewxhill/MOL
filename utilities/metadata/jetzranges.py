@@ -152,8 +152,7 @@ def newMultiPolygon(f):
     info.extentnorthwest = '%s,%s' % (ymax,xmin)
     info.extentsoutheast = '%s,%s' % (ymin,xmax)
     info.proj = "EPSG:900913"
-    mp.info = info.json()
-#    return mp.json()
+    mp.info = simplejson.dumps(info.json())
     return mp
 
 def newMasterSearchIndex(taxon):
@@ -273,11 +272,15 @@ def _getoptions():
     parser.add_option("-k", "--kind", dest="kind",
                       help="Entity kind to load",
                       default='None')
+    parser.add_option("-r", "--rename", dest="rename",
+                      help="Rename the shape files",
+                      default='True')
     return parser.parse_args()[0]
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
+    
     if options.kind == None:
         logging.info('No entity kind to load. Aborting.')
         return
@@ -292,10 +295,26 @@ def main():
     url = options.url
     kind = options.kind
 
+#    if options.rename.lower() == 'true':
+#        for f in glob.glob("*.shp"):
+#            taxon = getTaxon(f)
+#            # turn Parus major into parus_major
+#            fromfile = os.path.join(options.datadir, f.replace('.shp','') )
+#            tofile = os.path.join(options.datadir, '_'.join(taxon.lower().split(' ')))
+#            os.rename('%s.dbf' % fromfile, '%s.dbf' % tofile)
+#            os.rename('%s.prj' % fromfile, '%s.prj' % tofile)
+#            os.rename('%s.sbn' % fromfile, '%s.sbn' % tofile)
+#            os.rename('%s.sbx' % fromfile, '%s.sbx' % tofile)
+#            os.rename('%s.shp' % fromfile, '%s.shp' % tofile)
+#            os.rename('%s.shx' % fromfile, '%s.shx' % tofile)
+#            os.rename('%s.shp.xml' % fromfile, '%s.mapfile.xml' % tofile)            
+#        return
+    
+
     if kind == 'Metadata':
         values = dict(
             payload=simplejson.dumps(newCollection()),
-            key_name='range/jetz/animalia/species/1')
+            key_name='collection/range/jetz/latest')
         data = urllib.urlencode(values)
         req = urllib2.Request(url, data)
         response = urllib2.urlopen(req)
@@ -304,74 +323,32 @@ def main():
     for f in glob.glob("*.shp"):
         taxon = getTaxon(f)
         # turn Parus major into parus_major
-        c='_'.join(taxon.lower().split(' '))
-        if kind == 'Metadata':
-            out = newMetadata(f)
-            values = dict(
-                payload=simplejson.dumps(out),
-                key_name='range/mol/animalia/species/%s' % c,
-                parent_key_name='range/mol/animalia/species/%s' % c,
-                parent_kind='Metadata')
-            try:
-                data = urllib.urlencode(values)
-                req = urllib2.Request(url, data)
-                response = urllib2.urlopen(req)
-                the_page = response.read()
-            except:
-                print 'Metadata for %s failed to load.' % taxon
-        elif kind == 'MultiPolygon':
-            out = newMultiPolygon(f)
-            values = dict(
-#                payload=simplejson.dumps(out),
-                name=out.name,
-                subname=out.subname,
-                source=out.source,
-                info=out.info,
-                category=out.category,
-                key_name='range/jetz/animalia/species/%s' % c,
-                parent_key_name='range/jetz/animalia/species/%s' % c,
-                parent_kind='MultiPolygon')
-            try:
-                data = urllib.urlencode(values)
-                req = urllib2.Request(url, data)
-                response = urllib2.urlopen(req)
-                the_page = response.read()
-            except:
-                print 'MultiPolygon for %s failed to load.' % taxon
-        elif kind == 'MultiPolygonIndex':
-            out = newMultiPolygonIndex(taxon)
-            values = dict(
-#                payload=simplejson.dumps(out),
-                term=out.term,
-                rank=out.rank,
-                key_name='range/jetz/animalia/species/%s' % c,
-                parent_key_name='range/jetz/animalia/species/%s' % c,
-                parent_kind='MultiPolygonIndex')
-            try:
-                data = urllib.urlencode(values)
-                req = urllib2.Request(url, data)
-                response = urllib2.urlopen(req)
-                the_page = response.read()
-            except:
-                print 'MultiPolygonIndex for %s failed to load.' % taxon
-        elif kind == 'MasterSearchIndex':
-            out = newMasterSearchIndex(taxon)
-            values = dict(
-#                payload=simplejson.dumps(out),
-                term=out.term,
-                rank=out.rank,
-                key_name='range/jetz/animalia/species/%s' % c,
-                parent_key_name='range/jetz/animalia/species/%s' % c,
-                parent_kind='MasterSearchIndex')
-            try:
-                data = urllib.urlencode(values)
-                req = urllib2.Request(url, data)
-                response = urllib2.urlopen(req)
-                the_page = response.read()
-            except:
-                print 'MasterSearchIndex for %s failed to load.' % taxon
-        else:
-            print 'Entity kind %s for %s failed to load.' % (kind, taxon)
+        c = '_'.join(taxon.lower().split(' '))
+        md = newMetadata(f)
+        mp = newMultiPolygon(f)
+        mpi = newMultiPolygonIndex(taxon)
+        msi = newMasterSearchIndex(taxon)
+        values = dict(
+            mdpayload=simplejson.dumps(md),
+            name=mp.name,
+            subname=mp.subname,
+            source=mp.source,
+            info=mp.info,
+            category=mp.category,
+            key_name='range/jetz/animalia/species/%s' % c,
+            parent_key_name='range/jetz/animalia/species/%s' % c,
+            mpiterm=mpi.term,
+            mpirank=mpi.rank,
+            msiterm=msi.term,
+            msirank=msi.rank
+            )
+        try:
+            data = urllib.urlencode(values)
+            req = urllib2.Request(url, data)
+            response = urllib2.urlopen(req)
+            the_page = response.read()
+        except:
+            print 'Entities for %s failed to load.' % taxon
             
 if __name__ == "__main__":
     main()
