@@ -263,6 +263,9 @@ def newCollection():
 def _getoptions():
     """Parses command line options and returns them."""
     parser = OptionParser()
+    parser.add_option("-c", "--command", dest="command",
+                      help="Jetz Range command",
+                      default=None)
     parser.add_option("-d", "--data-dir", dest="datadir",
                       help="Data directory",
                       default=None)
@@ -280,37 +283,57 @@ def _getoptions():
 def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
-    
-    if options.kind == None:
-        logging.info('No entity kind to load. Aborting.')
-        return
+    command = options.command.lower()
+
     if options.datadir == None:
         logging.info('No data directory to process. Aborting.')
         return
     if options.url == None:
         logging.info('No URL to load to. Aborting.')
         return
-    logging.info('Loading %s entities from directory %s to %s.' % (options.kind, options.datadir, options.url))
+
     os.chdir(options.datadir)
     url = options.url
-    kind = options.kind
 
-#    if options.rename.lower() == 'true':
-#        for f in glob.glob("*.shp"):
-#            taxon = getTaxon(f)
-#            # turn Parus major into parus_major
-#            fromfile = os.path.join(options.datadir, f.replace('.shp','') )
-#            tofile = os.path.join(options.datadir, '_'.join(taxon.lower().split(' ')))
-#            os.rename('%s.dbf' % fromfile, '%s.dbf' % tofile)
-#            os.rename('%s.prj' % fromfile, '%s.prj' % tofile)
-#            os.rename('%s.sbn' % fromfile, '%s.sbn' % tofile)
-#            os.rename('%s.sbx' % fromfile, '%s.sbx' % tofile)
-#            os.rename('%s.shp' % fromfile, '%s.shp' % tofile)
-#            os.rename('%s.shx' % fromfile, '%s.shx' % tofile)
-#            os.rename('%s.shp.xml' % fromfile, '%s.mapfile.xml' % tofile)            
-#        return
+#    i=0
+    if command=='loadindexes':
+        for f in glob.glob("*.shp"):
+            c=f.replace('.shp','')
+            taxon = c.replace('_',' ')
+            values = dict(
+                key_name='range/jetz/animalia/species/%s' % c,
+                term = taxon,
+                taxon=taxon,
+                c=c
+                )
+            try:
+                data = urllib.urlencode(values)
+                req = urllib2.Request(url, data)
+                response = urllib2.urlopen(req)
+                the_page = response.read()
+#                i+=1
+#                print '%s: %s indexes loaded.' % (i,taxon)
+            except:
+                print 'Indexes for %s failed to load.' % taxon
+        return
+
+    if command=='renamefiles':
+        for f in glob.glob("*.shp"):
+            taxon = getTaxon(f)
+            # turn Parus major into parus_major
+            fromfile = os.path.join(options.datadir, f.replace('.shp','') )
+            tofile = os.path.join(options.datadir, '_'.join(taxon.lower().split(' ')))
+            os.rename('%s.dbf' % fromfile, '%s.dbf' % tofile)
+            os.rename('%s.prj' % fromfile, '%s.prj' % tofile)
+            os.rename('%s.sbn' % fromfile, '%s.sbn' % tofile)
+            os.rename('%s.sbx' % fromfile, '%s.sbx' % tofile)
+            os.rename('%s.shp' % fromfile, '%s.shp' % tofile)
+            os.rename('%s.shx' % fromfile, '%s.shx' % tofile)
+            os.rename('%s.shp.xml' % fromfile, '%s.mapfile.xml' % tofile)            
+        return
     
-
+    logging.info('Loading entities from directory %s to %s.' % (options.datadir, options.url))
+    kind = options.kind
     if kind == 'Metadata':
         values = dict(
             payload=simplejson.dumps(newCollection()),
@@ -320,6 +343,7 @@ def main():
         response = urllib2.urlopen(req)
         the_page = response.read()
     
+#    i=0
     for f in glob.glob("*.shp"):
         taxon = getTaxon(f)
         # turn Parus major into parus_major
@@ -347,6 +371,8 @@ def main():
             req = urllib2.Request(url, data)
             response = urllib2.urlopen(req)
             the_page = response.read()
+#            i+=1
+#            print '%s: %s loaded.' % (i,taxon)
         except:
             print 'Entities for %s failed to load.' % taxon
             

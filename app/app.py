@@ -229,8 +229,32 @@ class EntityLoader(BaseHandler):
         MasterSearchIndex( term=msiterm, 
                            parent = newkey, 
                            rank=msirank).put()
-    
-    
+
+class TaxonMasterSearchIndexLoader(BaseHandler):
+    """ Loads MultiPolygonIndexes and MasterSearchIndexes for taxon names from scripts in /utilities/metadata.
+        Example:
+        ./jetzranges.py -c loadindexes -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/taxonmastersearchindexloader
+    """
+    def post(self):
+        key_name = self.request.get('key_name')
+        c = self.request.get('c')
+        taxon = self.request.get('taxon')
+        theterm = self.request.get('term')
+        parentkey=db.Key.from_path('MultiPolygon', key_name)
+        nomials = taxon.split(' ')
+        i=0
+        for term in nomials:
+            i+=1
+            termrank=int(66/i)
+            MultiPolygonIndex( term=term, 
+                               parent = parentkey, 
+                               rank=termrank
+                               ).put()
+            MasterSearchIndex( term=term, 
+                               parent = parentkey, 
+                               rank=termrank
+                               ).put()
+
 class TestDataLoader(BaseHandler):
     """Loads test data for use in a local instance of the datastore."""
     def get(self):
@@ -328,6 +352,7 @@ application = webapp.WSGIApplication(
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/metadataloader', MetadataLoader),
+          ('/taxonmastersearchindexloader', TaxonMasterSearchIndexLoader),
           ('/entityloader', EntityLoader),
           ('/testdataloader', TestDataLoader),
           ('/testdatainfo', TestDataInfo),

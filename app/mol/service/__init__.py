@@ -611,14 +611,7 @@ class MetadataProvider(object):
         # while ranges bulkloaded with parent key encoded in key.
         # Thank JRW for these comments!
 
-        if key_name.__contains__('ecoregion'):
-            n = MetaData.get_by_key_name(key_name)
-            if n is not None:
-                data = n.object
-                return dict(
-                    key_name=key_name,
-                    data=simplejson.loads(data))
-        elif key_name.__contains__('range'):
+        if key_name.__contains__('range'):
             md = db.get(db.Key.from_path('MultiPolygon', key_name, 'MetaData', key_name))
             if md is not None:                
                 data = md.object
@@ -626,8 +619,30 @@ class MetadataProvider(object):
                 return dict(
                     key_name=key_name,
                     data=simplejson.loads(data))
+        else:
+            n = MetaData.get_by_key_name(key_name)
+            if n is not None:
+                data = n.object
+                return dict(
+                    key_name=key_name,
+                    data=simplejson.loads(data))
+#        if key_name.__contains__('ecoregion'):
+#            n = MetaData.get_by_key_name(key_name)
+#            if n is not None:
+#                data = n.object
+#                return dict(
+#                    key_name=key_name,
+#                    data=simplejson.loads(data))
+#        elif key_name.__contains__('range'):
+#            md = db.get(db.Key.from_path('MultiPolygon', key_name, 'MetaData', key_name))
+#            if md is not None:                
+#                data = md.object
+#                logging.info('MD.OBJECT=%s' % data)
+#                return dict(
+#                    key_name=key_name,
+#                    data=simplejson.loads(data))
 
-        # Even worse hack, because this is annoying me too much and time is awaiting for the demo.
+        # Even worse hack
         if key_name.__contains__('collection/ecoregion-group'):
             data = fakeWWFEcoregionSetCollectionMetadata
         elif key_name.__contains__('collection/ecoregion'):
@@ -684,7 +699,6 @@ class OverviewImageProvider(object):
         self.cachetime = 60000   
         self.memkey = None
         self.url = None
-#        self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
 #        self.backend = "http://127.0.0.1:5003/layers"
         
@@ -1162,7 +1176,6 @@ class TileService(object):
         self.status = False
         self.rpc = urlfetch.create_rpc()
         self.cachetime = int(41943040 / (2**int(self.query['z'])))
-        #self.backend = "http://mol.colorado.edu/layers"
         self.backend = "http://96.126.97.48/layers"
 #        self.backend = "http://127.0.0.1:5003/layers"
         self.queue = self.query['queue']
