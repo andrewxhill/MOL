@@ -302,9 +302,7 @@ def main():
             taxon = c.replace('_',' ')
             values = dict(
                 key_name='range/jetz/animalia/species/%s' % c,
-                term = taxon,
-                taxon=taxon,
-                c=c
+                taxon=taxon
                 )
             try:
                 data = urllib.urlencode(values)
@@ -313,7 +311,8 @@ def main():
                 the_page = response.read()
 #                i+=1
 #                print '%s: %s indexes loaded.' % (i,taxon)
-            except:
+            except Exception as e:
+                print str(e)
                 print 'Indexes for %s failed to load.' % taxon
         return
 
