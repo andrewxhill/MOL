@@ -699,8 +699,8 @@ class OverviewImageProvider(object):
         self.cachetime = 60000   
         self.memkey = None
         self.url = None
-#        self.backend = "http://96.126.97.48/layers"
-        self.backend = "http://127.0.0.1:5003/layers"
+        self.backend = "http://96.126.97.48/layers"
+        #self.backend = "http://127.0.0.1:5003/layers"
         
         d = self.key_name.split('/', 2)
         self.datatype, self.source, self.id = d[0].lower(),d[1],d[2]
@@ -1176,8 +1176,8 @@ class TileService(object):
         self.status = False
         self.rpc = urlfetch.create_rpc()
         self.cachetime = int(41943040 / (2**int(self.query['z'])))
-#        self.backend = "http://96.126.97.48/layers"
-        self.backend = "http://127.0.0.1:5003/layers"
+        self.backend = "http://96.126.97.48/layers"
+        #self.backend = "http://127.0.0.1:5003/layers"
         self.queue = self.query['queue']
         
     """
