@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/213/trunk/python/src/mapreduce/lib/files
+END
+blobstore.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/files/blobstore.py
+END
+testutil.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/files/testutil.py
+END
+crc32c.py
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/183/trunk/python/src/mapreduce/lib/files/crc32c.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/159/trunk/python/src/mapreduce/lib/files/__init__.py
+END
+file.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/182/trunk/python/src/mapreduce/lib/files/file.py
+END
+file_service_pb.py
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/213/trunk/python/src/mapreduce/lib/files/file_service_pb.py
+END
+records.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/183/trunk/python/src/mapreduce/lib/files/records.py
+END

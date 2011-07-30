@@ -1,0 +1,80 @@
+10
+
+dir
+215
+http://appengine-mapreduce.googlecode.com/svn/trunk/python/src/mapreduce/lib
+http://appengine-mapreduce.googlecode.com/svn
+
+
+
+2011-07-26T22:34:53.236201Z
+213
+appengine.mirrorbot@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+441dd3cb-e453-d85f-364a-b28e0c74875c
+
+files
+dir
+
+simplejson
+dir
+
+key_range
+dir
+
+pipeline
+dir
+
+__init__.py
+file
+
+
+
+
+2011-07-30T01:14:27.371243Z
+88923169eeb50236297c5d685ee8c89d
+2010-07-13T21:14:25.972687Z
+73
+mike.aizatsky
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+599
+
+graphy
+dir
+
+blobstore
+dir
+

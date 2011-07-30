@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/210/trunk/python/src/mapreduce/lib/pipeline
+END
+common.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/common.py
+END
+util.py
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/util.py
+END
+testutil.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/testutil.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/__init__.py
+END
+handlers.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/handlers.py
+END
+models.py
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/models.py
+END
+pipeline.py
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/210/trunk/python/src/mapreduce/lib/pipeline/pipeline.py
+END
