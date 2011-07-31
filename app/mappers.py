@@ -35,7 +35,6 @@ def explode(str):
 def delete_metadata_index(entity):
     yield op.db.Delete(entity)
 
-
 def report_duplicate_msi(entity):
     """Reports duplicate MasterSearchIndex entities."""
     if not entity.parent():

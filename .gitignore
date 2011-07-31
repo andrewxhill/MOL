@@ -48,3 +48,5 @@ bulkloader-progress*
 .DS_Store
 *.*~
 .#*
+*.svn
+.svn
