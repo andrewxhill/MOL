@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/215/trunk/python/src/mapreduce
+END
+quota.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/132/trunk/python/src/mapreduce/quota.py
+END
+mapreduce_pipeline.py
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/208/trunk/python/src/mapreduce/mapreduce_pipeline.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/73/trunk/python/src/mapreduce/__init__.py
+END
+handlers.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/208/trunk/python/src/mapreduce/handlers.py
+END
+model.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/171/trunk/python/src/mapreduce/model.py
+END
+input_readers.py
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/214/trunk/python/src/mapreduce/input_readers.py
+END
+base_handler.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/178/trunk/python/src/mapreduce/base_handler.py
+END
+namespace_range.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/159/trunk/python/src/mapreduce/namespace_range.py
+END
+mapper_pipeline.py
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/!svn/ver/208/trunk/python/src/mapreduce/mapper_pipeline.py
+END
+test_support.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/215/trunk/python/src/mapreduce/test_support.py
+END
+errors.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/171/trunk/python/src/mapreduce/errors.py
+END
+util.py
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/171/trunk/python/src/mapreduce/util.py
+END
+shuffler.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/210/trunk/python/src/mapreduce/shuffler.py
+END
+output_writers.py
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/171/trunk/python/src/mapreduce/output_writers.py
+END
+control.py
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/208/trunk/python/src/mapreduce/control.py
+END
+status.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/159/trunk/python/src/mapreduce/status.py
+END
+hooks.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/159/trunk/python/src/mapreduce/hooks.py
+END
+context.py
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/!svn/ver/171/trunk/python/src/mapreduce/context.py
+END
+main.py
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/!svn/ver/176/trunk/python/src/mapreduce/main.py
+END

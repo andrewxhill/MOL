@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson
+END
+scanner.py
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/scanner.py
+END
+tool.py
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/tool.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/__init__.py
+END
+encoder.py
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/encoder.py
+END
+decoder.py
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/decoder.py
+END
+ordered_dict.py
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/171/trunk/python/src/mapreduce/lib/pipeline/simplejson/ordered_dict.py
+END

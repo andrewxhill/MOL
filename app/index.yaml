@@ -11,6 +11,11 @@ indexes:
 
 - kind: MasterSearchIndex
   properties:
+  - name: __key__
+    direction: desc
+
+- kind: MasterSearchIndex
+  properties:
   - name: term
   - name: rank
     direction: desc

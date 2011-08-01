@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/211/trunk/python/src/mapreduce/static
+END
+base.css
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/210/trunk/python/src/mapreduce/static/base.css
+END
+detail.html
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/12/trunk/python/src/mapreduce/static/detail.html
+END
+overview.html
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/66/trunk/python/src/mapreduce/static/overview.html
+END
+jquery-1.4.2.min.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/!svn/ver/6/trunk/python/src/mapreduce/static/jquery-1.4.2.min.js
+END
+status.js
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/211/trunk/python/src/mapreduce/static/status.js
+END

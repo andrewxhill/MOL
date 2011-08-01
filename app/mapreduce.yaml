@@ -1,4 +1,17 @@
 mapreduce: 
+
+- name: Counts duplicate MasterSearchIndex entities
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.report_duplicate_msi
+    params:
+    - name: entity_kind
+      default: mol.db.MasterSearchIndex
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
 - name: Builds MetaDataIndex by mapping over MetaData
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader

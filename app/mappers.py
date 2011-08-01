@@ -34,6 +34,15 @@ def explode(str):
 
 def delete_metadata_index(entity):
     yield op.db.Delete(entity)
+
+def report_duplicate_msi(entity):
+    """Reports duplicate MasterSearchIndex entities."""
+    if not entity.parent():
+        yield op.counters.Increment('NOPARENT-%s' % entity.term)
+        return
+    for dup in db.Query(MasterSearchIndex).filter('term', entity.term).ancestor(entity.parent()):
+        if dup.key() != entity.key():
+            yield op.counters.Increment(entity.term)
     
 def build_metadata_index(entity):
     """Builds and puts() a MetaDataIndex entity for each MetaData entity."""
