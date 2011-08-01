@@ -285,9 +285,6 @@ def _getoptions():
     parser.add_option("-u", "--url", dest="url",
                       help="URL to load to",
                       default='http://localhost:8080/metadataloader')
-    parser.add_option("-k", "--kind", dest="kind",
-                      help="Entity kind to load",
-                      default='None')
     parser.add_option("-r", "--rename", dest="rename",
                       help="Rename the shape files",
                       default='True')
@@ -346,9 +343,8 @@ def main():
             os.rename('%s.shp.xml' % fromfile, '%s.mapfile.xml' % tofile)            
         return
     
-    logging.info('Loading entities from directory %s to %s.' % (options.datadir, options.url))
-    kind = options.kind
-    if kind == 'Metadata':
+    if command=='loadmetadata':
+        logging.info('Loading Collection metadata.')
         values = dict(
             payload=simplejson.dumps(newCollection()),
             key_name='collection/range/jetz/latest')
@@ -356,40 +352,44 @@ def main():
         req = urllib2.Request(url, data)
         response = urllib2.urlopen(req)
         the_page = response.read()
-    
-#    i=0
-    for f in glob.glob("*.shp"):
-        taxon = getTaxon(f)
-        # turn Parus major into parus_major
-        c = '_'.join(taxon.lower().split(' '))
-        md = newMetadata(f)
-        mp = newMultiPolygon(f)
-        mpi = newMultiPolygonIndex(taxon)
-        msi = newMasterSearchIndex(taxon)
-        values = dict(
-            mdpayload=simplejson.dumps(md),
-            name=mp.name,
-            subname=mp.subname,
-            source=mp.source,
-            info=mp.info,
-            category=mp.category,
-            key_name='range/jetz/animalia/species/%s' % c,
-            parent_key_name='range/jetz/animalia/species/%s' % c,
-            mpiterm=mpi.term,
-            mpirank=mpi.rank,
-            msiterm=msi.term,
-            msirank=msi.rank
-            )
+        return
 
-        try:
-            data = urllib.urlencode(values)
-            req = urllib2.Request(url, data)
-            response = urllib2.urlopen(req)
-            the_page = response.read()
-#            i+=1
-#            print '%s: %s loaded.' % (i,taxon)
-        except:
-            print 'Entities for %s failed to load.' % taxon
+    if command=='loadentities':
+        logging.info('Loading entities (MD, MP, MSI, MPI) from directory %s to %s.' % (options.datadir, options.url))        
+    #    i=0
+        for f in glob.glob("*.shp"):
+            taxon = getTaxon(f)
+            # turn Parus major into parus_major
+            c = '_'.join(taxon.lower().split(' '))
+            md = newMetadata(f)
+            mp = newMultiPolygon(f)
+            mpi = newMultiPolygonIndex(taxon)
+            msi = newMasterSearchIndex(taxon)
+            values = dict(
+                mdpayload=simplejson.dumps(md),
+                name=mp.name,
+                subname=mp.subname,
+                source=mp.source,
+                info=mp.info,
+                category=mp.category,
+                key_name='range/jetz/animalia/species/%s' % c,
+                parent_key_name='range/jetz/animalia/species/%s' % c,
+                mpiterm=mpi.term,
+                mpirank=mpi.rank,
+                msiterm=msi.term,
+                msirank=msi.rank
+                )
+    
+            try:
+                data = urllib.urlencode(values)
+                req = urllib2.Request(url, data)
+                response = urllib2.urlopen(req)
+                the_page = response.read()
+    #            i+=1
+    #            print '%s: %s loaded.' % (i,taxon)
+            except:
+                print 'Entities for %s failed to load.' % taxon
+        return
             
 if __name__ == "__main__":
     main()
