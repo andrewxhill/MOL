@@ -237,9 +237,7 @@ class TaxonMasterSearchIndexLoader(BaseHandler):
     """
     def post(self):
         key_name = self.request.get('key_name')
-        c = self.request.get('c')
         taxon = self.request.get('taxon')
-        theterm = self.request.get('term')
         parentkey=db.Key.from_path('MultiPolygon', key_name)
         nomials = taxon.split(' ')
         i=0
