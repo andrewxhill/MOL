@@ -215,20 +215,21 @@ class EntityLoader(BaseHandler):
             info=info,
             category=category
             ).put()
-        MetaData(
-                 key=db.Key.from_path(
-                 'MultiPolygon',
-                 parent_key_name,
-                 'MetaData',
-                 key_name),
-                 object=mdpayload
-                 ).put()
-        MultiPolygonIndex( term=mpiterm, 
-                           parent = newkey, 
-                           rank=mpirank).put()
-        MasterSearchIndex( term=msiterm, 
-                           parent = newkey, 
-                           rank=msirank).put()
+        self.response.out.write(newkey.name())
+        # MetaData(
+        #          key=db.Key.from_path(
+        #          'MultiPolygon',
+        #          parent_key_name,
+        #          'MetaData',
+        #          key_name),
+        #          object=mdpayload
+        #          ).put()
+        # MultiPolygonIndex( term=mpiterm, 
+        #                    parent = newkey, 
+        #                    rank=mpirank).put()
+        # MasterSearchIndex( term=msiterm, 
+        #                    parent = newkey, 
+        #                    rank=msirank).put()
 
 class TaxonMasterSearchIndexLoader(BaseHandler):
     """ Loads MultiPolygonIndexes and MasterSearchIndexes for taxon names from scripts in /utilities/metadata.

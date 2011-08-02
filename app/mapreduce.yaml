@@ -1,5 +1,17 @@
 mapreduce: 
 
+- name: Fixes Jetz range map extents
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: mappers.fix_extents
+    params:
+    - name: entity_kind
+      default: mol.db.MultiPolygon
+    - name: shard_count
+      default: 8
+    - name: processing_rate
+      default: 2000 
+
 - name: Counts duplicate MasterSearchIndex entities
   mapper:
     input_reader: mapreduce.input_readers.DatastoreInputReader
