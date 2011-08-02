@@ -17,6 +17,7 @@
 
 from google.appengine.ext import webapp
 import random
+import math
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp.util import run_wsgi_app
 import os
@@ -166,6 +167,7 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
+    # TODO: Probably no longer needed - prefer EntityLoader to do this all at once.
     """ Loads metadata from scripts in /utilities/metadata.
         Example:
         ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/metadataloader -k Metadata
@@ -202,11 +204,9 @@ class EntityLoader(BaseHandler):
         category=self.request.get('category')
         key_name = self.request.get('key_name')
         parent_key_name = self.request.get('parent_key_name')
-        mpiterm = self.request.get('mpiterm')
-        msiterm = self.request.get('msiterm')
-        mpirank = int(self.request.get('mpirank'))
-        msirank = int(self.request.get('msirank'))
+        term = self.request.get('term').lower()
 
+        """Publish the MultiPolygon entity, the parent to remainder of the entities to load."""
         newkey = MultiPolygon(
             key=db.Key.from_path('MultiPolygon', key_name),
             name=name,
@@ -215,6 +215,7 @@ class EntityLoader(BaseHandler):
             info=info,
             category=category
             ).put()
+        """Publish the MetaData entity for the layer."""
         MetaData(
                  key=db.Key.from_path(
                  'MultiPolygon',
@@ -223,14 +224,24 @@ class EntityLoader(BaseHandler):
                  key_name),
                  object=mdpayload
                  ).put()
-        MultiPolygonIndex( term=mpiterm, 
-                           parent = newkey, 
-                           rank=mpirank).put()
-        MasterSearchIndex( term=msiterm, 
-                           parent = newkey, 
-                           rank=msirank).put()
+        """ Publish the MasterSearchIndex entity for the layer, including the full
+            term and combinations of its tokens."""
+        tokenlist = uniquify(multitokenize(term,' '))
+        tokencount = term.split(' ').__len__()
+        for token in tokenlist:
+            rank=int(100*token.split(' ').__len__()/tokencount)
+            if token == term.split(' ')[0]:
+                rank=50
+            MasterSearchIndex( term=token, 
+                               parent = newkey, 
+                               rank=rank).put()
+        # TODO: Are MultiPolygonIndexes still needed? They were the same as MasterSearchIndexes
+#        MultiPolygonIndex( term=term,
+#                           parent = newkey, 
+#                           rank=90).put()
 
 class TaxonMasterSearchIndexLoader(BaseHandler):
+    # TODO: Probably no longer needed - prefer EntityLoader to do this all at once.
     """ Loads MultiPolygonIndexes and MasterSearchIndexes for taxon names from scripts in /utilities/metadata.
         Example:
         ./jetzranges.py -c loadindexes -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/taxonmastersearchindexloader
@@ -256,20 +267,23 @@ class TaxonMasterSearchIndexLoader(BaseHandler):
 class TestDataLoader(BaseHandler):
     """Loads test data for use in a local instance of the datastore."""
     def get(self):
+        term = "Struthio camelus"
         newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/jetz/animalia/species/struthio_camelus'),
                            category="range", 
                            info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
-                           name="Struthio camelus", 
+                           name=term, 
                            source="Jetz", 
                            subname="Jetz Test Range Map").put()
         # rhea pennata Jetz Range Map
-        MasterSearchIndex( term="Struthio camelus", 
-                           parent = newkey, 
-                           rank=42).put()
-        # rhea pennata Jetz Range Map
-        MultiPolygonIndex( term="Struthio camelus", 
-                           parent = newkey, 
-                           rank=1).put()
+        tokenlist = uniquify(multitokenize(term.lower(),' '))
+        tokencount = term.split(' ').__len__()
+        for token in tokenlist:
+            rank=int(100*token.split(' ').__len__()/tokencount)
+            if token == term.split(' ')[0]:
+                rank=50
+            MasterSearchIndex( term=token, 
+                               parent = newkey, 
+                               rank=rank).put()
     
 #        # parent entity for puma concolor IUCN Range Map
 #        newkey = MultiPolygon(
@@ -309,21 +323,6 @@ class TestDataLoader(BaseHandler):
 #        MasterSearchIndex( term="puma concolor", 
 #                           parent = newkey, 
 #                           rank=3).put()
-        # parent entity for rhea pennata Jetz Range Map
-        newkey = MultiPolygon(key=db.Key.from_path('MultiPolygon','range/jetz/animalia/species/struthio_camelus'),
-                           category="range", 
-                           info='{"extentNorthWest": "59.666250466,-135.365310669", "proj": "EPSG:900913", "extentSouthEast": "-53.106193543,-34.790122986"}', 
-                           name="Struthio camelus", 
-                           source="Jetz", 
-                           subname="Jetz Test Range Map").put()
-        # rhea pennata Jetz Range Map
-        MasterSearchIndex( term="Struthio camelus", 
-                           parent = newkey, 
-                           rank=42).put()
-        # rhea pennata Jetz Range Map
-        MultiPolygonIndex( term="Struthio camelus", 
-                           parent = newkey, 
-                           rank=1).put()
     
 class TestDataInfo(BaseHandler):
     """Shows content of an Entity's info property."""
@@ -334,6 +333,27 @@ class TestDataInfo(BaseHandler):
             key = db.Key(encoded=ent)
             entity = db.get(key)
             self.response.out.write(entity.info)
+
+def multitokenize(term, separator):
+    """ Return a list of all combinations of tokens separated by separator in a term."""
+    termlist=[]
+    tokenlist = term.split(separator)
+    listcount = tokenlist.__len__()
+    combos = int(math.pow(2,tokenlist.__len__())-1)
+    for n in range(1,combos+1):
+        newterm=''
+        for i in range(listcount):
+            if (n>>i)%2==1:
+                newterm='%s %s' % (newterm, tokenlist[i])
+        termlist.append(newterm.lstrip())
+    return termlist
+
+def uniquify(seq):
+    """ Return a list of the distinct values in a list. Does not preserver order."""
+    keys = {} 
+    for e in seq: 
+        keys[e] = 1 
+    return keys.keys()
 
 application = webapp.WSGIApplication(
          [('/', MainPage),

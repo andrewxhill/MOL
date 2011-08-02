@@ -295,6 +295,7 @@ def main():
     options = _getoptions()
     command = options.command.lower()
 
+
     logging.info('COMMAND %s' % command)
 
     if options.datadir == None:
@@ -374,10 +375,7 @@ def main():
                 category=mp.category,
                 key_name='range/jetz/animalia/species/%s' % c,
                 parent_key_name='range/jetz/animalia/species/%s' % c,
-                mpiterm=mpi.term,
-                mpirank=mpi.rank,
-                msiterm=msi.term,
-                msirank=msi.rank
+                term=taxon
                 )
     
             try:
@@ -390,6 +388,6 @@ def main():
             except:
                 print 'Entities for %s failed to load.' % taxon
         return
-            
+
 if __name__ == "__main__":
     main()
