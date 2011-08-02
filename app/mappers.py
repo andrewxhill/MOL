@@ -20,6 +20,7 @@ from google.appengine.ext import db
 from mapreduce import operation as op
 from mol.db import *
 import cStringIO
+import math
 import png
 import logging
 import simplejson
@@ -43,6 +44,42 @@ def report_duplicate_msi(entity):
     for dup in db.Query(MasterSearchIndex).filter('term', entity.term).ancestor(entity.parent()):
         if dup.key() != entity.key():
             yield op.counters.Increment(entity.term)
+
+def MetersToLatLon(bb):
+    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
+    sh = 2 * math.pi * 6378137 / 2.0
+    mx, mx0, my, my0 = bb[0], bb[1], bb[2], bb[3]
+    lon = (mx / sh) * 180.0
+    lon0 = (mx0 / sh) * 180.0
+    lat = (my / sh) * 180.0
+    lat0 = (my0 / sh) * 180.0
+    lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
+    lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
+    return lon, lat, lon0, lat0
+
+def fix_extents(entity):
+    """
+    info = {"extentNorthWest": "lat=22.8249480851,lng=-84.0751669713", "proj": "EPSG:900913", "extentSouthEast": "22.4087368727,-83.1537282756"}    
+    MetersToLatLon = (minx, maxx, miny, maxy)
+    osg.Layer.GetExtents() =  (18241443.028818697, 18745720.322112225, -2596125.9020476588, -2265080.9167815968)
+    """
+    if not entity.key().name():
+        return
+    if entity.key().name().rfind('jetz') != -1:        
+        logging.info('Fixing extent for %s' % entity.key().name())
+        info = simplejson.loads(entity.info)
+        extents = MetersToLatLon((
+            float(info['extentNorthWest'].split(',')[1]),  # minx
+            float(info['extentSouthEast'].split(',')[1]),  # maxx
+            float(info['extentSouthEast'].split(',')[0]),  # miny
+            float(info['extentNorthWest'].split(',')[0]))) # maxy
+        fixed_info = dict(
+            extentNorthWest='%s,%s' % (extents[0], extents[3]),
+            extentSouthEast='%s,%s' % (extents[1], extents[2]),
+            proj=info['proj'])
+        entity.info = db.Text(simplejson.dumps(fixed_info))
+        logging.info('ENTITY=' + str(entity.info))
+        yield op.db.Put(entity)        
     
 def build_metadata_index(entity):
     """Builds and puts() a MetaDataIndex entity for each MetaData entity."""

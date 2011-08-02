@@ -137,7 +137,13 @@ def getTaxon(f):
     return feat.GetField('Latin')
 
 def MetersToLatLon(bb):
-    "Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum"        
+    """Converts bounding box in meters to degrees.
+
+    bb = (minx, maxx, miny, maxy)
+    returns (minx, miny, maxx, maxy)
+
+    Spherical Mercator EPSG:900913 to lat/lon in WGS84 Datum.
+    """
     sh = 2 * math.pi * 6378137 / 2.0
     mx, mx0, my, my0 = bb[0], bb[1], bb[2], bb[3]
     lon = (mx / sh) * 180.0
@@ -146,7 +152,7 @@ def MetersToLatLon(bb):
     lat0 = (my0 / sh) * 180.0
     lat = 180 / math.pi * (2 * math.atan(math.exp(lat * math.pi / 180.0)) - math.pi / 2.0)
     lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
-    return lon, lat, lon0, lat0
+    return lon, lat, lon0, lat0 # (minx, miny, maxx, maxy)
 
 def newMultiPolygon(f):
     ds = ogr.Open ( f )
@@ -158,12 +164,12 @@ def newMultiPolygon(f):
     geom = feat.GetGeometryRef()
     extent = MetersToLatLon(lyr.GetExtent())    
     xmin = extent[0]
-    ymin = extent[2]
-    xmax = extent[1]
+    ymin = extent[1]
+    xmax = extent[2]
     ymax = extent[3]
     info = Info()
-    info.extentnorthwest = '%s,%s' % (ymax,xmin)
-    info.extentsoutheast = '%s,%s' % (ymin,xmax)
+    info.extentnorthwest = '%s,%s' % (ymax, xmin)
+    info.extentsoutheast = '%s,%s' % (ymin, xmax)
     info.proj = "EPSG:900913"
     mp.info = simplejson.dumps(info.json())
     return mp

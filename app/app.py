@@ -191,7 +191,7 @@ class MetadataLoader(BaseHandler):
                 object=payload).put()
 
 class EntityLoader(BaseHandler):
-    """ Loads MultiPolygons, MultiPolygonIndexes, MasterSearchIndexes, and Metdata from scripts in /utilities/metadata.
+    """ Loads MultiPolygons, MasterSearchIndexes, and Metadata from scripts in /utilities/metadata.
         Example:
         ./jetzranges.py -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/entityloader
     """
