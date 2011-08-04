@@ -129,12 +129,26 @@ class MultiPolygon():
               "info": self.info              
             }
 
-def getTaxon(f):
-    ds = ogr.Open ( f )
-    lyr = ds.GetLayerByName( f.replace('.shp','') )
-    feat_def = lyr.GetLayerDefn()
+def getTaxon(filename, fieldname):
+    """
+        Return the white space stripped taxon name out of a field in the shape file.
+        Assumes that there is a layer within the shapefile having the same name as the shape file.        
+        
+        Arguments:
+            filename - the name of the shape file
+            fieldname - the column in which to find the taxon
+    """
+    # Open the shape file
+    ds = ogr.Open (filename)
+    # Get the layer having the same name as the shape file
+    lyr = ds.GetLayerByName( filename.replace('.shp','') )
+#    feat_def = lyr.GetLayerDefn()
+    # Get the first feature in the layer
     feat = lyr.GetFeature(0)
-    return feat.GetField('Latin')
+    # Get the value in the field fieldname for the first feature
+    taxon = feat.GetField(fieldname)
+    # return the value with the excess white space stripped out
+    return ' '.join( taxon.lstrip().rstrip().split() )
 
 def MetersToLatLon(bb):
     """Converts bounding box in meters to degrees.
@@ -154,13 +168,13 @@ def MetersToLatLon(bb):
     lat0 = 180 / math.pi * (2 * math.atan(math.exp(lat0 * math.pi / 180.0)) - math.pi / 2.0)
     return lon, lat, lon0, lat0 # (minx, miny, maxx, maxy)
 
-def newMultiPolygon(f):
-    ds = ogr.Open ( f )
-    lyr = ds.GetLayerByName( f.replace('.shp','') )
+def newMultiPolygon(filename, taxon):
+    ds = ogr.Open (filename)
+    lyr = ds.GetLayerByName( filename.replace('.shp','') )
     feat_def = lyr.GetLayerDefn()
     feat = lyr.GetFeature(0)
     mp = MultiPolygon()
-    mp.name = feat.GetField('Latin')
+    mp.name = taxon
     geom = feat.GetGeometryRef()
     extent = MetersToLatLon(lyr.GetExtent())    
     xmin = extent[0]
@@ -191,8 +205,7 @@ class MasterSearchIndex():
               "rank": self.rank
             }
 
-def newMetadata(f):
-    taxon = f.replace('.shp','')
+def newMetadata(filename, taxon):
     out = NewRange()
     out.taxon = taxon
     out.source = "Jetz Lab"
@@ -291,9 +304,9 @@ def _getoptions():
     parser.add_option("-u", "--url", dest="url",
                       help="URL to load to",
                       default='http://localhost:8080/metadataloader')
-    parser.add_option("-r", "--rename", dest="rename",
-                      help="Rename the shape files",
-                      default='True')
+    parser.add_option("-t", "--taxon-fieldname", dest="taxonfield",
+                      help="The shape file field name holding the taxon name",
+                      default=None)
     return parser.parse_args()[0]
 
 def main():
@@ -310,37 +323,19 @@ def main():
     if options.url == None:
         logging.info('No URL to load to. Aborting.')
         return
+    if options.taxonfield == None:
+        logging.info('No field name for taxon. Aborting.')
+        return
 
     os.chdir(options.datadir)
     url = options.url
 
-#    i=0
-    if command=='loadindexes':
-        for f in glob.glob("*.shp"):
-            c=f.replace('.shp','')
-            taxon = c.replace('_',' ')
-            values = dict(
-                key_name='range/jetz/animalia/species/%s' % c,
-                taxon=taxon
-                )
-            try:
-                data = urllib.urlencode(values)
-                req = urllib2.Request(url, data)
-                response = urllib2.urlopen(req)
-                the_page = response.read()
-#                i+=1
-#                print '%s: %s indexes loaded.' % (i,taxon)
-            except Exception as e:
-                print str(e)
-                print 'Indexes for %s failed to load.' % taxon
-        return
-
     if command=='renamefiles':
         for f in glob.glob("*.shp"):
-            taxon = getTaxon(f)
+            taxon = getTaxon(f, options.taxonfield)
             # turn Parus major into parus_major
             fromfile = os.path.join(options.datadir, f.replace('.shp','') )
-            tofile = os.path.join(options.datadir, '_'.join(taxon.lower().split(' ')))
+            tofile = os.path.join(options.datadir, '_'.join(taxon.split()))
             os.rename('%s.dbf' % fromfile, '%s.dbf' % tofile)
             os.rename('%s.prj' % fromfile, '%s.prj' % tofile)
             os.rename('%s.sbn' % fromfile, '%s.sbn' % tofile)
@@ -362,14 +357,13 @@ def main():
         return
 
     if command=='loadentities':
-        logging.info('Loading entities (MD, MP, MSI, MPI) from directory %s to %s.' % (options.datadir, options.url))        
-    #    i=0
+        logging.info('Loading entities from directory %s to %s.' % (options.datadir, options.url))        
         for f in glob.glob("*.shp"):
-            taxon = getTaxon(f)
+            taxon = getTaxon(f, options.taxonfield)
             # turn Parus major into parus_major
-            c = '_'.join(taxon.lower().split(' '))
+            c = '_'.join(taxon.lower().split())
             md = newMetadata(f)
-            mp = newMultiPolygon(f)
+            mp = newMultiPolygon(f, taxon)
             mpi = newMultiPolygonIndex(taxon)
             msi = newMasterSearchIndex(taxon)
             values = dict(
@@ -389,10 +383,9 @@ def main():
                 req = urllib2.Request(url, data)
                 response = urllib2.urlopen(req)
                 the_page = response.read()
-    #            i+=1
-    #            print '%s: %s loaded.' % (i,taxon)
-            except:
+            except Exception as e:
                 print 'Entities for %s failed to load.' % taxon
+                print str(e)
         return
 
 if __name__ == "__main__":

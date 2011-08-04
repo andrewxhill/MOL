@@ -32,6 +32,7 @@ from xml.etree import ElementTree as etree
 import cStringIO, datetime, random
 from google.appengine.api import images
 import png
+import re
 
 memcache = m.Client()
 
@@ -167,10 +168,10 @@ class Andrew(BaseHandler):
         self.response.out.write("<p>Andrew says %s</p>" % 'hi')
 
 class MetadataLoader(BaseHandler):
-    # TODO: Probably no longer needed - prefer EntityLoader to do this all at once.
-    """ Loads metadata from scripts in /utilities/metadata.
+    """ Loads metadata for a data collection from scripts in /utilities/metadata.
+
         Example:
-        ./iucnranges.py -d /Users/tuco/Data/MoL/mol-data/range/shp/animalia/species/ -u http://tuco.mol-lab.appspot.com/metadataloader -k Metadata
+        ./jetzranges.py -d ~/Data/MoL/mol-data/test/range/jetz -u http://localhost:8080/metadataloader -c loadmetadata -t Latin
     """
     def post(self):
         payload = self.request.get('payload')
@@ -193,7 +194,7 @@ class MetadataLoader(BaseHandler):
 class EntityLoader(BaseHandler):
     """ Loads MultiPolygons, MasterSearchIndexes, and Metadata from scripts in /utilities/metadata.
         Example:
-        ./jetzranges.py -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/entityloader
+        ./jetzranges.py -d ~/Data/MoL/mol-data/test/range/jetz -u http://localhost:8080/entityloader -c loadentities -t Latin
     """
     def post(self):
         mdpayload = self.request.get('mdpayload')
@@ -226,43 +227,20 @@ class EntityLoader(BaseHandler):
                  ).put()
         """ Publish the MasterSearchIndex entity for the layer, including the full
             term and combinations of its tokens."""
-        tokenlist = uniquify(multitokenize(term,' '))
-        tokencount = term.split(' ').__len__()
+        tokenlist = multitokenize(term,' ')
+        tokencount = len(term.split(' '))
         for token in tokenlist:
-            rank=int(100*token.split(' ').__len__()/tokencount)
+            rank=int(100*len(token.split(' '))/tokencount)
             if token == term.split(' ')[0]:
                 rank=50
             MasterSearchIndex( term=token, 
                                parent = newkey, 
                                rank=rank).put()
+
         # TODO: Are MultiPolygonIndexes still needed? They were the same as MasterSearchIndexes
 #        MultiPolygonIndex( term=term,
 #                           parent = newkey, 
 #                           rank=90).put()
-
-class TaxonMasterSearchIndexLoader(BaseHandler):
-    # TODO: Probably no longer needed - prefer EntityLoader to do this all at once.
-    """ Loads MultiPolygonIndexes and MasterSearchIndexes for taxon names from scripts in /utilities/metadata.
-        Example:
-        ./jetzranges.py -c loadindexes -d /mol-data/range/jetz/animalia/species/ -u http://tuco.mol-lab.appspot.com/taxonmastersearchindexloader
-    """
-    def post(self):
-        key_name = self.request.get('key_name')
-        taxon = self.request.get('taxon')
-        parentkey=db.Key.from_path('MultiPolygon', key_name)
-        nomials = taxon.split(' ')
-        i=0
-        for term in nomials:
-            i+=1
-            termrank=int(66/i)
-            MultiPolygonIndex( term=term, 
-                               parent = parentkey, 
-                               rank=termrank
-                               ).put()
-            MasterSearchIndex( term=term, 
-                               parent = parentkey, 
-                               rank=termrank
-                               ).put()
 
 class TestDataLoader(BaseHandler):
     """Loads test data for use in a local instance of the datastore."""
@@ -274,11 +252,10 @@ class TestDataLoader(BaseHandler):
                            name=term, 
                            source="Jetz", 
                            subname="Jetz Test Range Map").put()
-        # rhea pennata Jetz Range Map
-        tokenlist = uniquify(multitokenize(term.lower(),' '))
-        tokencount = term.split(' ').__len__()
+        tokenlist = multitokenize(term.lower(),' ')
+        tokencount = len(term.split(' '))
         for token in tokenlist:
-            rank=int(100*token.split(' ').__len__()/tokencount)
+            rank=int(100*len(token.split(' '))/tokencount)
             if token == term.split(' ')[0]:
                 rank=50
             MasterSearchIndex( term=token, 
@@ -334,26 +311,45 @@ class TestDataInfo(BaseHandler):
             entity = db.get(key)
             self.response.out.write(entity.info)
 
-def multitokenize(term, separator):
-    """ Return a list of all combinations of tokens separated by separator in a term."""
+def multitokenize(term, separator=' '):
+    """ 
+        Return a list of all distinct combinations of tokens separated by separator in a term.
+    
+        Arguments:
+            term - the string for which to find token combinations
+            separator - an optional string of characters to use as the token separator (default is ' ')
+    """
     termlist=[]
-    tokenlist = term.split(separator)
-    listcount = tokenlist.__len__()
-    combos = int(math.pow(2,tokenlist.__len__())-1)
+    # Regular expression to match any combination of the separator string, spaces, and tabs
+    sep = '[%s \t]+' % separator
+    # Use the regular expression to separate tokens into a list
+    tokenlist = re.split(sep, term.lstrip().rstrip())
+    listcount = len(tokenlist)
+    # Determine the number of distinct, non-empty combinations of tokens
+    combos = int(math.pow(2,len(tokenlist))-1)
+    # Iterate through the integers represented by combos starting at 1
     for n in range(1,combos+1):
         newterm=''
+        # Iterate through the indexes of every token in the list of tokens
         for i in range(listcount):
+            # If the index has an "on" bit in the bitwise representation of combos, include it in the newterm
+            # Example: term = 'puma concolor'
+            #  tokenlist = ['puma','concolor']
+            #  combos = 3
+            #  n=1, i=0, (n>>i)%2 = 1, newterm=' puma'
+            #  n=1, i=1, (n>>i)%2 = 0
+            #    -> add 'puma' to termlist
+            #  n=2, i=0, (n>>i)%2 = 0, newterm=''
+            #  n=2, i=1, (n>>i)%2 = 1, newterm=' concolor'
+            #    -> add 'concolor' to termlist
+            #  n=3, i=0, (n>>i)%2 = 1, newterm=' puma'
+            #  n=3, i=1, (n>>i)%2 = 1, newterm=' puma concolor'
+            #    -> add 'puma concolor' to termlist
             if (n>>i)%2==1:
                 newterm='%s %s' % (newterm, tokenlist[i])
-        termlist.append(newterm.lstrip())
-    return termlist
-
-def uniquify(seq):
-    """ Return a list of the distinct values in a list. Does not preserver order."""
-    keys = {} 
-    for e in seq: 
-        keys[e] = 1 
-    return keys.keys()
+        termlist.append(newterm.lstrip().rstrip())
+    # make sure there are no duplicates in the returned list
+    return list(set(termlist))
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
@@ -370,7 +366,6 @@ application = webapp.WSGIApplication(
           ('/map/.*', RangeMapHandler),
           ('/map', RangeMapHandler),
           ('/metadataloader', MetadataLoader),
-          ('/taxonmastersearchindexloader', TaxonMasterSearchIndexLoader),
           ('/entityloader', EntityLoader),
           ('/testdataloader', TestDataLoader),
           ('/testdatainfo', TestDataInfo),
