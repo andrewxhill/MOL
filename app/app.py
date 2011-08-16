@@ -351,8 +351,32 @@ def multitokenize(term, separator=' '):
     # make sure there are no duplicates in the returned list
     return list(set(termlist))
 
+
+class Insane(BaseHandler):
+    def get(self):
+        # Contact.query(Contact.address == Address(city='San Francisco', street='Spear St'))
+        from ndb import model
+        from mol.db.layers import LayerIndex, LayerPolygon
+        s = self.request.get('s')
+        p = self.request.get('p')
+        a = self.request.get('a')
+        r = self.request.get('r')
+        #qry = LayerIndex.query(LayerIndex.polygons.specieslatin == 'dry chaco',
+        #                       LayerIndex.polygons.polygonid == '2')
+        qry = LayerIndex.query(LayerIndex.polygons == LayerPolygon(
+                specieslatin='815.02300000000',
+                polygonid='14730',
+                source='4936.88958455000',
+                areaid='9111848.92186000012'))
+        #qry = LayerIndex.query(LayerIndex.creator == 'Walter')
+        json = simplejson.dumps([simplejson.loads(x.parent().get().json) for x in qry.fetch(keys_only=True)])
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(json)
+        
+
 application = webapp.WSGIApplication(
          [('/', MainPage),
+          ('/insane', Insane),
           ('/latest', LatestHandler),
           ('/andrew', Andrew),
           ('/william', William),

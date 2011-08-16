@@ -1,0 +1,110 @@
+# This section provides information about the source, such as name and contact
+# information.
+# 
+Source:
+  Name: 
+  Email:
+
+# This section provides information about all collections provided by the 
+# source.
+# 
+Collections:
+  
+# This section contains information about a single collection.
+# 
+
+# Required directory name of the collection.
+# 
+- DirectoryName: mammals
+   
+  # Required MOL metadata (http://goo.gl/98r46)
+  #  
+  Required:
+    AccessRights:
+    BibliographiCcitation:
+    BreedingDomain:
+    Contact:
+    Coverage:
+    Creator:
+    Date:
+    Description:
+    Email:
+    EventDate:
+    LayerType: 
+    NonBreedingDomain:
+    PresenceDefault:
+    Publisher:
+    SamplingProtocol:
+    ScientificName:
+    Source:
+    Subject:
+    TaxonomicCoverage:
+    Title:
+    VerbatimSRS:
+
+  # Optional MoL metadata (http://goo.gl/98r46)
+  #
+  Optional:
+    Accessright:
+    BaseMaps: []
+    Contributor:
+    EndDateAccuracy:
+    Format:
+    Identifier:
+    Language: 
+    MapCount:
+    MaxRegionsPerSpecies:
+    MaxX:
+    MaxY:
+    MedianRegionsPerSpecies:
+    MinRegionsPerSpecies:
+    MinX:
+    MinY:
+    Relation:
+    Rights:
+    SamplingProtocol:
+    StartDateAccuracy:
+    Taxonomy:
+      PrimaryName:
+      PrimaryUsage:
+      PrimaryVersion:
+      PrimaryYear: 
+    Type:
+
+  # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
+  #
+  DBFMapping:
+
+    # Required MoL DBF fields 
+    #
+    Required:
+      PolygonId:
+      AreaId:
+      SpeciesLatin:
+      Source:
+
+    # Optional MoL DBF fields
+    #
+    Optional:
+      Abundance:
+      AbundanceComment:
+      AbundanceMakeup:
+      AbundanceMethod:
+      AbundanceSurveyArea:
+      AbundanceUnits:
+      DateEnd:
+      DateStart:
+      DistributionComment:
+      MeasurementComment:
+      MeasurementMethod:
+      Seasonality:
+      BibliographicCitation:
+      Contributor:
+      DynamicProperties:
+      EstablishmentMeans:
+      InfraspecificEpithet:
+      OccurrenceStatus:
+      Population:
+      ScientificName:
+      TaxonId:
+      TaxonRemarks:
