@@ -138,6 +138,7 @@ if __name__ == '__main__':
             shpfiles = glob.glob('*.shp')
             logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
             for sf in shpfiles:
+                logging.info('Extracting DBF fields from %s' % sf)
                 csvfile = '%s.csv' % sf
                 if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
                     os.remove(csvfile)
@@ -156,7 +157,6 @@ if __name__ == '__main__':
                     dbfjson = {}
 
                     for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
-                        logging.info('required=%s' % mol)
                         sourceval = dbf.get(source)
                         if not sourceval:
                             logging.error('Missing required DBF field %s' % mol)
@@ -164,7 +164,6 @@ if __name__ == '__main__':
                         dbfjson[mol] = sourceval
 
                     for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
-                        logging.info('optional=%s' % mol)
                         sourceval = dbf.get(source)
                         if not sourceval:
                             continue
@@ -179,6 +178,7 @@ if __name__ == '__main__':
                 coll_csv.writerow(row)
                 
             # Important: Close the DictWriter file before trying to bulkload it
+            logging.info('All collection metadata saved to %s' % coll_file.name)
             coll_file.flush()
             coll_file.close()
 
@@ -190,14 +190,15 @@ if __name__ == '__main__':
             cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
             cmdline = cmd % (config_file, filename, 'Layer', options.url)
             args = shlex.split(cmdline)
-            logging.info(cmdline)
+            #logging.info(cmdline)
             subprocess.call(args)
             
             # Bulkload LayerIndex entities to App Engine for entire collection
             cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
             cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
             args = shlex.split(cmdline)
-            logging.info(cmdline)
+            #logging.info(cmdline)
             subprocess.call(args)
             
+            logging.info('Loading finished!')
                 
