@@ -97,11 +97,6 @@ def _getoptions():
                       dest='config_file',
                       metavar='FILE', 
                       help='Bulkload YAML config file.')    
-    parser.add_option('--filename', 
-                      type='string', 
-                      dest='filename',
-                      metavar='FILE', 
-                      help='CSV file with data to bulkload.')                          
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
