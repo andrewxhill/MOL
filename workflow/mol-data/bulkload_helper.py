@@ -54,23 +54,23 @@ STOP_WORDS = [
 
 DO_NOT_INDEX= []
 
-def create_layer_json():
-    def wrapper(value, bulkload_state):
-        """Returns current_dictionary (a row in the CSV file) as JSON text."""
-        d = copy.deepcopy(bulkload_state.current_dictionary)
-        d['layer_dbf'] = simplejson.loads(d['layer_dbf'])
-        d.pop('__record_number__') # We don't want this in the JSON!
-        return db.Text(simplejson.dumps(d))
-    return wrapper
+# def create_layer_json():
+#     def wrapper(value, bulkload_state):
+#         """Returns current_dictionary (a row in the CSV file) as JSON text."""
+#         d = copy.deepcopy(bulkload_state.current_dictionary)
+#         d['layer_dbf'] = simplejson.loads(d['layer_dbf'])
+#         d.pop('__record_number__') # We don't want this in the JSON!
+#         return db.Text(simplejson.dumps(d))
+#     return wrapper
 
 def create_layer_index_key():
     """Returns a function that returns a LayerIndex key with Layer parent."""
     def wrapper(value, bulkload_state): 
         d = bulkload_state.current_dictionary
-        d['lname'] = value 
+        d['layer_key_name'] = value 
         return transform.create_deep_key(
-            ('Layer', 'lname'),
-            ('LayerIndex', 'lname'))(value, bulkload_state)
+            ('Layer', 'layer_key_name'),
+            ('LayerIndex', 'polygonid'))(value, bulkload_state)
     return wrapper
 
 def get_corpus_list():
@@ -91,25 +91,20 @@ def get_corpus_list():
         return list(corpus)
     return wrapper
 
-def add_polygons(input_dict, instance, bulkload_state_copy):    
-    """Adds StructuredProperty to instance."""
-    dbf = simplejson.loads(input_dict['layer_dbf'])
-
-    polygonid = []
-    areaid = []
-    specieslatin = []
-    source = []
-
-    for p in dbf:
-        polygonid.append(p['polygonid'])
-        areaid.append(p['areaid'])
-        specieslatin.append(p['specieslatin'])
-        source.append(p['source'])
-
-    instance['polygons.polygonid'] = polygonid
-    instance['polygons.areaid'] = areaid
-    instance['polygons.specieslatin'] = specieslatin
-    instance['polygons.source'] = source
-
+def add_polygon(input_dict, instance, bulkload_state_copy):
+    # Required
+    instance['polygon.areaid'] = transform.none_if_empty(str)(input_dict['areaid'])
+    instance['polygon.bibliographiccitation'] = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
+    instance['polygon.polygonid'] = transform.none_if_empty(str)(input_dict['polygonid'])
+    instance['polygon.polygonname'] = transform.none_if_empty(str)(input_dict['polygonname'])
+    instance['polygon.scientificname'] = transform.none_if_empty(str)(input_dict['scientificname'])
+    # Optional
+    instance['polygon.areaname'] = transform.none_if_empty(str)(input_dict['areaname'])
+    instance['polygon.contributor'] = transform.none_if_empty(str)(input_dict['contributor'])
+    instance['polygon.dateend'] = transform.none_if_empty(str)(input_dict['dateend'])
+    instance['polygon.datestart'] = transform.none_if_empty(str)(input_dict['datestart'])
+    instance['polygon.establishmentmeans'] = transform.none_if_empty(str)(input_dict['establishmentmeans'])
+    instance['polygon.infraspecificepithet'] = transform.none_if_empty(str)(input_dict['infraspecificepithet'])
+    instance['polygon.occurrencestatus'] = transform.none_if_empty(str)(input_dict['occurrencestatus'])
+    instance['polygon.seasonality'] = transform.none_if_empty(str)(input_dict['seasonality'])
     return instance
-
