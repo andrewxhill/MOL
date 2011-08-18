@@ -61,8 +61,7 @@ class Config(object):
             cols.extend(self.collection['optional'].keys())
             cols.extend(self.collection['dbfmapping']['required'].keys())
             cols.extend(self.collection['dbfmapping']['optional'].keys())
-            cols.extend(['layer_source', 'layer_collection', 'layer_filename', 
-                         'layer_dbf'])
+            cols.extend(['layer_source', 'layer_collection', 'layer_filename'])
             return cols
 
         def get_mapping(self, required=True):
@@ -97,11 +96,10 @@ def _getoptions():
                       dest='config_file',
                       metavar='FILE', 
                       help='Bulkload YAML config file.')    
-    parser.add_option('--filename', 
-                      type='string', 
-                      dest='filename',
-                      metavar='FILE', 
-                      help='CSV file with data to bulkload.')                          
+    parser.add_option('-d', '--dry_run', 
+                      action="store_true", 
+                      dest='dry_run',
+                      help='Creates CSV file but does not bulkload it')                          
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
@@ -113,6 +111,8 @@ if __name__ == '__main__':
     options = _getoptions()
 
     source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+    if options.dry_run:
+            logging.info('Performing a dry run...')
     logging.info('Processing source directories: %s' % source_dirs)
 
     for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
@@ -154,34 +154,39 @@ if __name__ == '__main__':
                 
                 for dbf in dr: # For each row in the DBF CSV file (1 row per polygon)
 
-                    dbfjson = {}
+                    #dbfjson = {}
 
                     for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
                         sourceval = dbf.get(source)
                         if not sourceval:
                             logging.error('Missing required DBF field %s' % mol)
                             sys.exit(1)        
-                        dbfjson[mol] = sourceval
+                        row[mol] = sourceval
 
                     for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
                         sourceval = dbf.get(source)
                         if not sourceval:
                             continue
-                        dbfjson[mol] = sourceval
+                        row[mol] = sourceval
 
-                    layer_dbf.append(dbfjson)
+                    # Write coll_row to collection.csv
+                    coll_csv.writerow(row)
+
+                    #layer_dbf.append(dbfjson)
 
                 # Create JSON representation of dbfjson
-                row['layer_dbf'] = simplejson.dumps(layer_dbf) # TODO: Showing up as string instead of JSON in API
+                #row['layer_dbf'] = simplejson.dumps(layer_dbf) # TODO: Showing up as string instead of JSON in API
 
-                # Write coll_row to collection.csv
-                coll_csv.writerow(row)
                 
             # Important: Close the DictWriter file before trying to bulkload it
             logging.info('All collection metadata saved to %s' % coll_file.name)
             coll_file.flush()
             coll_file.close()
-
+            
+            if options.dry_run:
+                logging.info('Dry run complete!')
+                sys.exit(1)
+                
             os.chdir('../../')
             filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
             config_file = os.path.abspath(options.config_file)

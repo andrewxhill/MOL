@@ -33,9 +33,9 @@ transformers:
       external_name: layer_filename
       import_transform: transform.none_if_empty(str)
 
-    - property: json
-      external_name: json
-      import_transform: bulkload_helper.create_layer_json()
+    #- property: json
+    #  external_name: json
+    #  import_transform: bulkload_helper.create_layer_json()
 
 - kind: LayerIndex
   connector: csv
@@ -51,6 +51,8 @@ transformers:
 #    - property: corpus
 #      external_name: layer_source
 #      import_transform: bulkload_helper.get_corpus_list()
+
+    # Required source fields
 
     - property: accessrights
       external_name: accessrights
@@ -72,16 +74,8 @@ transformers:
       external_name: coverage
       import_transform: transform.none_if_empty(str)
 
-    - property: creator
-      external_name: creator
-      import_transform: transform.none_if_empty(str)
-
     - property: date
       external_name: date
-      import_transform: transform.none_if_empty(str)
-
-    - property: description
-      external_name: description
       import_transform: transform.none_if_empty(str)
 
     - property: email
@@ -92,20 +86,12 @@ transformers:
       external_name: eventdate
       import_transform: transform.none_if_empty(str)
 
-    - property: layertype
-      external_name: layertype
-      import_transform: transform.none_if_empty(str)
-
     - property: nonbreedingdomain
       external_name: nonbreedingdomain
       import_transform: transform.none_if_empty(str)
 
     - property: presencedefault
       external_name: presencedefault
-      import_transform: transform.none_if_empty(str)
-
-    - property: publisher
-      external_name: publisher
       import_transform: transform.none_if_empty(str)
 
     - property: samplingprotocol
@@ -120,20 +106,39 @@ transformers:
       external_name: source
       import_transform: transform.none_if_empty(str)
 
-    - property: subject
-      external_name: subject
-      import_transform: transform.none_if_empty(str)
-
-    - property: taxonomiccoverage
-      external_name: taxonomiccoverage
-      import_transform: transform.none_if_empty(str)
-
-    - property: title
-      external_name: title
-      import_transform: transform.none_if_empty(str)
-
     - property: verbatimsrs
       external_name: verbatimsrs
       import_transform: transform.none_if_empty(str)
 
-  post_import_function: bulkload_helper.add_polygons
+    # Optional source fields
+
+    - property: accessright
+      external_name: accessright
+      import_transform: transform.none_if_empty(str)
+
+    - property: contributor
+      external_name: contributor
+      import_transform: transform.none_if_empty(str)
+
+    - property: format
+      external_name: format
+      import_transform: transform.none_if_empty(str)
+
+    - property: identifier
+      external_name: identifier
+      import_transform: transform.none_if_empty(str)
+
+    - property: rights
+      external_name: rights
+      import_transform: transform.none_if_empty(str)
+
+    - property: surveyintervals
+      external_name: surveyintervals
+      import_transform: transform.none_if_empty(str)
+
+    - property: type
+      external_name: type
+      import_transform: transform.none_if_empty(str)
+
+  post_import_function: bulkload_helper.add_polygon
+
