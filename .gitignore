@@ -45,6 +45,7 @@ bulkloader-progress*
 *.project
 *.pydevproject
 *.iml
+*.swp
 
 # OS files #
 ############
