@@ -32,6 +32,7 @@ class LayerIndex(model.Model):
     # Full text corpus
     corpus = model.StringProperty('c', repeated=True)
     # Required fields
+    json = model.TextProperty(required=True)
     accessrights = model.StringProperty(required=True)
     bibliographiccitation = model.StringProperty(required=True)
     breedingdomain = model.StringProperty(required=True)

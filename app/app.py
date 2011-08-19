@@ -372,10 +372,95 @@ class Insane(BaseHandler):
         json = simplejson.dumps([simplejson.loads(x.parent().get().json) for x in qry.fetch(keys_only=True)])
         self.response.headers["Content-Type"] = "application/json"
         self.response.out.write(json)
+    
+INDEXED_PROPS = ['accessright', 'accessright', 'accessrights', 'areaid', 
+                 'bibliographiccitation', 'bibliographiccitation', 
+                 'breedingdomain', 'contact', 'contributor', 'contributor', 
+                 'coverage', 'date', 'email', 'eventdate', 'format', 'format', 
+                 'identifier', 'identifier', 'nonbreedingdomain', 'polygonid', 
+                 'polygonname', 'presencedefault', 'rights', 'rights', 
+                 'samplingprotocol', 'scientificname', 'scientificname', 
+                 'source', 'surveyintervals', 'surveyintervals', 'type', 'type', 
+                 'verbatimsrs']
+    
+POLYGON_PROPS = ['areaid', 'areaname', 'bibliographiccitation', 'contributor', 
+                 'dateend', 'datestart', 'establishmentmeans', 
+                 'infraspecificepithet', 'occurrencestatus', 'polygonid', 
+                 'polygonname', 'scientificname', 'seasonality']
+
+class NewLayerApi(BaseHandler):
+
+    """Prototype class for experimenting with new Layers API."""
+
+    def get(self):
         
+        from ndb import model, query
+        from mol.db.layers import Layer, LayerIndex
+
+        limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
+        offset = self.request.get_range('offset', min_value=0, default=0)
+        args = {}
+        for arg in self.request.arguments():
+            if arg in INDEXED_PROPS:
+                if arg in POLYGON_PROPS:
+                    args['polygon.%s' % arg] = self.request.get(arg, None)
+                else:
+                    args[arg] = self.request.get(arg, None)
+            
+        qry = LayerIndex.query()
+        if len(args) > 0:
+            gql = 'SELECT * FROM LayerIndex WHERE'
+            for k,v in args.iteritems():
+                gql = "%s \"%s\" = '%s' AND " % (gql, k, v)
+            gql = gql[:-5] # Removes trailing AND
+            logging.info(gql)
+            qry = query.parse_gql(gql)[0]
+        # No keyword search yet
+        #for keyword in keywords:
+        #    qry = qry.filter(RecordIndex.corpus == keyword)        
+        logging.info('QUERY='+str(qry))
+        layers = model.get_multi(set([x.parent() for x in qry.fetch(limit, offset=offset, keys_only=True)]))
+        layers_json = [simplejson.loads(x.json) for x in layers]
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(simplejson.dumps(layers_json))
+
+class NewPolygonApi(BaseHandler):
+    """This is a prototype class for experimenting with the new Polygon API."""
+
+    def get(self):
+        
+        from ndb import model, query
+        from mol.db.layers import Layer, LayerIndex
+
+        limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
+        offset = self.request.get_range('offset', min_value=0, default=0)
+        args = {}
+        for arg in self.request.arguments():
+            if arg in POLYGON_PROPS:
+                args['polygon.%s' % arg] = self.request.get(arg, None)
+            
+        qry = LayerIndex.query()
+        if len(args) > 0:
+            gql = 'SELECT * FROM LayerIndex WHERE'
+            for k,v in args.iteritems():
+                gql = "%s \"%s\" = '%s' AND " % (gql, k, v)
+            gql = gql[:-5] # Removes trailing AND
+            logging.info(gql)
+            qry = query.parse_gql(gql)[0]
+        logging.info('QUERY='+str(qry))
+        polygons = []
+        for x in qry.fetch(limit, offset=offset): #[simplejson.loads(x.json) for x in qry.fetch(limit, offset=offset)]
+            p = simplejson.loads(x.json)
+            p['layer_index_key'] = str(x.key.id())
+            p['layer_key'] = str(x.key.parent().id())
+            polygons.append(p)
+        self.response.headers["Content-Type"] = "application/json"
+        self.response.out.write(simplejson.dumps(polygons))
 
 application = webapp.WSGIApplication(
          [('/', MainPage),
+          ('/nla', NewLayerApi),
+          ('/npa', NewPolygonApi),
           ('/insane', Insane),
           ('/latest', LatestHandler),
           ('/andrew', Andrew),

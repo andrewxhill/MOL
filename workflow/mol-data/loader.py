@@ -61,7 +61,7 @@ class Config(object):
             cols.extend(self.collection['optional'].keys())
             cols.extend(self.collection['dbfmapping']['required'].keys())
             cols.extend(self.collection['dbfmapping']['optional'].keys())
-            cols.extend(['layer_source', 'layer_collection', 'layer_filename'])
+            cols.extend(['layer_source', 'layer_collection', 'layer_filename', 'layer_polygons'])
             return cols
 
         def get_mapping(self, required=True):
@@ -100,6 +100,10 @@ def _getoptions():
                       action="store_true", 
                       dest='dry_run',
                       help='Creates CSV file but does not bulkload it')                          
+    parser.add_option('-l', '--localhost', 
+                      action="store_true", 
+                      dest='localhost',
+                      help='Shortcut for bulkloading to http://localhost:8080/_ah/remote_api')                          
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
@@ -134,6 +138,11 @@ if __name__ == '__main__':
             coll_row['layer_source'] = sd
             coll_row['layer_collection'] = coll_dir            
             
+            # Create polygons.csv writer
+            poly_file = open('collection.polygons.csv.txt', 'w')
+            poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
+            poly_dw.writeheader()
+
             # Convert DBF to CSV and add to collection.csv
             shpfiles = glob.glob('*.shp')
             logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
@@ -150,11 +159,12 @@ if __name__ == '__main__':
                 row = copy.copy(coll_row)                
                 row['layer_filename'] = os.path.splitext(sf)[0]
                 dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
-                layer_dbf = []
+               
+                layer_polygons = []
                 
                 for dbf in dr: # For each row in the DBF CSV file (1 row per polygon)
 
-                    #dbfjson = {}
+                    polygon = {}
 
                     for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
                         sourceval = dbf.get(source)
@@ -162,21 +172,26 @@ if __name__ == '__main__':
                             logging.error('Missing required DBF field %s' % mol)
                             sys.exit(1)        
                         row[mol] = sourceval
+                        polygon[mol] = sourceval
 
                     for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
                         sourceval = dbf.get(source)
                         if not sourceval:
                             continue
                         row[mol] = sourceval
+                        polygon[mol] = sourceval
 
                     # Write coll_row to collection.csv
                     coll_csv.writerow(row)
 
-                    #layer_dbf.append(dbfjson)
+                    layer_polygons.append(polygon)
 
                 # Create JSON representation of dbfjson
-                #row['layer_dbf'] = simplejson.dumps(layer_dbf) # TODO: Showing up as string instead of JSON in API
-
+                polygons_json = simplejson.dumps(layer_polygons) # TODO: Showing up as string instead of JSON in API
+                poly_dw.writerow(dict(shapefilename=row['layer_filename'], json=polygons_json))
+                poly_file.flush()
+                poly_file.close()
+                
                 
             # Important: Close the DictWriter file before trying to bulkload it
             logging.info('All collection metadata saved to %s' % coll_file.name)
@@ -190,6 +205,9 @@ if __name__ == '__main__':
             os.chdir('../../')
             filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
             config_file = os.path.abspath(options.config_file)
+
+            if options.localhost:
+                options.url = 'http://localhost:8080/_ah/remote_api'
 
             # Bulkload Layer entities to App Engine for entire collection
             cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
