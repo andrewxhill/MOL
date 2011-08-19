@@ -144,7 +144,13 @@ if __name__ == '__main__':
                     os.remove(csvfile)
                 command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
                 args = shlex.split(command)
-                subprocess.call(args)
+                try:
+                    subprocess.call(args)
+                except OSError as errmsg:
+                    print """Error occured while executing command line '{0}': {2}
+Please ensure that {1} is executable and available on your path.
+                    """.format(command, args[0], errmsg)
+                    raise
                 
                 # Copy and update coll_row with DBF fields
                 row = copy.copy(coll_row)                
