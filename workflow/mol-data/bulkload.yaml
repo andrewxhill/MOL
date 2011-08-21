@@ -33,9 +33,9 @@ transformers:
       external_name: layer_filename
       import_transform: transform.none_if_empty(str)
 
-    #- property: json
-    #  external_name: json
-    #  import_transform: bulkload_helper.create_layer_json()
+    - property: json
+      external_name: layer_polygons
+      import_transform: bulkload_helper.create_layer_json()
 
 - kind: LayerIndex
   connector: csv

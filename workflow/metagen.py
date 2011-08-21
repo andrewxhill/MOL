@@ -78,12 +78,20 @@ class BulkloaderHelper(object):
         indexed = DbfProps.indexed()
         print ''
         print 'def add_polygon(input_dict, instance, bulkload_state_copy):'
+        print '    json = {}'
         print '    # Required'
         for x in indexed['required']:
+            print "    val = transform.none_if_empty(str)(input_dict['%s'])" % x
             print "    instance['polygon.%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+            print "    if val:"
+            print "        json['%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
         print '    # Optional'
         for x in indexed['optional']:
+            print "    val = transform.none_if_empty(str)(input_dict['%s'])" % x
             print "    instance['polygon.%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+            print "    if val:"
+            print "        json['%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+        print "    instance['json'] = db.Text(simplejson.dumps(json))"
         print '    return instance'
         
         
@@ -96,7 +104,9 @@ class BulkloaderYaml(object):
         #dp = DbfProps.indexed()
         #dbf_props = dp['required'] + dp['optional'] 
         source_props = SourceProps.indexed()
-        props = '\n    # Required source fields'
+        props = ''
+        props = '%s\n\n%s' % (props, cls.PROP_TEMPLATE % ('json', 'json'))
+        props = props + '\n    # Required source fields'        
         for p in source_props['required']:
             props = '%s\n\n%s' % (props, cls.PROP_TEMPLATE % (p, p))
         props = '%s\n\n    # Optional source fields' % props
@@ -146,9 +156,9 @@ transformers:
       external_name: layer_filename
       import_transform: transform.none_if_empty(str)
 
-    #- property: json
-    #  external_name: json
-    #  import_transform: bulkload_helper.create_layer_json()
+    - property: json
+      external_name: json
+      import_transform: bulkload_helper.create_layer_json()
 
 - kind: LayerIndex
   connector: csv
@@ -159,7 +169,7 @@ transformers:
     - property: __key__
       import_template: "%(layer_source)s-%(layer_collection)s-%(layer_filename)s"
       import_transform: bulkload_helper.create_layer_index_key()
-    
+
 # TODO: Full text for LayerIndex?
 #    - property: corpus
 #      external_name: layer_source
@@ -221,6 +231,18 @@ Collections:
         dbf_optional = ':      \n      '.join(dbf['optional'])
         print cls.TEMPLATE % (source_required, source_optional, dbf_required, dbf_optional)
 
+class PropGen(object):
+    @classmethod
+    def Output(cls):
+        source = SourceProps.indexed()
+        dbf = DbfProps.indexed()
+        props = source['required'] + source['optional'] + dbf['required'] + source['optional']
+        props.sort()
+        print "INDEXED_PROPS = ["
+        for x in props:
+            print "'%s'," % x,
+        print ']'
+
 class SourceProps(object):
     
     """Helper that provides source fields from the CSV file."""
@@ -271,6 +293,7 @@ class SourceProps(object):
         print '    polygon = model.StructuredProperty(LayerPolygon, repeated=True)'
         print '    # Full text corpus'
         print "    corpus = model.StringProperty('c', repeated=True)"
+        print "    json = model.TextProperty(required=True)"
         print '    # Required fields'
         for prop in fields['required']:            
             print '    %s = model.StringProperty(required=True)' % prop
@@ -343,3 +366,7 @@ if __name__ == '__main__':
     ConfigYaml.Output()
     BulkloaderYaml.Output()
     BulkloaderHelper.Output()
+    PropGen.Output()
+    p = DbfProps.indexed()['required'] + DbfProps.indexed()['optional'] 
+    p.sort()
+    print p

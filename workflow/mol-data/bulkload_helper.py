@@ -26,7 +26,9 @@ from mol.db.layers import Layer, LayerIndex, LayerPolygon
 
 # Python imports
 import copy
+import csv
 import logging
+import os
 import sys
 
 # Goole App Engine imports
@@ -54,14 +56,29 @@ STOP_WORDS = [
 
 DO_NOT_INDEX= []
 
-# def create_layer_json():
-#     def wrapper(value, bulkload_state):
-#         """Returns current_dictionary (a row in the CSV file) as JSON text."""
-#         d = copy.deepcopy(bulkload_state.current_dictionary)
-#         d['layer_dbf'] = simplejson.loads(d['layer_dbf'])
-#         d.pop('__record_number__') # We don't want this in the JSON!
-#         return db.Text(simplejson.dumps(d))
-#     return wrapper
+def create_layer_json():
+    def wrapper(value, bulkload_state):
+        """Returns current_dictionary (a row in the CSV file) as JSON text."""
+        path, filename = os.path.split(bulkload_state.filename)
+        jsonfilename = os.path.join(path, 'collection.polygons.csv.txt')
+        dr = csv.DictReader(open(jsonfilename, 'r'))
+        layer_filename = bulkload_state.current_dictionary['layer_filename']
+        for row in dr:
+            if row['shapefilename'] == layer_filename:                
+                d = copy.deepcopy(bulkload_state.current_dictionary)
+                d = dict((k,v) for k,v in d.iteritems() if v and v != 'null')
+                d.pop('__record_number__') # We don't want this in the JSON!
+                
+                # TODO: polygonid and bibliographicitation are magically appearing in d
+                # so pop them here.
+                d.pop('polygonid') # We don't want this in the JSON!
+                d.pop('bibliographiccitation') # We don't want this in the JSON!
+
+                polygons = simplejson.loads(row['json'])
+                d['polygons'] = polygons
+                return db.Text(simplejson.dumps(d))
+        return None
+    return wrapper
 
 def create_layer_index_key():
     """Returns a function that returns a LayerIndex key with Layer parent."""
@@ -91,20 +108,62 @@ def get_corpus_list():
         return list(corpus)
     return wrapper
 
+
 def add_polygon(input_dict, instance, bulkload_state_copy):
+    json = {}
     # Required
+    val = transform.none_if_empty(str)(input_dict['areaid'])
     instance['polygon.areaid'] = transform.none_if_empty(str)(input_dict['areaid'])
+    if val:
+        json['areaid'] = transform.none_if_empty(str)(input_dict['areaid'])
+    val = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
     instance['polygon.bibliographiccitation'] = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
+    if val:
+        json['bibliographiccitation'] = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
+    val = transform.none_if_empty(str)(input_dict['polygonid'])
     instance['polygon.polygonid'] = transform.none_if_empty(str)(input_dict['polygonid'])
+    if val:
+        json['polygonid'] = transform.none_if_empty(str)(input_dict['polygonid'])
+    val = transform.none_if_empty(str)(input_dict['polygonname'])
     instance['polygon.polygonname'] = transform.none_if_empty(str)(input_dict['polygonname'])
+    if val:
+        json['polygonname'] = transform.none_if_empty(str)(input_dict['polygonname'])
+    val = transform.none_if_empty(str)(input_dict['scientificname'])
     instance['polygon.scientificname'] = transform.none_if_empty(str)(input_dict['scientificname'])
+    if val:
+        json['scientificname'] = transform.none_if_empty(str)(input_dict['scientificname'])
     # Optional
+    val = transform.none_if_empty(str)(input_dict['areaname'])
     instance['polygon.areaname'] = transform.none_if_empty(str)(input_dict['areaname'])
+    if val:
+        json['areaname'] = transform.none_if_empty(str)(input_dict['areaname'])
+    val = transform.none_if_empty(str)(input_dict['contributor'])
     instance['polygon.contributor'] = transform.none_if_empty(str)(input_dict['contributor'])
+    if val:
+        json['contributor'] = transform.none_if_empty(str)(input_dict['contributor'])
+    val = transform.none_if_empty(str)(input_dict['dateend'])
     instance['polygon.dateend'] = transform.none_if_empty(str)(input_dict['dateend'])
+    if val:
+        json['dateend'] = transform.none_if_empty(str)(input_dict['dateend'])
+    val = transform.none_if_empty(str)(input_dict['datestart'])
     instance['polygon.datestart'] = transform.none_if_empty(str)(input_dict['datestart'])
+    if val:
+        json['datestart'] = transform.none_if_empty(str)(input_dict['datestart'])
+    val = transform.none_if_empty(str)(input_dict['establishmentmeans'])
     instance['polygon.establishmentmeans'] = transform.none_if_empty(str)(input_dict['establishmentmeans'])
+    if val:
+        json['establishmentmeans'] = transform.none_if_empty(str)(input_dict['establishmentmeans'])
+    val = transform.none_if_empty(str)(input_dict['infraspecificepithet'])
     instance['polygon.infraspecificepithet'] = transform.none_if_empty(str)(input_dict['infraspecificepithet'])
+    if val:
+        json['infraspecificepithet'] = transform.none_if_empty(str)(input_dict['infraspecificepithet'])
+    val = transform.none_if_empty(str)(input_dict['occurrencestatus'])
     instance['polygon.occurrencestatus'] = transform.none_if_empty(str)(input_dict['occurrencestatus'])
+    if val:
+        json['occurrencestatus'] = transform.none_if_empty(str)(input_dict['occurrencestatus'])
+    val = transform.none_if_empty(str)(input_dict['seasonality'])
     instance['polygon.seasonality'] = transform.none_if_empty(str)(input_dict['seasonality'])
+    if val:
+        json['seasonality'] = transform.none_if_empty(str)(input_dict['seasonality'])
+    instance['json'] = db.Text(simplejson.dumps(json))
     return instance
