@@ -44,6 +44,7 @@ class Config(object):
     class Collection(object):
         def __init__(self, collection):
             self.collection = collection
+            self.validate()
         
         def get_row(self):
             row = {}
@@ -78,6 +79,25 @@ class Config(object):
         def get(self, key, default=None):
             return self.collection.get(key, default)
         
+        def validate(self):
+            """ Validates the current "Collections" configuration by checking required and optional fields against those
+                in http://www.google.com/fusiontables/DataSource?dsrcid=1330559, our current configuration source.
+                Throws an exception if validation fails.
+            """
+            
+            def validate_fields(field_dict, query):
+                """ A closure whose only purpose is to simplify the code """
+
+                fieldnames = field_dict.keys()
+                for fieldname in fieldnames:
+                    print "Validating '" + fieldname + "' against '" + query + "'" 
+
+            validate_fields(self.collection['required'],                "type=source    AND required =  'y'")
+            validate_fields(self.collection['optional'],                "type=source    AND required <> 'y'")
+            validate_fields(self.collection['dbfmapping']['required'],  "type=dbf       AND required =  'y'")
+            validate_fields(self.collection['dbfmapping']['optional'],  "type=dbf       AND required <> 'y'")
+
+
     def __init__(self, filename):
         self.config = Config.lower_keys(yaml.load(open(filename, 'r').read()))
 
