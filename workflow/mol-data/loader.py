@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2011 Aaron Steele
+# Copyright 2011 Aaron Steele and John Wieczorek
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import copy
 import csv
 import glob
 import logging
+from unicodewriterhelper import UnicodeWriter
 from optparse import OptionParser
 import os
 import simplejson
@@ -88,6 +89,99 @@ class Config(object):
         for collection in self.config['collections']:
             yield Config.Collection(collection)
 
+def source2csv(source_dir):
+    ''' Loads the collections in the given source directory. 
+    
+        Arguments:
+            source_dir - the directory in which the config.yaml file is located.
+    '''
+    os.chdir(source_dir)
+    config = Config('config.yaml')        
+    logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
+    
+    for collection in config.collections(): # For each collection dir in the source dir       
+        coll_dir = collection.getdir()
+        os.chdir(os.path.join(source_dir,coll_dir))
+        
+        # Create collection.csv writer
+        coll_file = open('collection.csv.txt', 'w')
+        coll_cols = collection.get_columns()
+        coll_cols.sort()
+#        coll_csv = UnicodeWriter(coll_file, coll_cols)
+        coll_csv = csv.DictWriter(coll_file, coll_cols)
+        coll_csv.writer.writerow(coll_csv.fieldnames)
+        coll_row = collection.get_row()
+        coll_row['layer_source'] = source_dir
+        coll_row['layer_collection'] = coll_dir            
+        
+        # Create polygons.csv writer
+        poly_file = open('collection.polygons.csv.txt', 'w')
+#        poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
+        poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
+        poly_dw.writer.writerow(poly_dw.fieldnames)
+    
+        # Convert DBF to CSV and add to collection.csv
+        shpfiles = glob.glob('*.shp')
+        logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
+        for sf in shpfiles:
+            logging.info('Extracting DBF fields from %s' % sf)
+            csvfile = '%s.csv' % sf
+            if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
+                os.remove(csvfile)
+            # Following line only for convenience for running on Mac in eclipse
+#            command = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            args = shlex.split(command)
+            try:
+                subprocess.call(args)
+            except OSError as errmsg:
+                print """Error occurred while executing command line '{0}': {2}
+    Please ensure that {1} is executable and available on your path.
+                """.format(command, args[0], errmsg)
+                raise
+            
+            # Copy and update coll_row with DBF fields
+            row = copy.copy(coll_row)                
+            row['layer_filename'] = os.path.splitext(sf)[0]
+            dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
+           
+            layer_polygons = []
+            
+            for dbf in dr: # For each row in the DBF CSV file (1 row per polygon)
+    
+                polygon = {}
+    
+                for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
+                    sourceval = dbf.get(source)
+                    if not sourceval:
+                        logging.error('Missing required DBF field %s' % mol)
+                        sys.exit(1)        
+                    row[mol] = sourceval
+                    polygon[mol] = sourceval
+    
+                for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
+                    sourceval = dbf.get(source)
+                    if not sourceval:
+                        continue
+                    row[mol] = sourceval
+                    polygon[mol] = sourceval
+    
+                # Write coll_row to collection.csv
+                coll_csv.writerow(row)
+                layer_polygons.append(polygon)
+    
+            # Create JSON representation of dbfjson
+            polygons_json = simplejson.dumps(layer_polygons) # TODO: Showing up as string instead of JSON in API
+            d=dict(shapefilename=row['layer_filename'], json=polygons_json)
+            poly_dw.writerow(dict(shapefilename=row['layer_filename'], json=polygons_json))
+        poly_file.flush()
+        poly_file.close()
+    
+        # Important: Close the DictWriter file before trying to bulkload it
+        logging.info('All collection metadata saved to %s' % coll_file.name)
+        coll_file.flush()
+        coll_file.close()
+    
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
@@ -104,130 +198,64 @@ def _getoptions():
                       action="store_true", 
                       dest='localhost',
                       help='Shortcut for bulkloading to http://localhost:8080/_ah/remote_api')                          
+    parser.add_option('-s', '--source_dir', 
+                      type='string', 
+                      dest='source_dir',
+                      help='Directory containing source to load.')    
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
                       help='URL endpoint to /remote_api to bulkload to.')                          
     return parser.parse_args()[0]
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
-
-    source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+    current_dir = os.path.curdir
     if options.dry_run:
             logging.info('Performing a dry run...')
-    logging.info('Processing source directories: %s' % source_dirs)
 
-    for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
-        os.chdir(sd)
-        config = Config('config.yaml')        
-        logging.info('Collections in %s: %s' % (sd, config.collection_names()))
+    if options.source_dir is not None:
+        if os.path.isdir(options.source_dir):
+            logging.info('Processing source directory: %s' % options.source_dir)
+            source2csv(options.source_dir)
+            sys.exit(0)
+        else:
+            logging.info('Unable to locate source directory %s.' % options.source_dir)
+            sys.exit(1)    
+    else:
+        source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+        logging.info('Processing source directories: %s' % source_dirs)
+        for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
+            source2csv(sd)
+        
+    if dry_run:
+        logging.info('Dry run complete!')
+        sys.exit(1)
+        
+    os.chdir(current_dir)
+    os.chdir('../../')
+    filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
+    config_file = os.path.abspath(options.config_file)
 
-        for collection in config.collections(): # For each collection dir in the source dir       
-            coll_dir = collection.getdir()
-            os.chdir(coll_dir)
-            
-            # Create collection.csv writer
-            coll_file = open('collection.csv.txt', 'w')
-            coll_cols = collection.get_columns()
-            coll_cols.sort()
-            coll_csv = csv.DictWriter(coll_file, coll_cols)
-            coll_csv.writer.writerow(coll_csv.fieldnames)
-            coll_row = collection.get_row()
-            coll_row['layer_source'] = sd
-            coll_row['layer_collection'] = coll_dir            
-            
-            # Create polygons.csv writer
-            poly_file = open('collection.polygons.csv.txt', 'w')
-            poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
-            poly_dw.writeheader()
+    if options.localhost:
+        options.url = 'http://localhost:8080/_ah/remote_api'
 
-            # Convert DBF to CSV and add to collection.csv
-            shpfiles = glob.glob('*.shp')
-            logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
-            for sf in shpfiles:
-                logging.info('Extracting DBF fields from %s' % sf)
-                csvfile = '%s.csv' % sf
-                if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
-                    os.remove(csvfile)
-                command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
-                args = shlex.split(command)
-                try:
-                    subprocess.call(args)
-                except OSError as errmsg:
-                    print """Error occured while executing command line '{0}': {2}
-Please ensure that {1} is executable and available on your path.
-                    """.format(command, args[0], errmsg)
-                    raise
-                
-                # Copy and update coll_row with DBF fields
-                row = copy.copy(coll_row)                
-                row['layer_filename'] = os.path.splitext(sf)[0]
-                dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
-               
-                layer_polygons = []
-                
-                for dbf in dr: # For each row in the DBF CSV file (1 row per polygon)
+    # Bulkload Layer entities to App Engine for entire collection
+    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+    cmdline = cmd % (config_file, filename, 'Layer', options.url)
+    args = shlex.split(cmdline)
+    #logging.info(cmdline)
+    subprocess.call(args)
+    
+    # Bulkload LayerIndex entities to App Engine for entire collection
+    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+    cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+    args = shlex.split(cmdline)
+    #logging.info(cmdline)
+    subprocess.call(args)
+    
+    logging.info('Loading finished!')
 
-                    polygon = {}
-
-                    for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
-                        sourceval = dbf.get(source)
-                        if not sourceval:
-                            logging.error('Missing required DBF field %s' % mol)
-                            sys.exit(1)        
-                        row[mol] = sourceval
-                        polygon[mol] = sourceval
-
-                    for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
-                        sourceval = dbf.get(source)
-                        if not sourceval:
-                            continue
-                        row[mol] = sourceval
-                        polygon[mol] = sourceval
-
-                    # Write coll_row to collection.csv
-                    coll_csv.writerow(row)
-
-                    layer_polygons.append(polygon)
-
-                # Create JSON representation of dbfjson
-                polygons_json = simplejson.dumps(layer_polygons) # TODO: Showing up as string instead of JSON in API
-                poly_dw.writerow(dict(shapefilename=row['layer_filename'], json=polygons_json))
-                poly_file.flush()
-                poly_file.close()
-                
-                
-            # Important: Close the DictWriter file before trying to bulkload it
-            logging.info('All collection metadata saved to %s' % coll_file.name)
-            coll_file.flush()
-            coll_file.close()
-            
-            if options.dry_run:
-                logging.info('Dry run complete!')
-                sys.exit(1)
-                
-            os.chdir('../../')
-            filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
-            config_file = os.path.abspath(options.config_file)
-
-            if options.localhost:
-                options.url = 'http://localhost:8080/_ah/remote_api'
-
-            # Bulkload Layer entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'Layer', options.url)
-            args = shlex.split(cmdline)
-            #logging.info(cmdline)
-            subprocess.call(args)
-            
-            # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-            args = shlex.split(cmdline)
-            #logging.info(cmdline)
-            subprocess.call(args)
-            
-            logging.info('Loading finished!')
-                
+if __name__ == '__main__':
+    main()
