@@ -20,7 +20,7 @@ Collections:
   # Required MOL metadata (http://goo.gl/98r46)
   #  
   Required:
-    absenceReliability: 
+    absencereliability: 
     accessrights: 
     bibliographiccitation: 
     breedingdomain: 
