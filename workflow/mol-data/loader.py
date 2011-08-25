@@ -28,6 +28,7 @@ import simplejson
 import shlex
 import subprocess
 import sys
+import urllib
 import yaml
 
 class Config(object):
@@ -81,23 +82,75 @@ class Config(object):
             return self.collection.get(key, default)
         
         def validate(self):
-            """ Validates the current "Collections" configuration by checking required and optional fields against those
-                in http://www.google.com/fusiontables/DataSource?dsrcid=1330559, our current configuration source.
+            """
+                Validates the current "Collections" configuration by checking required and optional fields against those
+                in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, our current configuration source.
                 Throws an exception if validation fails.
             """
             
-            def validate_fields(field_dict, query):
-                """ A closure whose only purpose is to simplify the code """
+            ERR_VALIDATION = -2         # For exit(..) calls during validation.
+            
+            # Step 1. Check if all four categories are present.
+            expected_sections = {"Collections:Required": 0, "Collections:Optional": 0, "Collections:DBFMapping:Required": 0, "Collections:DBFMapping:Optional": 0}
+            
+            if not self.collection.has_key('required'):
+                del expected_sections['Collections:Required']
+            if not self.collection.has_key('optional'):
+                del expected_sections['Collections:Optional']
+            if not self.collection.has_key('dbfmapping'):
+                del expected_sections['Collections:DBFMapping:Required']
+                del expected_sections['Collections:DBFMapping:Optional']
+            elif not self.collection['dbfmapping'].has_key('required'):
+                del expected_sections['Collections:DBFMapping:Required']
+            elif not self.collection['dbfmapping'].has_key('optional'):
+                del expected_sections['Collections:DBFMapping:Optional']
+            
+            if len(expected_sections.keys()) < 4:
+                print "This config.yaml file does not have all the necessary sections; it contains only: %s" % (str.join(expected_sections.keys()))
+                exit(ERR_VALIDATION)
+            
+            # Step 2. Validate fields.
+            fusiontable_id = 1348212
+            ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
+            
+            def validate_fields(fields, section, where_clause):
+                urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
 
-                fieldnames = field_dict.keys()
-                for fieldname in fieldnames:
-                    print "Validating '" + fieldname + "' against '" + query + "'" 
+                # Every single field returned by the FT must be in our file.
+                expected_fields = {}
+                errors = 0
 
-            validate_fields(self.collection['required'],                "type=source    AND required =  'y'")
-            validate_fields(self.collection['optional'],                "type=source    AND required <> 'y'")
-            validate_fields(self.collection['dbfmapping']['required'],  "type=dbf       AND required =  'y'")
-            validate_fields(self.collection['dbfmapping']['optional'],  "type=dbf       AND required <> 'y'")
+                rows = csv.DictReader(urlconn)
+                for row in rows:
+                   expected_fields[row['alias'].lower()] = 1
+                urlconn.close()
+                
+                errors = 0
+                field_aliases =             set(fields.keys())
+                expected_field_aliases =    set(expected_fields.keys())
+                if len(field_aliases - expected_field_aliases) > 0:
+                    print "Unexpected fields found in section %s: %s" % (section, ", ".join(field_aliases - expected_field_aliases))
+                    errors = 1
+                
+                if len(expected_field_aliases - field_aliases) > 0:
+                    print "Fields missing from section %s: %s" % (section, ", ".join(expected_field_aliases - field_aliases))
+                    errors = 1
+                
+                return errors
+            
+            errors = 0
+            errors += validate_fields(self.collection['required'],                "Collections:Required",             "source='MOLSourceFields'       AND required =  'y'")
+            errors += validate_fields(self.collection['optional'],                "Collections:Optional",             "source='MOLSourceFields'       AND required =  ''")
+            errors += validate_fields(self.collection['dbfmapping']['required'],  "Collections:DBFMapping:Required",  "source='MOLSourceDBFfields'    AND required =  'y'")
+            errors += validate_fields(self.collection['dbfmapping']['optional'],  "Collections:DBFMapping:Optional",  "source='MOLSourceDBFfields'    AND required =  ''")
 
+            # In case of any errors, bail out.
+            if errors > 0:
+                print "This config.yaml could not be validated. Continuing anyway." # Please fix it as per the errors above and retry."
+                # exit(ERR_VALIDATION)
+                
+            # No errors? Return successfully!
+            return
 
     def __init__(self, filename):
         self.config = Config.lower_keys(yaml.load(open(filename, 'r').read()))
