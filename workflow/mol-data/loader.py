@@ -95,8 +95,7 @@ def source2csv(source_dir):
         Arguments:
             source_dir - the directory in which the config.yaml file is located.
     '''
-    os.chdir(source_dir)
-    config = Config('config.yaml')        
+    config = Config(os.path.join(source_dir, 'config.yaml'))        
     logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
     
     for collection in config.collections(): # For each collection dir in the source dir       
@@ -143,7 +142,12 @@ def source2csv(source_dir):
             # Copy and update coll_row with DBF fields
             row = copy.copy(coll_row)                
             row['layer_filename'] = os.path.splitext(sf)[0]
-            dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
+            
+            # Read the first row (field headers) separately, so we can
+            # lowercase them all.
+            file = open(csvfile, 'r')
+            fieldnames = file.readline().lower()
+            dr = csv.DictReader(file, fieldnames, skipinitialspace=True)
            
             layer_polygons = []
             
