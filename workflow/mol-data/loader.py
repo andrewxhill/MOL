@@ -93,15 +93,16 @@ def source2csv(source_dir):
     ''' Loads the collections in the given source directory. 
     
         Arguments:
-            source_dir - the directory in which the config.yaml file is located.
+            source_dir - the relative path to the directory in which the config.yaml file is located.
     '''
-    os.chdir(source_dir)
-    config = Config('config.yaml')        
+    config = Config(os.path.join(source_dir, 'config.yaml'))        
     logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
     
     for collection in config.collections(): # For each collection dir in the source dir       
         coll_dir = collection.getdir()
-        os.chdir(os.path.join(source_dir,coll_dir))
+
+        original_dir = os.getcwd()           # We'll need this to restore us to this dir at the end of processing this collection.
+        os.chdir(os.path.join(source_dir, coll_dir))
         
         # Create collection.csv writer
         coll_file = open('collection.csv.txt', 'w')
@@ -181,6 +182,9 @@ def source2csv(source_dir):
         logging.info('All collection metadata saved to %s' % coll_file.name)
         coll_file.flush()
         coll_file.close()
+
+        # Go back to the original directory for the next collection.
+        os.chdir(original_dir)
     
 def _getoptions():
     ''' Parses command line options and returns them.'''
