@@ -208,6 +208,11 @@ def source2csv(source_dir, options):
         if not options.dry_run:
             os.chdir('../../')
             filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
+
+            if options.config_file is None:
+                print "\nError: No bulkloader configuration file specified: please specify one with the --config_file option."
+                exit(0)
+
             config_file = os.path.abspath(options.config_file)
 
             if options.localhost:
@@ -236,7 +241,7 @@ def _getoptions():
                       type='string', 
                       dest='config_file',
                       metavar='FILE', 
-                      help='Bulkload YAML config file.')    
+                      help='Bulkload YAML config file.')
     parser.add_option('-d', '--dry_run', 
                       action="store_true", 
                       dest='dry_run',
