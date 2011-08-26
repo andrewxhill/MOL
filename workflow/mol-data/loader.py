@@ -17,6 +17,7 @@
 
 """This script implements the MoL workflow process for layers."""
 
+from collections import defaultdict
 import copy
 import csv
 import glob
@@ -48,6 +49,9 @@ class Config(object):
             self.collection = collection
             self.validate()
         
+        def __repr__(self):
+            return str(self.__dict__)
+
         def get_row(self):
             row = {}
             for k,v in self.collection['required'].iteritems():
@@ -73,7 +77,11 @@ class Config(object):
                 mapping = self.collection['dbfmapping']['required'] 
             else:
                 mapping = self.collection['dbfmapping']['optional'] 
-            return dict((source, mol) for mol,source in mapping.iteritems())
+            dd = defaultdict(list)
+            for mol, source in mapping.iteritems():
+                dd[source].append(mol)
+            return dd
+            #return dict((source, mol) for mol,source in mapping.iteritems())
             
         def getdir(self):
             return self.collection['directoryname']
@@ -159,28 +167,28 @@ class Config(object):
         return [x.get('directoryname') for x in self.collections()]
 
     def collections(self):
-        for collection in self.config['collections']:
-            yield Config.Collection(collection)
+        return [Config.Collection(collection) for collection in self.config['collections']]
 
-def source2csv(source_dir):
+def source2csv(source_dir, options):
     ''' Loads the collections in the given source directory. 
     
         Arguments:
-            source_dir - the directory in which the config.yaml file is located.
+            source_dir - the relative path to the directory in which the config.yaml file is located.
     '''
-    os.chdir(source_dir)
-    config = Config('config.yaml')        
+    config = Config(os.path.join(source_dir, 'config.yaml'))        
     logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
     
     for collection in config.collections(): # For each collection dir in the source dir       
         coll_dir = collection.getdir()
-        os.chdir(os.path.join(source_dir,coll_dir))
+
+        original_dir = os.getcwd()           # We'll need this to restore us to this dir at the end of processing this collection.
+        os.chdir(os.path.join(source_dir, coll_dir))
         
         # Create collection.csv writer
         coll_file = open('collection.csv.txt', 'w')
         coll_cols = collection.get_columns()
         coll_cols.sort()
-#        coll_csv = UnicodeWriter(coll_file, coll_cols)
+        # TODO: coll_csv = UnicodeWriter(coll_file, coll_cols)
         coll_csv = csv.DictWriter(coll_file, coll_cols)
         coll_csv.writer.writerow(coll_csv.fieldnames)
         coll_row = collection.get_row()
@@ -189,21 +197,30 @@ def source2csv(source_dir):
         
         # Create polygons.csv writer
         poly_file = open('collection.polygons.csv.txt', 'w')
-#        poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
+        # TODO: poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
         poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
         poly_dw.writer.writerow(poly_dw.fieldnames)
     
         # Convert DBF to CSV and add to collection.csv
         shpfiles = glob.glob('*.shp')
-        logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
+        logging.info('Processing %d layers in the %s/%s' % (len(shpfiles), source_dir, coll_dir))
         for sf in shpfiles:
             logging.info('Extracting DBF fields from %s' % sf)
             csvfile = '%s.csv' % sf
             if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
                 os.remove(csvfile)
-            # Following line only for convenience for running on Mac in eclipse
-#            command = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
-            command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+
+            # For Macs which have GDAL.framework, we can autodetect it
+            # and use it automatically.
+            ogr2ogr_path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
+            if not os.path.exists(ogr2ogr_path):
+                # We don't have a path to use; let subprocess.call
+                # find it.
+                ogr2ogr_path = 'ogr2ogr'
+
+            # TODO: optional command line option for ogr2ogr command
+
+            command = ogr2ogr_path + ' -f CSV "%s" "%s"' % (csvfile, sf)
             args = shlex.split(command)
             try:
                 subprocess.call(args)
@@ -224,20 +241,22 @@ def source2csv(source_dir):
     
                 polygon = {}
     
-                for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
-                    sourceval = dbf.get(source)
-                    if not sourceval:
-                        logging.error('Missing required DBF field %s' % mol)
-                        sys.exit(1)        
-                    row[mol] = sourceval
-                    polygon[mol] = sourceval
+                for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
+                    for mol in mols:
+                        sourceval = dbf.get(source)
+                        if not sourceval:
+                            logging.error('Missing required DBF field %s' % mol)
+                            sys.exit(1)        
+                        row[mol] = sourceval
+                        polygon[mol] = sourceval
     
-                for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
-                    sourceval = dbf.get(source)
-                    if not sourceval:
-                        continue
-                    row[mol] = sourceval
-                    polygon[mol] = sourceval
+                for source, mols in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
+                    for mol in mols:
+                        sourceval = dbf.get(source)
+                        if not sourceval:
+                            continue
+                        row[mol] = sourceval
+                        polygon[mol] = sourceval
     
                 # Write coll_row to collection.csv
                 coll_csv.writerow(row)
@@ -252,8 +271,41 @@ def source2csv(source_dir):
     
         # Important: Close the DictWriter file before trying to bulkload it
         logging.info('All collection metadata saved to %s' % coll_file.name)
+        logging.info('All collection polygons saved to %s' % poly_file.name)
         coll_file.flush()
         coll_file.close()
+
+        # Bulkload...
+
+        # os.chdir(current_dir)
+        if not options.dry_run:
+            os.chdir('../../')
+            filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
+
+            if options.config_file is None:
+                print "\nError: No bulkloader configuration file specified: please specify one with the --config_file option."
+                exit(0)
+
+            config_file = os.path.abspath(options.config_file)
+
+            if options.localhost:
+                options.url = 'http://localhost:8080/_ah/remote_api'
+
+            # Bulkload Layer entities to App Engine for entire collection
+            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+            cmdline = cmd % (config_file, filename, 'Layer', options.url)
+            args = shlex.split(cmdline)
+            subprocess.call(args)
+
+            # Bulkload LayerIndex entities to App Engine for entire collection
+            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+            args = shlex.split(cmdline)
+            subprocess.call(args)
+
+
+        # Go back to the original directory for the next collection.
+        os.chdir(original_dir)
     
 def _getoptions():
     ''' Parses command line options and returns them.'''
@@ -262,7 +314,7 @@ def _getoptions():
                       type='string', 
                       dest='config_file',
                       metavar='FILE', 
-                      help='Bulkload YAML config file.')    
+                      help='Bulkload YAML config file.')
     parser.add_option('-d', '--dry_run', 
                       action="store_true", 
                       dest='dry_run',
@@ -291,7 +343,7 @@ def main():
     if options.source_dir is not None:
         if os.path.isdir(options.source_dir):
             logging.info('Processing source directory: %s' % options.source_dir)
-            source2csv(options.source_dir)
+            source2csv(options.source_dir, options)
             sys.exit(0)
         else:
             logging.info('Unable to locate source directory %s.' % options.source_dir)
@@ -300,33 +352,7 @@ def main():
         source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
-            source2csv(sd)
-        
-    if dry_run:
-        logging.info('Dry run complete!')
-        sys.exit(1)
-        
-    os.chdir(current_dir)
-    os.chdir('../../')
-    filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
-    config_file = os.path.abspath(options.config_file)
-
-    if options.localhost:
-        options.url = 'http://localhost:8080/_ah/remote_api'
-
-    # Bulkload Layer entities to App Engine for entire collection
-    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    cmdline = cmd % (config_file, filename, 'Layer', options.url)
-    args = shlex.split(cmdline)
-    #logging.info(cmdline)
-    subprocess.call(args)
-    
-    # Bulkload LayerIndex entities to App Engine for entire collection
-    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-    args = shlex.split(cmdline)
-    #logging.info(cmdline)
-    subprocess.call(args)
+            source2csv(sd, options)
     
     logging.info('Loading finished!')
 
