@@ -17,6 +17,7 @@
 
 """This script implements the MoL workflow process for layers."""
 
+from collections import defaultdict
 import copy
 import csv
 import glob
@@ -74,7 +75,11 @@ class Config(object):
                 mapping = self.collection['dbfmapping']['required'] 
             else:
                 mapping = self.collection['dbfmapping']['optional'] 
-            return dict((source, mol) for mol,source in mapping.iteritems())
+            dd = defaultdict(list)
+            for mol, source in mapping.iteritems():
+                dd[source].append(mol)
+            return dd
+            #return dict((source, mol) for mol,source in mapping.iteritems())
             
         def getdir(self):
             return self.collection['directoryname']
@@ -100,9 +105,6 @@ def source2csv(source_dir, options):
     config = Config(os.path.join(source_dir, 'config.yaml'))        
     logging.info('Collections in %s: %s' % (source_dir, config.collection_names()))
     
-    collections = config.collections()
-    logging.info(len(collections))
-
     for collection in config.collections(): # For each collection dir in the source dir       
         coll_dir = collection.getdir()
 
@@ -113,7 +115,7 @@ def source2csv(source_dir, options):
         coll_file = open('collection.csv.txt', 'w')
         coll_cols = collection.get_columns()
         coll_cols.sort()
-#        coll_csv = UnicodeWriter(coll_file, coll_cols)
+        # TODO: coll_csv = UnicodeWriter(coll_file, coll_cols)
         coll_csv = csv.DictWriter(coll_file, coll_cols)
         coll_csv.writer.writerow(coll_csv.fieldnames)
         coll_row = collection.get_row()
@@ -122,7 +124,7 @@ def source2csv(source_dir, options):
         
         # Create polygons.csv writer
         poly_file = open('collection.polygons.csv.txt', 'w')
-#        poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
+        # TODO: poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
         poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
         poly_dw.writer.writerow(poly_dw.fieldnames)
     
@@ -134,8 +136,11 @@ def source2csv(source_dir, options):
             csvfile = '%s.csv' % sf
             if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
                 os.remove(csvfile)
+
             # Following line only for convenience for running on Mac in eclipse
-#            command = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            # command = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            # TODO: optional command line option for ogr2ogr command
+
             command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
             args = shlex.split(command)
             try:
@@ -157,21 +162,22 @@ def source2csv(source_dir, options):
     
                 polygon = {}
     
-                for source, mol in collection.get_mapping().iteritems(): # Required DBF fields
-                    sourceval = dbf.get(source)
-                    if not sourceval:
-                        logging.error('Missing required DBF field %s' % mol)
-                        sys.exit(1)        
-                    row[mol] = sourceval
-                    polygon[mol] = sourceval
-                    logging.info('REQUIRED %s=%s' % (mol, sourceval))
+                for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
+                    for mol in mols:
+                        sourceval = dbf.get(source)
+                        if not sourceval:
+                            logging.error('Missing required DBF field %s' % mol)
+                            sys.exit(1)        
+                        row[mol] = sourceval
+                        polygon[mol] = sourceval
     
-                for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
-                    sourceval = dbf.get(source)
-                    if not sourceval:
-                        continue
-                    row[mol] = sourceval
-                    polygon[mol] = sourceval
+                for source, mols in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
+                    for mol in mols:
+                        sourceval = dbf.get(source)
+                        if not sourceval:
+                            continue
+                        row[mol] = sourceval
+                        polygon[mol] = sourceval
     
                 # Write coll_row to collection.csv
                 coll_csv.writerow(row)
@@ -186,6 +192,7 @@ def source2csv(source_dir, options):
     
         # Important: Close the DictWriter file before trying to bulkload it
         logging.info('All collection metadata saved to %s' % coll_file.name)
+        logging.info('All collection polygons saved to %s' % poly_file.name)
         coll_file.flush()
         coll_file.close()
 
