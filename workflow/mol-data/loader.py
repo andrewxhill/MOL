@@ -89,7 +89,7 @@ class Config(object):
         for collection in self.config['collections']:
             yield Config.Collection(collection)
 
-def source2csv(source_dir):
+def source2csv(source_dir, options):
     ''' Loads the collections in the given source directory. 
     
         Arguments:
@@ -183,6 +183,35 @@ def source2csv(source_dir):
         coll_file.flush()
         coll_file.close()
 
+        # Bulkload...
+
+        if options.dry_run:
+            logging.info('Dry run complete!')
+            sys.exit(1)
+
+        # os.chdir(current_dir)
+        os.chdir('../../')
+        filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
+        config_file = os.path.abspath(options.config_file)
+
+        if options.localhost:
+            options.url = 'http://localhost:8080/_ah/remote_api'
+
+        # Bulkload Layer entities to App Engine for entire collection
+        cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+        cmdline = cmd % (config_file, filename, 'Layer', options.url)
+        args = shlex.split(cmdline)
+        #logging.info(cmdline)
+        subprocess.call(args)
+
+        # Bulkload LayerIndex entities to App Engine for entire collection
+        cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+        cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+        args = shlex.split(cmdline)
+        #logging.info(cmdline)
+        subprocess.call(args)
+
+
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
     
@@ -231,33 +260,33 @@ def main():
         source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
-            source2csv(sd)
+            source2csv(sd, options)
         
-    if options.dry_run:
-        logging.info('Dry run complete!')
-        sys.exit(1)
+    # if options.dry_run:
+    #     logging.info('Dry run complete!')
+    #     sys.exit(1)
         
-    os.chdir(current_dir)
-    os.chdir('../../')
-    filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
-    config_file = os.path.abspath(options.config_file)
+    # os.chdir(current_dir)
+    # os.chdir('../../')
+    # filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
+    # config_file = os.path.abspath(options.config_file)
 
-    if options.localhost:
-        options.url = 'http://localhost:8080/_ah/remote_api'
+    # if options.localhost:
+    #     options.url = 'http://localhost:8080/_ah/remote_api'
 
-    # Bulkload Layer entities to App Engine for entire collection
-    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    cmdline = cmd % (config_file, filename, 'Layer', options.url)
-    args = shlex.split(cmdline)
-    #logging.info(cmdline)
-    subprocess.call(args)
+    # # Bulkload Layer entities to App Engine for entire collection
+    # cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+    # cmdline = cmd % (config_file, filename, 'Layer', options.url)
+    # args = shlex.split(cmdline)
+    # #logging.info(cmdline)
+    # subprocess.call(args)
     
-    # Bulkload LayerIndex entities to App Engine for entire collection
-    cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-    args = shlex.split(cmdline)
-    #logging.info(cmdline)
-    subprocess.call(args)
+    # # Bulkload LayerIndex entities to App Engine for entire collection
+    # cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
+    # cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+    # args = shlex.split(cmdline)
+    # #logging.info(cmdline)
+    # subprocess.call(args)
     
     logging.info('Loading finished!')
 
