@@ -233,7 +233,7 @@ def main():
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
             source2csv(sd)
         
-    if dry_run:
+    if options.dry_run:
         logging.info('Dry run complete!')
         sys.exit(1)
         
