@@ -121,7 +121,18 @@ class Config(object):
             fusiontable_id = 1348212
             ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
             
-            def validate_fields(fields, section, where_clause):
+            def validate_fields(fields, section, where_clause, required = 1):
+                """ 
+                    Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table
+                    by running the SQL query provided.
+                
+                        fields:         The dictionary whose keys we have to validate.
+                        where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
+                        required:       If set to '1' (the default), we ensure that *all* the field names retrieved by the query are
+                                        set in the fields dictionary. If set to '0', we only check that all field names set in the
+                                        fields dictionary are also set in the database results.
+                """
+
                 urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
 
                 # Every single field returned by the FT must be in our file.
@@ -140,21 +151,23 @@ class Config(object):
                     print "Unexpected fields found in section %s: %s" % (section, ", ".join(field_aliases - expected_field_aliases))
                     errors = 1
                 
-                if len(expected_field_aliases - field_aliases) > 0:
+                if (required == 1) and (len(expected_field_aliases - field_aliases) > 0):
                     print "Fields missing from section %s: %s" % (section, ", ".join(expected_field_aliases - field_aliases))
                     errors = 1
                 
                 return errors
             
+            # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['required'],                "Collections:Required",             "source='MOLSourceFields'       AND required =  'y'")
-            errors += validate_fields(self.collection['optional'],                "Collections:Optional",             "source='MOLSourceFields'       AND required =  ''")
-            errors += validate_fields(self.collection['dbfmapping']['required'],  "Collections:DBFMapping:Required",  "source='MOLSourceDBFfields'    AND required =  'y'")
-            errors += validate_fields(self.collection['dbfmapping']['optional'],  "Collections:DBFMapping:Optional",  "source='MOLSourceDBFfields'    AND required =  ''")
+            errors += validate_fields(self.collection['required'],                "Collections:Required",             "source='MOLSourceFields'       AND required =  'y'",     1)
+            errors += validate_fields(self.collection['optional'],                "Collections:Optional",             "source='MOLSourceFields'       AND required =  ''",      0)
+            errors += validate_fields(self.collection['dbfmapping']['required'],  "Collections:DBFMapping:Required",  "source='MOLSourceDBFfields'    AND required =  'y'",     1)
+            errors += validate_fields(self.collection['dbfmapping']['optional'],  "Collections:DBFMapping:Optional",  "source='MOLSourceDBFfields'    AND required =  ''",      0)
 
             # In case of any errors, bail out.
             if errors > 0:
                 print "This config.yaml could not be validated. Continuing anyway." # Please fix it as per the errors above and retry."
+                print ""     # blank line
                 # exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
