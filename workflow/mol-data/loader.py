@@ -141,8 +141,12 @@ class Config(object):
                         print "Optional section '%s' not present in %s, ignoring." % (section, config_yaml_name)
                         return 0
 
-
-                urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
+                try:
+                    urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
+                except IOError as (errno, strerror):
+                    print "Could not connect to the internet to validate %s: %s" % (config_yaml_name, strerror)
+                    print "Continuing without validation.\n"
+                    return 0
 
                 # Every single field returned by the FT must be in our file.
                 expected_fields = {}

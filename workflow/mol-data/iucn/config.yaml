@@ -20,19 +20,14 @@ Collections:
   # Required MOL metadata (http://goo.gl/98r46)
   #  
   Required:
-    absenceReliability: low
     accessrights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
     bibliographiccitation: IUCN 2010. IUCN Red List of Threatened Species. Version 2010.4. http://www.iucnredlist.org.
-    breedingdomain: all 
     contact: IUCN Red List Unit, IUCN UK Office, 219c Huntingdon Road, Cambridge CB3 0DL, United Kingdom
     coverage: global 
     creator: IUCN 
     date: 2010 
     description: This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global in order to highlight taxa threatened with extinction, and thereby promote their conservation.
     email: redlist@iucn.org 
-    eventdate: 1970/2010 
-    nonbreedingdomain: all
-    presencedefault: present
     publisher: IUCN 
     samplingprotocol: expert opinion 
     scientificname: Mammalia 
@@ -53,19 +48,10 @@ Collections:
     identifier:  
     language: en 
     layertype: range   
-    mapcount:  
-    maxregionsperspecies:    
-    maxx:    
-    maxy:    
-    medianregionsperspecies:    
-    minregionsperspecies:    
-    minx:    
-    miny:    
     relation:    
     rights:    
     startdateaccuracy:    
     surveyintervals:    
-    taxonomy:    
     type:
 
   # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
@@ -78,8 +64,6 @@ Collections:
     Required:
       areaid: BINOMIAL 
       bibliographiccitation: CITATION 
-      polygonid: BINOMIAL 
-      polygonname: BINOMIAL
       scientificname: BINOMIAL
 
     # Optional MoL DBF fields
@@ -99,7 +83,6 @@ Collections:
       dynamicproperties:      
       establishmentmeans: ORIGIN 
       infraspecificepithet: SUBSPECIES
-      later:  
       measurementcomment: 
       measurementmethod:  
       occurrencestatus: PRESENCE
