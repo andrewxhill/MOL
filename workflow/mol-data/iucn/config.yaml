@@ -78,7 +78,7 @@ Collections:
     Required:
       areaid: BINOMIAL 
       bibliographiccitation: CITATION 
-      polygonid: BINOMIAL 
+      polygonid: BINOMIAL
       polygonname: BINOMIAL
       scientificname: BINOMIAL
 
