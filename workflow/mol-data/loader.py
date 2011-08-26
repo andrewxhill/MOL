@@ -45,8 +45,9 @@ class Config(object):
         return x
     
     class Collection(object):
-        def __init__(self, collection):
-            self.collection = collection
+        def __init__(self, filename, collection):
+            self.filename =     filename
+            self.collection =   collection
             self.validate()
         
         def __repr__(self):
@@ -91,32 +92,30 @@ class Config(object):
         
         def validate(self):
             """
-                Validates the current "Collections" configuration by checking required and optional fields against those
-                in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, our current configuration source.
-                Throws an exception if validation fails.
+            Validates the current "Collections" configuration.
+            
+            It does this by by checking field names against those specified
+            in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, 
+            our current configuration source.
+
+            No arguments are required. If validation fails, this method will
+            exit with an error message.
             """
             
-            ERR_VALIDATION = -2         # For exit(..) calls during validation.
+            ERR_VALIDATION = -2
+            """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
+
+            config_yaml_name = "'%s'" % self.filename
             
-            # Step 1. Check if all four categories are present.
-            expected_sections = {"Collections:Required": 0, "Collections:Optional": 0, "Collections:DBFMapping:Required": 0, "Collections:DBFMapping:Optional": 0}
-            
+            # Step 1. Check if all both required categories are present.
             if not self.collection.has_key('required'):
-                del expected_sections['Collections:Required']
-            if not self.collection.has_key('optional'):
-                del expected_sections['Collections:Optional']
-            if not self.collection.has_key('dbfmapping'):
-                del expected_sections['Collections:DBFMapping:Required']
-                del expected_sections['Collections:DBFMapping:Optional']
-            elif not self.collection['dbfmapping'].has_key('required'):
-                del expected_sections['Collections:DBFMapping:Required']
-            elif not self.collection['dbfmapping'].has_key('optional'):
-                del expected_sections['Collections:DBFMapping:Optional']
-            
-            if len(expected_sections.keys()) < 4:
-                print "This config.yaml file does not have all the necessary sections; it contains only: %s" % (str.join(expected_sections.keys()))
+                print "Required section 'Collections:Required' is not present in %s! Validation failed." % config_yaml_name
+                exit(ERR_VALIDATION) 
+
+            if not self.collection.has_key('dbfmapping') or not self.collection['dbfmapping'].has_key('required'):
+                print "Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed." % config_yaml_name
                 exit(ERR_VALIDATION)
-            
+
             # Step 2. Validate fields.
             fusiontable_id = 1348212
             ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
@@ -133,6 +132,16 @@ class Config(object):
                                         fields dictionary are also set in the database results.
                 """
 
+                # Let's make sure that the 'fields' argument is set.
+                if fields is None: 
+                    if required == 1:
+                        print "Required section '%s' not present in %s." % (section, config_yaml_name)
+                        exit(ERR_VALIDATION)
+                    else:
+                        print "Optional section '%s' not present in %s, ignoring." % (section, config_yaml_name)
+                        return 0
+
+
                 urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
 
                 # Every single field returned by the FT must be in our file.
@@ -148,11 +157,11 @@ class Config(object):
                 field_aliases =             set(fields.keys())
                 expected_field_aliases =    set(expected_fields.keys())
                 if len(field_aliases - expected_field_aliases) > 0:
-                    print "Unexpected fields found in section %s: %s" % (section, ", ".join(field_aliases - expected_field_aliases))
+                    print "  Unexpected fields found in section '%s': %s" % (section, ", ".join(sorted(field_aliases.difference(expected_field_aliases))))
                     errors = 1
                 
                 if (required == 1) and (len(expected_field_aliases - field_aliases) > 0):
-                    print "Fields missing from section %s: %s" % (section, ", ".join(expected_field_aliases - field_aliases))
+                    print "  Fields missing from section '%s': %s" % (section, ", ".join(sorted(expected_field_aliases.difference(field_aliases))))
                     errors = 1
                 
                 return errors
@@ -166,21 +175,21 @@ class Config(object):
 
             # In case of any errors, bail out.
             if errors > 0:
-                print "This config.yaml could not be validated. Continuing anyway." # Please fix it as per the errors above and retry."
-                print ""     # blank line
-                # exit(ERR_VALIDATION)
+                print config_yaml_name + " could not be validated. Please fix the errors reported above and retry.\n"
+                exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
             return
 
     def __init__(self, filename):
+        self.filename = filename
         self.config = Config.lower_keys(yaml.load(open(filename, 'r').read()))
 
     def collection_names(self):
         return [x.get('directoryname') for x in self.collections()]
 
     def collections(self):
-        return [Config.Collection(collection) for collection in self.config['collections']]
+        return [Config.Collection(self.filename, collection) for collection in self.config['collections']]
 
 def source2csv(source_dir, options):
     ''' Loads the collections in the given source directory. 
