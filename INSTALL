@@ -1,0 +1,9 @@
+You need the following Python modules to run some of the components of Map of Life.
+
+ - simplejson (http://pypi.python.org/pypi/simplejson/)
+ - PyYAML (http://pyyaml.org/wiki/PyYAML)
+ - GDAL (http://www.gdal.org/; Mac binaries from http://www.kyngchaos.com/software:frameworks)
+    ogr2ogr doesn't end up on the path if you use the Mac binaries from
+    above; in that case, you will need to add:
+        /Library/Frameworks/GDAL.framework/Versions/Current/Programs
+    to your path manually.

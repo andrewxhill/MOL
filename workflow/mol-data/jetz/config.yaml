@@ -2,8 +2,8 @@
 # information.
 # 
 Source:
-  name: walter
-  email: walter.jetz@yale.com
+  name: Jetz Lab 
+  email: walter.jetz@yale.edu
 
 # This section provides information about all collections provided by the 
 # source.
@@ -15,94 +15,95 @@ Collections:
 
 # Required directory name of the collection.
 # 
-- DirectoryName: mammals
+- DirectoryName: birds
    
   # Required MOL metadata (http://goo.gl/98r46)
   #  
   Required:
-    accessrights: yes
-    #bibliographiccitation: citations
-    breedingdomain: global
-    contact: walter
-    coverage: earth
-    creator: walter
-    date: 2001
-    description: good
-    email: walter.jetz@yale.com
-    eventdate: 2001
-    nonbreedingdomain: nowhere
-    presencedefault: true
-    publisher: yale
-    samplingprotocol: amazing
-    scientificname: puma concolor
-    source: walter lab
-    subject: puma range maps
-    taxonomiccoverage: puma
-    title: cool maps
-    verbatimsrs: unknown
+    absenceReliability: low
+    accessrights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
+    bibliographiccitation: Jetz et al. 2011
+    breedingdomain: all
+    contact: Walter Jetz
+    coverage: global 
+    creator: Jetz Lab
+    date: 2011
+    description: Improved bird range maps.
+    email: walter.jetz@yale.edu
+    eventdate: 2002/2010
+    nonbreedingdomain: all
+    presencedefault: present
+    publisher: Jetz Lab
+    samplingprotocol: expert opinion
+    scientificname: Aves
+    source: Jetz Lab
+    subject: Jetz Lab
+    taxonomiccoverage: most
+    title: Jetz Bird Range Maps
+    verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
   # Optional MoL metadata (http://goo.gl/98r46)
   #
   Optional:
-    accessright:    
-    basemaps:    
-    contributor:    
-    enddateaccuracy:    
-    format:    
-    identifier:    
-    language:    
-    layertype:    
-    mapcount:    
-    maxregionsperspecies:    
-    maxx:    
-    maxy:    
-    medianregionsperspecies:    
-    minregionsperspecies:    
-    minx:    
-    miny:    
-    relation:    
-    rights:    
-    samplingprotocol:    
-    startdateaccuracy:    
-    surveyintervals:    
-    taxonomy:    
-    type:
+    accessright: download, view
+    basemaps: 
+    contributor: Jetz Lab
+    enddateaccuracy: 
+    format: ESRI Shapefile 
+    identifier: 
+    language: en
+    layertype: range
+    mapcount: 
+    maxregionsperspecies: 
+    maxx: 
+    maxy: 
+    medianregionsperspecies: 
+    minregionsperspecies: 
+    minx: 
+    miny: 
+    relation: 
+    rights: 
+    startdateaccuracy: 
+    surveyintervals: 
+    taxonomy: 
+    type: 
 
   # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
+  # Note: Field names are case-sensitive.
   #
   DBFMapping:
 
     # Required MoL DBF fields 
     #
     Required:
-      areaid: OBJECTID
-      bibliographiccitation: AREA
-      polygonid: PERIMETER
-      polygonname: ECO_NAME      
-      #scientificname: BIOME
+      areaid: Latin
+      bibliographiccitation: Citation
+      polygonid: Latin
+      polygonname: Latin
+      scientificname: Latin
 
     # Optional MoL DBF fields
     #
     Optional:
-      abundance:      
-      abundancecomment:      
-      abundancemakeup:      
-      abundancemethod:      
-      abundancesurveyarea:      
-      abundanceunits:      
-      areaname:      
-      contributor:      
-      dateend:      
-      datestart:      
-      distributioncomment:      
-      dynamicproperties:      
-      establishmentmeans:      
-      infraspecificepithet:      
-      later:      
-      measurementcomment:      
-      measurementmethod:      
-      occurrencestatus:      
-      population:      
-      seasonality:      
-      taxonid:      
-      taxonremarks:
+      abundance: 
+      abundancecomment: 
+      abundancemakeup: 
+      abundancemethod: 
+      abundancesurveyarea: 
+      abundanceunits: 
+      areaname: 
+      contributor: 
+      dateend: 
+      datestart: 
+      distributioncomment: 
+      dynamicproperties: 
+      establishmentmeans: OccCode
+      infraspecificepithet: 
+      later: 
+      measurementcomment: 
+      measurementmethod: 
+      occurrencestatus: 
+      population: 
+      seasonality: 
+      taxonid: SpecID
+      taxonremarks: 
