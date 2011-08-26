@@ -79,7 +79,7 @@ Collections:
       bibliographiccitation: AREA
       polygonid: PERIMETER
       polygonname: ECO_NAME      
-      scientificname: BIOME
+      #scientificname: BIOME
 
     # Optional MoL DBF fields
     #
