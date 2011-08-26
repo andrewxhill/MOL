@@ -137,11 +137,17 @@ def source2csv(source_dir, options):
             if os.path.exists(csvfile): # ogr2ogr barfs if there are *any* csv files in the dir
                 os.remove(csvfile)
 
-            # Following line only for convenience for running on Mac in eclipse
-            # command = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            # For Macs which have GDAL.framework, we can autodetect it
+            # and use it automatically.
+            ogr2ogr_path = '/Library/Frameworks/GDAL.framework/Programs/ogr2ogr'
+            if not os.path.exists(ogr2ogr_path):
+                # We don't have a path to use; let subprocess.call
+                # find it.
+                ogr2ogr_path = 'ogr2ogr'
+
             # TODO: optional command line option for ogr2ogr command
 
-            command = 'ogr2ogr -f CSV "%s" "%s"' % (csvfile, sf)
+            command = ogr2ogr_path + ' -f CSV "%s" "%s"' % (csvfile, sf)
             args = shlex.split(command)
             try:
                 subprocess.call(args)
