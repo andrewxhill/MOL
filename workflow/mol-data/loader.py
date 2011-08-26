@@ -123,7 +123,7 @@ def source2csv(source_dir, options):
     
         # Convert DBF to CSV and add to collection.csv
         shpfiles = glob.glob('*.shp')
-        logging.info('Processing %d layers in the %s collection' % (len(shpfiles), coll_dir))
+        logging.info('Processing %d layers in the %s/%s' % (len(shpfiles), source_dir, coll_dir))
         for sf in shpfiles:
             logging.info('Extracting DBF fields from %s' % sf)
             csvfile = '%s.csv' % sf
@@ -159,6 +159,7 @@ def source2csv(source_dir, options):
                         sys.exit(1)        
                     row[mol] = sourceval
                     polygon[mol] = sourceval
+                    logging.info('REQUIRED %s=%s' % (mol, sourceval))
     
                 for source, mol in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
                     sourceval = dbf.get(source)
@@ -251,7 +252,7 @@ def main():
     if options.source_dir is not None:
         if os.path.isdir(options.source_dir):
             logging.info('Processing source directory: %s' % options.source_dir)
-            source2csv(options.source_dir)
+            source2csv(options.source_dir, options)
             sys.exit(0)
         else:
             logging.info('Unable to locate source directory %s.' % options.source_dir)
@@ -261,32 +262,6 @@ def main():
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
             source2csv(sd, options)
-        
-    # if options.dry_run:
-    #     logging.info('Dry run complete!')
-    #     sys.exit(1)
-        
-    # os.chdir(current_dir)
-    # os.chdir('../../')
-    # filename = os.path.abspath('%s/%s/collection.csv.txt' % (sd, coll_dir))
-    # config_file = os.path.abspath(options.config_file)
-
-    # if options.localhost:
-    #     options.url = 'http://localhost:8080/_ah/remote_api'
-
-    # # Bulkload Layer entities to App Engine for entire collection
-    # cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    # cmdline = cmd % (config_file, filename, 'Layer', options.url)
-    # args = shlex.split(cmdline)
-    # #logging.info(cmdline)
-    # subprocess.call(args)
-    
-    # # Bulkload LayerIndex entities to App Engine for entire collection
-    # cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-    # cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-    # args = shlex.split(cmdline)
-    # #logging.info(cmdline)
-    # subprocess.call(args)
     
     logging.info('Loading finished!')
 
