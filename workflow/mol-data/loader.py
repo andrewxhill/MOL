@@ -122,14 +122,17 @@ class Config(object):
             
             def validate_fields(fields, section, where_clause, required = 1):
                 """ 
-                    Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table
-                    by running the SQL query provided.
+                    Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
+
+                    You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
+                    like "source='MOLSourceFields' AND required =  'y'").
+
                 
                         fields:         The dictionary whose keys we have to validate.
                         where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
-                        required:       If set to '1' (the default), we ensure that *all* the field names retrieved by the query are
-                                        set in the fields dictionary. If set to '0', we only check that all field names set in the
-                                        fields dictionary are also set in the database results.
+                        required:       If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
+                                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
+                                        only check that all field names present in the fields dictionary are also set in the database results.
                 """
 
                 # Let's make sure that the 'fields' argument is set.
@@ -141,33 +144,48 @@ class Config(object):
                         print "Optional section '%s' not present in %s, ignoring." % (section, config_yaml_name)
                         return 0
 
+                # Try retrieving the expected fields from the Fusion Table.
+                expected_fields = set()
+                errors = 0
+
                 try:
-                    urlconn = urllib.urlopen(ft_partial_url + urllib.quote_plus("SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)))
+                    urlconn = urllib.urlopen(
+                        ft_partial_url + 
+                        urllib.quote_plus(
+                            "SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)
+                        )
+                    )
                 except IOError as (errno, strerror):
                     print "Could not connect to the internet to validate %s: %s" % (config_yaml_name, strerror)
                     print "Continuing without validation.\n"
                     return 0
 
-                # Every single field returned by the FT must be in our file.
-                expected_fields = {}
-                errors = 0
-
+                # Read the field names into a dictionary.
                 rows = csv.DictReader(urlconn)
                 for row in rows:
-                   expected_fields[row['alias'].lower()] = 1
+                    # We don't need to test for row['alias'], because our SQL statement already removes any blank aliases.
+                    if (row['alias'].lower()) in expected_fields:
+                        print "Error: field alias '%s' is used twice in the Fusion Table, aborting."
+                        exit(-1)
+
+                    # Add this field name to the list of expected fields.
+                    expected_fields.add(row['alias'].lower())
+
                 urlconn.close()
                 
+                # Check if there are differences either ways for required sections, or for fields
+                # present in 'fields' but not in 'expected_fields' for optional sections.
                 errors = 0
                 field_aliases =             set(fields.keys())
-                expected_field_aliases =    set(expected_fields.keys())
-                if len(field_aliases - expected_field_aliases) > 0:
-                    print "  Unexpected fields found in section '%s': %s" % (section, ", ".join(sorted(field_aliases.difference(expected_field_aliases))))
+                if len(field_aliases.difference(expected_fields)) > 0:
+                    print "  Unexpected fields found in section '%s': %s" % (section, ", ".join(sorted(field_aliases.difference(expected_fields))))
                     errors = 1
                 
-                if (required == 1) and (len(expected_field_aliases - field_aliases) > 0):
-                    print "  Fields missing from section '%s': %s" % (section, ", ".join(sorted(expected_field_aliases.difference(field_aliases))))
+                if (required == 1) and (len(expected_fields.difference(field_aliases)) > 0):
+                    print "  Fields missing from section '%s': %s" % (section, ", ".join(sorted(expected_fields.difference(field_aliases))))
                     errors = 1
                 
+                # Returns 1 if there were any errors, 0 for no errors.
                 return errors
             
             # We want to give an error if *any* of these tests fail.
