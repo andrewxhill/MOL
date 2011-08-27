@@ -22,7 +22,7 @@ import copy
 import csv
 import glob
 import logging
-from unicodewriterhelper import UnicodeWriter
+from unicodewriter import UnicodeWriter
 from optparse import OptionParser
 import os
 import simplejson
