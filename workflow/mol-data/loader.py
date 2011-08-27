@@ -22,7 +22,7 @@ import copy
 import csv
 import glob
 import logging
-from unicodewriterhelper import UnicodeWriter
+from unicodewriter import UnicodeWriter
 from optparse import OptionParser
 import os
 import simplejson
@@ -253,7 +253,7 @@ def _getoptions():
     parser.add_option('-s', '--source_dir', 
                       type='string', 
                       dest='source_dir',
-                      help='Directory containing source to load.')    
+                      help='Directory containing source to load.')
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
