@@ -27,6 +27,7 @@ import simplejson
 import shlex
 import subprocess
 import sys
+import urllib
 import yaml
 
 SOURCE_FIELDS_CSV = 'MOLSourceFields.csv'
@@ -35,28 +36,53 @@ DBF_FIELDS_CSV = 'MOLSourceDBFfields.csv'
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
-    parser.add_option('--config_file', 
-                      type='string', 
-                      dest='config_file',
-                      metavar='FILE', 
-                      help='Bulkload YAML config file.')    
-    parser.add_option('--url', 
-                      type='string', 
-                      dest='url',
-                      help='URL endpoint to /remote_api to bulkload to.')                          
+    parser.add_option('--output',
+                      type='string',
+                      dest='output_type',
+                      default='all',
+                      help="The type of output required. Currently valid options are [config, all] (default: %default)"
+                     )
     return parser.parse_args()[0]
+
+class FusionTableProps(object):
+    @classmethod 
+    def dr(cls):
+        """ Return a DictReader for the configuration information """
+
+        source = 'MOLSourceFields'
+        if isinstance(cls, DbfProps):
+            source = 'MOLSourceDBFfields'
+
+        fusiontable_id =    1348212
+        ft_partial_url =    "http://www.google.com/fusiontables/api/query?sql="
+        where_clause =      "source = '%s'" % source
+
+        try:
+            urlconn = urllib.urlopen(
+                ft_partial_url +
+                urllib.quote_plus(
+                    "SELECT alias, source, indexed, required FROM %d WHERE %s AND alias NOT EQUAL TO ''" %
+                        (fusiontable_id, where_clause)
+                )
+            )
+            # print urlconn.read()
+        except IOError as (errno, strerror):
+            print "Could not connect to the internet to retrieve configuration: %s" % strerror
+            exit(-1)
+
+        return csv.DictReader(urlconn)
 
 class Row(object):
     """Models a row in the CSV file."""
     @classmethod    
     def required(cls, row):
-        return row['Required'] == 'y'
+        return row['required'] == 'y'
     @classmethod    
     def indexed(cls, row):
-        return row['Indexed'] == 'y'
+        return row['indexed'] == 'y'
     @classmethod    
     def fieldname(cls, row):
-        val = row['FieldName']
+        val = row['alias']
         if val: 
             val = val.lower().strip()
         return val
@@ -196,17 +222,17 @@ Collections:
 # 
 - DirectoryName:
    
-  # Required MOL metadata (http://goo.gl/98r46)
+  # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
     %s
 
-  # Optional MoL metadata (http://goo.gl/98r46)
+  # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   Optional:
     %s
 
-  # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
+  # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   DBFMapping:
 
@@ -224,11 +250,11 @@ Collections:
     @classmethod
     def Output(cls):
         source = SourceProps.all()
-        source_required = ':    \n    '.join(source['required'])
-        source_optional = ':    \n    '.join(source['optional'])
+        source_required = ':    \n    '.join(source['required']) + ":"
+        source_optional = ':    \n    '.join(source['optional']) + ":"
         dbf = DbfProps.all()
-        dbf_required = ':      \n      '.join(dbf['required'])
-        dbf_optional = ':      \n      '.join(dbf['optional'])
+        dbf_required = ':      \n      '.join(dbf['required']) + ":"
+        dbf_optional = ':      \n      '.join(dbf['optional']) + ":"
         print cls.TEMPLATE % (source_required, source_optional, dbf_required, dbf_optional)
 
 class PropGen(object):
@@ -243,13 +269,9 @@ class PropGen(object):
             print "'%s'," % x,
         print ']'
 
-class SourceProps(object):
+class SourceProps(FusionTableProps):
     
     """Helper that provides source fields from the CSV file."""
-
-    @classmethod
-    def dr(cls):
-        return csv.DictReader(open(SOURCE_FIELDS_CSV, 'r'))
 
     @classmethod
     def all(cls):
@@ -302,13 +324,9 @@ class SourceProps(object):
             print '    %s = model.StringProperty()' % prop
         print ''
 
-class DbfProps(object):
+class DbfProps(FusionTableProps):
     
     """Helper that provides DBF fields from the CSV file."""
-
-    @classmethod
-    def dr(cls):
-        return csv.DictReader(open(DBF_FIELDS_CSV, 'r'))
 
     @classmethod
     def all(cls):
@@ -360,13 +378,16 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     options = _getoptions()
     
-    # Generate stuff and print to the console for copy/paste
-    DbfProps.LayerPolygon()
-    SourceProps.LayerIndex()
-    ConfigYaml.Output()
-    BulkloaderYaml.Output()
-    BulkloaderHelper.Output()
-    PropGen.Output()
-    p = DbfProps.indexed()['required'] + DbfProps.indexed()['optional'] 
-    p.sort()
-    print p
+    # Rewrite this once we have individual options for everything.
+    if options.output_type == 'all':
+        DbfProps.LayerPolygon()
+        SourceProps.LayerIndex()
+        ConfigYaml.Output()
+        BulkloaderYaml.Output()
+        BulkloaderHelper.Output()
+        PropGen.Output()
+        p = DbfProps.indexed()['required'] + DbfProps.indexed()['optional'] 
+        p.sort()
+        print p
+    elif options.output_type == 'config':
+        ConfigYaml.Output()
