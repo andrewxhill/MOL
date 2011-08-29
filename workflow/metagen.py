@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-"""This module generates various code that is based on source/DBF fields."""
+"""This module automatically generates various code that is based on source/DBF fields."""
 
 import copy
 import csv
@@ -30,9 +30,6 @@ import sys
 import urllib
 import yaml
 
-SOURCE_FIELDS_CSV = 'MOLSourceFields.csv'
-DBF_FIELDS_CSV = 'MOLSourceDBFfields.csv'
-
 def _getoptions():
     ''' Parses command line options and returns them.'''
     parser = OptionParser()
@@ -45,12 +42,18 @@ def _getoptions():
     return parser.parse_args()[0]
 
 class FusionTableProps(object):
+    """ This class downloads the field configuration information from Google Fusion Tables.
+
+        It provides it in the form of a DictReader object. It doesn't close the url connection
+        once it's done, which is probably fine for a small program like this.
+    """
+
     @classmethod 
     def dr(cls):
         """ Return a DictReader for the configuration information """
 
         source = 'MOLSourceFields'
-        if isinstance(cls, DbfProps):
+        if cls == DbfProps:
             source = 'MOLSourceDBFfields'
 
         fusiontable_id =    1348212
