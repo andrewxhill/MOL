@@ -391,5 +391,9 @@ if __name__ == '__main__':
         p = DbfProps.indexed()['required'] + DbfProps.indexed()['optional'] 
         p.sort()
         print p
+    elif options.output_type == 'bulkloaderyaml':
+        BulkloaderYaml.Output()
+    elif options.output_type == 'bulkloaderhelper':
+        BulkloaderHelper.Output()
     elif options.output_type == 'config':
         ConfigYaml.Output()
