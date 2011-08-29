@@ -105,7 +105,7 @@ class Config(object):
             ERR_VALIDATION = -2
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
-            config_yaml_name = "'%s'" % self.filename
+            config_yaml_name = "'%s', directory '%s'" % (self.filename, self.getdir())
             
             # Step 1. Check if all both required categories are present.
             if not self.collection.has_key('required'):
