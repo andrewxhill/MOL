@@ -1,0 +1,55 @@
+<!DOCTYPE html> 
+<html> 
+  <head> 
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/> 
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+    <title>Points Prototype</title> 
+    <link href="http://code.google.com/apis/maps/documentation/javascript/examples/standard.css" 
+          rel="stylesheet" type="text/css" /> 
+    <link href="http://fonts.googleapis.com/css?family=Gruppo" rel='stylesheet' type='text/css'> 
+    <style> 
+      #bg {
+      font-family: 'Gruppo', serif;
+      font-size: 26px;
+      font-style: normal;
+      font-weight: 400;
+      text-shadow: none;
+      text-decoration: none;
+      text-transform: none;
+      letter-spacing: 0em;
+      word-spacing: 0em;
+      color: grey;
+      line-height: 1.2;
+      }
+      #button {
+      position:fixed;
+      top:31px;
+      }
+      #clearMapButton {
+      position:fixed;
+      top:31px;
+      left:400px;
+      }
+    </style> 
+    <script src="/_ah/channel/jsapi"></script>
+    <script src="../../js/points.js"></script> 
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script> 
+    <script src="http://maps.google.com/maps/api/js?libraries=geometry&sensor=false"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script> 
+  </head> 
+  <body style="font: 75% Lucida Grande, Trebuchet MS"> 
+    <div id='bg'>MoL Points</div> 
+    <input id="location" type="search" style="width: 300px;"> 
+    <input id="button" type="button" value="Search points"> 
+    <input id="clearMapButton" type="button" value="Clear Map"> 
+    <div id="map_canvas" style="height:90%; width:100%;"></div> 
+    <script> 
+      app.state = {
+          limit: '{{ limit }}',
+          offset: '{{ offset }}'
+      };
+      app.token = '{{ token }}';
+      app.init();
+    </script> 
+  </body> 
+</html> 
