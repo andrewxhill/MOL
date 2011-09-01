@@ -1,0 +1,6 @@
+backends:
+- name: points
+  start: points.py
+  class: B2
+  instances: 1
+  options: public, dynamic

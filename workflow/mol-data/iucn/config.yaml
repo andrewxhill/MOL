@@ -2,7 +2,7 @@
 # information.
 # 
 Source:
-  name: IUCN 
+  name: IUCN
   email: redlist@iucn.org
 
 # This section provides information about all collections provided by the 
@@ -17,69 +17,56 @@ Collections:
 # 
 - DirectoryName: mammals
    
-  # Required MOL metadata (http://goo.gl/98r46)
+  # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
-    absenceReliability: low
-    accessrights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
-    bibliographiccitation: IUCN 2010. IUCN Red List of Threatened Species. Version 2010.4. http://www.iucnredlist.org.
-    breedingdomain: all 
+    collectionorigin:       6
+    collectionpresence:     6
+    collectionseasonality:  6
+    collectionstartdate:    2010
     contact: IUCN Red List Unit, IUCN UK Office, 219c Huntingdon Road, Cambridge CB3 0DL, United Kingdom
-    coverage: global 
+    contributor: John Wieczorek
+    coverage:   global
     creator: IUCN 
-    date: 2010 
+    date:   2010
     description: This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global in order to highlight taxa threatened with extinction, and thereby promote their conservation.
     email: redlist@iucn.org 
-    eventdate: 1970/2010 
-    nonbreedingdomain: all
-    presencedefault: present
-    publisher: IUCN 
-    samplingprotocol: expert opinion 
-    scientificname: Mammalia 
-    source: IUCN 
-    subject: IUCN 
-    taxonomiccoverage: most 
-    title: IUCN Red List of Threatened Species 
-    verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
+    publisher:  IUCN
+    rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
+    samplingprotocol:    expert opinion
+    scientificname:     Mammalia
+    source:             IUCN
+    subject:            IUCN
+    taxonomiccoverage:  most
+    title:              IUCN Red List of Threatened Species 
+    verbatimsrs:        +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
-  # Optional MoL metadata (http://goo.gl/98r46)
+  # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   Optional:
     accessright:    
-    basemaps:  
-    contributor:    
-    enddateaccuracy:  
-    format: ESRI Shapefile 
-    identifier:  
-    language: en 
-    layertype: range   
-    mapcount:  
-    maxregionsperspecies:    
-    maxx:    
-    maxy:    
-    medianregionsperspecies:    
-    minregionsperspecies:    
-    minx:    
-    miny:    
+    basemaps:    
+    enddateaccuracy:    
+    format:    ESRI Shapefile
+    identifier:    
+    language:   en
+    layertype:  range
     relation:    
     rights:    
     startdateaccuracy:    
     surveyintervals:    
-    taxonomy:    
     type:
 
-  # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
-  # Note: Field names are case-sensitive.
-  #
+  # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
+
   DBFMapping:
 
     # Required MoL DBF fields 
     #
     Required:
-      areaid: BINOMIAL 
-      bibliographiccitation: CITATION 
       polygonid: BINOMIAL 
-      polygonname: BINOMIAL
+      areaid: BINOMIAL
+      bibliographiccitation: CITATION
       scientificname: BINOMIAL
 
     # Optional MoL DBF fields
@@ -92,87 +79,77 @@ Collections:
       abundancesurveyarea:      
       abundanceunits:      
       areaname:      
-      contributor: COMPILER
+      commonname:      
+      contributor:      COMPILER
       dateend:      
       datestart:      
       distributioncomment:      
       dynamicproperties:      
       establishmentmeans: ORIGIN 
       infraspecificepithet: SUBSPECIES
-      later:  
-      measurementcomment: 
-      measurementmethod:  
-      occurrencestatus: PRESENCE
-      population:  
-      seasonality: SEASONAL 
-      taxonid:  
+      measurementcomment:
+      measurementmethod:
+      nameaccordingto:  
+      occurrencestatus:  PRESENCE  
+      polygonid: 
+      polygonname:
+      population:      
+      seasonality:      SEASONAL
+      taxonid:      
       taxonremarks:
 
 - DirectoryName: amphibians
    
-  # Required MOL metadata (http://goo.gl/98r46)
+  # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
-    absenceReliability: low
-    accessrights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
-    bibliographiccitation: IUCN 2010. IUCN Red List of Threatened Species. Version 2010.4. http://www.iucnredlist.org.
-    breedingdomain: all
+    collectionorigin:       6
+    collectionpresence:     6
+    collectionseasonality:  6
+    collectionstartdate:    2010
     contact: IUCN Red List Unit, IUCN UK Office, 219c Huntingdon Road, Cambridge CB3 0DL, United Kingdom
-    coverage: global
-    creator: IUCN
-    date: 2010
+    contributor:            John Wieczorek 
+    coverage:   global
+    creator: IUCN 
+    date:   2010
     description: This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global in order to highlight taxa threatened with extinction, and thereby promote their conservation.
-    email: redlist@iucn.org
-    eventdate: 1970/2010
-    nonbreedingdomain: all
-    presencedefault: present
-    publisher: IUCN
-    samplingprotocol: expert opinion
-    scientificname: Amphibia
-    source: IUCN
-    subject: IUCN
-    taxonomiccoverage: most
-    title: IUCN Red List of Threatened Species
-    verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
+    email: redlist@iucn.org 
+    publisher:  IUCN
+    rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
+    samplingprotocol:    expert opinion
+    scientificname:     Mammalia
+    source:             IUCN
+    subject:            IUCN
+    taxonomiccoverage:  most
+    title:              IUCN Red List of Threatened Species 
+    verbatimsrs:        +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
-  # Optional MoL metadata (http://goo.gl/98r46)
+  # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   Optional:
     accessright:    
-    basemaps:  
-    contributor:    
-    enddateaccuracy:  
-    format: ESRI Shapefile 
-    identifier:  
-    language: en 
-    layertype: range   
-    mapcount:  
-    maxregionsperspecies:    
-    maxx:    
-    maxy:    
-    medianregionsperspecies:    
-    minregionsperspecies:    
-    minx:    
-    miny:    
+    basemaps:    
+    enddateaccuracy:    
+    format:    ESRI Shapefile
+    identifier:    
+    language:   en
+    layertype:  range
     relation:    
     rights:    
     startdateaccuracy:    
     surveyintervals:    
-    taxonomy:    
     type:
 
-  # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
-  # Note: Field names are case-sensitive.
-  #
+  # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
+
   DBFMapping:
 
     # Required MoL DBF fields 
     #
     Required:
       areaid: BINOMIAL 
-      bibliographiccitation: CITATION 
-      polygonid: OBJECTID 
-      polygonname: BINOMIAL
+      polygonid: BINOMIAL
+      bibliographiccitation: CITATION
       scientificname: BINOMIAL
 
     # Optional MoL DBF fields
@@ -185,18 +162,21 @@ Collections:
       abundancesurveyarea:      
       abundanceunits:      
       areaname:      
-      contributor: COMPILER
+      commonname:      
+      contributor:      COMPILER
       dateend:      
       datestart:      
       distributioncomment:      
       dynamicproperties:      
       establishmentmeans: ORIGIN 
       infraspecificepithet: SUBSPECIES
-      later:  
-      measurementcomment: 
-      measurementmethod:  
-      occurrencestatus: PRESENCE
-      population:  
-      seasonality: SEASONAL 
-      taxonid:  
-      taxonremarks: TAX_COMMEN
+      measurementcomment:
+      measurementmethod:
+      nameaccordingto:  
+      occurrencestatus:  PRESENCE  
+      polygonid:      
+      polygonname:      
+      population:      
+      seasonality:      SEASONAL
+      taxonid:      
+      taxonremarks:     TAX_COMMEN

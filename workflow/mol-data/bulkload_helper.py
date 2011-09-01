@@ -71,8 +71,9 @@ def create_layer_json():
                 
                 # TODO: polygonid and bibliographicitation are magically appearing in d
                 # so pop them here.
-                d.pop('polygonid') # We don't want this in the JSON!
-                d.pop('bibliographiccitation') # We don't want this in the JSON!
+                #d.pop('polygonid') # We don't want this in the JSON!
+                if d.has_key('bibliographiccitation'):
+                    d.pop('bibliographiccitation') # We don't want this in the JSON!
 
                 polygons = simplejson.loads(row['json'])
                 d['polygons'] = polygons

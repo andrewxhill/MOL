@@ -17,59 +17,47 @@ Collections:
 # 
 - DirectoryName: birds
    
-  # Required MOL metadata (http://goo.gl/98r46)
+  # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
-    absenceReliability: low
-    accessrights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
-    bibliographiccitation: Jetz et al. 2011
-    breedingdomain: all
+    collectionorigin:       6
+    collectionpresence:     6
+    collectionseasonality:  6
+    collectionstartdate:    2011
     contact: Walter Jetz
-    coverage: global 
+    contributor: Walter Jetz
+    coverage:    global
     creator: Jetz Lab
     date: 2011
     description: Improved bird range maps.
     email: walter.jetz@yale.edu
-    eventdate: 2002/2010
-    nonbreedingdomain: all
-    presencedefault: present
-    publisher: Jetz Lab
+    publisher:  Jetz Lab
+    rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
     samplingprotocol: expert opinion
     scientificname: Aves
-    source: Jetz Lab
+    source:  Jetz Lab
     subject: Jetz Lab
     taxonomiccoverage: most
     title: Jetz Bird Range Maps
     verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
-  # Optional MoL metadata (http://goo.gl/98r46)
+  # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   Optional:
-    accessright: download, view
-    basemaps: 
-    contributor: Jetz Lab
-    enddateaccuracy: 
-    format: ESRI Shapefile 
+    accessright: download  view
+    basemaps:
+    enddateaccuracy:
+    format: ESRI Shapefile
     identifier: 
     language: en
     layertype: range
-    mapcount: 
-    maxregionsperspecies: 
-    maxx: 
-    maxy: 
-    medianregionsperspecies: 
-    minregionsperspecies: 
-    minx: 
-    miny: 
-    relation: 
-    rights: 
-    startdateaccuracy: 
-    surveyintervals: 
-    taxonomy: 
-    type: 
+    relation:
+    rights:    
+    startdateaccuracy:    
+    surveyintervals:    
+    type:
 
-  # Mappings between collection DBF fields and MoL DBF fields: (http://goo.gl/UkzJW)
-  # Note: Field names are case-sensitive.
+  # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   DBFMapping:
 
@@ -77,33 +65,36 @@ Collections:
     #
     Required:
       areaid: Latin
-      bibliographiccitation: Citation
       polygonid: Latin
-      polygonname: Latin
+      bibliographiccitation: Citation
       scientificname: Latin
 
     # Optional MoL DBF fields
     #
     Optional:
-      abundance: 
-      abundancecomment: 
-      abundancemakeup: 
-      abundancemethod: 
-      abundancesurveyarea: 
-      abundanceunits: 
-      areaname: 
-      contributor: 
-      dateend: 
-      datestart: 
-      distributioncomment: 
-      dynamicproperties: 
+      abundance:      
+      abundancecomment:      
+      abundancemakeup:      
+      abundancemethod:      
+      abundancesurveyarea:      
+      abundanceunits:      
+      areaname:      
+      commonname:      
+      contributor:      
+      dateend:      
+      datestart:      
+      distributioncomment:      
+      dynamicproperties:      
       establishmentmeans: OccCode
-      infraspecificepithet: 
-      later: 
-      measurementcomment: 
-      measurementmethod: 
-      occurrencestatus: 
-      population: 
-      seasonality: 
-      taxonid: SpecID
-      taxonremarks: 
+      infraspecificepithet:      
+      measurementcomment:      
+      measurementmethod:      
+      nameaccordingto:      
+      occurrencestatus:      
+      polygonid:      
+      polygonname:      
+      population:      
+      seasonality:      
+      taxonid:      SpecID
+      taxonremarks:
+
