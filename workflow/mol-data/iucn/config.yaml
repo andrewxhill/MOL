@@ -64,7 +64,8 @@ Collections:
     # Required MoL DBF fields 
     #
     Required:
-      areaid: BINOMIAL 
+      polygonid: BINOMIAL 
+      areaid: BINOMIAL
       bibliographiccitation: CITATION
       scientificname: BINOMIAL
 
@@ -147,6 +148,7 @@ Collections:
     #
     Required:
       areaid: BINOMIAL 
+      polygonid: BINOMIAL
       bibliographiccitation: CITATION
       scientificname: BINOMIAL
 

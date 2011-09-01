@@ -65,6 +65,7 @@ Collections:
     #
     Required:
       areaid: Latin
+      polygonid: Latin
       bibliographiccitation: Citation
       scientificname: Latin
 
