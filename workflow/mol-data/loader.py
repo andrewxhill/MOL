@@ -48,7 +48,10 @@ class Config(object):
         def __init__(self, filename, collection):
             self.filename =     filename
             self.collection =   collection
-            self.validate()
+
+            if not _getoptions().no_validate:
+                self.validate()
+
         
         def __repr__(self):
             return str(self.__dict__)
@@ -371,10 +374,17 @@ def _getoptions():
                       type='string', 
                       dest='source_dir',
                       help='Directory containing source to load.')
+
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
                       help='URL endpoint to /remote_api to bulkload to.')                          
+    parser.add_option('--no-validate', '-V',
+                      action="store_true",
+                      dest="no_validate",
+                      help="Turns off validation of the config.yaml files being processed."
+    )
+
     return parser.parse_args()[0]
 
 def main():
