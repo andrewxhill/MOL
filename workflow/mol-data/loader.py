@@ -280,12 +280,10 @@ def source2csv(source_dir, options):
             # Copy and update coll_row with DBF fields
             row = copy.copy(coll_row)                
             row['layer_filename'] = os.path.splitext(sf)[0]
-            
-            # Read the first row (field headers) separately, so we can
-            # lowercase them all.
-            file = open(csvfile, 'r')
-            fieldnames = file.readline().lower()
-            dr = csv.DictReader(file, fieldnames, skipinitialspace=True)
+            dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
+
+            # Lowercase all field names.
+            dr.fieldnames = map(lambda fn: fn.lower(), dr.fieldnames)
            
             layer_polygons = []
             
@@ -294,10 +292,14 @@ def source2csv(source_dir, options):
                 polygon = {}
     
                 for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
+
+                    # For case-insensitivity, we lowercase all field names.
+                    source = source.lower()
+
                     for mol in mols:
                         sourceval = dbf.get(source)
                         if not sourceval:
-                            logging.error('Missing required DBF field %s' % mol)
+                            logging.error('Missing required DBF field %s (mapped from %s). Valid fieldnames include: %s.' % (mol, source, ", ".join(dr.fieldnames)))
                             sys.exit(1)        
                         row[mol] = sourceval
                         polygon[mol] = sourceval
