@@ -64,10 +64,10 @@ Collections:
     # Required MoL DBF fields 
     #
     Required:
-      polygonid: BINOMIAL 
-      areaid: BINOMIAL
-      bibliographiccitation: CITATION
-      scientificname: BINOMIAL
+      polygonid: Binomial
+      areaid: Binomial
+      bibliographiccitation: citation
+      scientificname: binomiaL
 
     # Optional MoL DBF fields
     #
