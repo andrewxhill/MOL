@@ -105,18 +105,18 @@ class Config(object):
             exit with an error message.
             """
             
-            ERR_VALIDATION = -2
+            ERR_VALIDATION = 3      # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
-            config_yaml_name = "'%s', directory '%s'" % (self.filename, self.getdir())
+            config_section_to_validate = "'%s', directory '%s'" % (self.filename, self.getdir())
             
             # Step 1. Check if all both required categories are present.
             if not self.collection.has_key('required'):
-                print "Required section 'Collections:Required' is not present in %s! Validation failed." % config_yaml_name
+                print "Required section 'Collections:Required' is not present in %s! Validation failed." % config_section_to_validate
                 exit(ERR_VALIDATION) 
 
             if not self.collection.has_key('dbfmapping') or not self.collection['dbfmapping'].has_key('required'):
-                print "Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed." % config_yaml_name
+                print "Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed." % config_section_to_validate
                 exit(ERR_VALIDATION)
 
             # Step 2. Validate fields.
@@ -141,10 +141,10 @@ class Config(object):
                 # Let's make sure that the 'fields' argument is set.
                 if fields is None: 
                     if required == 1:
-                        print "Required section '%s' not present in %s." % (section, config_yaml_name)
+                        print "Required section '%s' not present in %s." % (section, config_section_to_validate)
                         exit(ERR_VALIDATION)
                     else:
-                        print "Optional section '%s' not present in %s, ignoring." % (section, config_yaml_name)
+                        print "Optional section '%s' not present in %s, ignoring." % (section, config_section_to_validate)
                         return 0
 
                 # Try retrieving the expected fields from the Fusion Table.
@@ -159,8 +159,8 @@ class Config(object):
                         )
                     )
                 except IOError as (errno, strerror):
-                    print "Could not connect to the internet to validate %s: %s" % (config_yaml_name, strerror)
-                    print "Continuing without validation.\n"
+                    logging.warning("Could not connect to the internet to validate %s: %s", config_section_to_validate, strerror)
+                    logging.warning("Continuing without validation.")
                     return 0
 
                 # Read the field names into a dictionary.
@@ -168,8 +168,8 @@ class Config(object):
                 for row in rows:
                     # We don't need to test for row['alias'], because our SQL statement already removes any blank aliases.
                     if (row['alias'].lower()) in expected_fields:
-                        print "Error: field alias '%s' is used twice in the Fusion Table, aborting."
-                        exit(-1)
+                        logging.error("Field alias '%s' is used twice in the Fusion Table, aborting.", row['alias'].lower())
+                        exit(1)
 
                     # Add this field name to the list of expected fields.
                     expected_fields.add(row['alias'].lower())
@@ -200,7 +200,7 @@ class Config(object):
 
             # In case of any errors, bail out.
             if errors > 0:
-                print config_yaml_name + " could not be validated. Please fix the errors reported above and retry.\n"
+                logging.error("%s could not be validated. Please fix the errors reported above and retry.", config_section_to_validate)
                 exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
@@ -272,10 +272,10 @@ def source2csv(source_dir, options):
             try:
                 subprocess.call(args)
             except OSError as errmsg:
-                print """Error occurred while executing command line '{0}': {2}
-    Please ensure that {1} is executable and available on your path.
-                """.format(command, args[0], errmsg)
-                raise
+                logging.error("""Error occurred while executing command line '%s': %s
+    Please ensure that %s is executable and available on your path.
+                """, command, args[0], errmsg)
+                raise   # Re-raise the OSError exception.
             
             # Copy and update coll_row with DBF fields
             row = copy.copy(coll_row)                
@@ -337,8 +337,8 @@ def source2csv(source_dir, options):
             filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
 
             if options.config_file is None:
-                print "\nError: No bulkloader configuration file specified: please specify one with the --config_file option."
-                exit(0)
+                logging.error("No bulkloader configuration file specified: please specify one with the --config_file option.")
+                exit(2)     # Since apparently '2' signals something wrong in the command line arguments.
 
             config_file = os.path.abspath(options.config_file)
 
