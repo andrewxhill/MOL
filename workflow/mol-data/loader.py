@@ -46,8 +46,8 @@ class Config(object):
     
     class Collection(object):
         def __init__(self, filename, collection):
-            self.filename =     filename
-            self.collection =   collection
+            self.filename = filename
+            self.collection = collection
 
             if not _getoptions().no_validate:
                 self.validate()
@@ -126,7 +126,7 @@ class Config(object):
                 """ Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
 
                 You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
-                like "source='MOLSourceFields' AND required =  'y'").
+                like "source='MOLSourceFields' AND required = 'y'").
 
                 Arguments:
                     fields:         The dictionary whose keys we have to validate.
@@ -191,10 +191,10 @@ class Config(object):
             
             # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['required'], "Collections:Required", "source='MOLSourceFields' AND required =  'y'", 1)
-            errors += validate_fields(self.collection['optional'], "Collections:Optional", "source='MOLSourceFields' AND required =  ''", 0)
-            errors += validate_fields(self.collection['dbfmapping']['required'], "Collections:DBFMapping:Required", "source='MOLSourceDBFfields' AND required =  'y'", 1)
-            errors += validate_fields(self.collection['dbfmapping']['optional'], "Collections:DBFMapping:Optional", "source='MOLSourceDBFfields' AND required =  ''", 0)
+            errors += validate_fields(self.collection['required'], "Collections:Required", "source='MOLSourceFields' AND required = 'y'", 1)
+            errors += validate_fields(self.collection['optional'], "Collections:Optional", "source='MOLSourceFields' AND required = ''", 0)
+            errors += validate_fields(self.collection['dbfmapping']['required'], "Collections:DBFMapping:Required", "source='MOLSourceDBFfields' AND required = 'y'", 1)
+            errors += validate_fields(self.collection['dbfmapping']['optional'], "Collections:DBFMapping:Optional", "source='MOLSourceDBFfields' AND required = ''", 0)
 
             # In case of any errors, bail out.
             if errors > 0:
@@ -273,7 +273,7 @@ def source2csv(source_dir, options):
                 logging.error("""Error occurred while executing command line '%s': %s
     Please ensure that %s is executable and available on your path.
                 """, command, args[0], errmsg)
-                raise   # Re-raise the OSError exception.
+                raise # Re-raise the OSError exception.
             
             # Copy and update coll_row with DBF fields
             row = copy.copy(coll_row)                
