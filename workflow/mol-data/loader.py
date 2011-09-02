@@ -94,8 +94,7 @@ class Config(object):
             return self.collection.get(key, default)
         
         def validate(self):
-            """
-            Validates the current "Collections" configuration.
+            """Validates the current "Collections" configuration.
             
             It does this by by checking field names against those specified
             in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, 
@@ -105,7 +104,7 @@ class Config(object):
             exit with an error message.
             """
             
-            ERR_VALIDATION = 3      # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
+            ERR_VALIDATION = 3 # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
             config_section_to_validate = "'%s', directory '%s'" % (self.filename, self.getdir())
@@ -124,18 +123,17 @@ class Config(object):
             ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
             
             def validate_fields(fields, section, where_clause, required = 1):
-                """ 
-                    Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
+                """ Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
 
-                    You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
-                    like "source='MOLSourceFields' AND required =  'y'").
+                You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
+                like "source='MOLSourceFields' AND required =  'y'").
 
-                
-                        fields:         The dictionary whose keys we have to validate.
-                        where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
-                        required:       If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
-                                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
-                                        only check that all field names present in the fields dictionary are also set in the database results.
+                Arguments:
+                    fields:         The dictionary whose keys we have to validate.
+                    where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
+                    required:       If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
+                                    field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
+                                    only check that all field names present in the fields dictionary are also set in the database results.
                 """
 
                 # Let's make sure that the 'fields' argument is set.
@@ -179,13 +177,13 @@ class Config(object):
                 # Check if there are differences either ways for required sections, or for fields
                 # present in 'fields' but not in 'expected_fields' for optional sections.
                 errors = 0
-                field_aliases =             set(fields.keys())
+                field_aliases = set(fields.keys())
                 if len(field_aliases.difference(expected_fields)) > 0:
-                    print "  Unexpected fields found in section '%s': %s" % (section, ", ".join(sorted(field_aliases.difference(expected_fields))))
+                    logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(sorted(field_aliases.difference(expected_fields))))
                     errors = 1
                 
                 if (required == 1) and (len(expected_fields.difference(field_aliases)) > 0):
-                    print "  Fields missing from section '%s': %s" % (section, ", ".join(sorted(expected_fields.difference(field_aliases))))
+                    logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
                     errors = 1
                 
                 # Returns 1 if there were any errors, 0 for no errors.
@@ -193,10 +191,10 @@ class Config(object):
             
             # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['required'],                "Collections:Required",             "source='MOLSourceFields'       AND required =  'y'",     1)
-            errors += validate_fields(self.collection['optional'],                "Collections:Optional",             "source='MOLSourceFields'       AND required =  ''",      0)
-            errors += validate_fields(self.collection['dbfmapping']['required'],  "Collections:DBFMapping:Required",  "source='MOLSourceDBFfields'    AND required =  'y'",     1)
-            errors += validate_fields(self.collection['dbfmapping']['optional'],  "Collections:DBFMapping:Optional",  "source='MOLSourceDBFfields'    AND required =  ''",      0)
+            errors += validate_fields(self.collection['required'], "Collections:Required", "source='MOLSourceFields' AND required =  'y'", 1)
+            errors += validate_fields(self.collection['optional'], "Collections:Optional", "source='MOLSourceFields' AND required =  ''", 0)
+            errors += validate_fields(self.collection['dbfmapping']['required'], "Collections:DBFMapping:Required", "source='MOLSourceDBFfields' AND required =  'y'", 1)
+            errors += validate_fields(self.collection['dbfmapping']['optional'], "Collections:DBFMapping:Optional", "source='MOLSourceDBFfields' AND required =  ''", 0)
 
             # In case of any errors, bail out.
             if errors > 0:
@@ -228,7 +226,7 @@ def source2csv(source_dir, options):
     for collection in config.collections(): # For each collection dir in the source dir       
         coll_dir = collection.getdir()
 
-        original_dir = os.getcwd()           # We'll need this to restore us to this dir at the end of processing this collection.
+        original_dir = os.getcwd() # We'll need this to restore us to this dir at the end of processing this collection.
         os.chdir(os.path.join(source_dir, coll_dir))
         
         # Create collection.csv writer
@@ -338,7 +336,7 @@ def source2csv(source_dir, options):
 
             if options.config_file is None:
                 logging.error("No bulkloader configuration file specified: please specify one with the --config_file option.")
-                exit(2)     # Since apparently '2' signals something wrong in the command line arguments.
+                exit(2) # Since apparently '2' signals that something is wrong in the command line arguments.
 
             config_file = os.path.abspath(options.config_file)
 
