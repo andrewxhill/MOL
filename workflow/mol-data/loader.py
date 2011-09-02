@@ -111,11 +111,11 @@ class Config(object):
             
             # Step 1. Check if all both required categories are present.
             if not self.collection.has_key('required'):
-                print "Required section 'Collections:Required' is not present in %s! Validation failed." % config_section_to_validate
+                logging.error("Required section 'Collections:Required' is not present in %s! Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION) 
 
             if not self.collection.has_key('dbfmapping') or not self.collection['dbfmapping'].has_key('required'):
-                print "Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed." % config_section_to_validate
+                logging.error("Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION)
 
             # Step 2. Validate fields.
@@ -139,10 +139,10 @@ class Config(object):
                 # Let's make sure that the 'fields' argument is set.
                 if fields is None: 
                     if required == 1:
-                        print "Required section '%s' not present in %s." % (section, config_section_to_validate)
+                        logging.error("Required section '%s' not present in %s.", section, config_section_to_validate)
                         exit(ERR_VALIDATION)
                     else:
-                        print "Optional section '%s' not present in %s, ignoring." % (section, config_section_to_validate)
+                        logging.warning("Optional section '%s' not present in %s, ignoring.", section, config_section_to_validate)
                         return 0
 
                 # Try retrieving the expected fields from the Fusion Table.
