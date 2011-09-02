@@ -100,6 +100,12 @@ class Config(object):
             in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, 
             our current configuration source.
 
+            Arguments:
+                none.
+
+            Returns:
+                nothing.
+
             No arguments are required. If validation fails, this method will
             exit with an error message.
             """
@@ -129,11 +135,13 @@ class Config(object):
                 like "source='MOLSourceFields' AND required = 'y'").
 
                 Arguments:
-                    fields:         The dictionary whose keys we have to validate.
-                    where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
-                    required:       If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
-                                    field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
-                                    only check that all field names present in the fields dictionary are also set in the database results.
+                    fields: The dictionary whose keys we have to validate.
+                    where_clause: The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
+                    required: If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
+                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
+                        only check that all field names present in the fields dictionary are also set in the database results.
+                Returns:
+                    1 if there were any validation errors, 0 if there were none.
                 """
 
                 # Let's make sure that the 'fields' argument is set.
