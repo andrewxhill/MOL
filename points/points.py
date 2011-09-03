@@ -4,7 +4,8 @@ import time
 import os
 import simplejson
 import urllib
-from ndb import model, query
+from ndb import query, model
+from ndb.query import OR, AND
 from sdl import interval
 
 from google.appengine.api import urlfetch
@@ -183,6 +184,8 @@ class Point(model.Model):
     record = model.StringProperty('r', indexed=False)
 
 class PointIndex(model.Model):
+    lat = model.FloatProperty('x', indexed=False)
+    lng = model.FloatProperty('y', indexed=False)
     source = model.StringProperty('s')
     genus = model.StringProperty('g')
     specificepithet = model.StringProperty('e')
@@ -237,10 +240,10 @@ class PointIndex(model.Model):
     y24 = model.IntegerProperty()
 
     @classmethod
-    def from_latlng(cls, lat, lng):
+    def from_latlng(cls, lat, lng, genus, se, source):
         lat = float(lat)
         lng = float(lng)
-        pi = PointIndex()
+        pi = PointIndex(lng=lng, lat=lat, genus=genus, specificepithet=se, source=source)
         
         # Longitude (x)
         var_min = -180.00000
@@ -271,7 +274,79 @@ class PointIndex(model.Model):
                     pi.__setattr__('y%s' % i, value)
         
         return pi
+
+class BoundingBoxSearch(webapp.RequestHandler):
+
+    def get(self):
+        ranges = [r.split(',') for r in self.request.get_all('r')]
+        limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
+        offset = self.request.get_range('offset', min_value=0, default=0)
+        logging.info('ranges=%s' % ranges)
+        self.range_query(ranges, limit, offset)
+        
+    def range_query(self, ranges, limit, offset): #gte, lt, var, limit, offset):
+        variables = []
+
+        if len(ranges) > 1:
+            qry = "PointIndex.query(AND("
+        else:
+            qry = "PointIndex.query(AND("
+
+        for r in ranges:
+            var = r[0]
+            variables.append(var)
+            gte = int(r[1])
+            lt = int(r[2])
+
+            if var == 'lat':
+                var = 'y'
+                var_min = -90.00000
+                var_max =  90.00000
+            elif var == 'lng':
+                var = 'x'
+                var_min = -180.00000
+                var_max =  180.00000
+            else:
+                self.error(404)
+                return
             
+            #var = WC_ALIAS.get(r[0])
+            intervals = interval.get_query_intervals(var_min, var_max, gte, lt)
+            logging.info('var=%s, gte=%s, lt=%s' % (var, gte, lt))
+            logging.info('Intervals: %s' % intervals)
+            logging.info('varmin: %s varmax: %s gte: %s lt: %s' %(var_min, var_max, gte, lt))
+
+            if len(intervals) == 0:
+                self.error(404)
+                logging.info('No query possible')
+                return
+                
+            # Build the query
+            qry = "%sOR(" % qry
+            #qry = "CellIndex.query(AND(CellIndex.n == '%s', OR(" % var
+            for index,value in intervals.iteritems():
+                if not value or not index.startswith('i'):
+                    continue
+                index = index.replace('i', var)
+                logging.info('index=%s, value=%s' % (index, value))
+                qry = '%sPointIndex.%s == %d,' % (qry, index, value)
+             
+            if len(ranges) > 1:
+                qry = '%s), ' % qry[:-1]
+        
+        if len(ranges) > 1:
+            qry = '%s)))' % qry[:-3]
+        else:
+            qry = '%s))) ' % qry[:-1]
+        logging.info('qry=%s' % qry)
+        qry = eval(qry)
+
+        logging.info(qry)
+        results = qry.fetch(limit, offset=offset, keys_only=True)
+        logging.info('Result count = %s' % len(results))
+        #cell_keys = set([key.parent().id() for key in results])
+
+
 class SearchHandler(webapp.RequestHandler):
 
     # tasklet?
@@ -285,7 +360,7 @@ class SearchHandler(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         token = user.user_id()
 
-        params = urllib.urlencode({'cl':'aves', 'limit':10})
+        params = urllib.urlencode({'cl':'aves', 'limit':100})
         url = 'http://localhost:8888/api/search?'
         while True:
             channel.send_message(token, url)
@@ -293,8 +368,13 @@ class SearchHandler(webapp.RequestHandler):
             offset = response['next_offset']
             if not offset:
                 break
-            model.put_multi([PointIndex.from_latlng(r['decimallatitude'], r['decimallongitude']) for r in response['records']])
-            params = urllib.urlencode({'cl':'aves', 'limit':10, 'offset':offset})
+            model.put_multi([PointIndex.from_latlng(
+                        r['decimallatitude'], 
+                        r['decimallongitude'],
+                        r.get('genus', None),
+                        r.get('specificepithet', None),
+                        'VertNet') for r in response['records']])
+            params = urllib.urlencode({'cl':'aves', 'limit':100, 'offset':offset})
 
         # for url in urls:
 
@@ -443,6 +523,7 @@ _handlers = [(r'/_ah/start', StartHandler),
              (r'/_ah/channel/connected/', ConnectHandler),
              (r'/backend/points/home', HomeHandler),
              (r'/backend/points/search', SearchHandler),
+             (r'/backend/points/bb', BoundingBoxSearch),
              (r'/backend/points/opened', PageLoaded),
              (r'/backend/points/flush$', FlushHandler),
              (r'/backend/points/(get|inc|dec)$', CounterHandler)]
