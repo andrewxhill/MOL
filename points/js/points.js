@@ -8,8 +8,8 @@ app.openChannel = function() {
         handler = {
             'onopen': app.onOpened,
             'onmessage': app.onMessage,
-            'onerror': function() {},
-            'onclose': function() {}
+            'onerror': function(e) {console.log('ERROR ' + e.description);},
+            'onclose': function() {console.log('closed');}
         },
         socket = channel.open(handler);
     socket.onopen = app.onOpened;
