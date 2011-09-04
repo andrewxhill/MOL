@@ -346,7 +346,7 @@ class TileHandler(webapp.RequestHandler):
         return (tile_x, tile_y)
           
     @classmethod
-    def get_tile_coordinate(cls, zoom, lat, lng):
+    def get_tile_pixels(cls, zoom, lat, lng):
         """Returns the offset in pixels from origin of the tile in the nw corner."""
         tile_x, tile_y = cls.tile_from_point(zoom, lat, lng)
         n, w = cls.get_tile_origin(tile_x, tile_y, zoom)
@@ -379,7 +379,7 @@ class TileHandler(webapp.RequestHandler):
         miny, maxy = (miny / sh) * 180.0, (maxy / sh) * 180.0
         miny = 180 / math.pi * (2 * math.atan( math.exp( miny * math.pi / 180.0)) - math.pi / 2.0)
         maxy = 180 / math.pi * (2 * math.atan( math.exp( maxy * math.pi / 180.0)) - math.pi / 2.0)
-        return minx,miny,maxx,maxy
+        return maxy, maxx, miny, minx #minx,miny,maxx,maxy
 
     def get(self):
         x = self.request.get_range('x', min_value=0, max_value=100)
@@ -390,11 +390,15 @@ class TileHandler(webapp.RequestHandler):
         genus = self.request.get('genus')
         source = self.request.get('source')
         #logging.info('bboxfromxyz=%s, get_bb=%s' % (self.bboxfromxyz(x, y, z), self.get_bb(x, y, z)))
-        n, e, s, w = TileHandler.get_bb(x, y, z)
+        #n, e, s, w = TileHandler.get_bb(x, y, z)
+        n, e, s, w = TileHandler.bboxfromxyz(x, y, z)
         ranges = [('lat', s, n), ('lng', w, e)]
         logging.info('ranges=%s' % ranges)
         points = [(x.lat, x.lng) for x in BoundingBoxSearch.range_query(ranges, limit, offset, genus)]
         logging.info('points=%s' % points)
+        pixels = [TileHandler.get_tile_pixels(z, p[0], p[1]) for p in points]
+        logging.info('pixels=%s' % pixels)
+        s = PointTile.create(pixels, 1)
         
         #s=[]
         #for x in range(256*2):
@@ -405,7 +409,7 @@ class TileHandler(webapp.RequestHandler):
         #      '110010110101',
         #      '100010010011']
         #s = 64 * ['1111', '1111', '1111', '1111']
-        s = PointTile.create([(100, 100)], 10)#map(lambda x: map(int, x), 256 * [64*'0000'])
+        #s = PointTile.create([(100, 100)], 10)#map(lambda x: map(int, x), 256 * [64*'0000'])
         #logging.info(s)
         #s = map(lambda x: map(int, x), s)
         f = StringIO()
@@ -459,8 +463,8 @@ class BoundingBoxSearch(webapp.RequestHandler):
             #var = WC_ALIAS.get(r[0])
             intervals = interval.get_query_intervals(var_min, var_max, gte, lt)
             logging.info('var=%s, gte=%s, lt=%s' % (var, gte, lt))
-            logging.info('Intervals: %s' % intervals)
-            logging.info('varmin: %s varmax: %s gte: %s lt: %s' %(var_min, var_max, gte, lt))
+            #logging.info('Intervals: %s' % intervals)
+            #logging.info('varmin: %s varmax: %s gte: %s lt: %s' %(var_min, var_max, gte, lt))
 
             if len(intervals) == 0:
                 #self.error(404)
@@ -474,7 +478,7 @@ class BoundingBoxSearch(webapp.RequestHandler):
                 if not value or not index.startswith('i'):
                     continue
                 index = index.replace('i', var)
-                logging.info('index=%s, value=%s' % (index, value))
+                #logging.info('index=%s, value=%s' % (index, value))
                 qry = '%sPointIndex.%s == %d,' % (qry, index, value)
              
             if len(ranges) > 1:
