@@ -44,8 +44,8 @@ def _getoptions():
 class FusionTableProps(object):
     """ This class downloads the field configuration information from Google Fusion Tables.
 
-        It provides it in the form of a DictReader object. It doesn't close the url connection
-        once it's done, which is probably fine for a small program like this.
+    It provides it in the form of a DictReader object. It doesn't close the url connection
+    once it's done, which is probably fine for a small program like this.
     """
 
     @classmethod 
@@ -56,9 +56,9 @@ class FusionTableProps(object):
         if cls == DbfProps:
             source = 'MOLSourceDBFfields'
 
-        fusiontable_id =    1348212
-        ft_partial_url =    "http://www.google.com/fusiontables/api/query?sql="
-        where_clause =      "source = '%s'" % source
+        fusiontable_id = 1348212
+        ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
+        where_clause = "source = '%s'" % source
 
         try:
             urlconn = urllib.urlopen(

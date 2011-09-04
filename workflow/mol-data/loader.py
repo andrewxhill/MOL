@@ -46,9 +46,12 @@ class Config(object):
     
     class Collection(object):
         def __init__(self, filename, collection):
-            self.filename =     filename
-            self.collection =   collection
-            self.validate()
+            self.filename = filename
+            self.collection = collection
+
+            if not _getoptions().no_validate:
+                self.validate()
+
         
         def __repr__(self):
             return str(self.__dict__)
@@ -91,29 +94,34 @@ class Config(object):
             return self.collection.get(key, default)
         
         def validate(self):
-            """
-            Validates the current "Collections" configuration.
+            """Validates the current "Collections" configuration.
             
             It does this by by checking field names against those specified
             in http://www.google.com/fusiontables/DataSource?dsrcid=1348212, 
             our current configuration source.
 
+            Arguments:
+                none.
+
+            Returns:
+                nothing.
+
             No arguments are required. If validation fails, this method will
             exit with an error message.
             """
             
-            ERR_VALIDATION = -2
+            ERR_VALIDATION = 3 # Conventionally, 0 = success, 1 = error, 2 = command line incorrect.
             """ Fatal errors because of validation failures will cause an exit(ERR_VALIDATION) """
 
-            config_yaml_name = "'%s', directory '%s'" % (self.filename, self.getdir())
+            config_section_to_validate = "'%s', directory '%s'" % (self.filename, self.getdir())
             
             # Step 1. Check if all both required categories are present.
             if not self.collection.has_key('required'):
-                print "Required section 'Collections:Required' is not present in %s! Validation failed." % config_yaml_name
+                logging.error("Required section 'Collections:Required' is not present in %s! Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION) 
 
             if not self.collection.has_key('dbfmapping') or not self.collection['dbfmapping'].has_key('required'):
-                print "Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed." % config_yaml_name
+                logging.error("Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION)
 
             # Step 2. Validate fields.
@@ -121,27 +129,28 @@ class Config(object):
             ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
             
             def validate_fields(fields, section, where_clause, required = 1):
-                """ 
-                    Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
+                """ Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
 
-                    You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
-                    like "source='MOLSourceFields' AND required =  'y'").
+                You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
+                like "source='MOLSourceFields' AND required = 'y'").
 
-                
-                        fields:         The dictionary whose keys we have to validate.
-                        where_clause:   The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
-                        required:       If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
-                                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
-                                        only check that all field names present in the fields dictionary are also set in the database results.
+                Arguments:
+                    fields: The dictionary whose keys we have to validate.
+                    where_clause: The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
+                    required: If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
+                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
+                        only check that all field names present in the fields dictionary are also set in the database results.
+                Returns:
+                    1 if there were any validation errors, 0 if there were none.
                 """
 
                 # Let's make sure that the 'fields' argument is set.
                 if fields is None: 
                     if required == 1:
-                        print "Required section '%s' not present in %s." % (section, config_yaml_name)
+                        logging.error("Required section '%s' not present in %s.", section, config_section_to_validate)
                         exit(ERR_VALIDATION)
                     else:
-                        print "Optional section '%s' not present in %s, ignoring." % (section, config_yaml_name)
+                        logging.warning("Optional section '%s' not present in %s, ignoring.", section, config_section_to_validate)
                         return 0
 
                 # Try retrieving the expected fields from the Fusion Table.
@@ -156,8 +165,8 @@ class Config(object):
                         )
                     )
                 except IOError as (errno, strerror):
-                    print "Could not connect to the internet to validate %s: %s" % (config_yaml_name, strerror)
-                    print "Continuing without validation.\n"
+                    logging.warning("Could not connect to the internet to validate %s: %s", config_section_to_validate, strerror)
+                    logging.warning("Continuing without validation.")
                     return 0
 
                 # Read the field names into a dictionary.
@@ -165,8 +174,8 @@ class Config(object):
                 for row in rows:
                     # We don't need to test for row['alias'], because our SQL statement already removes any blank aliases.
                     if (row['alias'].lower()) in expected_fields:
-                        print "Error: field alias '%s' is used twice in the Fusion Table, aborting."
-                        exit(-1)
+                        logging.error("Field alias '%s' is used twice in the Fusion Table, aborting.", row['alias'].lower())
+                        exit(1)
 
                     # Add this field name to the list of expected fields.
                     expected_fields.add(row['alias'].lower())
@@ -176,13 +185,13 @@ class Config(object):
                 # Check if there are differences either ways for required sections, or for fields
                 # present in 'fields' but not in 'expected_fields' for optional sections.
                 errors = 0
-                field_aliases =             set(fields.keys())
+                field_aliases = set(fields.keys())
                 if len(field_aliases.difference(expected_fields)) > 0:
-                    print "  Unexpected fields found in section '%s': %s" % (section, ", ".join(sorted(field_aliases.difference(expected_fields))))
+                    logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(sorted(field_aliases.difference(expected_fields))))
                     errors = 1
                 
                 if (required == 1) and (len(expected_fields.difference(field_aliases)) > 0):
-                    print "  Fields missing from section '%s': %s" % (section, ", ".join(sorted(expected_fields.difference(field_aliases))))
+                    logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
                     errors = 1
                 
                 # Returns 1 if there were any errors, 0 for no errors.
@@ -190,14 +199,14 @@ class Config(object):
             
             # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['required'],                "Collections:Required",             "source='MOLSourceFields'       AND required =  'y'",     1)
-            errors += validate_fields(self.collection['optional'],                "Collections:Optional",             "source='MOLSourceFields'       AND required =  ''",      0)
-            errors += validate_fields(self.collection['dbfmapping']['required'],  "Collections:DBFMapping:Required",  "source='MOLSourceDBFfields'    AND required =  'y'",     1)
-            errors += validate_fields(self.collection['dbfmapping']['optional'],  "Collections:DBFMapping:Optional",  "source='MOLSourceDBFfields'    AND required =  ''",      0)
+            errors += validate_fields(self.collection['required'], "Collections:Required", "source='MOLSourceFields' AND required = 'y'", 1)
+            errors += validate_fields(self.collection['optional'], "Collections:Optional", "source='MOLSourceFields' AND required = ''", 0)
+            errors += validate_fields(self.collection['dbfmapping']['required'], "Collections:DBFMapping:Required", "source='MOLSourceDBFfields' AND required = 'y'", 1)
+            errors += validate_fields(self.collection['dbfmapping']['optional'], "Collections:DBFMapping:Optional", "source='MOLSourceDBFfields' AND required = ''", 0)
 
             # In case of any errors, bail out.
             if errors > 0:
-                print config_yaml_name + " could not be validated. Please fix the errors reported above and retry.\n"
+                logging.error("%s could not be validated. Please fix the errors reported above and retry.", config_section_to_validate)
                 exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
@@ -225,7 +234,7 @@ def source2csv(source_dir, options):
     for collection in config.collections(): # For each collection dir in the source dir       
         coll_dir = collection.getdir()
 
-        original_dir = os.getcwd()           # We'll need this to restore us to this dir at the end of processing this collection.
+        original_dir = os.getcwd() # We'll need this to restore us to this dir at the end of processing this collection.
         os.chdir(os.path.join(source_dir, coll_dir))
         
         # Create collection.csv writer
@@ -269,15 +278,18 @@ def source2csv(source_dir, options):
             try:
                 subprocess.call(args)
             except OSError as errmsg:
-                print """Error occurred while executing command line '{0}': {2}
-    Please ensure that {1} is executable and available on your path.
-                """.format(command, args[0], errmsg)
-                raise
+                logging.error("""Error occurred while executing command line '%s': %s
+    Please ensure that %s is executable and available on your path.
+                """, command, args[0], errmsg)
+                raise # Re-raise the OSError exception.
             
             # Copy and update coll_row with DBF fields
             row = copy.copy(coll_row)                
             row['layer_filename'] = os.path.splitext(sf)[0]
             dr = csv.DictReader(open(csvfile, 'r'), skipinitialspace=True)
+
+            # Lowercase all field names.
+            dr.fieldnames = map(lambda fn: fn.lower(), dr.fieldnames)
            
             layer_polygons = []
             
@@ -286,10 +298,14 @@ def source2csv(source_dir, options):
                 polygon = {}
     
                 for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
+
+                    # For case-insensitivity, we lowercase all field names.
+                    source = source.lower()
+
                     for mol in mols:
                         sourceval = dbf.get(source)
                         if not sourceval:
-                            logging.error('Missing required DBF field %s' % mol)
+                            logging.error('Missing required DBF field %s (mapped from %s). Valid fieldnames include: %s.' % (mol, source, ", ".join(dr.fieldnames)))
                             sys.exit(1)        
                         row[mol] = sourceval
                         polygon[mol] = sourceval
@@ -327,8 +343,8 @@ def source2csv(source_dir, options):
             filename = os.path.abspath('%s/%s/collection.csv.txt' % (source_dir, coll_dir))
 
             if options.config_file is None:
-                print "\nError: No bulkloader configuration file specified: please specify one with the --config_file option."
-                exit(0)
+                logging.error("No bulkloader configuration file specified: please specify one with the --config_file option.")
+                exit(2) # Since apparently '2' signals that something is wrong in the command line arguments.
 
             config_file = os.path.abspath(options.config_file)
 
@@ -371,10 +387,17 @@ def _getoptions():
                       type='string', 
                       dest='source_dir',
                       help='Directory containing source to load.')
+
     parser.add_option('--url', 
                       type='string', 
                       dest='url',
                       help='URL endpoint to /remote_api to bulkload to.')                          
+    parser.add_option('--no-validate', '-V',
+                      action="store_true",
+                      dest="no_validate",
+                      help="Turns off validation of the config.yaml files being processed."
+    )
+
     return parser.parse_args()[0]
 
 def main():
