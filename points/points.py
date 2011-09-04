@@ -183,9 +183,9 @@ class Point(model.Model):
     lng = model.FloatProperty('y', indexed=False)
     record = model.StringProperty('r', indexed=False)
 
-class PointIndex(model.Model):
-    lat = model.FloatProperty('x', indexed=False)
-    lng = model.FloatProperty('y', indexed=False)
+class PointIndex(model.Expando):
+    lat = model.FloatProperty('y', indexed=False)
+    lng = model.FloatProperty('x', indexed=False)
     source = model.StringProperty('s')
     genus = model.StringProperty('g')
     specificepithet = model.StringProperty('e')
@@ -241,50 +241,42 @@ class PointIndex(model.Model):
 
     @classmethod
     def from_latlng(cls, lat, lng, genus, se, source):
+        logging.info('lat=%s, lng=%s' % (lat, lng))
         lat = float(lat)
         lng = float(lng)
         pi = PointIndex(lng=lng, lat=lat, genus=genus, specificepithet=se, source=source)
         
         # Longitude (x)
-        var_min = -180.00000
-        var_max =  180.00000
-        for i in range(24):
-            iname = 'i%s' % i
-            varval = lng
-            intervals = interval.get_index_intervals(varval, var_min, var_max)
-            if len(intervals) == 0:
-                logging.info('No intervals')
-                continue
-            for index,value in intervals.iteritems():
-                if index == iname:
-                    pi.__setattr__('x%s' % i, value)
+        var_min = -18000000
+        var_max =  18000000        
+        varval = int(lng * pow(10, 5)) 
+        intervals = interval.get_index_intervals(varval, var_min, var_max)
+        for index,value in intervals.iteritems():
+            model.IntegerProperty(name=index.replace('i', 'x'))._store_value(pi, value)
+            #pi._properties[index.replace('i', 'x')] = value
 
         # Latitude (y)
-        var_min = -90.00000
-        var_max =  90.00000
-        for i in range(25):
-            iname = 'i%s' % i
-            varval = lat
-            intervals = interval.get_index_intervals(varval, var_min, var_max)
-            if len(intervals) == 0:
-                logging.info('No intervals')
-                continue
-            for index,value in intervals.iteritems():
-                if index == iname:
-                    pi.__setattr__('y%s' % i, value)
-        
+        var_min = -9000000
+        var_max =  9000000
+        varval = int(lat * pow(10, 5)) 
+        intervals = interval.get_index_intervals(varval, var_min, var_max)
+        for index,value in intervals.iteritems():
+            model.IntegerProperty(name=index.replace('i', 'y'))._store_value(pi, value)
+            #pi._properties[index.replace('i', 'y')] = model.value
+            
         return pi
 
 class BoundingBoxSearch(webapp.RequestHandler):
 
     def get(self):
         ranges = [r.split(',') for r in self.request.get_all('r')]
+        genus = self.request.get('genus', None)
         limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
         offset = self.request.get_range('offset', min_value=0, default=0)
         logging.info('ranges=%s' % ranges)
-        self.range_query(ranges, limit, offset)
+        self.range_query(ranges, limit, offset, genus)
         
-    def range_query(self, ranges, limit, offset): #gte, lt, var, limit, offset):
+    def range_query(self, ranges, limit, offset, genus): #gte, lt, var, limit, offset):
         variables = []
 
         if len(ranges) > 1:
@@ -295,17 +287,17 @@ class BoundingBoxSearch(webapp.RequestHandler):
         for r in ranges:
             var = r[0]
             variables.append(var)
-            gte = int(r[1])
-            lt = int(r[2])
+            gte = int(float(r[1]) * pow(10, 5))
+            lt = int(float(r[2]) * pow(10, 5))
 
             if var == 'lat':
                 var = 'y'
-                var_min = -90.00000
-                var_max =  90.00000
+                var_min = -9000000
+                var_max =  9000000
             elif var == 'lng':
                 var = 'x'
-                var_min = -180.00000
-                var_max =  180.00000
+                var_min = -18000000
+                var_max =  18000000
             else:
                 self.error(404)
                 return
@@ -360,21 +352,21 @@ class SearchHandler(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         token = user.user_id()
 
-        params = urllib.urlencode({'cl':'aves', 'limit':100})
+        params = urllib.urlencode({'cl':'aves'})
         url = 'http://localhost:8888/api/search?'
         while True:
             channel.send_message(token, url)
             response = simplejson.loads(urlfetch.fetch('%s%s' % (url, params)).content)
-            offset = response['next_offset']
-            if not offset:
-                break
             model.put_multi([PointIndex.from_latlng(
                         r['decimallatitude'], 
                         r['decimallongitude'],
                         r.get('genus', None),
                         r.get('specificepithet', None),
                         'VertNet') for r in response['records']])
-            params = urllib.urlencode({'cl':'aves', 'limit':100, 'offset':offset})
+            params = urllib.urlencode({'cl':'aves', 'offset':offset})
+            offset = response['next_offset']
+            if not offset:
+                break
 
         # for url in urls:
 
