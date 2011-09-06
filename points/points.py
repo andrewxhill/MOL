@@ -7,9 +7,12 @@ import urllib
 from ndb import query, model
 from ndb.query import OR, AND
 from sdl import interval
+import globalmaptiles as gmt
 
 import png
 from StringIO import StringIO
+
+from google.appengine.api import memcache
 
 from google.appengine.api import urlfetch
 from google.appengine.ext.webapp import template
@@ -252,8 +255,8 @@ class PointIndex(model.Model):
         pi = PointIndex(lng=lng, lat=lat, genus=genus, specificepithet=se, source=source)
         
         # Longitude (x)
-        var_min = -18000000
-        var_max =  18000000        
+        var_min = -180 * pow(10, 5)
+        var_max =  180 * pow(10, 5)    
         varval = int(lng * pow(10, 5)) 
         intervals = interval.get_index_intervals(varval, var_min, var_max)
         for index,value in intervals.iteritems():
@@ -265,8 +268,8 @@ class PointIndex(model.Model):
             #p._store_value(pi, value)
 
         # Latitude (y)
-        var_min = -9000000
-        var_max =  9000000
+        var_min = -90 * pow(10, 5)
+        var_max =  90 * pow(10, 5)
         varval = int(lat * pow(10, 5)) 
         intervals = interval.get_index_intervals(varval, var_min, var_max)
         for index,value in intervals.iteritems():
@@ -305,82 +308,24 @@ class PointTile(object):
         """Renders a point in the tile with n-pixel neighbors rendered."""
         y0, yn = cls.bounds(y, n)
         x0, xn = cls.bounds(x, n)
+        logging.info('y=%s,%s, x=%s,%s' % (y0, yn, x0, xn))
         for y in range(y0, yn + 1):
             for x in range(x0, xn + 1):
+                logging.info('DOT y=%s x=%s' % (y, x))
                 tile[y][x] = 0
         return tile
         
     @classmethod
-    def create(cls, pixels, n):
+    def create(cls, pixels, n=1):
         """Creates a point tile with pixels."""
         tile = cls.blank()
         for p in pixels:
             y, x = p
-            cls.render(y, x, n, tile)
+            tile = cls.render(y, x, n, tile)
         return tile
     
 class TileHandler(webapp.RequestHandler):
     
-    @classmethod
-    def get_tile_origin(cls, tile_x, tile_y, zoom):
-        '''Return the lat, lng of the northwest corner of the tile.'''
-        tile_width = 360.0/pow(2,zoom) # degrees
-        tile_height = tile_width/2        # degrees
-        n = 90 - tile_y * tile_height
-        w = -180 + tile_x * tile_width
-        return (n,w)
-          
-    @classmethod
-    def world_coord_from_point(cls, zoom, lat, lng):
-        '''Return the number of pixels in x, and y given 0,0 at lat=90, lng=-180'''
-        pixel_x = int(256*(lng+180)/360.0 * pow(2,zoom))
-        pixel_y = int(256*(90-lat)/180.0 * pow(2,zoom))
-        return (pixel_x, pixel_y)
-    
-    @classmethod
-    def tile_from_point(cls, zoom, lat, lng):
-        ''' Return a tuple containing the x, y tile index.'''
-        pixel_x, pixel_y = cls.world_coord_from_point(zoom, lat, lng)
-        tile_x = int(pixel_x / 256.0)
-        tile_y = int(pixel_y / 256.0)
-        return (tile_x, tile_y)
-          
-    @classmethod
-    def get_tile_pixels(cls, zoom, lat, lng):
-        """Returns the offset in pixels from origin of the tile in the nw corner."""
-        tile_x, tile_y = cls.tile_from_point(zoom, lat, lng)
-        n, w = cls.get_tile_origin(tile_x, tile_y, zoom)
-        world_x, world_y = cls.world_coord_from_point(zoom, lat, lng)
-        left, top = cls.world_coord_from_point(zoom,n,w)
-        x_offset = world_x - left
-        y_offset = world_y - top
-        return (x_offset, y_offset)
-
-    @classmethod
-    def get_bb(cls, tile_x, tile_y, zoom):
-        """Return bounding coordinates (n, e, s, w) of the tile."""
-        tile_width = 360.0/pow(2,zoom) # degrees
-        tile_height = tile_width/2   # degrees
-        n = 90 - tile_y * tile_height
-        s = n - tile_height
-        w = -180 + tile_x * tile_width
-        e = w + tile_width
-        return (n, e, s, w)
-
-    @classmethod
-    def bboxfromxyz(cls, x,y,z):             
-        pixels = 256
-        res = (2 * math.pi * 6378137 / pixels) / (2**int(z))
-        sh = 2 * math.pi * 6378137 / 2.0
-        gy = (2**float(z) - 1) - int(y)
-        minx, miny = ((float(x)*pixels) * res - sh), (((float(gy))*pixels) * res - sh)
-        maxx, maxy = (((float(x)+1)*pixels) * res - sh), (((float(gy)+1)*pixels) * res - sh)
-        minx, maxx = (minx / sh) * 180.0, (maxx / sh) * 180.0
-        miny, maxy = (miny / sh) * 180.0, (maxy / sh) * 180.0
-        miny = 180 / math.pi * (2 * math.atan( math.exp( miny * math.pi / 180.0)) - math.pi / 2.0)
-        maxy = 180 / math.pi * (2 * math.atan( math.exp( maxy * math.pi / 180.0)) - math.pi / 2.0)
-        return maxy, maxx, miny, minx #minx,miny,maxx,maxy
-
     def get(self):
         x = self.request.get_range('x', min_value=0, max_value=100)
         y = self.request.get_range('y', min_value=0, max_value=100)
@@ -389,34 +334,29 @@ class TileHandler(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         genus = self.request.get('genus')
         source = self.request.get('source')
-        #logging.info('bboxfromxyz=%s, get_bb=%s' % (self.bboxfromxyz(x, y, z), self.get_bb(x, y, z)))
-        #n, e, s, w = TileHandler.get_bb(x, y, z)
-        n, e, s, w = TileHandler.bboxfromxyz(x, y, z)
+
+        #mkey = '%s-%s-%s-%s' % (x, y, z, genus)
+        #img = memcache.get(mkey)
+        #if img:
+        #    self.response.headers['Content-Type'] = 'image/png'
+        #    self.response.out.write(img)
+        #    return
+
+        mercator = gmt.GlobalMercator()
+        s, w, n, e = mercator.GoogleTileLatLonBounds(x, y, z)
+        logging.info('n=%s, e=%s, s=%s, w=%s' % (n, e, s, w))
         ranges = [('lat', s, n), ('lng', w, e)]
         logging.info('ranges=%s' % ranges)
         points = [(x.lat, x.lng) for x in BoundingBoxSearch.range_query(ranges, limit, offset, genus)]
         logging.info('points=%s' % points)
-        pixels = [TileHandler.get_tile_pixels(z, p[0], p[1]) for p in points]
+        pixels = set([mercator.LatLngToRaster(p[0], p[1], z) for p in points])
         logging.info('pixels=%s' % pixels)
         s = PointTile.create(pixels, 1)
-        
-        #s=[]
-        #for x in range(256*2):
-        #    s.extend([123,33,100])
-        # bitmap data
-        # s = ['110010010011',
-        #      '101011010100',
-        #      '110010110101',
-        #      '100010010011']
-        #s = 64 * ['1111', '1111', '1111', '1111']
-        #s = PointTile.create([(100, 100)], 10)#map(lambda x: map(int, x), 256 * [64*'0000'])
-        #logging.info(s)
-        #s = map(lambda x: map(int, x), s)
         f = StringIO()
-        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1)
-        #w = png.Writer(3, 3, greyscale=True, bitdepth=1)
+        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
         w.write(f, s)
         img = f.getvalue()
+        #memcache.add(mkey, img)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(img)
         
@@ -437,9 +377,11 @@ class BoundingBoxSearch(webapp.RequestHandler):
         # TODO: adapter interface for point sources (VertNet, GBIF)
         # TODO: Add filters for source and specificepithet
         if len(ranges) > 1:
-            qry = "PointIndex.query(AND(PointIndex.genus == '%s'," % genus
+            #qry = "PointIndex.query(AND(PointIndex.genus == '%s'," % genus
+            qry = "PointIndex.query(AND(" 
         else:
-            qry = "PointIndex.query(AND(PointIndex.genus == '%s'," % genus
+            #qry = "PointIndex.query(AND(PointIndex.genus == '%s'," % genus
+            qry = "PointIndex.query(AND(" 
 
         for r in ranges:
             var = r[0]
@@ -449,20 +391,21 @@ class BoundingBoxSearch(webapp.RequestHandler):
 
             if var == 'lat':
                 var = 'y'
-                var_min = -9000000
-                var_max =  9000000
+                var_min = -90 * pow(10, 5)
+                var_max =  90 * pow(10, 5)
             elif var == 'lng':
                 var = 'x'
-                var_min = -18000000
-                var_max =  18000000
+                var_min = -180 * pow(10, 5)
+                var_max =  180 * pow(10, 5)
             else:
                 #self.error(404)
                 logging.error('Unknown variable')
                 return []
             
             #var = WC_ALIAS.get(r[0])
-            intervals = interval.get_query_intervals(var_min, var_max, gte, lt)
             logging.info('var=%s, gte=%s, lt=%s' % (var, gte, lt))
+            intervals = interval.get_optimum_query_interval(var_min, var_max, gte, lt)
+            logging.info('intervals=%s, var=%s, gte=%s, lt=%s' % (len(intervals), var, gte, lt))
             #logging.info('Intervals: %s' % intervals)
             #logging.info('varmin: %s varmax: %s gte: %s lt: %s' %(var_min, var_max, gte, lt))
 
@@ -522,8 +465,8 @@ class SearchHandler(webapp.RequestHandler):
                         r.get('genus', None),
                         r.get('specificepithet', None),
                         'VertNet') for r in response['records']])
-            params = urllib.urlencode({'cl':'aves', 'offset':offset})
             offset = response['next_offset']
+            params = urllib.urlencode({'cl':'aves', 'offset':offset})
             if not offset:
                 break
 
