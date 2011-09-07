@@ -221,6 +221,7 @@ class PointIndex(model.Model):
     x23 = model.IntegerProperty()
     x24 = model.IntegerProperty()
     x25 = model.IntegerProperty()
+    x26 = model.IntegerProperty()
     y0 = model.IntegerProperty()
     y1 = model.IntegerProperty()
     y2 = model.IntegerProperty()
@@ -246,6 +247,7 @@ class PointIndex(model.Model):
     y22 = model.IntegerProperty()
     y23 = model.IntegerProperty()
     y24 = model.IntegerProperty()
+    y25 = model.IntegerProperty()
 
     @classmethod
     def from_latlng(cls, lat, lng, genus, se, source):
@@ -311,13 +313,28 @@ class PointTile(object):
         logging.info('y=%s,%s, x=%s,%s' % (y0, yn, x0, xn))
         for y in range(y0, yn + 1):
             for x in range(x0, xn + 1):
-                logging.info('DOT y=%s x=%s' % (y, x))
-                tile[y][x] = 0
+                #logging.info('DOT y=%s x=%s' % (y, x))
+                tile[x][y] = 0
         return tile
         
     @classmethod
-    def create(cls, pixels, n=1):
-        """Creates a point tile with pixels."""
+    def create(cls, pixels, tx, ty, n=5):
+        """Creates a point tile with pixels.
+        
+        ty - tile y
+        tx - tile x
+        
+        """
+        #pixels = [p for p in pixels if p[0] <= 255 and p[1] <= 255] # TODO optimize this
+        #logging.info('tx=%s, ty=%s, pixels=%s' % (tx, ty, pixels))
+        pixels = [(p[0] - (tx * 256), p[1] - (ty * 256)) for p in pixels]
+        # pixels_new = []
+        # for p in pixels:
+        #      tx = int( math.ceil( p[0] / float(256) ) - 1 )
+        #      ty = int( math.ceil( p[1] / float(256) ) - 1 )
+        #      pixels_new.append((tx, ty))
+        #pixels = [((p[0] - (ty * 256)), (p[1] - (tx * 256))) for p in pixels] 
+        logging.info('tx=%s, ty=%s, pixels=%s' % (tx, ty, pixels))
         tile = cls.blank()
         for p in pixels:
             y, x = p
@@ -327,9 +344,12 @@ class PointTile(object):
 class TileHandler(webapp.RequestHandler):
     
     def get(self):
-        x = self.request.get_range('x', min_value=0, max_value=100)
-        y = self.request.get_range('y', min_value=0, max_value=100)
+        mercator = gmt.GlobalMercator()
+        x = self.request.get_range('x') #, min_value=0, max_value=100)
+        y = self.request.get_range('y') #, min_value=0, max_value=100)
         z = self.request.get_range('z')
+        tx, ty = x, y #mercator.GoogleTileFromLatLng(y, x, z)
+        logging.info('tx=%s, ty=%s' % (tx, ty))
         limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
         offset = self.request.get_range('offset', min_value=0, default=0)
         genus = self.request.get('genus')
@@ -342,18 +362,25 @@ class TileHandler(webapp.RequestHandler):
         #    self.response.out.write(img)
         #    return
 
-        mercator = gmt.GlobalMercator()
-        s, w, n, e = mercator.GoogleTileLatLonBounds(x, y, z)
+
+        s, w, n, e = mercator.GoogleTileLatLonBounds(tx, ty, z)
         logging.info('n=%s, e=%s, s=%s, w=%s' % (n, e, s, w))
         ranges = [('lat', s, n), ('lng', w, e)]
-        logging.info('ranges=%s' % ranges)
-        points = [(x.lat, x.lng) for x in BoundingBoxSearch.range_query(ranges, limit, offset, genus)]
+        #logging.info('ranges=%s' % ranges)
+        points = [(p.lat, p.lng) for p in BoundingBoxSearch.range_query(ranges, limit, offset, genus)]
         logging.info('points=%s' % points)
         pixels = set([mercator.LatLngToRaster(p[0], p[1], z) for p in points])
         logging.info('pixels=%s' % pixels)
-        s = PointTile.create(pixels, 1)
+        
+        s = PointTile.create(pixels, tx, ty)
+        #s = PointTile.create([(65, 95)], tx, ty)
+        
         f = StringIO()
-        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
+        if (tx+ty) % 2 == 0:
+            transparent = 0
+        else:
+            transparent = 1
+        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=transparent)
         w.write(f, s)
         img = f.getvalue()
         #memcache.add(mkey, img)
@@ -403,9 +430,9 @@ class BoundingBoxSearch(webapp.RequestHandler):
                 return []
             
             #var = WC_ALIAS.get(r[0])
-            logging.info('var=%s, gte=%s, lt=%s' % (var, gte, lt))
+            #logging.info('var=%s, gte=%s, lt=%s' % (var, gte, lt))
             intervals = interval.get_optimum_query_interval(var_min, var_max, gte, lt)
-            logging.info('intervals=%s, var=%s, gte=%s, lt=%s' % (len(intervals), var, gte, lt))
+            #logging.info('intervals=%s, var=%s, gte=%s, lt=%s' % (len(intervals), var, gte, lt))
             #logging.info('Intervals: %s' % intervals)
             #logging.info('varmin: %s varmax: %s gte: %s lt: %s' %(var_min, var_max, gte, lt))
 
@@ -434,9 +461,10 @@ class BoundingBoxSearch(webapp.RequestHandler):
         #logging.info('qry=%s' % qry)
         qry = eval(qry)
 
-        logging.info(qry)
+        #logging.info(qry)
         results = qry.fetch(limit, offset=offset, keys_only=True)
-        logging.info('Result count = %s' % len(results))
+        if len(results) > 0:
+            logging.info('Result count = %s' % len(results))
         return model.get_multi(results)
         #cell_keys = set([key.parent().id() for key in results])
 

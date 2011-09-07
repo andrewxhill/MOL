@@ -190,6 +190,7 @@ class GlobalMercator(object):
         self.originShift = 2 * math.pi * 6378137 / 2.0
         # 20037508.342789244
 
+
     def LatLonToMeters(self, lat, lon ):
         "Converts given lat/lon in WGS84 Datum to XY in Spherical Mercator EPSG:900913"
 
@@ -322,6 +323,11 @@ class GlobalMercator(object):
             quadKey += str(digit)
             
         return quadKey
+
+    def LatLngToPixel(self, lat, lng, zoom):
+        mx, my = self.LatLonToMeters(lat, lng)
+        px, py = self.MetersToPixels(mx, my, zoom)
+        return int(px), int(py)
 
 #---------------------
 
