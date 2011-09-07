@@ -361,9 +361,9 @@ class TileHandler(webapp.RequestHandler):
         for point in BoundingBoxSearch.range_query(ranges, limit, offset, genus):
             pixel_x, pixel_y = mercator.LatLngToRaster(point.lat, point.lng, z)
             
-            # TODO: Check these calcs. Quick hack for dealing with negative pixel values.
-            pixel_x = abs(pixel_x - (tx * 256)) 
-            pixel_y = abs(pixel_y - (ty * 256))
+            # TODO: Check these calcs for negative vals?
+            pixel_x -= tx * 256
+            pixel_y -= ty * 256
 
             pixels.add((pixel_y, pixel_x))
         logging.info('pixels=%s' % pixels)
@@ -478,7 +478,8 @@ class SearchHandler(webapp.RequestHandler):
         token = user.user_id()
 
         params = urllib.urlencode({'cl':'aves'})
-        url = 'http://localhost:8888/api/search?'
+        #url = 'http://localhost:8888/api/search?'
+        url = 'http://eighty.vert-net.appspot.com/api/search?'
         while True:
             channel.send_message(token, url)
             response = simplejson.loads(urlfetch.fetch('%s%s' % (url, params)).content)
