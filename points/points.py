@@ -310,31 +310,20 @@ class PointTile(object):
         """Renders a point in the tile with n-pixel neighbors rendered."""
         y0, yn = cls.bounds(y, n)
         x0, xn = cls.bounds(x, n)
-        logging.info('y=%s,%s, x=%s,%s' % (y0, yn, x0, xn))
         for y in range(y0, yn + 1):
             for x in range(x0, xn + 1):
-                #logging.info('DOT y=%s x=%s' % (y, x))
-                tile[x][y] = 0
+                tile[y][x] = 0
         return tile
         
     @classmethod
     def create(cls, pixels, tx, ty, n=5):
         """Creates a point tile with pixels.
         
+        pixels - sequence of y, x 2-tuples.
         ty - tile y
         tx - tile x
         
         """
-        #pixels = [p for p in pixels if p[0] <= 255 and p[1] <= 255] # TODO optimize this
-        #logging.info('tx=%s, ty=%s, pixels=%s' % (tx, ty, pixels))
-        pixels = [(p[0] - (tx * 256), p[1] - (ty * 256)) for p in pixels]
-        # pixels_new = []
-        # for p in pixels:
-        #      tx = int( math.ceil( p[0] / float(256) ) - 1 )
-        #      ty = int( math.ceil( p[1] / float(256) ) - 1 )
-        #      pixels_new.append((tx, ty))
-        #pixels = [((p[0] - (ty * 256)), (p[1] - (tx * 256))) for p in pixels] 
-        logging.info('tx=%s, ty=%s, pixels=%s' % (tx, ty, pixels))
         tile = cls.blank()
         for p in pixels:
             y, x = p
@@ -344,46 +333,49 @@ class PointTile(object):
 class TileHandler(webapp.RequestHandler):
     
     def get(self):
-        mercator = gmt.GlobalMercator()
-        x = self.request.get_range('x') #, min_value=0, max_value=100)
-        y = self.request.get_range('y') #, min_value=0, max_value=100)
+        tx = self.request.get_range('x')
+        ty = self.request.get_range('y')
         z = self.request.get_range('z')
-        tx, ty = x, y #mercator.GoogleTileFromLatLng(y, x, z)
-        logging.info('tx=%s, ty=%s' % (tx, ty))
         limit = self.request.get_range('limit', min_value=1, max_value=100, default=10)
         offset = self.request.get_range('offset', min_value=0, default=0)
         genus = self.request.get('genus')
         source = self.request.get('source')
 
-        #mkey = '%s-%s-%s-%s' % (x, y, z, genus)
-        #img = memcache.get(mkey)
-        #if img:
-        #    self.response.headers['Content-Type'] = 'image/png'
-        #    self.response.out.write(img)
-        #    return
-
-
+        # Check memcache for tile image hit
+        mkey = '%s-%s-%s-%s' % (tx, ty, z, genus)
+        img = memcache.get(mkey)
+        if img:
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(img)
+            return
+        
+        # Calculate Google tile bounding box
+        mercator = gmt.GlobalMercator()
         s, w, n, e = mercator.GoogleTileLatLonBounds(tx, ty, z)
-        logging.info('n=%s, e=%s, s=%s, w=%s' % (n, e, s, w))
+        
+        # Create range for a bounding box query
         ranges = [('lat', s, n), ('lng', w, e)]
-        #logging.info('ranges=%s' % ranges)
-        points = [(p.lat, p.lng) for p in BoundingBoxSearch.range_query(ranges, limit, offset, genus)]
-        logging.info('points=%s' % points)
-        pixels = set([mercator.LatLngToRaster(p[0], p[1], z) for p in points])
+        
+        # Construct tile pixels from points returned by a bounding box query
+        pixels = set()        
+        for point in BoundingBoxSearch.range_query(ranges, limit, offset, genus):
+            pixel_x, pixel_y = mercator.LatLngToRaster(point.lat, point.lng, z)
+            pixel_x -= tx * 256
+            pixel_y -= ty * 256
+            pixels.add((pixel_y, pixel_x))
         logging.info('pixels=%s' % pixels)
         
+        # Render the pixels in a new tile
         s = PointTile.create(pixels, tx, ty)
-        #s = PointTile.create([(65, 95)], tx, ty)
         
+        # Write the PNG tile image
         f = StringIO()
-        if (tx+ty) % 2 == 0:
-            transparent = 0
-        else:
-            transparent = 1
-        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=transparent)
+        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
         w.write(f, s)
         img = f.getvalue()
-        #memcache.add(mkey, img)
+
+        # Cache and return the PNG tile image        
+        memcache.add(mkey, img)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(img)
         
