@@ -360,8 +360,11 @@ class TileHandler(webapp.RequestHandler):
         pixels = set()        
         for point in BoundingBoxSearch.range_query(ranges, limit, offset, genus):
             pixel_x, pixel_y = mercator.LatLngToRaster(point.lat, point.lng, z)
-            pixel_x -= tx * 256
-            pixel_y -= ty * 256
+            
+            # TODO: Check these calcs. Quick hack for dealing with negative pixel values.
+            pixel_x = abs(pixel_x - (tx * 256)) 
+            pixel_y = abs(pixel_y - (ty * 256))
+
             pixels.add((pixel_y, pixel_x))
         logging.info('pixels=%s' % pixels)
         
