@@ -1,3 +1,7 @@
+MAP OF LIFE
+http://www.mappinglife.org/
+
+== Directories
 An incomplete list of the contents of each folder.
 
 app - The web application (on app engine)
