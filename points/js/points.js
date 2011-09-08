@@ -8,8 +8,8 @@ app.openChannel = function() {
         handler = {
             'onopen': app.onOpened,
             'onmessage': app.onMessage,
-            'onerror': function() {},
-            'onclose': function() {}
+            'onerror': function(e) {console.log('ERROR ' + e.description);},
+            'onclose': function() {console.log('closed');}
         },
         socket = channel.open(handler);
     socket.onopen = app.onOpened;
@@ -301,6 +301,25 @@ app.setupPage = function(query) {
  
 app.urlParams = {};
 
+app._getNormalizedCoord = function(coord, zoom) {
+    var y = coord.y,
+        x = coord.x,
+        tileRange = 1 << zoom;
+    // don't repeat across y-axis (vertically)
+    if (y < 0 || y >= tileRange) {
+        return null;
+    }
+    // repeat across x-axis
+    if (x < 0 || x >= tileRange) {
+        x = (x % tileRange + tileRange) % tileRange;
+    }
+    return {
+        x: x,
+        y: y
+    };
+};
+    
+
 /**
  * Immediate function setup.
  */
@@ -328,6 +347,32 @@ app.init = function () {
     app.geocoder = new google.maps.Geocoder();
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
     app.map.setZoom(3);
+    app._mapType = new google.maps.ImageMapType(
+        {
+            getTileUrl: function(coord, zoom) {
+                var normalizedCoord = app._getNormalizedCoord(coord, zoom),
+                    bound = Math.pow(2, zoom),
+                    tileParams = '',
+                    backendTileApi = 'http://points.mol-lab.appspot.com/backend/points/tile', //'http://localhost:8080/backend/points/tile',
+                    tileurl = null;                                
+            
+                if (!normalizedCoord) {
+                    return null;
+                }              
+                tileParams = tileParams + 'x=' + normalizedCoord.x;
+                tileParams = tileParams + '&y=' + normalizedCoord.y;
+                tileParams = tileParams + '&z=' + zoom;      
+                tileurl = backendTileApi + "?" + tileParams;
+                console.log(tileurl);
+                return tileurl;
+            },
+            tileSize: new google.maps.Size(256, 256),
+            isPng: true,
+            opacity: 1.0,
+            name: 'points'
+        });
+
+    app.map.overlayMapTypes.push(app._mapType);    
     app.geocoderMarkers = [];
     $('#button').click(app.handleOnClick);
     $('#clearMapButton').click(app.handleClearMap);

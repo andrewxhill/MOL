@@ -8,10 +8,19 @@ builtins:
 - appstats: on
 - remote_api: on
 
+inbound_services:
+- channel_presence
+
 handlers:
 
 - url: /backend/points/.*
   script: points.py
 
+- url: /_ah/channel/connected/.*
+  script: points.py
+
+- url: /_ah/channel/disconnected/.*
+  script: points.py
+    
 - url: /js
   static_dir: js

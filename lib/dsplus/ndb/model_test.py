@@ -14,7 +14,7 @@ from google.appengine.api import namespace_manager
 from google.appengine.api import users
 from google.appengine.datastore import entity_pb
 
-from ndb import model, query, tasklets, test_utils
+from . import model, query, tasklets, test_utils
 
 TESTUSER = users.User('test@example.com', 'example.com', '123')
 AMSTERDAM = model.GeoPt(52.35, 4.9166667)
@@ -403,6 +403,7 @@ property <
   multiple: false
 >
 """
+
 
 class ModelTests(test_utils.DatastoreTest):
 
@@ -1199,14 +1200,42 @@ class ModelTests(test_utils.DatastoreTest):
   def testPropertyRepr(self):
     p = model.Property()
     self.assertEqual(repr(p), 'Property()')
+
     p = model.IntegerProperty('foo', indexed=False, repeated=True)
     self.assertEqual(repr(p),
                      "IntegerProperty('foo', indexed=False, repeated=True)")
+
     class Address(model.Model):
       street = model.StringProperty()
       city = model.StringProperty()
     p = model.StructuredProperty(Address, 'foo')
     self.assertEqual(repr(p), "StructuredProperty(Address, 'foo')")
+    q = model.LocalStructuredProperty(Address, 'bar')
+    self.assertEqual(repr(q), "LocalStructuredProperty(Address, 'bar')")
+
+    class MyModel(model.Model):
+      boolp = model.BooleanProperty()
+      intp = model.IntegerProperty()
+      floatp = model.FloatProperty()
+      strp = model.StringProperty()
+      txtp = model.TextProperty()
+      blobp = model.BlobProperty()
+      geoptp = model.GeoPtProperty()
+      userp = model.UserProperty()
+      keyp = model.KeyProperty()
+      blobkeyp = model.BlobKeyProperty()
+      datetimep = model.DateTimeProperty()
+      datep = model.DateProperty()
+      timep = model.TimeProperty()
+      structp = model.StructuredProperty(Address)
+      localstructp = model.LocalStructuredProperty(Address)
+      genp = model.GenericProperty()
+      compp = model.ComputedProperty(lambda e: 'x')
+    self.assertEqual(repr(MyModel.key), "ModelKey('__key__')")
+    for name, prop in MyModel._properties.iteritems():
+      s = repr(prop)
+      self.assertTrue(s.startswith(prop.__class__.__name__ + '('), s)
+
 
   def testValidation(self):
     class All(model.Model):
@@ -2338,7 +2367,9 @@ class ModelTests(test_utils.DatastoreTest):
       '\\x95b\\xce\\xcaO\\x05\\x00"\\x87\\x03\\xeb\'), '
       't=_CompressedValue(\'x\\x9c+)\\xa1=\\x00\\x00\\xf1$-Q\'))')
 
+
 class CacheTests(test_utils.DatastoreTest):
+
   def SetupContextCache(self):
     """Set up the context cache.
 
@@ -2346,7 +2377,6 @@ class CacheTests(test_utils.DatastoreTest):
     is to disable it to avoid misleading test results. Override this when
     needed.
     """
-    from ndb import tasklets
     ctx = tasklets.get_context()
     ctx.set_cache_policy(lambda key: True)
     ctx.set_memcache_policy(lambda key: True)
