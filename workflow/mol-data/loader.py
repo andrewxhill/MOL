@@ -351,18 +351,20 @@ def source2csv(source_dir, options):
             if options.localhost:
                 options.url = 'http://localhost:8080/_ah/remote_api'
 
+	    # The complete path to the 'appcfg.py' file.
+	    APPCFG_PY = 'C:/Program Files (x86)/Google/google_appengine/appcfg.py'
+
             # Bulkload Layer entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'Layer', options.url)
+            cmd = "python '%s' upload_data --config_file='%s' --filename='%s' --kind=%s --url=%s" 
+            cmdline = cmd % (APPCFG_PY, config_file, filename, 'Layer', options.url)
             args = shlex.split(cmdline)
             subprocess.call(args)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+            cmd = "python '%s' upload_data --config_file='%s' --filename='%s' --kind=%s --url=%s" 
+            cmdline = cmd % (APPCFG_PY, config_file, filename, 'LayerIndex', options.url)
             args = shlex.split(cmdline)
             subprocess.call(args)
-
 
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
