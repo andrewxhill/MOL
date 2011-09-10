@@ -13,6 +13,9 @@ inbound_services:
 
 handlers:
 
+- url: /frontend/points/.*
+  script: frontend.py
+
 - url: /backend/points/.*
   script: points.py
 
