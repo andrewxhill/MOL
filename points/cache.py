@@ -19,14 +19,15 @@ import logging
 import os
 import simplejson
 
-from ndb.model import Model, Key, StringProperty, TextProperty, DateTimeProperty
+from ndb.model import Model, Key, StringProperty, BlobProperty, DateTimeProperty
 
 class CacheItem(Model):
-    value = TextProperty('v', required=True)
+    # TODO: How does BlobProperty handle unicode?
+    value = BlobProperty('v', required=True) 
     created = DateTimeProperty('c', auto_now_add=True)
     
     @classmethod
-    def get(cls, key, loads=False):
+    def get(cls, key, loads):
         item = Key(cls.__name__, key.strip().lower()).get()
         value = None
         if item:            
@@ -37,12 +38,15 @@ class CacheItem(Model):
         return value
 
     @classmethod
-    def add(cls, key, value):
-        cls(id=key.strip().lower(), value=simplejson.dumps(value)).put()
+    def add(cls, key, value, dumps):
+        if dumps:
+            cls(id=key.strip().lower(), value=simplejson.dumps(value)).put()
+        else:
+            cls(id=key.strip().lower(), value=value).put()
     
-def get(key):
-    return CacheItem.get(key)
+def get(key, loads=False):
+    return CacheItem.get(key, loads)
 
-def add(key, value):
-    CacheItem.add(key, value)
+def add(key, value, dumps=True):
+    CacheItem.add(key, value, dumps)
         

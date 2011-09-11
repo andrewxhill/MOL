@@ -331,7 +331,7 @@ app.init = function () {
         q = window.location.search.substring(1);
 
     // Open Channel API to App Engine
-    app.openChannel();
+    // app.openChannel();
 
     // Parses URL parameters:
     while ((e = r.exec(q))) {
@@ -353,7 +353,7 @@ app.init = function () {
                 var normalizedCoord = app._getNormalizedCoord(coord, zoom),
                     bound = Math.pow(2, zoom),
                     tileParams = '',
-                    backendTileApi = 'http://points.mol-lab.appspot.com/backend/points/tile', //'http://localhost:8080/backend/points/tile',
+                    backendTileApi = 'http://localhost:8080/backend/tile',
                     tileurl = null;                                
             
                 if (!normalizedCoord) {
@@ -362,6 +362,8 @@ app.init = function () {
                 tileParams = tileParams + 'x=' + normalizedCoord.x;
                 tileParams = tileParams + '&y=' + normalizedCoord.y;
                 tileParams = tileParams + '&z=' + zoom;      
+                tileParams = tileParams + '&name=calidris';
+                tileParams = tileParams + '&source=vertnet';
                 tileurl = backendTileApi + "?" + tileParams;
                 console.log(tileurl);
                 return tileurl;

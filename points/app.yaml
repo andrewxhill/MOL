@@ -13,7 +13,7 @@ inbound_services:
 
 handlers:
 
-- url: /frontend/points/.*
+- url: /frontend/points(/.*)?
   script: frontend.py
 
 - url: /backend/points/.*
@@ -21,6 +21,9 @@ handlers:
 
 - url: /backend/harvest
   script: harvest.py
+
+- url: /backend/tile
+  script: tile.py
 
 - url: /_ah/channel/connected/.*
   script: points.py

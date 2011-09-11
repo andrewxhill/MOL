@@ -11,3 +11,9 @@ backends:
   class: B2
   instances: 1
   options: dynamic
+
+- name: tile
+  start: tile.py
+  class: B2
+  instances: 1
+  options: dynamic, public

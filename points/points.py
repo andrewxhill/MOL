@@ -557,10 +557,10 @@ class HomeHandler(webapp.RequestHandler):
         limit = self.request.get_range('limit', min_value=1, max_value=100, default=100)
         offset = self.request.get_range('offset', min_value=0, default=0)
 
-        token = channel.create_channel(user.user_id())
+        #token = channel.create_channel(user.user_id())
         logging.info('Opening channel with client id %s' % token)
         client_ids[user.user_id()] = True
-        template_values = {'token': token,
+        template_values = {'token': 'hi',
                            'limit': 10,
                            'offset': 0,
                           }

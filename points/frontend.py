@@ -29,6 +29,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.ext.webapp import template
 
 class SearchPoints(webapp.RequestHandler):
     def get(self):
@@ -99,11 +100,16 @@ class HarvestPoints(webapp.RequestHandler):
         params = dict(name=name, source=source_name)
         taskqueue.add(url='/backend/harvest', target='1.harvest', params=params)
 
+class Home(webapp.RequestHandler):
+    def get(self):
+        template_values = dict(token='hi', limit=10, offset=0)
+        self.response.out.write(template.render('index.html', template_values))
+
 application = webapp.WSGIApplication([
-     ('/frontend/points/search', SearchPoints),
-     ('/frontend/points/harvest', HarvestPoints),
-     ],
-     debug=True)
+        ('/frontend/points$', Home),
+        ('/frontend/points/search', SearchPoints),
+        ('/frontend/points/harvest', HarvestPoints),
+        ], debug=True)
 
 def main():
     run_wsgi_app(application)
