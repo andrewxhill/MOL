@@ -23,6 +23,7 @@ import logging
 import simplejson
 
 from google.appengine.api import backends
+from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -58,7 +59,9 @@ class Harvest(webapp.RequestHandler):
                 [PointIndex.create(p[0], p[1], name, source_name) \
                      for p in points])
 
-        # TODO: Task for pre-rendering zooms 0-9
+        # Backend task for pre-rendering tiles for zooms 0-5
+        params = dict(name=name, source=source_name)
+        taskqueue.add(url='/backend/render', target='1.render', params=params)
  
     @classmethod
     def get_points(cls, name, source):

@@ -25,6 +25,9 @@ handlers:
 - url: /backend/tile
   script: tile.py
 
+- url: /backend/render
+  script: render.py
+
 - url: /_ah/channel/connected/.*
   script: points.py
 

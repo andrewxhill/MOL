@@ -130,9 +130,45 @@ class BoundingBoxSearch(object):
         
         # Get query results
         results = qry.fetch(limit, offset=offset, keys_only=True)
-        if len(results) > 0:
-            logging.info('Result count = %s' % len(results))
+        #if len(results) > 0:
+        #    logging.info('Result count = %s' % len(results))
         return model.get_multi(results)
+
+def get_tile_png(tx, ty, z, name, source_name, limit, offset):
+    # Check cache for tile
+    key = '%s-%s-%s-%s-%s' % (tx, ty, z, name, source_name)
+    img = cache.get(key)
+    if img:
+        return img
+
+    # Calculate Google tile bounding box
+    mercator = gmt.GlobalMercator()
+    s, w, n, e = mercator.GoogleTileLatLonBounds(tx, ty, z)
+
+    # Create range for a bounding box query
+    ranges = [('lat', s, n), ('lng', w, e)]
+
+    # Construct tile pixels from points returned by a bounding box query
+    pixels = set()        
+    for point in BoundingBoxSearch.range_query(
+        ranges, limit, offset, name=name, source_name=source_name):
+        pixel_x, pixel_y = mercator.LatLngToRaster(point.lat, point.lng, z)
+        pixel_x -= tx * 256
+        pixel_y -= ty * 256
+        pixels.add((pixel_y, pixel_x))
+
+    # Render the pixels in a new tile
+    s = PointTile.create(pixels, tx, ty)
+
+    # Write the PNG tile image
+    f = StringIO()
+    w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
+    w.write(f, s)
+    img = f.getvalue()
+
+    # Cache and return the PNG tile image        
+    cache.add(key, img, dumps=False)
+    return img
 
 class TileService(webapp.RequestHandler):
     def get(self):
@@ -143,45 +179,9 @@ class TileService(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name')
         source_name = self.request.get('source')
-
-        # Check cache for tile
-        key = '%s-%s-%s-%s-%s' % (tx, ty, z, name, source_name)
-        img = cache.get(key)
-        if img:
-            self.response.headers['Content-Type'] = 'image/png'
-            self.response.out.write(img)
-            return
-        
-        # Calculate Google tile bounding box
-        mercator = gmt.GlobalMercator()
-        s, w, n, e = mercator.GoogleTileLatLonBounds(tx, ty, z)
-        
-        # Create range for a bounding box query
-        ranges = [('lat', s, n), ('lng', w, e)]
-        
-        # Construct tile pixels from points returned by a bounding box query
-        pixels = set()        
-        for point in BoundingBoxSearch.range_query(
-            ranges, limit, offset, name=name, source_name=source_name):
-            pixel_x, pixel_y = mercator.LatLngToRaster(point.lat, point.lng, z)
-            pixel_x -= tx * 256
-            pixel_y -= ty * 256
-            pixels.add((pixel_y, pixel_x))
-        logging.info('pixels=%s' % pixels)
-        
-        # Render the pixels in a new tile
-        s = PointTile.create(pixels, tx, ty)
-        
-        # Write the PNG tile image
-        f = StringIO()
-        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
-        w.write(f, s)
-        img = f.getvalue()
-
-        # Cache and return the PNG tile image        
-        cache.add(key, img, dumps=False)
+        tile_png = get_tile_png(tx, ty, z, name, source_name, limit, offset)
         self.response.headers['Content-Type'] = 'image/png'
-        self.response.out.write(img)
+        self.response.out.write(tile_png)
 
 application = webapp.WSGIApplication([
      ('/backend/tile', TileService),
