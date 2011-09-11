@@ -353,8 +353,8 @@ app.init = function () {
                 var normalizedCoord = app._getNormalizedCoord(coord, zoom),
                     bound = Math.pow(2, zoom),
                     tileParams = '',
-                    backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
-                    //backendTileApi = 'http://localhost:8080/backend/tile',
+                    //backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
+                    backendTileApi = 'http://localhost:8080/frontend/points/tile',
                     tileurl = null;                                
             
                 if (!normalizedCoord) {
@@ -363,8 +363,8 @@ app.init = function () {
                 tileParams = tileParams + 'x=' + normalizedCoord.x;
                 tileParams = tileParams + '&y=' + normalizedCoord.y;
                 tileParams = tileParams + '&z=' + zoom;      
-                tileParams = tileParams + '&name=calidris';
-                tileParams = tileParams + '&source=vertnet';
+                tileParams = tileParams + '&name=puma concolor';
+                tileParams = tileParams + '&source=gbif';
                 tileurl = backendTileApi + "?" + tileParams;
                 console.log(tileurl);
                 return tileurl;

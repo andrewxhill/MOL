@@ -115,7 +115,7 @@ class TilePoints(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name')
         source_name = self.request.get('source')
-        
+        logging.info('source=%s, name=%s' % (source_name, name))
         tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(tile_png)

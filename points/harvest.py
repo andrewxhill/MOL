@@ -60,7 +60,7 @@ class Harvest(webapp.RequestHandler):
                      for p in points])
 
         # Backend task for pre-rendering tiles for zooms 0-5
-        params = dict(name=name, source=source_name, minzoom=0, maxzoom=5)
+        params = dict(name=name, source=source_name, minzoom=0, maxzoom=3)
         taskqueue.add(url='/backend/render', target='render', params=params)
  
     @classmethod
@@ -72,7 +72,7 @@ class Harvest(webapp.RequestHandler):
             yield points
             if not url:
                 break
-            content = urlfetch.fetch(url).content
+            content = urlfetch.fetch(url, deadline=10).content
 
 application = webapp.WSGIApplication([
      ('/backend/harvest', Harvest),
