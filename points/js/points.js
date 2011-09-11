@@ -353,7 +353,8 @@ app.init = function () {
                 var normalizedCoord = app._getNormalizedCoord(coord, zoom),
                     bound = Math.pow(2, zoom),
                     tileParams = '',
-                    backendTileApi = 'http://localhost:8080/backend/tile',
+                    backendTileApi = 'http://points.mol-lab.appspot.com/backend/tile',
+                    //backendTileApi = 'http://localhost:8080/backend/tile',
                     tileurl = null;                                
             
                 if (!normalizedCoord) {

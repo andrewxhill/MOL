@@ -15,21 +15,17 @@
 __author__ = "Aaron Steele (eightysteele@gmail.com)"
 __contributors__ = []
 
-import cache
-import sources
-from model import PointIndex
 import tile
 
-import logging
-import simplejson
-
-from google.appengine.api import backends
-from google.appengine.api import urlfetch
-from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-from ndb import model
+def render_tile(zoom, name, source_name, limit, offset):
+    for z in range(zoom):
+        tile_dimension = 1 << z
+        for tx in range(tile_dimension):
+            for ty in range(tile_dimension):
+                tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
 
 class Render(webapp.RequestHandler):
     def get(self):
@@ -42,13 +38,12 @@ class Render(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name')
         source_name = self.request.get('source')
+        minzoom = self.request.get_range('minzoom', min_value=0, max_value=15, default=0)
+        maxzoom = self.request.get_range('maxzoom', min_value=0, max_value=15, default=1)
         
         # TODO: How to run this in parallel?
-        for z in range(4):
-            tile_dimension = 1 << z
-            for tx in range(tile_dimension):
-                for ty in range(tile_dimension):
-                    tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
+        for z in range(minzoom, maxzoom + 1): 
+            render_tile(z, name, source_name, limit, offset)
 
 application = webapp.WSGIApplication([
      ('/backend/render', Render),

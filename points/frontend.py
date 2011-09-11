@@ -98,7 +98,7 @@ class HarvestPoints(webapp.RequestHandler):
 
         # Add harvest task that targets harvest backed instance 1
         params = dict(name=name, source=source_name)
-        taskqueue.add(url='/backend/harvest', target='1.harvest', params=params)
+        taskqueue.add(url='/backend/harvest', target='harvest', params=params)
 
 class Home(webapp.RequestHandler):
     def get(self):

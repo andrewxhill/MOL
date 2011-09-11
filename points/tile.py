@@ -13,7 +13,7 @@
 # limitations under the License.
 
 __author__ = "Aaron Steele (eightysteele@gmail.com)"
-__contributors__ = []
+__contributors__ = ["John Wieczorek (gtuco.btuco@gmail.com)"]
 
 import cache
 import sources
@@ -29,6 +29,7 @@ import logging
 import simplejson
 
 from google.appengine.api import backends
+from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -179,6 +180,12 @@ class TileService(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name')
         source_name = self.request.get('source')
+        
+        # Backend task for pre-rendering tiles at next 2 zoom levels
+        params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
+        taskqueue.add(url='/backend/render', target='render', params=params)
+
+        # Render and return tile for this request
         tile_png = get_tile_png(tx, ty, z, name, source_name, limit, offset)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(tile_png)

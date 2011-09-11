@@ -19,7 +19,8 @@ import os
 import simplejson
 import urllib
 
-HOST = 'localhost:8888'
+#HOST = 'localhost:8888'
+HOST = 'canary.vert-net.appspot.com'
 
 def name_url(name):
     params = urllib.urlencode(dict(q=name, limit=100))

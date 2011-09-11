@@ -16,16 +16,13 @@ handlers:
 - url: /frontend/points(/.*)?
   script: frontend.py
 
-- url: /backend/points/.*
-  script: points.py
-
-- url: /backend/harvest
+- url: /backend/harvest(/.*)?
   script: harvest.py
 
-- url: /backend/tile
+- url: /backend/tile(/.*)?
   script: tile.py
 
-- url: /backend/render
+- url: /backend/render(/.*)?
   script: render.py
 
 - url: /_ah/channel/connected/.*
