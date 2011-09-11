@@ -8,7 +8,7 @@ backends:
 
 - name: render
   start: render.py
-  class: B2
+  class: B4
   instances: 1
   options: dynamic
 
@@ -16,4 +16,4 @@ backends:
   start: tile.py
   class: B2
   instances: 1
-  options: public, dynamic
+  options: dynamic

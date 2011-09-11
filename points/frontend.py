@@ -17,6 +17,7 @@ __contributors__ = []
 
 import cache
 import sources
+import tile
 
 import logging
 import os
@@ -105,10 +106,29 @@ class Home(webapp.RequestHandler):
         template_values = dict(token='hi', limit=10, offset=0)
         self.response.out.write(template.render('index.html', template_values))
 
+class TilePoints(webapp.RequestHandler):
+    def get(self):
+        tx = self.request.get_range('x')
+        ty = self.request.get_range('y')
+        z = self.request.get_range('z')
+        limit = self.request.get_range('limit', min_value=1, max_value=1000, default=1000)
+        offset = self.request.get_range('offset', min_value=0, default=0)
+        name = self.request.get('name')
+        source_name = self.request.get('source')
+        
+        tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
+        self.response.headers['Content-Type'] = 'image/png'
+        self.response.out.write(tile_png)
+
+        # Backend task for pre-rendering tiles at next 2 zoom levels
+        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
+        # taskqueue.add(url='/backend/render', target='render', params=params)
+        
 application = webapp.WSGIApplication([
         ('/frontend/points$', Home),
         ('/frontend/points/search', SearchPoints),
         ('/frontend/points/harvest', HarvestPoints),
+        ('/frontend/points/tile', TilePoints),
         ], debug=True)
 
 def main():
