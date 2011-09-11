@@ -1,3 +1,5 @@
+webapp_django_version = '1.2'
+
 def webapp_add_wsgi_middleware(app):
     # Monkey patch that disables AppStats logging
     from google.appengine.ext.appstats import recording

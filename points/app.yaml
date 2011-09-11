@@ -19,6 +19,9 @@ handlers:
 - url: /backend/points/.*
   script: points.py
 
+- url: /backend/harvest
+  script: harvest.py
+
 - url: /_ah/channel/connected/.*
   script: points.py
 

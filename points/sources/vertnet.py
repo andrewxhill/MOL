@@ -19,18 +19,7 @@ import os
 import simplejson
 import urllib
 
-try:
-    appid = os.environ['APPLICATION_ID']
-    appver = os.environ['CURRENT_VERSION_ID'].split('.')[0]
-except:
-    pass
-
-if 'SERVER_SOFTWARE' in os.environ:
-    PROD = not os.environ['SERVER_SOFTWARE'].startswith('Development')
-    HOST = 'localhost:8888'
-else:
-    PROD = True
-    HOST = '%s.vert-net.appspot.com' % appver
+HOST = 'localhost:8888'
 
 def name_url(name):
     params = urllib.urlencode(dict(q=name, limit=100))
@@ -43,4 +32,17 @@ def name_list(content):
         names.remove('')
     return list(names)
 
-    
+def get_points(name, content=None, limit=100):
+    points = []
+    url = None
+    if content:
+        records = simplejson.loads(content)['records']
+        points = [(r['decimallatitude'], r['decimallongitude']) for r in records]
+        offset = simplejson.loads(content)['next_offset']
+        if offset:           
+            params = urllib.urlencode(dict(q=name, limit=limit, offset=offset))
+            url = 'http://%s/api/search?%s' % (HOST, params)
+    else:
+        params = urllib.urlencode(dict(q=name, limit=limit))
+        url = 'http://%s/api/search?%s' % (HOST, params)
+    return points, url

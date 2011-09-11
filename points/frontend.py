@@ -16,13 +16,15 @@ __author__ = "Aaron Steele (eightysteele@gmail.com)"
 __contributors__ = []
 
 import cache
-import gbif, vertnet
+import sources
 
 import logging
 import os
 import simplejson
 
+from google.appengine.api import backends
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import webapp
@@ -35,10 +37,10 @@ class SearchPoints(webapp.RequestHandler):
         if not name:
             self.error(400)
             return
-        source = self.request.get('source', None)
+        source_name = self.request.get('source', None)
         
         # Check cache
-        key = self.cache_key(name, source)
+        key = self.cache_key(name, source_name)
         names = cache.get(key)
         if names:
             self.response.set_status(200)
@@ -46,18 +48,14 @@ class SearchPoints(webapp.RequestHandler):
             self.response.out.write(names)
             return
         
-        service = None
-        if source == 'gbif':
-            service = gbif
-        elif source == 'vertnet':
-            service = vertnet
-        else:
-            # TODO: do all services
+        source = sources.get(source_name)
+        if not source:
+            # TODO: Get names from all sources?
             self.error(404)
             return
         
         # Make service request for names
-        names, status_code = self.get_names(service, name)        
+        names, status_code = self.get_names(source, name)        
         if status_code != 200:
             self.error(status_code)
             return
@@ -69,24 +67,41 @@ class SearchPoints(webapp.RequestHandler):
         self.response.out.write(simplejson.dumps(names))
         
     @classmethod
-    def cache_key(cls, name, source):
+    def cache_key(cls, name, source_name):
         if source:
-            return 'points-names-%s-%s' % (name, source)
+            return 'points-names-%s-%s' % (name, source_name)
         else:
             return 'points-names-%s' % name        
 
     @classmethod
-    def get_names(cls, service, name):
-        result = urlfetch.fetch(service.name_url(name))
+    def get_names(cls, source, name):
+        result = urlfetch.fetch(source.name_url(name))
         if result.status_code == 200:
-            return (service.name_list(result.content), 200)
+            return (source.name_list(result.content), 200)
         else:
             return ([], result.status_code)
 
-    
+class HarvestPoints(webapp.RequestHandler):
+    def get(self):
+        self.error(405)
+        self.response.headers['Allow'] = 'POST'
+        return
+
+    def post(self):
+        # Check parameters
+        name = self.request.get('name', None)
+        if not name:
+            self.error(400)
+            return
+        source_name = self.request.get('source', None)
+
+        # Add harvest task that targets harvest backed instance 1
+        params = dict(name=name, source=source_name)
+        taskqueue.add(url='/backend/harvest', target='1.harvest', params=params)
+
 application = webapp.WSGIApplication([
      ('/frontend/points/search', SearchPoints),
-     #('/frontend/points/harvest', HarvestPoints),
+     ('/frontend/points/harvest', HarvestPoints),
      ],
      debug=True)
 
