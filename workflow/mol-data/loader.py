@@ -353,19 +353,17 @@ def source2csv(source_dir, options):
 
 	    # We use subprocess.call(..., shell=True) below because otherwise
 	    # Windows tries to execute a program called 'appcfg.py' on the PATH
-	    # and fails. Unfortunately, this opens the door to subtle bugs
-	    # (by inserting doublequotes into file names) or malicious attacks
-	    # against the system.
+	    # and fails. For increased safety, we call the command with individual
+	    # arguments, making it harder for arguments to be misinterpreted as
+	    # separate commands.
 
             # Bulkload Layer entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=\"%s\" --filename=\"%s\" --kind=%s --url=\"%s\"" 
-            cmdline = cmd % (config_file, filename, 'Layer', options.url)
-            subprocess.call(cmdline, shell=True)
+            cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=Layer', '--url=%s' % options.url] 
+            subprocess.call(cmd, shell=True)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=\"%s\" --filename=\"%s\" --kind=%s --url=\"%s\"" 
-            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-            subprocess.call(cmdline, shell=True)
+            cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=LayerIndex', '--url=%s' % options.url] 
+            subprocess.call(cmd, shell=True)
 
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
