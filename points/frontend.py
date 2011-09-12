@@ -16,6 +16,7 @@ __author__ = "Aaron Steele (eightysteele@gmail.com)"
 __contributors__ = []
 
 import cache
+import harvest
 import sources
 import tile
 
@@ -34,6 +35,9 @@ from google.appengine.ext.webapp import template
 
 class SearchPoints(webapp.RequestHandler):
     def get(self):
+        self.post()
+
+    def post(self):
         # Check parameters
         name = self.request.get('name', None)
         if not name:
@@ -70,7 +74,7 @@ class SearchPoints(webapp.RequestHandler):
         
     @classmethod
     def cache_key(cls, name, source_name):
-        if source:
+        if source_name:
             return 'points-names-%s-%s' % (name, source_name)
         else:
             return 'points-names-%s' % name        
@@ -92,14 +96,27 @@ class HarvestPoints(webapp.RequestHandler):
     def post(self):
         # Check parameters
         name = self.request.get('name', None)
-        if not name:
+        source_name = self.request.get('source', None)
+        if not name or not source_name:
+            logging.info('Unable to harvest without name and source')
             self.error(400)
             return
-        source_name = self.request.get('source', None)
 
+        # Check cache for harvest job (handles polling)
+        key = harvest.get_job_cache_key(name, source_name)
+        job = cache.get(key)
+        if job:
+            self.response.set_status(200)
+            self.response.headers['Content-Type'] = "application/json"
+            self.response.out.write(simplejson.dumps(job))
+            return
+        else:
+            cache.add(key, harvest.get_job(name, source_name, 'new'))
+        
         # Add harvest task that targets harvest backed instance 1
         params = dict(name=name, source=source_name)
         taskqueue.add(url='/backend/harvest', target='harvest', params=params)
+        self.response.set_status(202) # Accepted
 
 class Home(webapp.RequestHandler):
     def get(self):
@@ -108,14 +125,16 @@ class Home(webapp.RequestHandler):
 
 class TilePoints(webapp.RequestHandler):
     def get(self):
-        tx = self.request.get_range('x')
-        ty = self.request.get_range('y')
-        z = self.request.get_range('z')
+        tx = self.request.get_range('x', None)
+        ty = self.request.get_range('y', None)
+        z = self.request.get_range('z', None)
         limit = self.request.get_range('limit', min_value=1, max_value=1000, default=1000)
         offset = self.request.get_range('offset', min_value=0, default=0)
-        name = self.request.get('name')
-        source_name = self.request.get('source')
-        logging.info('source=%s, name=%s' % (source_name, name))
+        name = self.request.get('name', None)
+        source_name = self.request.get('source', None)
+        if tx is None or ty is None or z is None or name is None or source_name is None:
+            self.error(400)
+            return
         tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(tile_png)
