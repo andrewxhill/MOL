@@ -21,6 +21,7 @@ from model import PointIndex
 import globalmaptiles as gmt
 from ndb import query, model
 from ndb.query import OR, AND
+from ndb.model import StringProperty, IntegerProperty, DateTimeProperty, BlobProperty
 from sdl import interval
 import png
 from StringIO import StringIO
@@ -34,6 +35,27 @@ from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
+
+class TileJob(model.Model): # id = ty-tx-z-name 
+    _use_cache = False   
+    created = DateTimeProperty('c', auto_now_add=True)
+    img = BlobProperty('i')
+
+    @classmethod
+    def build(cls, ty, tx, z, name):
+        job_id = '%s-%s-%s-%s' % (ty, tx, z, name)
+        return cls(id=job_id.lower())
+
+BLANK = None
+def blank():
+    global BLANK
+    if not BLANK:
+        s = PointTile.blank()
+        f = StringIO()
+        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
+        w.write(f, s)
+        BLANK = f.getvalue()
+    return BLANK
 
 class PointTile(object):
 
@@ -135,15 +157,14 @@ class BoundingBoxSearch(object):
         #    logging.info('Result count = %s' % len(results))
         return model.get_multi(results)
 
-def get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=False):
+def get_tile_png(tx, ty, z, name, source_name, limit, offset):
     # Check cache for tile
-    key = '%s-%s-%s-%s-%s' % (tx, ty, z, name, source_name)
-    img = cache.get(key)
-    if img:
-        return img
-    
-    if failfast:
-        return None
+    # key = '%s-%s-%s-%s-%s' % (tx, ty, z, name, source_name)
+    # img = cache.get(key)
+    # if img:
+    #    return img
+    # elif failfast:
+    #    return None
 
     # Calculate Google tile bounding box
     mercator = gmt.GlobalMercator()
@@ -171,27 +192,37 @@ def get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=False):
     img = f.getvalue()
 
     # Cache and return the PNG tile image        
-    cache.add(key, img, dumps=False)
+    # cache.add(key, img, dumps=False)
     return img
 
 class TileService(webapp.RequestHandler):
-    def get(self):
-        tx = self.request.get_range('x')
-        ty = self.request.get_range('y')
+    def post(self):
+        tx = self.request.get_range('tx')
+        ty = self.request.get_range('ty')
         z = self.request.get_range('z')
         limit = self.request.get_range('limit', min_value=1, max_value=1000, default=1000)
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name')
         source_name = self.request.get('source')
+
+        job = TileJob.build(ty, tx, z, '%s-%s' % (name, source_name))
+        logging.info('working on backend job %s' % job)
+        job = job.key.get()
+        if not job:
+            logging.warn('no backend job for ty=%s tx=%s zoom=%s name=%s source=%s' % (ty, tx, z, name, source_name))
+            return
+        img = get_tile_png(tx, ty, z, name, source_name, limit, offset)
+        job.img = img
+        job.put()
         
         # Backend task for pre-rendering tiles at next 2 zoom levels
-        params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
-        taskqueue.add(url='/backend/render', target='render', params=params)
+        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
+        # taskqueue.add(url='/backend/render', target='render', params=params)
 
         # Render and return tile for this request
-        tile_png = get_tile_png(tx, ty, z, name, source_name, limit, offset)
-        self.response.headers['Content-Type'] = 'image/png'
-        self.response.out.write(tile_png)
+        # tile_png = get_tile_png(tx, ty, z, name, source_name, limit, offset)
+        # self.response.headers['Content-Type'] = 'image/png'
+        # self.response.out.write(tile_png)
 
 application = webapp.WSGIApplication([
      ('/backend/tile', TileService),

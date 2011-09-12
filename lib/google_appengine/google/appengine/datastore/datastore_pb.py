@@ -205,6 +205,7 @@ class Transaction(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.Transaction'
 class Query_Filter(ProtocolBuffer.ProtocolMessage):
 
 
@@ -1402,6 +1403,7 @@ class Query(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.Query'
 class CompiledQuery_PrimaryScan(ProtocolBuffer.ProtocolMessage):
   has_index_name_ = 0
   index_name_ = ""
@@ -2412,6 +2414,7 @@ class CompiledQuery(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.CompiledQuery'
 class CompiledCursor_PositionIndexValue(ProtocolBuffer.ProtocolMessage):
   has_property_ = 0
   property_ = ""
@@ -2891,6 +2894,7 @@ class CompiledCursor(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.CompiledCursor'
 class RunCompiledQueryRequest(ProtocolBuffer.ProtocolMessage):
   has_app_ = 0
   app_ = ""
@@ -3185,6 +3189,7 @@ class RunCompiledQueryRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.RunCompiledQueryRequest'
 class Cursor(ProtocolBuffer.ProtocolMessage):
   has_cursor_ = 0
   cursor_ = 0
@@ -3316,6 +3321,7 @@ class Cursor(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.Cursor'
 class Error(ProtocolBuffer.ProtocolMessage):
 
 
@@ -3409,6 +3415,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.Error'
 class Cost_CommitCost(ProtocolBuffer.ProtocolMessage):
   has_requested_entity_puts_ = 0
   requested_entity_puts_ = 0
@@ -3765,6 +3772,7 @@ class Cost(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.Cost'
 class GetRequest(ProtocolBuffer.ProtocolMessage):
   has_transaction_ = 0
   transaction_ = None
@@ -3996,6 +4004,7 @@ class GetRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.GetRequest'
 class GetResponse_Entity(ProtocolBuffer.ProtocolMessage):
   has_entity_ = 0
   entity_ = None
@@ -4201,6 +4210,7 @@ class GetResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.GetResponse'
 class PutRequest(ProtocolBuffer.ProtocolMessage):
   has_transaction_ = 0
   transaction_ = None
@@ -4519,6 +4529,7 @@ class PutRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.PutRequest'
 class PutResponse(ProtocolBuffer.ProtocolMessage):
   has_cost_ = 0
   cost_ = None
@@ -4682,7 +4693,10 @@ class PutResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.PutResponse'
 class TouchRequest(ProtocolBuffer.ProtocolMessage):
+  has_force_ = 0
+  force_ = 0
 
   def __init__(self, contents=None):
     self.key_ = []
@@ -4721,11 +4735,25 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
 
   def clear_composite_index(self):
     self.composite_index_ = []
+  def force(self): return self.force_
+
+  def set_force(self, x):
+    self.has_force_ = 1
+    self.force_ = x
+
+  def clear_force(self):
+    if self.has_force_:
+      self.has_force_ = 0
+      self.force_ = 0
+
+  def has_force(self): return self.has_force_
+
 
   def MergeFrom(self, x):
     assert x is not self
     for i in xrange(x.key_size()): self.add_key().CopyFrom(x.key(i))
     for i in xrange(x.composite_index_size()): self.add_composite_index().CopyFrom(x.composite_index(i))
+    if (x.has_force()): self.set_force(x.force())
 
   def Equals(self, x):
     if x is self: return 1
@@ -4735,6 +4763,8 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
     if len(self.composite_index_) != len(x.composite_index_): return 0
     for e1, e2 in zip(self.composite_index_, x.composite_index_):
       if e1 != e2: return 0
+    if self.has_force_ != x.has_force_: return 0
+    if self.has_force_ and self.force_ != x.force_: return 0
     return 1
 
   def IsInitialized(self, debug_strs=None):
@@ -4751,6 +4781,7 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
     for i in xrange(len(self.key_)): n += self.lengthString(self.key_[i].ByteSize())
     n += 1 * len(self.composite_index_)
     for i in xrange(len(self.composite_index_)): n += self.lengthString(self.composite_index_[i].ByteSize())
+    if (self.has_force_): n += 2
     return n
 
   def ByteSizePartial(self):
@@ -4759,11 +4790,13 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
     for i in xrange(len(self.key_)): n += self.lengthString(self.key_[i].ByteSizePartial())
     n += 1 * len(self.composite_index_)
     for i in xrange(len(self.composite_index_)): n += self.lengthString(self.composite_index_[i].ByteSizePartial())
+    if (self.has_force_): n += 2
     return n
 
   def Clear(self):
     self.clear_key()
     self.clear_composite_index()
+    self.clear_force()
 
   def OutputUnchecked(self, out):
     for i in xrange(len(self.key_)):
@@ -4774,6 +4807,9 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(18)
       out.putVarInt32(self.composite_index_[i].ByteSize())
       self.composite_index_[i].OutputUnchecked(out)
+    if (self.has_force_):
+      out.putVarInt32(24)
+      out.putBoolean(self.force_)
 
   def OutputPartial(self, out):
     for i in xrange(len(self.key_)):
@@ -4784,6 +4820,9 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(18)
       out.putVarInt32(self.composite_index_[i].ByteSizePartial())
       self.composite_index_[i].OutputPartial(out)
+    if (self.has_force_):
+      out.putVarInt32(24)
+      out.putBoolean(self.force_)
 
   def TryMerge(self, d):
     while d.avail() > 0:
@@ -4799,6 +4838,9 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
         tmp = ProtocolBuffer.Decoder(d.buffer(), d.pos(), d.pos() + length)
         d.skip(length)
         self.add_composite_index().TryMerge(tmp)
+        continue
+      if tt == 24:
+        self.set_force(d.getBoolean())
         continue
 
 
@@ -4824,6 +4866,7 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
       res+=e.__str__(prefix + "  ", printElemNumber)
       res+=prefix+">\n"
       cnt+=1
+    if self.has_force_: res+=prefix+("force: %s\n" % self.DebugFormatBool(self.force_))
     return res
 
 
@@ -4832,22 +4875,26 @@ class TouchRequest(ProtocolBuffer.ProtocolMessage):
 
   kkey = 1
   kcomposite_index = 2
+  kforce = 3
 
   _TEXT = _BuildTagLookupTable({
     0: "ErrorCode",
     1: "key",
     2: "composite_index",
-  }, 2)
+    3: "force",
+  }, 3)
 
   _TYPES = _BuildTagLookupTable({
     0: ProtocolBuffer.Encoder.NUMERIC,
     1: ProtocolBuffer.Encoder.STRING,
     2: ProtocolBuffer.Encoder.STRING,
-  }, 2, ProtocolBuffer.Encoder.MAX_TYPE)
+    3: ProtocolBuffer.Encoder.NUMERIC,
+  }, 3, ProtocolBuffer.Encoder.MAX_TYPE)
 
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.TouchRequest'
 class TouchResponse(ProtocolBuffer.ProtocolMessage):
   has_cost_ = 0
   cost_ = None
@@ -4958,6 +5005,7 @@ class TouchResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.TouchResponse'
 class DeleteRequest(ProtocolBuffer.ProtocolMessage):
   has_transaction_ = 0
   transaction_ = None
@@ -5223,6 +5271,7 @@ class DeleteRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.DeleteRequest'
 class DeleteResponse(ProtocolBuffer.ProtocolMessage):
   has_cost_ = 0
   cost_ = None
@@ -5333,6 +5382,7 @@ class DeleteResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.DeleteResponse'
 class NextRequest(ProtocolBuffer.ProtocolMessage):
   has_cursor_ = 0
   has_count_ = 0
@@ -5538,6 +5588,7 @@ class NextRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.NextRequest'
 class QueryResult(ProtocolBuffer.ProtocolMessage):
   has_cursor_ = 0
   cursor_ = None
@@ -5904,6 +5955,7 @@ class QueryResult(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.QueryResult'
 class AllocateIdsRequest(ProtocolBuffer.ProtocolMessage):
   has_model_key_ = 0
   has_size_ = 0
@@ -6075,6 +6127,7 @@ class AllocateIdsRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.AllocateIdsRequest'
 class AllocateIdsResponse(ProtocolBuffer.ProtocolMessage):
   has_start_ = 0
   start_ = 0
@@ -6213,6 +6266,7 @@ class AllocateIdsResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.AllocateIdsResponse'
 class CompositeIndices(ProtocolBuffer.ProtocolMessage):
 
   def __init__(self, contents=None):
@@ -6326,6 +6380,7 @@ class CompositeIndices(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.CompositeIndices'
 class AddActionsRequest(ProtocolBuffer.ProtocolMessage):
   has_transaction_ = 0
 
@@ -6482,6 +6537,7 @@ class AddActionsRequest(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.AddActionsRequest'
 class AddActionsResponse(ProtocolBuffer.ProtocolMessage):
 
   def __init__(self, contents=None):
@@ -6546,9 +6602,12 @@ class AddActionsResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.AddActionsResponse'
 class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
   has_app_ = 0
   app_ = ""
+  has_allow_multiple_eg_ = 0
+  allow_multiple_eg_ = 0
 
   def __init__(self, contents=None):
     if contents is not None: self.MergeFromString(contents)
@@ -6566,15 +6625,31 @@ class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
 
   def has_app(self): return self.has_app_
 
+  def allow_multiple_eg(self): return self.allow_multiple_eg_
+
+  def set_allow_multiple_eg(self, x):
+    self.has_allow_multiple_eg_ = 1
+    self.allow_multiple_eg_ = x
+
+  def clear_allow_multiple_eg(self):
+    if self.has_allow_multiple_eg_:
+      self.has_allow_multiple_eg_ = 0
+      self.allow_multiple_eg_ = 0
+
+  def has_allow_multiple_eg(self): return self.has_allow_multiple_eg_
+
 
   def MergeFrom(self, x):
     assert x is not self
     if (x.has_app()): self.set_app(x.app())
+    if (x.has_allow_multiple_eg()): self.set_allow_multiple_eg(x.allow_multiple_eg())
 
   def Equals(self, x):
     if x is self: return 1
     if self.has_app_ != x.has_app_: return 0
     if self.has_app_ and self.app_ != x.app_: return 0
+    if self.has_allow_multiple_eg_ != x.has_allow_multiple_eg_: return 0
+    if self.has_allow_multiple_eg_ and self.allow_multiple_eg_ != x.allow_multiple_eg_: return 0
     return 1
 
   def IsInitialized(self, debug_strs=None):
@@ -6588,6 +6663,7 @@ class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
   def ByteSize(self):
     n = 0
     n += self.lengthString(len(self.app_))
+    if (self.has_allow_multiple_eg_): n += 2
     return n + 1
 
   def ByteSizePartial(self):
@@ -6595,25 +6671,36 @@ class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
     if (self.has_app_):
       n += 1
       n += self.lengthString(len(self.app_))
+    if (self.has_allow_multiple_eg_): n += 2
     return n
 
   def Clear(self):
     self.clear_app()
+    self.clear_allow_multiple_eg()
 
   def OutputUnchecked(self, out):
     out.putVarInt32(10)
     out.putPrefixedString(self.app_)
+    if (self.has_allow_multiple_eg_):
+      out.putVarInt32(16)
+      out.putBoolean(self.allow_multiple_eg_)
 
   def OutputPartial(self, out):
     if (self.has_app_):
       out.putVarInt32(10)
       out.putPrefixedString(self.app_)
+    if (self.has_allow_multiple_eg_):
+      out.putVarInt32(16)
+      out.putBoolean(self.allow_multiple_eg_)
 
   def TryMerge(self, d):
     while d.avail() > 0:
       tt = d.getVarInt32()
       if tt == 10:
         self.set_app(d.getPrefixedString())
+        continue
+      if tt == 16:
+        self.set_allow_multiple_eg(d.getBoolean())
         continue
 
 
@@ -6624,6 +6711,7 @@ class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
   def __str__(self, prefix="", printElemNumber=0):
     res=""
     if self.has_app_: res+=prefix+("app: %s\n" % self.DebugFormatString(self.app_))
+    if self.has_allow_multiple_eg_: res+=prefix+("allow_multiple_eg: %s\n" % self.DebugFormatBool(self.allow_multiple_eg_))
     return res
 
 
@@ -6631,20 +6719,24 @@ class BeginTransactionRequest(ProtocolBuffer.ProtocolMessage):
     return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
 
   kapp = 1
+  kallow_multiple_eg = 2
 
   _TEXT = _BuildTagLookupTable({
     0: "ErrorCode",
     1: "app",
-  }, 1)
+    2: "allow_multiple_eg",
+  }, 2)
 
   _TYPES = _BuildTagLookupTable({
     0: ProtocolBuffer.Encoder.NUMERIC,
     1: ProtocolBuffer.Encoder.STRING,
-  }, 1, ProtocolBuffer.Encoder.MAX_TYPE)
+    2: ProtocolBuffer.Encoder.NUMERIC,
+  }, 2, ProtocolBuffer.Encoder.MAX_TYPE)
 
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.BeginTransactionRequest'
 class CommitResponse(ProtocolBuffer.ProtocolMessage):
   has_cost_ = 0
   cost_ = None
@@ -6755,5 +6847,6 @@ class CommitResponse(ProtocolBuffer.ProtocolMessage):
 
   _STYLE = """"""
   _STYLE_CONTENT_TYPE = """"""
+  _PROTO_DESCRIPTOR_NAME = 'apphosting_datastore_v3.CommitResponse'
 
 __all__ = ['Transaction','Query','Query_Filter','Query_Order','CompiledQuery','CompiledQuery_PrimaryScan','CompiledQuery_MergeJoinScan','CompiledQuery_EntityFilter','CompiledCursor','CompiledCursor_PositionIndexValue','CompiledCursor_Position','RunCompiledQueryRequest','Cursor','Error','Cost','Cost_CommitCost','GetRequest','GetResponse','GetResponse_Entity','PutRequest','PutResponse','TouchRequest','TouchResponse','DeleteRequest','DeleteResponse','NextRequest','QueryResult','AllocateIdsRequest','AllocateIdsResponse','CompositeIndices','AddActionsRequest','AddActionsResponse','BeginTransactionRequest','CommitResponse']

@@ -88,8 +88,6 @@ SERVICE_PB_MAP = {
                   file_service_pb.CloseResponse),
         'Append': (file_service_pb.AppendRequest,
                    file_service_pb.AppendResponse),
-        'AppendKeyValue': (file_service_pb.AppendKeyValueRequest,
-                           file_service_pb.AppendKeyValueResponse),
         'Stat': (file_service_pb.StatRequest,
                  file_service_pb.StatResponse),
         'Delete': (file_service_pb.DeleteRequest,
@@ -133,7 +131,7 @@ SERVICE_PB_MAP = {
         'RunQuery':    (datastore_pb.Query, datastore_pb.QueryResult),
         'Transaction': (remote_api_pb.TransactionRequest,
                         datastore_pb.PutResponse),
-        'GetIDs':      (remote_api_pb.PutRequest, datastore_pb.PutResponse),
+        'GetIDs':      (datastore_pb.PutRequest, datastore_pb.PutResponse),
     },
     'taskqueue': {
         'Add': (taskqueue_service_pb.TaskQueueAddRequest,

@@ -132,17 +132,51 @@ class TilePoints(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name', None)
         source_name = self.request.get('source', None)
+
         if tx is None or ty is None or z is None or name is None or source_name is None:
             self.error(400)
             return
-        tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=True)
-        self.response.headers['Content-Type'] = 'image/png'
-        self.response.out.write(tile_png)
+        
+        job = tile.TileJob.build(ty, tx, z, '%s-%s' % (name, source_name))
+        job_instance = job.key.get()
+        if not job_instance:
+            logging.info('New frontend job %s' % job)
+            job.put()
+            params = dict(
+                tx=tx,
+                ty=ty,
+                z=z,
+                limit=limit,
+                offset=offset,
+                name=name,
+                source=source_name)    
+            logging.info('New frontend job params %s' % params)
+            taskqueue.add(url='/backend/tile', target='tile', params=params)
+            self.response.set_status(200)
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(tile.blank())
+            return
+          
+        logging.info('Existing frontend job %s' % job_instance)
+
+        img = job_instance.img
+
+        if img is not None:
+            # Return requested tile image            
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(img)
+        else:        
+            # Return blank tile (backend still processing)
+            self.response.set_status(200)
+            self.response.headers['Content-Type'] = 'image/png'
+            #self.response.headers['Cache-Control'] = 'max-age=31556926'
+            self.response.out.write(tile.blank())
+            return
 
         # Backend task for pre-rendering tiles at next 2 zoom levels
         # TODO: Figure out performance/cost tradeoff here
-        params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+1)
-        taskqueue.add(url='/backend/render', target='render', params=params)
+        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+1)
+        # taskqueue.add(url='/backend/render', target='render', params=params)
         
 application = webapp.WSGIApplication([
         ('/frontend/points$', Home),
