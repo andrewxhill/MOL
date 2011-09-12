@@ -351,20 +351,21 @@ def source2csv(source_dir, options):
             if options.localhost:
                 options.url = 'http://localhost:8080/_ah/remote_api'
 
-	    # The complete path to the 'appcfg.py' file.
-	    APPCFG_PY = 'C:/Program Files (x86)/Google/google_appengine/appcfg.py'
+	    # We use subprocess.call(..., shell=True) below because otherwise
+	    # Windows tries to execute a program called 'appcfg.py' on the PATH
+	    # and fails. Unfortunately, this opens the door to subtle bugs
+	    # (by inserting doublequotes into file names) or malicious attacks
+	    # against the system.
 
             # Bulkload Layer entities to App Engine for entire collection
-            cmd = "python '%s' upload_data --config_file='%s' --filename='%s' --kind=%s --url=%s" 
-            cmdline = cmd % (APPCFG_PY, config_file, filename, 'Layer', options.url)
-            args = shlex.split(cmdline)
-            subprocess.call(args)
+            cmd = "appcfg.py upload_data --config_file=\"%s\" --filename=\"%s\" --kind=%s --url=\"%s\"" 
+            cmdline = cmd % (config_file, filename, 'Layer', options.url)
+            subprocess.call(cmdline, shell=True)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = "python '%s' upload_data --config_file='%s' --filename='%s' --kind=%s --url=%s" 
-            cmdline = cmd % (APPCFG_PY, config_file, filename, 'LayerIndex', options.url)
-            args = shlex.split(cmdline)
-            subprocess.call(args)
+            cmd = "appcfg.py upload_data --config_file=\"%s\" --filename=\"%s\" --kind=%s --url=\"%s\"" 
+            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
+            subprocess.call(cmdline, shell=True)
 
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
