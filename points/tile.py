@@ -135,12 +135,15 @@ class BoundingBoxSearch(object):
         #    logging.info('Result count = %s' % len(results))
         return model.get_multi(results)
 
-def get_tile_png(tx, ty, z, name, source_name, limit, offset):
+def get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=False):
     # Check cache for tile
     key = '%s-%s-%s-%s-%s' % (tx, ty, z, name, source_name)
     img = cache.get(key)
     if img:
         return img
+    
+    if failfast:
+        return None
 
     # Calculate Google tile bounding box
     mercator = gmt.GlobalMercator()

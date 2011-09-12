@@ -135,13 +135,14 @@ class TilePoints(webapp.RequestHandler):
         if tx is None or ty is None or z is None or name is None or source_name is None:
             self.error(400)
             return
-        tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset)
+        tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=True)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(tile_png)
 
         # Backend task for pre-rendering tiles at next 2 zoom levels
-        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
-        # taskqueue.add(url='/backend/render', target='render', params=params)
+        # TODO: Figure out performance/cost tradeoff here
+        params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+1)
+        taskqueue.add(url='/backend/render', target='render', params=params)
         
 application = webapp.WSGIApplication([
         ('/frontend/points$', Home),

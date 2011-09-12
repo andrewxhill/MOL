@@ -210,18 +210,21 @@ app.handleOnClick = function(evt) {
         {name: location, source: 'gbif'},
         function (data) {
             console.log(data);
-            var div = $('<div id="names"></div>');
             var names = data;
             var name = null;
             var html = '';
             var widget = null;
+            app.namesDiv = $('<div id="names"></div>');
+            app.loadingImg.show();
             for (x in names) {
                 name = names[x];
                 widget = app.getNameWidget(name);
-                div.append(widget);
+                app.namesDiv.append(widget);
             }
+            app.namesDiv.append(app.loadingImg[0]);
             app.map.controls[google.maps.ControlPosition.TOP_RIGHT].clear();
-            app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(div[0]);
+            app.map.controls[google.maps.ControlPosition.TOP_RIGHT].push(app.namesDiv[0]);
+            $('#loadgif').hide();
         }
     );
     // Adds a history token and eventually georeferences:
@@ -230,16 +233,22 @@ app.handleOnClick = function(evt) {
     
 };
 
+
+
 app.getNameWidget = function(name) {
     var widget = $('<div></div>'),
         id = null,
         status = null,
-        job = null;
+        job = null,
+        count = null;
     widget.attr('id', name);
     widget.append($('<a href="#">'+name+'</a>'));
     widget.click(
         function(event) {
             console.log(name + ' clicked');
+            //app.loadingImg.show();
+            $('#loadgif').show();
+            $('#loadcount').text('Loading...');
             $.post(
                 '/frontend/points/harvest',
                 {name: name, source: 'gbif'},
@@ -247,23 +256,29 @@ app.getNameWidget = function(name) {
                     console.log(data);
                     id = setInterval(
                         function() {
-                            // TODO: Error handleing for 404
+                            // TODO: Error handling 
                             $.post(
                                 '/frontend/points/harvest',
                                 {name: name, source: 'gbif'},
                                 function (data) { 
                                     job = JSON.parse(data);
                                     status = job['status'];
+                                    count = job['msg'] ? job['msg'] : '0';
                                     console.log('UPDATE: ' + data);
+                                    $('#loadcount').text('Loaded ' + count);
                                     if (status && (status === 'done' || status === 'error')) {
                                         clearInterval(id);
                                         app.setImageMapType(name);
+                                        //app.loadingImg.hide();
+                                        $('#loadgif').hide();
+                                        $('#loadcount').text('Loaded ' + count + ' ' + name + ' points');
+                                        // add div with count harvested?
                                     }
                                 },
                                 'json'
                             );
                         }
-                        , 1000);
+                        , 2000);
                 },
                 'json'
             );
@@ -393,8 +408,8 @@ app.setImageMapType = function(name) {
                 var normalizedCoord = app._getNormalizedCoord(coord, zoom),
                     bound = Math.pow(2, zoom),
                     tileParams = '',
-                    //backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
-                    backendTileApi = 'http://localhost:8080/frontend/points/tile',
+                    backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
+                    //backendTileApi = 'http://localhost:8080/frontend/points/tile',
                     tileurl = null;                                
             
                 if (!normalizedCoord) {
@@ -435,43 +450,15 @@ app.init = function () {
     }
     
     var queryPlaceholder = "aves",
-    latlng = new google.maps.LatLng(37.8, -121);
+    latlng = new google.maps.LatLng(20.8, -100);
     app.mapOptions = {
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         center: latlng
     };
     app.geocoder = new google.maps.Geocoder();
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
-    app.map.setZoom(3);
-    // app._mapType = new google.maps.ImageMapType(
-    //     {
-    //         getTileUrl: function(coord, zoom) {
-    //             var normalizedCoord = app._getNormalizedCoord(coord, zoom),
-    //                 bound = Math.pow(2, zoom),
-    //                 tileParams = '',
-    //                 //backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
-    //                 backendTileApi = 'http://localhost:8080/frontend/points/tile',
-    //                 tileurl = null;                                
-            
-    //             if (!normalizedCoord) {
-    //                 return null;
-    //             }              
-    //             tileParams = tileParams + 'x=' + normalizedCoord.x;
-    //             tileParams = tileParams + '&y=' + normalizedCoord.y;
-    //             tileParams = tileParams + '&z=' + zoom;      
-    //             tileParams = tileParams + '&name=' + $('#location').val();
-    //             tileParams = tileParams + '&source=gbif';
-    //             tileurl = backendTileApi + "?" + tileParams;
-    //             //console.log(tileurl);
-    //             return tileurl;
-    //         },
-    //         tileSize: new google.maps.Size(256, 256),
-    //         isPng: true,
-    //         opacity: 1.0,
-    //         name: 'points'
-    //     });
-
-    // app.map.overlayMapTypes.push(app._mapType);    
+    app.map.setZoom(2);
+    app.loadingImg = $('<div id="loader"><img id="loadgif" src="/js/loading.gif"/><span id="loadcount"></span></div>');  
     app.geocoderMarkers = [];
     $('#button').click(app.handleOnClick);
     $('#clearMapButton').click(app.handleClearMap);

@@ -15,6 +15,7 @@ handlers:
 
 - url: /frontend/points(/.*)?
   script: frontend.py
+  login: admin
 
 - url: /backend/harvest(/.*)?
   script: harvest.py
