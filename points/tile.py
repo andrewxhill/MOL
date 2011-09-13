@@ -36,17 +36,8 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-class TileJob(model.Model): # id = ty-tx-z-name 
-    _use_cache = False   
-    created = DateTimeProperty('c', auto_now_add=True)
-    img = BlobProperty('i')
-
-    @classmethod
-    def build(cls, ty, tx, z, name):
-        job_id = '%s-%s-%s-%s' % (ty, tx, z, name)
-        return cls(id=job_id.lower())
-
 BLANK = None
+
 def blank():
     global BLANK
     if not BLANK:
@@ -182,6 +173,9 @@ def get_tile_png(tx, ty, z, name, source_name, limit, offset):
         pixel_y -= ty * 256
         pixels.add((pixel_y, pixel_x))
 
+    if len(pixels) == 0:
+        return None
+
     # Render the pixels in a new tile
     s = PointTile.create(pixels, tx, ty)
 
@@ -196,33 +190,32 @@ def get_tile_png(tx, ty, z, name, source_name, limit, offset):
     return img
 
 class TileService(webapp.RequestHandler):
+    def get(self):
+        self.post()
+
     def post(self):
-        tx = self.request.get_range('tx')
-        ty = self.request.get_range('ty')
-        z = self.request.get_range('z')
+        tx = self.request.get_range('x', None)
+        ty = self.request.get_range('y', None)
+        z = self.request.get_range('z', None)
         limit = self.request.get_range('limit', min_value=1, max_value=1000, default=1000)
         offset = self.request.get_range('offset', min_value=0, default=0)
-        name = self.request.get('name')
-        source_name = self.request.get('source')
+        name = self.request.get('name', None)
+        source_name = self.request.get('source', None)
 
-        job = TileJob.build(ty, tx, z, '%s-%s' % (name, source_name))
-        logging.info('working on backend job %s' % job)
-        job = job.key.get()
-        if not job:
-            logging.warn('no backend job for ty=%s tx=%s zoom=%s name=%s source=%s' % (ty, tx, z, name, source_name))
+        if tx is None or ty is None or z is None or name is None or source_name is None:
+            self.error(400)
             return
-        img = get_tile_png(tx, ty, z, name, source_name, limit, offset)
-        job.img = img
-        job.put()
         
-        # Backend task for pre-rendering tiles at next 2 zoom levels
-        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+2)
-        # taskqueue.add(url='/backend/render', target='render', params=params)
-
-        # Render and return tile for this request
-        # tile_png = get_tile_png(tx, ty, z, name, source_name, limit, offset)
-        # self.response.headers['Content-Type'] = 'image/png'
-        # self.response.out.write(tile_png)
+        key = 'tile-%s-%s-%s-%s-%s' % (z, ty, tx, source_name, name)
+        png = cache.get(key)
+        if png is None:
+            png = get_tile_png(tx, ty, z, name, source_name, limit, offset) 
+            if png is None:
+                png = blank()
+            cache.add(key, png, dumps=False)
+        self.response.set_status(200)
+        self.response.headers['Content-Type'] = 'image/png'
+        self.response.out.write(png)            
 
 application = webapp.WSGIApplication([
      ('/backend/tile', TileService),

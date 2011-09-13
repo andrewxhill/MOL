@@ -20,7 +20,7 @@ import simplejson
 
 from sdl import interval
 
-from ndb.model import Model, Key, FloatProperty, IntegerProperty, StringProperty
+from ndb.model import Model, Key, FloatProperty, IntegerProperty, StringProperty, StructuredProperty
 from ndb import query, model
 
 class Point(model.Model):

@@ -6,14 +6,14 @@ backends:
   instances: 1
   options: dynamic
 
-- name: render
-  start: render.py
-  class: B4
-  instances: 1
-  options: dynamic
+#- name: render
+#  start: render.py
+#  class: B2
+#  instances: 1
+#  options: dynamic
 
 - name: tile
   start: tile.py
-  class: B2
-  instances: 1
-  options: dynamic
+  class: B4
+  instances: 2
+  options: dynamic, public

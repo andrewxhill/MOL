@@ -23,6 +23,7 @@ import tile
 import logging
 import os
 import simplejson
+import urllib
 
 from google.appengine.api import backends
 from google.appengine.api import memcache
@@ -136,48 +137,30 @@ class TilePoints(webapp.RequestHandler):
         if tx is None or ty is None or z is None or name is None or source_name is None:
             self.error(400)
             return
-        
-        job = tile.TileJob.build(ty, tx, z, '%s-%s' % (name, source_name))
-        job_instance = job.key.get()
-        if not job_instance:
-            logging.info('New frontend job %s' % job)
-            job.put()
-            params = dict(
-                tx=tx,
-                ty=ty,
-                z=z,
-                limit=limit,
-                offset=offset,
-                name=name,
-                source=source_name)    
-            logging.info('New frontend job params %s' % params)
-            taskqueue.add(url='/backend/tile', target='tile', params=params)
+
+        key = 'tile-%s-%s-%s-%s-%s' % (z, ty, tx, source_name, name)
+        png = cache.get(key)
+        if png:
             self.response.set_status(200)
             self.response.headers['Content-Type'] = 'image/png'
-            self.response.out.write(tile.blank())
-            return
-          
-        logging.info('Existing frontend job %s' % job_instance)
+            self.response.out.write(png)
+        else:
+            params = dict(x=tx, y=ty, z=z, limit=limit, offset=offset, name=name, source=source_name)            
+            self.redirect('/backend/tile?%s' % urllib.urlencode(params))
 
-        img = job_instance.img
+class TilePoll(webapp.RequestHandler):
+    def get(self):
+        self.post()
 
-        if img is not None:
-            # Return requested tile image            
-            self.response.headers['Content-Type'] = 'image/png'
-            self.response.out.write(img)
-        else:        
-            # Return blank tile (backend still processing)
-            self.response.set_status(200)
-            self.response.headers['Content-Type'] = 'image/png'
-            #self.response.headers['Cache-Control'] = 'max-age=31556926'
-            self.response.out.write(tile.blank())
-            return
-
-        # Backend task for pre-rendering tiles at next 2 zoom levels
-        # TODO: Figure out performance/cost tradeoff here
-        # params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+1)
-        # taskqueue.add(url='/backend/render', target='render', params=params)
-        
+    def post(self):
+        z = self.request.get_range('z', None)
+        name = self.request.get('name', None)
+        source_name = self.request.get('source', None)
+        done = TileSetJob.done(z, '%s-%s' % (name, source_name))
+        self.response.set_status(200)
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write('"%s"')
+    
 application = webapp.WSGIApplication([
         ('/frontend/points$', Home),
         ('/frontend/points/search', SearchPoints),

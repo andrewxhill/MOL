@@ -271,7 +271,7 @@ app.getNameWidget = function(name) {
                                         app.setImageMapType(name);
                                         //app.loadingImg.hide();
                                         $('#loadgif').hide();
-                                        $('#loadcount').text('Loaded ' + count + ' ' + name + ' points');
+                                         $('#loadcount').text('Loaded ' + count + ' ' + name + ' points');
                                         // add div with count harvested?
                                     }
                                 },
@@ -449,7 +449,7 @@ app.init = function () {
         app.urlParams[d(e[1])] = d(e[2]);
     }
     
-    var queryPlaceholder = "aves",
+    var queryPlaceholder = "puma",
     latlng = new google.maps.LatLng(20.8, -100);
     app.mapOptions = {
         mapTypeId: google.maps.MapTypeId.TERRAIN,
@@ -458,6 +458,23 @@ app.init = function () {
     app.geocoder = new google.maps.Geocoder();
     app.map = new google.maps.Map(document.getElementById("map_canvas"), app.mapOptions);
     app.map.setZoom(2);
+
+    // google.maps.event.addListener(
+    //     app.map, 'bounds_changed', 
+    //     function(event) {
+    //         $('#loadcount').text('Rendering tiles');
+    //         $('#loadgif').show();
+    //     }
+    // );
+
+    // google.maps.event.addListener(
+    //     app.map, 'tilesloaded', 
+    //     function() {
+    //         $('#loadcount').text('Tiles rendered');
+    //         $('#loadgif').hide();
+    //     }
+    // );
+
     app.loadingImg = $('<div id="loader"><img id="loadgif" src="/js/loading.gif"/><span id="loadcount"></span></div>');  
     app.geocoderMarkers = [];
     $('#button').click(app.handleOnClick);
