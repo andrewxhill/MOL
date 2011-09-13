@@ -23,6 +23,7 @@ import tile
 import logging
 import os
 import simplejson
+import urllib
 
 from google.appengine.api import backends
 from google.appengine.api import memcache
@@ -132,18 +133,34 @@ class TilePoints(webapp.RequestHandler):
         offset = self.request.get_range('offset', min_value=0, default=0)
         name = self.request.get('name', None)
         source_name = self.request.get('source', None)
+
         if tx is None or ty is None or z is None or name is None or source_name is None:
             self.error(400)
             return
-        tile_png = tile.get_tile_png(tx, ty, z, name, source_name, limit, offset, failfast=True)
-        self.response.headers['Content-Type'] = 'image/png'
-        self.response.out.write(tile_png)
 
-        # Backend task for pre-rendering tiles at next 2 zoom levels
-        # TODO: Figure out performance/cost tradeoff here
-        params = dict(name=name, source=source_name, minzoom=z+1, maxzoom=z+1)
-        taskqueue.add(url='/backend/render', target='render', params=params)
-        
+        key = 'tile-%s-%s-%s-%s-%s' % (z, ty, tx, source_name, name)
+        png = cache.get(key)
+        if png:
+            self.response.set_status(200)
+            self.response.headers['Content-Type'] = 'image/png'
+            self.response.out.write(png)
+        else:
+            params = dict(x=tx, y=ty, z=z, limit=limit, offset=offset, name=name, source=source_name)            
+            self.redirect('/backend/tile?%s' % urllib.urlencode(params))
+
+class TilePoll(webapp.RequestHandler):
+    def get(self):
+        self.post()
+
+    def post(self):
+        z = self.request.get_range('z', None)
+        name = self.request.get('name', None)
+        source_name = self.request.get('source', None)
+        done = TileSetJob.done(z, '%s-%s' % (name, source_name))
+        self.response.set_status(200)
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.out.write('"%s"')
+    
 application = webapp.WSGIApplication([
         ('/frontend/points$', Home),
         ('/frontend/points/search', SearchPoints),

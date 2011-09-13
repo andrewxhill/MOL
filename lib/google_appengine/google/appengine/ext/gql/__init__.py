@@ -56,6 +56,9 @@ LOG_LEVEL = logging.DEBUG - 1
 
 _EPOCH = datetime.datetime.utcfromtimestamp(0)
 
+
+_EMPTY_LIST_PROPERTY_NAME = '__empty_IN_list__'
+
 def Execute(query_string, *args, **keyword_args):
   """Execute command to parse and run the query.
 
@@ -197,6 +200,7 @@ class GQL(object):
     \*|
     -?\d+(?:\.\d+)?|
     \w+|
+    (?:"[^"\s]+")+|
     \(|\)|
     \S+
     """, re.VERBOSE | re.IGNORECASE)
@@ -635,7 +639,7 @@ class GQL(object):
       assert False, 'Unknown reference %s' % reference
 
   def __AddMultiQuery(self, identifier, condition, value, enumerated_queries):
-    """Helper function to add a muti-query to previously enumerated queries.
+    """Helper function to add a multi-query to previously enumerated queries.
 
     Args:
       identifier: property being filtered by this condition
@@ -693,6 +697,14 @@ class GQL(object):
       if len(enumerated_queries) * in_list_size > self.MAX_ALLOWABLE_QUERIES:
         raise datastore_errors.BadArgumentError(
           'Cannot satisfy query -- too many IN/!= values.')
+
+      if in_list_size == 0:
+
+        num_iterations = CloneQueries(enumerated_queries, 1)
+        for clone_num in xrange(num_iterations):
+
+          enumerated_queries[clone_num][_EMPTY_LIST_PROPERTY_NAME] = True
+        return
 
       num_iterations = CloneQueries(enumerated_queries, in_list_size)
       for clone_num in xrange(num_iterations):
@@ -802,6 +814,10 @@ class GQL(object):
   __ordinal_regex = re.compile(r':(\d+)$')
   __named_regex = re.compile(r':(\w+)$')
   __identifier_regex = re.compile(r'(\w+)$')
+
+
+
+  __quoted_identifier_regex = re.compile(r'((?:"[^"\s]+")+)$')
   __conditions_regex = re.compile(r'(<=|>=|!=|=|<|>|is|in)$', re.IGNORECASE)
   __number_regex = re.compile(r'(\d+)$')
   __cast_regex = re.compile(
@@ -921,7 +937,7 @@ class GQL(object):
       True if parsing completed okay.
     """
     if self.__Accept('FROM'):
-      kind = self.__AcceptRegex(self.__identifier_regex)
+      kind = self.__Identifier()
       if kind:
         self._entity = kind
       else:
@@ -946,7 +962,7 @@ class GQL(object):
 
   def __FilterList(self):
     """Consume the filter list (remainder of the WHERE clause)."""
-    identifier = self.__AcceptRegex(self.__identifier_regex)
+    identifier = self.__Identifier()
     if not identifier:
       self.__Error('Invalid WHERE Identifier')
       return False
@@ -1077,6 +1093,26 @@ class GQL(object):
     return self.__AddProcessedParameterFilter(identifier, condition,
                                               'nop', [parameter])
 
+  def __Identifier(self):
+    """Consume an identifier and return it.
+
+    Returns:
+      The identifier string. If quoted, the surrounding quotes are stripped.
+    """
+    logging.log(LOG_LEVEL, 'Try Identifier')
+    identifier = self.__AcceptRegex(self.__identifier_regex)
+    if not identifier:
+
+
+      identifier = self.__AcceptRegex(self.__quoted_identifier_regex)
+      if identifier:
+
+
+
+
+        identifier = identifier[1:-1].replace('""', '"')
+    return identifier
+
   def __Reference(self):
     """Consume a parameter reference and return it.
 
@@ -1127,6 +1163,8 @@ class GQL(object):
         self.__next_symbol += 1
 
     if literal is None:
+
+
 
 
 
@@ -1199,7 +1237,7 @@ class GQL(object):
     """Consume variables and sort order for ORDER BY clause."""
 
 
-    identifier = self.__AcceptRegex(self.__identifier_regex)
+    identifier = self.__Identifier()
     if identifier:
       if self.__Accept('DESC'):
         self.__orderings.append((identifier, datastore.Query.DESCENDING))

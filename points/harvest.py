@@ -91,8 +91,8 @@ class Harvest(webapp.RequestHandler):
 
         # TODO: Decide if this is a good tradeoff between cost/performance
         # Backend task for pre-rendering tiles for lower zooms
-        params = dict(name=name, source=source_name, minzoom=0, maxzoom=3)
-        taskqueue.add(url='/backend/render', target='render', params=params)
+        #params = dict(name=name, source=source_name, minzoom=0, maxzoom=3)
+        #taskqueue.add(url='/backend/render', target='render', params=params)
  
     @classmethod
     def get_points(cls, name, source):
