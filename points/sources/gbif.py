@@ -13,7 +13,7 @@
 # limitations under the License.
 
 __author__ = "Aaron Steele (eightysteele@gmail.com)"
-__contributors__ = []
+__contributors__ = ["Andrew H. Hill (andrewxhill@gmail.com"]
 
 import cStringIO
 import datetime
