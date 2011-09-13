@@ -354,8 +354,8 @@ def source2csv(source_dir, options):
             # *nixes can run appcfg.py as a program without any problem. Windows, however,
             # can only run appcfg.py if run through the shell. Therefore, we set the flag_run_in_shell
             # depending on which operating system we're in.
-	    flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
-	    
+            flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
+
             # Bulkload Layer entities to App Engine for entire collection
             cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=Layer', '--url=%s' % options.url] 
             subprocess.call(cmd, shell=flag_run_in_shell)
