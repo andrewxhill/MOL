@@ -351,19 +351,18 @@ def source2csv(source_dir, options):
             if options.localhost:
                 options.url = 'http://localhost:8080/_ah/remote_api'
 
-	    # We use subprocess.call(..., shell=True) below because otherwise
-	    # Windows tries to execute a program called 'appcfg.py' on the PATH
-	    # and fails. For increased safety, we call the command with individual
-	    # arguments, making it harder for arguments to be misinterpreted as
-	    # separate commands.
-
+            # *nixes can run appcfg.py as a program without any problem. Windows, however,
+            # can only run appcfg.py if run through the shell. Therefore, we set the flag_run_in_shell
+            # depending on which operating system we're in.
+	    flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
+	    
             # Bulkload Layer entities to App Engine for entire collection
             cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=Layer', '--url=%s' % options.url] 
-            subprocess.call(cmd, shell=True)
+            subprocess.call(cmd, shell=flag_run_in_shell)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
             cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=LayerIndex', '--url=%s' % options.url] 
-            subprocess.call(cmd, shell=True)
+            subprocess.call(cmd, shell=flag_run_in_shell)
 
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
