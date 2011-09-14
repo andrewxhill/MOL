@@ -20,42 +20,42 @@ Collections:
   # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
-    collectionorigin:       6
-    collectionpresence:     6
-    collectionseasonality:  6
-    collectionstartdate:    2010
+    #collectionorigin:       6
+    #collectionpresence:     6
+    #collectionseasonality:  6
+    #collectionstartdate:    2010
     contact: IUCN Red List Unit, IUCN UK Office, 219c Huntingdon Road, Cambridge CB3 0DL, United Kingdom
-    contributor: John Wieczorek
-    coverage:   global
-    creator: IUCN 
-    date:   2010
-    description: This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global in order to highlight taxa threatened with extinction, and thereby promote their conservation.
-    email: redlist@iucn.org 
-    publisher:  IUCN
-    rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
-    samplingprotocol:    expert opinion
-    scientificname:     Mammalia
-    source:             IUCN
-    subject:            IUCN
+    # contributor: John Wieczorek
+    # coverage:   global
+    # creator: IUCN 
+    # date:   2010
+    # description: This dataset contains distribution information of species assessed for The IUCN Red List of Threatened Species. The maps are developed as part of a comprehensive assessment of global in order to highlight taxa threatened with extinction, and thereby promote their conservation.
+    # email: redlist@iucn.org 
+    # publisher:  IUCN
+    # rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
+    # samplingprotocol:    expert opinion
+    # scientificname:     Mammalia
+    # source:             IUCN
+    #subject:            IUCN
     taxonomiccoverage:  most
-    title:              IUCN Red List of Threatened Species 
+    #title:              IUCN Red List of Threatened Species 
     verbatimsrs:        +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
   # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #
   Optional:
-    accessright:    
+    #accessright:    
     basemaps:    
-    enddateaccuracy:    
-    format:    ESRI Shapefile
-    identifier:    
-    language:   en
+    #enddateaccuracy:    
+    #format:    ESRI Shapefile
+    #identifier:    
+    #language:   en
     layertype:  range
-    relation:    
-    rights:    
-    startdateaccuracy:    
+    #relation:    
+    #rights:    
+    #startdateaccuracy:    
     surveyintervals:    
-    type:
+    #type:
 
   # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
 
