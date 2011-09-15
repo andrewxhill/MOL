@@ -206,7 +206,7 @@ class Config(object):
 
             # In case of any errors, bail out.
             if errors > 0:
-                logging.error("%s could not be validated. Please fix the errors reported above and retry.", config_section_to_validate)
+                logging.error("%s could not be validated. Please fix the errors reported above and retry. You can also use the '-V' command line argument to temporarily turn off validation, if you only need to test other program functionality.", config_section_to_validate)
                 exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
