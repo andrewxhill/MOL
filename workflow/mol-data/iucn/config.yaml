@@ -25,7 +25,7 @@ Collections:
     Required:
       areaid: 1
       polygonid: 1
-      identifier: =ID_NO
+      identifier: 1
       bibliographiccitation: "IUCN 2009. IUCN Red List of Threatened Species. Version 2009.1. http://www.iucnredlist.org"
         # What about =CITATION?
       collectionidentifier: "IUCN Red List version AAAA" 
@@ -57,7 +57,7 @@ Collections:
       seasonality: =SEASONAL
       surveystartdate: =YEAR
       surveyenddate: =YEAR
-      taxonremarks: =TAX_COMMEN
+      taxonremarks: 
       visible: true
 
 - DirectoryName: amphibians

@@ -299,8 +299,8 @@ def source2csv(source_dir, options):
                             source = source[1:].lower()
 
                             sourceval = dbf.get(source)
-                            if not sourceval:
-                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (mol, source, ", ".join(dr.fieldnames)))
+                            if not dbf.has_key(source):
+                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (source, mol,  ", ".join(dr.fieldnames)))
                                 sys.exit(1)        
                             row[mol] = sourceval
                             polygon[mol] = sourceval
@@ -324,9 +324,9 @@ def source2csv(source_dir, options):
 
                             # Map a DBF column to a field.
                             sourceval = dbf.get(source)
-                            if not sourceval:
-                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (mol, source, ", ".join(dr.fieldnames)))
-                                sys.exit(1)        
+                            if not dbf.has_key(source):
+                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (source, mol, ", ".join(dr.fieldnames)))
+                                sys.exit(1) 
                             row[mol] = sourceval
                             polygon[mol] = sourceval
 
