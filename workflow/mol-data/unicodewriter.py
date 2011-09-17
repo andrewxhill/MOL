@@ -77,7 +77,21 @@ class UnicodeDictWriter:
         self.writer.writerow(self.fieldnames)
 
     def writerow(self, row):
-        self.writer.writerow([row[x].encode("utf-8") for x in self.fieldnames])
+        values = []
+        
+        # Some (most?) rows don't have all the keys possible
+        # in the file. In such cases, we need to make sure we
+        # insert a blank string in their place.
+        for fieldname in self.fieldnames:
+            if row.has_key(fieldname) and row[fieldname] is not None:
+                if isinstance(row[fieldname], unicode):
+                    values.append(row[fieldname])
+                else:
+                    values.append(unicode(row[fieldname]))
+            else:
+                values.append("")
+
+        self.writer.writerow([str.encode('utf-8') for str in values])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")
@@ -100,8 +114,8 @@ if __name__ == '__main__':
         filename = sys.argv[1]
     else:
         filename = 'data.csv'
-        data = 'id,name,age\n0,aaron,34\n1,john\u00A9,50'.encode('utf-8')
-        f = codecs.open(filename, encoding='utf-8', mode='w+')
+        data = u"id,name,age\n0,aaron,34\n1,john\u00A9,50\n"
+        f = codecs.open(filename, encoding='utf-8', mode='w')
         f.write(data)
         f.close()
     r = UnicodeDictReader(open(filename, 'r'), skipinitialspace=True)
@@ -110,4 +124,5 @@ if __name__ == '__main__':
     for row in r:
         print row
         w.writerow(row)
+    print "All done."
         

@@ -22,7 +22,7 @@ import copy
 import csv
 import glob
 import logging
-# from unicodewriter import UnicodeWriter
+from unicodewriter import UnicodeDictWriter
 from optparse import OptionParser
 import os
 import simplejson
@@ -242,8 +242,8 @@ def source2csv(source_dir, options):
         coll_file = open('collection.csv.txt', 'w')
         coll_cols = collection.get_columns()
         coll_cols.sort()
-        # TODO: coll_csv = UnicodeWriter(coll_file, coll_cols)
-        coll_csv = csv.DictWriter(coll_file, coll_cols)
+        coll_csv = UnicodeDictWriter(coll_file, coll_cols)
+        # coll_csv = csv.DictWriter(coll_file, coll_cols)
         coll_csv.writer.writerow(coll_csv.fieldnames)
         coll_row = collection.get_row()
         coll_row['layer_source'] = source_dir
@@ -251,8 +251,8 @@ def source2csv(source_dir, options):
         
         # Create polygons.csv writer
         poly_file = open('collection.polygons.csv.txt', 'w')
-        # TODO: poly_dw = UnicodeWriter(poly_file, ['shapefilename', 'json'])
-        poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
+        poly_dw = UnicodeDictWriter(poly_file, ['shapefilename', 'json'])
+        # poly_dw = csv.DictWriter(poly_file, ['shapefilename', 'json'])
         poly_dw.writer.writerow(poly_dw.fieldnames)
     
         # Convert DBF to CSV and add to collection.csv
