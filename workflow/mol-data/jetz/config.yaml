@@ -20,6 +20,10 @@ Collections:
   # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
   Required:
+    areaid: 1
+    polygonid: 1
+    identifier: 
+
     collectionorigin:       6
     collectionpresence:     6
     collectionseasonality:  6
@@ -35,9 +39,6 @@ Collections:
     rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
     samplingprotocol: expert opinion
     scientificname: Aves
-    source:  Jetz Lab
-    subject: Jetz Lab
-    taxonomiccoverage: most
     title: Jetz Bird Range Maps
     verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
