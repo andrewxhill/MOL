@@ -408,7 +408,7 @@ app.setImageMapType = function(name) {
                 var normalizedCoord = app._getNormalizedCoord(coord, zoom),
                     bound = Math.pow(2, zoom),
                     tileParams = '',
-                    backendTileApi = 'http://points.mol-lab.appspot.com/frontend/points/tile',
+                    backendTileApi = 'http://boom.mol-lab.appspot.com/frontend/points/tile',
                     //backendTileApi = 'http://localhost:8080/frontend/points/tile',
                     tileurl = null;                                
             

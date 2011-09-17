@@ -17,12 +17,13 @@ __contributors__ = []
 
 import cache
 import sources
-from model import PointIndex
+from model import PointIndex, Point
 
 import logging
 import simplejson
 
 from google.appengine.api import backends
+from google.appengine.api import runtime
 from google.appengine.api import taskqueue
 from google.appengine.api import urlfetch
 from google.appengine.api import users
@@ -30,6 +31,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
 from ndb import model
+from ndb.key import Key
 
 def get_job_cache_key(name, source_name):
     return 'points-harvest-job-%s-%s' % \
@@ -75,24 +77,24 @@ class Harvest(webapp.RequestHandler):
 
         # Update job status to 'working'
         cache.add(key, get_job(name, source_name, 'working', msg=count))       
-
+        
         # Get points from source and put them into datastore in batches
+        pcount = 0
         for points in self.get_points(name, source):
-            model.put_multi(
-                [PointIndex.create(p[0], p[1], name, source_name) \
-                     for p in points])
-            # Update job with count
+            logging.info('HARVEST BACKEND MEMORY = %s after %s points' % (runtime.memory_usage().current(), count))
+            entities = []
+            for p in points:
+                pkey = Key('Point', '%s-%s-%s' % (source_name, name, pcount))
+                pcount += 1
+                entities.append(Point(key=pkey, lat=p[0], lng=p[1]))
+                entities.append(PointIndex.create(pkey, p[0], p[1], name, source_name))
+            model.put_multi(entities)
             count += len(points)
             cache.add(key, get_job(name, source_name, 'working', msg=count))
 
         # Update job status to 'done'
         # TODO: Done now or after backend rendering completes?
         cache.add(key, get_job(name, source_name, 'done', msg=count))
-
-        # TODO: Decide if this is a good tradeoff between cost/performance
-        # Backend task for pre-rendering tiles for lower zooms
-        #params = dict(name=name, source=source_name, minzoom=0, maxzoom=3)
-        #taskqueue.add(url='/backend/render', target='render', params=params)
  
     @classmethod
     def get_points(cls, name, source):
