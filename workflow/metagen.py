@@ -37,7 +37,7 @@ def _getoptions():
                       type='string',
                       dest='output_type',
                       default='all',
-                      help="The type of output required. Currently valid options are [config, all] (default: %default)"
+                      help="The type of output required. Currently valid options are [config, bulkloadyaml, bulkloadhelper, all] (default: %default)"
                      )
     return parser.parse_args()[0]
 
@@ -391,9 +391,9 @@ if __name__ == '__main__':
         p = DbfProps.indexed()['required'] + DbfProps.indexed()['optional'] 
         p.sort()
         print p
-    elif options.output_type == 'bulkloaderyaml':
+    elif options.output_type == 'bulkloadyaml':
         BulkloaderYaml.Output()
-    elif options.output_type == 'bulkloaderhelper':
+    elif options.output_type == 'bulkloadhelper':
         BulkloaderHelper.Output()
     elif options.output_type == 'config':
         ConfigYaml.Output()
