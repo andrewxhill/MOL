@@ -29,6 +29,7 @@ import simplejson
 import shlex
 import subprocess
 import sys
+import time
 import urllib
 import yaml
 
@@ -206,7 +207,7 @@ class Config(object):
 
             # In case of any errors, bail out.
             if errors > 0:
-                logging.error("%s could not be validated. Please fix the errors reported above and retry.", config_section_to_validate)
+                logging.error("%s could not be validated. Please fix the errors reported above and retry. You can also use the '-V' command line argument to temporarily turn off validation, if you only need to test other program functionality.", config_section_to_validate)
                 exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
@@ -351,18 +352,34 @@ def source2csv(source_dir, options):
             if options.localhost:
                 options.url = 'http://localhost:8080/_ah/remote_api'
 
+            # *nixes can run appcfg.py as a program without any problem. Windows, however,
+            # can only run appcfg.py if run through the shell. Therefore, we set the flag_run_in_shell
+            # depending on which operating system we're in.
+            flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
+
             # Bulkload Layer entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'Layer', options.url)
-            args = shlex.split(cmdline)
-            subprocess.call(args)
+            cmd = [
+                'appcfg.py', 'upload_data', 
+                '--config_file=%s' % config_file, 
+                '--filename=%s' % filename, 
+                '--kind=Layer', 
+                '--url=%s' % options.url,
+                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
+                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
+            ] 
+            subprocess.call(cmd, shell=flag_run_in_shell)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = "appcfg.py upload_data --config_file=%s --filename=%s --kind=%s --url=%s" 
-            cmdline = cmd % (config_file, filename, 'LayerIndex', options.url)
-            args = shlex.split(cmdline)
-            subprocess.call(args)
-
+            cmd = [
+                'appcfg.py', 'upload_data', 
+                '--config_file=%s' % config_file, 
+                '--filename=%s' % filename, 
+                '--kind=LayerIndex', 
+                '--url=%s' % options.url,
+                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
+                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
+            ] 
+            subprocess.call(cmd, shell=flag_run_in_shell)
 
         # Go back to the original directory for the next collection.
         os.chdir(original_dir)
@@ -417,6 +434,11 @@ def main():
             sys.exit(1)    
     else:
         source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+
+        # Remove some directories used internally.
+        source_dirs.remove('logs')
+        source_dirs.remove('progress')
+
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
             source2csv(sd, options)
