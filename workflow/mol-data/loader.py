@@ -365,7 +365,7 @@ def source2csv(source_dir, options):
                 '--kind=Layer', 
                 '--url=%s' % options.url,
                 '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
-                '--db_filename=progress/bulkloader-progress-%s' % time.strftime('%Y%m%d.%H%M%S')
+                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
             ] 
             subprocess.call(cmd, shell=flag_run_in_shell)
 
@@ -377,7 +377,7 @@ def source2csv(source_dir, options):
                 '--kind=LayerIndex', 
                 '--url=%s' % options.url,
                 '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
-                '--db_filename=progress/bulkloader-progress-%s' % time.strftime('%Y%m%d.%H%M%S')
+                '--db_filename=progress/bulkloader-progress-%s.sql3' % time.strftime('%Y%m%d.%H%M%S')
             ] 
             subprocess.call(cmd, shell=flag_run_in_shell)
 
