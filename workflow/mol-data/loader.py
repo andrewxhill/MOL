@@ -29,6 +29,7 @@ import simplejson
 import shlex
 import subprocess
 import sys
+import time
 import urllib
 import yaml
 
@@ -357,11 +358,27 @@ def source2csv(source_dir, options):
             flag_run_in_shell = (os.name == 'nt') # True if we're running in Windows; false otherwise.
 
             # Bulkload Layer entities to App Engine for entire collection
-            cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=Layer', '--url=%s' % options.url] 
+            cmd = [
+                'appcfg.py', 'upload_data', 
+                '--config_file=%s' % config_file, 
+                '--filename=%s' % filename, 
+                '--kind=Layer', 
+                '--url=%s' % options.url,
+                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
+                '--db_filename=progress/bulkloader-progress-%s' % time.strftime('%Y%m%d.%H%M%S')
+            ] 
             subprocess.call(cmd, shell=flag_run_in_shell)
 
             # Bulkload LayerIndex entities to App Engine for entire collection
-            cmd = ['appcfg.py', 'upload_data', '--config_file=%s' % config_file, '--filename=%s' % filename, '--kind=LayerIndex', '--url=%s' % options.url] 
+            cmd = [
+                'appcfg.py', 'upload_data', 
+                '--config_file=%s' % config_file, 
+                '--filename=%s' % filename, 
+                '--kind=LayerIndex', 
+                '--url=%s' % options.url,
+                '--log_file=logs/bulkloader-log-%s' % time.strftime('%Y%m%d.%H%M%S'),
+                '--db_filename=progress/bulkloader-progress-%s' % time.strftime('%Y%m%d.%H%M%S')
+            ] 
             subprocess.call(cmd, shell=flag_run_in_shell)
 
         # Go back to the original directory for the next collection.
@@ -417,6 +434,11 @@ def main():
             sys.exit(1)    
     else:
         source_dirs = [x for x in os.listdir('.') if os.path.isdir(x)]
+
+        # Remove some directories used internally.
+        source_dirs.remove('logs')
+        source_dirs.remove('progress')
+
         logging.info('Processing source directories: %s' % source_dirs)
         for sd in source_dirs: # For each source dir (e.g., jetz, iucn)
             source2csv(sd, options)
