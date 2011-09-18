@@ -302,11 +302,11 @@ def source2csv(source_dir, options):
                         if str(source)[0] == '=':
                             # Map a DBF column to a field.
                             # For case-insensitivity, we lowercase all field names.
-                            source = source[1:].lower()
+                            source_name = source[1:].lower()
 
-                            sourceval = dbf.get(source)
-                            if not dbf.has_key(source):
-                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (source, mol,  ", ".join(dr.fieldnames)))
+                            sourceval = dbf.get(source_name)
+                            if not dbf.has_key(source_name):
+                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol,  ", ".join(dr.fieldnames)))
                                 sys.exit(1)        
                             row[mol] = sourceval
                             polygon[mol] = sourceval
@@ -327,12 +327,12 @@ def source2csv(source_dir, options):
                         elif str(source)[0] == '=':
                             # Map a DBF column to a field.
                             # For case-insensitivity, we lowercase all field names.
-                            source = source[1:].lower()
+                            source_name = source[1:].lower()
 
                             # Map a DBF column to a field.
-                            sourceval = dbf.get(source)
-                            if not dbf.has_key(source):
-                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (source, mol, ", ".join(dr.fieldnames)))
+                            sourceval = dbf.get(source_name)
+                            if not dbf.has_key(source_name):
+                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol, ", ".join(dr.fieldnames)))
                                 sys.exit(1) 
                             row[mol] = sourceval
                             polygon[mol] = sourceval
