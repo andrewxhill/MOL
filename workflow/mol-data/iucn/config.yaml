@@ -100,7 +100,7 @@ Collections:
       occurrencestatus: =PRESENCE  
       polygonname: =ISLAND
       seasonality: =SEASONAL
-      surveystartdate: =YEAR
-      surveyenddate: =YEAR
+      surveystartdate: =YEAR_
+      surveyenddate: =YEAR_
       taxonremarks: =TAX_COMMEN
       visible: true

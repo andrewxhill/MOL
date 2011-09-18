@@ -180,9 +180,15 @@ class Config(object):
                     logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(sorted(field_aliases.difference(expected_fields))))
                     errors = 1
                 
-                if (required == 1) and (len(expected_fields.difference(field_aliases)) > 0):
-                    logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
-                    errors = 1
+                if len(expected_fields.difference(field_aliases)) > 0:
+                    if required == 1:
+                        logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
+                        errors = 1
+                    else:
+                        # If these fields aren't required, let's just add the fields into the dict ourselves.
+                        # Otherwise, downstream programs expecting these fields (such as bulkload_helper.py) mess up.
+                        for fieldname in (expected_fields.difference(field_aliases)):
+                            fields[fieldname] = ''
                 
                 # Returns 1 if there were any errors, 0 for no errors.
                 return errors
@@ -288,7 +294,7 @@ def source2csv(source_dir, options):
                 for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
 
                     # Source may be blank for required fields, which is wrong.
-                    if source is None:
+                    if source is None or source == '':
                         logging.error('Required field(s) %s are not mapped to any value. Please check %s/config.yaml!' % (", ".join(mols), source_dir))
                         sys.exit(1)        
 
@@ -312,12 +318,13 @@ def source2csv(source_dir, options):
     
                 for source, mols in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
 
-                    # Source can be blank for optional fields, which is fine.
-                    if source is None:
-                        continue
-
                     for mol in mols:
-                        if str(source)[0] == '=':
+                        # Source can be blank for optional fields, which is fine.
+                        if source is None or source == '':
+                            row[mol] = ''
+                            polygon[mol] = ''
+                            
+                        elif str(source)[0] == '=':
                             # Map a DBF column to a field.
                             # For case-insensitivity, we lowercase all field names.
                             source = source[1:].lower()
