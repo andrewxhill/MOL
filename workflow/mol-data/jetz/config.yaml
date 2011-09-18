@@ -19,83 +19,28 @@ Collections:
    
   # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  
-  Required:
-    areaid: 1
-    polygonid: 1
-    identifier: 
+  Fields:
+    Required: 
+      areaid: 1
+      polygonid: 1
+      identifier: 1
+      bibliographiccitation: =CITATION
+      collectionidentifier: "Jetz Bird Range Maps"
+      contact: "Walter Jetz <walter.jetz@yale.edu>"
+      creator: Jetz Lab
+      layertype: "expert opinion range map"
+      pubdate: 2011
+      rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
+      scientificname: =Latin
+      title: Jetz Bird Range Maps
+      verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
 
-    collectionorigin:       6
-    collectionpresence:     6
-    collectionseasonality:  6
-    collectionstartdate:    2011
-    contact: Walter Jetz
-    contributor: Walter Jetz
-    coverage:    global
-    creator: Jetz Lab
-    date: 2011
-    description: Improved bird range maps.
-    email: walter.jetz@yale.edu
-    publisher:  Jetz Lab
-    rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
-    samplingprotocol: expert opinion
-    scientificname: Aves
-    title: Jetz Bird Range Maps
-    verbatimsrs: +proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +units=m +no_defs
-
-  # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
-  #
-  Optional:
-    accessright: download  view
-    basemaps:
-    enddateaccuracy:
-    format: ESRI Shapefile
-    identifier: 
-    language: en
-    layertype: range
-    relation:
-    rights:    
-    startdateaccuracy:    
-    surveyintervals:    
-    type:
-
-  # Mappings between collection DBF fields and MoL DBF fields: (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
-  #
-  DBFMapping:
-
-    # Required MoL DBF fields 
-    #
-    Required:
-      areaid: Latin
-      polygonid: Latin
-      bibliographiccitation: Citation
-      scientificname: Latin
-
-    # Optional MoL DBF fields
+    # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
     #
     Optional:
-      abundance:      
-      abundancecomment:      
-      abundancemakeup:      
-      abundancemethod:      
-      abundancesurveyarea:      
-      abundanceunits:      
-      areaname:      
-      commonname:      
-      contributor:      
-      dateend:      
-      datestart:      
-      distributioncomment:      
-      dynamicproperties:      
-      establishmentmeans: OccCode
-      infraspecificepithet:      
-      measurementcomment:      
-      measurementmethod:      
-      nameaccordingto:      
-      occurrencestatus:      
-      polygonid:      
-      polygonname:      
-      population:      
-      seasonality:      
-      taxonid:      SpecID
-      taxonremarks:
-
+      basemaps:
+      commonname:
+      coverage: Global
+      description: Improved bird range maps.
+      language: en
+      publisher:  Jetz Lab
