@@ -16,81 +16,65 @@ __author__ = "Aaron Steele (eightysteele@gmail.com)"
 __contributors__ = ["John Wieczorek (gtuco.btuco@gmail.com)"]
 
 import cache
-import sources
 from model import PointIndex
+import sources
 import globalmaptiles as gmt
 from ndb import query, model
 from ndb.query import OR, AND
-from ndb.model import StringProperty, IntegerProperty, DateTimeProperty, BlobProperty
 from sdl import interval
 import png
-from StringIO import StringIO
 
+from array import array
 import logging
 import simplejson
+from StringIO import StringIO
 
-from google.appengine.api import backends
-from google.appengine.api import taskqueue
-from google.appengine.api import urlfetch
-from google.appengine.api import users
+from google.appengine.api import runtime
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-BLANK = None
-
-def blank():
-    global BLANK
-    if not BLANK:
-        s = PointTile.blank()
-        f = StringIO()
-        w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
-        w.write(f, s)
-        BLANK = f.getvalue()
-    return BLANK
-
 class PointTile(object):
-
-    """Class representing a point tile."""
+    _blank_tile = None
 
     @classmethod
     def blank(cls):
-        """Returns a blank 256 x 256 tile."""
-        return [256 * [1] for x in range(256)]
-    
+        if not cls._blank_tile:
+            tile = array('b', [1 for i in range(pow(256, 2))])
+            f = StringIO()
+            w = png.Writer(256, 256, greyscale=True, transparent=1)
+            w.write_array(f, tile)
+            cls._blank_tile = f.getvalue()
+        return cls._blank_tile
+        
     @classmethod
-    def bounds(cls, p, n):
-        """Returns a 2-tuple (p0, pn) bounded within the tile."""
-        p0 = p - n
-        if p0 < 0:
-            p0 = 0
-        pn = p + n
-        if pn > 255:
-            pn = 255
-        return p0, pn
+    def render(cls, pixels, n=5, dimension=256):
+        # Create blank packed tile array
+        tile = array('b', [1 for i in range(pow(dimension, 2))])
 
-    @classmethod    
-    def render(cls, y, x, n, tile):
-        """Renders a point in the tile with n-pixel neighbors rendered."""
-        y0, yn = cls.bounds(y, n)
-        x0, xn = cls.bounds(x, n)
-        for y in range(y0, yn + 1):
-            for x in range(x0, xn + 1):
-                tile[y][x] = 0
-        return tile
-        
-    @classmethod
-    def create(cls, pixels, tx, ty, n=5):
-        """Creates a point tile with pixels.
-        
-        pixels - sequence of (y,x) 2-tuples.
-        ty - tile y
-        tx - tile x
-        
-        """
-        tile = cls.blank()
+        # Render pixels
         for p in pixels:
             y, x = p
-            tile = cls.render(y, x, n, tile)
+            
+            # Calculate pixel bounds
+            y0 = y - n
+            x0 = x - n
+            if y0 < 0:
+                y0 = 0
+            if x0 < 0:
+                x0 = 0
+            yn = y + n
+            xn = x + n
+            max_index = dimension - 1
+            if yn > max_index:
+                yn = max_index
+            if xn > max_index:
+                xn = max_index
+
+            # Set pixel
+            for y in range(y0, yn + 1):
+                for x in range(x0, xn + 1):
+                    tile[y * dimension + x] = 0
+
         return tile
 
 class BoundingBoxSearch(object):
@@ -143,7 +127,7 @@ class BoundingBoxSearch(object):
         #logging.info(qry)
         
         # Get query results
-        results = qry.fetch(limit, offset=offset, keys_only=True)
+        results = [index.parent() for index in qry.fetch(limit, offset=offset, keys_only=True)]
         #if len(results) > 0:
         #    logging.info('Result count = %s' % len(results))
         return model.get_multi(results)
@@ -177,14 +161,13 @@ def get_tile_png(tx, ty, z, name, source_name, limit, offset):
         return None
 
     # Render the pixels in a new tile
-    s = PointTile.create(pixels, tx, ty)
+    tile = PointTile.render(pixels)
 
     # Write the PNG tile image
     f = StringIO()
-    w = png.Writer(len(s[0]), len(s), greyscale=True, bitdepth=1, transparent=1)
-    w.write(f, s)
+    w = png.Writer(256, 256, greyscale=True, transparent=1)
+    w.write_array(f, tile)
     img = f.getvalue()
-
     # Cache and return the PNG tile image        
     # cache.add(key, img, dumps=False)
     return img
@@ -211,8 +194,10 @@ class TileService(webapp.RequestHandler):
         if png is None:
             png = get_tile_png(tx, ty, z, name, source_name, limit, offset) 
             if png is None:
-                png = blank()
+                png = PointTile.blank()
             cache.add(key, png, dumps=False)
+    
+        logging.info('TILE BACKEND MEMORY = %s' % runtime.memory_usage().current())
         self.response.set_status(200)
         self.response.headers['Content-Type'] = 'image/png'
         self.response.out.write(png)            

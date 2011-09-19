@@ -57,31 +57,24 @@ class Config(object):
         def __repr__(self):
             return str(self.__dict__)
 
+        # TODO: Can we get rid of this?
         def get_row(self):
             row = {}
-            for k,v in self.collection['required'].iteritems():
-                row[k] = v
-            for k,v in self.collection['optional'].iteritems():
-                if k in ['taxonomy', 'basemaps']:
-                    v = simplejson.dumps(v)                        
-                row[k] = v
             return row
             
         def get_columns(self):
             cols = []
-            cols.extend(self.collection['required'].keys())
-            cols.extend(self.collection['optional'].keys())
-            cols.extend(self.collection['dbfmapping']['required'].keys())
-            cols.extend(self.collection['dbfmapping']['optional'].keys())
+            cols.extend(self.collection['fields']['required'].keys())
+            cols.extend(self.collection['fields']['optional'].keys())
             cols.extend(['layer_source', 'layer_collection', 'layer_filename', 'layer_polygons'])
             return cols
 
         def get_mapping(self, required=True):
-            """Returns a reverse dbfmapping for convienience."""
+            """Returns a reverse fields for convienience."""
             if required:
-                mapping = self.collection['dbfmapping']['required'] 
+                mapping = self.collection['fields']['required'] 
             else:
-                mapping = self.collection['dbfmapping']['optional'] 
+                mapping = self.collection['fields']['optional'] 
             dd = defaultdict(list)
             for mol, source in mapping.iteritems():
                 dd[source].append(mol)
@@ -116,13 +109,9 @@ class Config(object):
 
             config_section_to_validate = "'%s', directory '%s'" % (self.filename, self.getdir())
             
-            # Step 1. Check if all both required categories are present.
-            if not self.collection.has_key('required'):
-                logging.error("Required section 'Collections:Required' is not present in %s! Validation failed.", config_section_to_validate)
-                exit(ERR_VALIDATION) 
-
-            if not self.collection.has_key('dbfmapping') or not self.collection['dbfmapping'].has_key('required'):
-                logging.error("Required section 'Collections:DBFMapping:Required' is not present in '%s'! Validation failed.", config_section_to_validate)
+            # Step 1. Check if both required categories are present.
+            if not self.collection.has_key('fields') or not self.collection['fields'].has_key('required'):
+                logging.error("Required section 'Collections:Fields:Required' is not present in '%s'! Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION)
 
             # Step 2. Validate fields.
@@ -191,19 +180,23 @@ class Config(object):
                     logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(sorted(field_aliases.difference(expected_fields))))
                     errors = 1
                 
-                if (required == 1) and (len(expected_fields.difference(field_aliases)) > 0):
-                    logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
-                    errors = 1
+                if len(expected_fields.difference(field_aliases)) > 0:
+                    if required == 1:
+                        logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
+                        errors = 1
+                    else:
+                        # If these fields aren't required, let's just add the fields into the dict ourselves.
+                        # Otherwise, downstream programs expecting these fields (such as bulkload_helper.py) mess up.
+                        for fieldname in (expected_fields.difference(field_aliases)):
+                            fields[fieldname] = ''
                 
                 # Returns 1 if there were any errors, 0 for no errors.
                 return errors
             
             # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['required'], "Collections:Required", "source='MOLSourceFields' AND required = 'y'", 1)
-            errors += validate_fields(self.collection['optional'], "Collections:Optional", "source='MOLSourceFields' AND required = ''", 0)
-            errors += validate_fields(self.collection['dbfmapping']['required'], "Collections:DBFMapping:Required", "source='MOLSourceDBFfields' AND required = 'y'", 1)
-            errors += validate_fields(self.collection['dbfmapping']['optional'], "Collections:DBFMapping:Optional", "source='MOLSourceDBFfields' AND required = ''", 0)
+            errors += validate_fields(self.collection['fields']['required'], "Collections:Fields:Required", "source='MOLSourceDBFfields' AND required = 'y'", 1)
+            errors += validate_fields(self.collection['fields']['optional'], "Collections:Fields:Optional", "source='MOLSourceDBFfields' AND required = ''", 0)
 
             # In case of any errors, bail out.
             if errors > 0:
@@ -300,24 +293,55 @@ def source2csv(source_dir, options):
     
                 for source, mols in collection.get_mapping().iteritems(): # Required DBF fields
 
-                    # For case-insensitivity, we lowercase all field names.
-                    source = source.lower()
+                    # Source may be blank for required fields, which is wrong.
+                    if source is None or source == '':
+                        logging.error('Required field(s) %s are not mapped to any value. Please check %s/config.yaml!' % (", ".join(mols), source_dir))
+                        sys.exit(1)        
 
                     for mol in mols:
-                        sourceval = dbf.get(source)
-                        if not sourceval:
-                            logging.error('Missing required DBF field %s (mapped from %s). Valid fieldnames include: %s.' % (mol, source, ", ".join(dr.fieldnames)))
-                            sys.exit(1)        
-                        row[mol] = sourceval
-                        polygon[mol] = sourceval
+                        if str(source)[0] == '=':
+                            # Map a DBF column to a field.
+                            # For case-insensitivity, we lowercase all field names.
+                            source_name = source[1:].lower()
+
+                            sourceval = dbf.get(source_name)
+                            if not dbf.has_key(source_name):
+                                logging.error('Unable to map required DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol,  ", ".join(dr.fieldnames)))
+                                sys.exit(1)        
+                            row[mol] = sourceval
+                            polygon[mol] = sourceval
+
+                        else:
+                            # Sets the value of the field based on 'source'
+                            row[mol] = source
+                            polygon[mol] = source
     
                 for source, mols in collection.get_mapping(required=False).iteritems(): #Optional DBF fields
+
                     for mol in mols:
-                        sourceval = dbf.get(source)
-                        if not sourceval:
-                            continue
-                        row[mol] = sourceval
-                        polygon[mol] = sourceval
+                        # Source can be blank for optional fields, which is fine.
+                        if source is None or source == '':
+                            row[mol] = ''
+                            polygon[mol] = ''
+                            
+                        elif str(source)[0] == '=':
+                            # Map a DBF column to a field.
+                            # For case-insensitivity, we lowercase all field names.
+                            source_name = source[1:].lower()
+
+                            # Map a DBF column to a field.
+                            sourceval = dbf.get(source_name)
+                            if not dbf.has_key(source_name):
+                                logging.error('Unable to map optional DBF field %s to %s. Valid fieldnames include: %s.' % (source_name, mol, ", ".join(dr.fieldnames)))
+                                sys.exit(1) 
+                            row[mol] = sourceval
+                            polygon[mol] = sourceval
+
+                        else:
+                            # Sets the value of the field based on 'source'
+                            row[mol] = source
+                            polygon[mol] = source
+
     
                 # Write coll_row to collection.csv
                 coll_csv.writerow(row)
