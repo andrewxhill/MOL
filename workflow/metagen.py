@@ -109,17 +109,17 @@ class BulkloaderHelper(object):
         print '    json = {}'
         print '    # Required'
         for x in indexed['required']:
-            print "    val = transform.none_if_empty(str)(input_dict['%s'])" % x
-            print "    instance['polygon.%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+            print "    val = transform.none_if_empty(unicode)(input_dict['%s'])" % x
+            print "    instance['polygon.%s'] = transform.none_if_empty(unicode)(input_dict['%s'])" % (x, x)
             print "    if val:"
-            print "        json['%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+            print "        json['%s'] = transform.none_if_empty(unicode)(input_dict['%s'])" % (x, x)
         print '    # Optional'
         for x in indexed['optional']:
             print "    val = transform.none_if_empty(str)(input_dict['%s'])" % x
-            print "    instance['polygon.%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
+            print "    instance['polygon.%s'] = transform.none_if_empty(unicode)(input_dict['%s'])" % (x, x)
             print "    if val:"
-            print "        json['%s'] = transform.none_if_empty(str)(input_dict['%s'])" % (x, x)
-        print "    instance['json'] = db.Text(simplejson.dumps(json))"
+            print "        json['%s'] = transform.none_if_empty(unicode)(input_dict['%s'])" % (x, x)
+        print "    instance['json'] = db.Text(simplejson.dumps(json), ensure_ascii=False)"
         print '    return instance'
         
         

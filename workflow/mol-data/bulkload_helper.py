@@ -77,7 +77,7 @@ def create_layer_json():
 
                 polygons = simplejson.loads(row['json'])
                 d['polygons'] = polygons
-                return db.Text(simplejson.dumps(d))
+                return db.Text(simplejson.dumps(d, ensure_ascii=False))
         return None
     return wrapper
 
@@ -112,110 +112,110 @@ def get_corpus_list():
 def add_polygon(input_dict, instance, bulkload_state_copy):
     json = {}
     # Required
-    val = transform.none_if_empty(str)(input_dict['areaid'])
-    instance['polygon.areaid'] = transform.none_if_empty(str)(input_dict['areaid'])
+    val = transform.none_if_empty(unicode)(input_dict['areaid'])
+    instance['polygon.areaid'] = transform.none_if_empty(unicode)(input_dict['areaid'])
     if val:
-        json['areaid'] = transform.none_if_empty(str)(input_dict['areaid'])
-    val = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
-    instance['polygon.bibliographiccitation'] = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
+        json['areaid'] = transform.none_if_empty(unicode)(input_dict['areaid'])
+    val = transform.none_if_empty(unicode)(input_dict['bibliographiccitation'])
+    instance['polygon.bibliographiccitation'] = transform.none_if_empty(unicode)(input_dict['bibliographiccitation'])
     if val:
-        json['bibliographiccitation'] = transform.none_if_empty(str)(input_dict['bibliographiccitation'])
-    val = transform.none_if_empty(str)(input_dict['contact'])
-    instance['polygon.contact'] = transform.none_if_empty(str)(input_dict['contact'])
+        json['bibliographiccitation'] = transform.none_if_empty(unicode)(input_dict['bibliographiccitation'])
+    val = transform.none_if_empty(unicode)(input_dict['contact'])
+    instance['polygon.contact'] = transform.none_if_empty(unicode)(input_dict['contact'])
     if val:
-        json['contact'] = transform.none_if_empty(str)(input_dict['contact'])
-    val = transform.none_if_empty(str)(input_dict['creator'])
-    instance['polygon.creator'] = transform.none_if_empty(str)(input_dict['creator'])
+        json['contact'] = transform.none_if_empty(unicode)(input_dict['contact'])
+    val = transform.none_if_empty(unicode)(input_dict['creator'])
+    instance['polygon.creator'] = transform.none_if_empty(unicode)(input_dict['creator'])
     if val:
-        json['creator'] = transform.none_if_empty(str)(input_dict['creator'])
-    val = transform.none_if_empty(str)(input_dict['identifier'])
-    instance['polygon.identifier'] = transform.none_if_empty(str)(input_dict['identifier'])
+        json['creator'] = transform.none_if_empty(unicode)(input_dict['creator'])
+    val = transform.none_if_empty(unicode)(input_dict['identifier'])
+    instance['polygon.identifier'] = transform.none_if_empty(unicode)(input_dict['identifier'])
     if val:
-        json['identifier'] = transform.none_if_empty(str)(input_dict['identifier'])
-    val = transform.none_if_empty(str)(input_dict['layertype'])
-    instance['polygon.layertype'] = transform.none_if_empty(str)(input_dict['layertype'])
+        json['identifier'] = transform.none_if_empty(unicode)(input_dict['identifier'])
+    val = transform.none_if_empty(unicode)(input_dict['layertype'])
+    instance['polygon.layertype'] = transform.none_if_empty(unicode)(input_dict['layertype'])
     if val:
-        json['layertype'] = transform.none_if_empty(str)(input_dict['layertype'])
-    val = transform.none_if_empty(str)(input_dict['pubdate'])
-    instance['polygon.pubdate'] = transform.none_if_empty(str)(input_dict['pubdate'])
+        json['layertype'] = transform.none_if_empty(unicode)(input_dict['layertype'])
+    val = transform.none_if_empty(unicode)(input_dict['pubdate'])
+    instance['polygon.pubdate'] = transform.none_if_empty(unicode)(input_dict['pubdate'])
     if val:
-        json['pubdate'] = transform.none_if_empty(str)(input_dict['pubdate'])
-    val = transform.none_if_empty(str)(input_dict['rights'])
-    instance['polygon.rights'] = transform.none_if_empty(str)(input_dict['rights'])
+        json['pubdate'] = transform.none_if_empty(unicode)(input_dict['pubdate'])
+    val = transform.none_if_empty(unicode)(input_dict['rights'])
+    instance['polygon.rights'] = transform.none_if_empty(unicode)(input_dict['rights'])
     if val:
-        json['rights'] = transform.none_if_empty(str)(input_dict['rights'])
-    val = transform.none_if_empty(str)(input_dict['scientificname'])
-    instance['polygon.scientificname'] = transform.none_if_empty(str)(input_dict['scientificname'])
+        json['rights'] = transform.none_if_empty(unicode)(input_dict['rights'])
+    val = transform.none_if_empty(unicode)(input_dict['scientificname'])
+    instance['polygon.scientificname'] = transform.none_if_empty(unicode)(input_dict['scientificname'])
     if val:
-        json['scientificname'] = transform.none_if_empty(str)(input_dict['scientificname'])
-    val = transform.none_if_empty(str)(input_dict['verbatimsrs'])
-    instance['polygon.verbatimsrs'] = transform.none_if_empty(str)(input_dict['verbatimsrs'])
+        json['scientificname'] = transform.none_if_empty(unicode)(input_dict['scientificname'])
+    val = transform.none_if_empty(unicode)(input_dict['verbatimsrs'])
+    instance['polygon.verbatimsrs'] = transform.none_if_empty(unicode)(input_dict['verbatimsrs'])
     if val:
-        json['verbatimsrs'] = transform.none_if_empty(str)(input_dict['verbatimsrs'])
+        json['verbatimsrs'] = transform.none_if_empty(unicode)(input_dict['verbatimsrs'])
     # Optional
     val = transform.none_if_empty(str)(input_dict['abundance'])
-    instance['polygon.abundance'] = transform.none_if_empty(str)(input_dict['abundance'])
+    instance['polygon.abundance'] = transform.none_if_empty(unicode)(input_dict['abundance'])
     if val:
-        json['abundance'] = transform.none_if_empty(str)(input_dict['abundance'])
+        json['abundance'] = transform.none_if_empty(unicode)(input_dict['abundance'])
     val = transform.none_if_empty(str)(input_dict['abundanceunits'])
-    instance['polygon.abundanceunits'] = transform.none_if_empty(str)(input_dict['abundanceunits'])
+    instance['polygon.abundanceunits'] = transform.none_if_empty(unicode)(input_dict['abundanceunits'])
     if val:
-        json['abundanceunits'] = transform.none_if_empty(str)(input_dict['abundanceunits'])
+        json['abundanceunits'] = transform.none_if_empty(unicode)(input_dict['abundanceunits'])
     val = transform.none_if_empty(str)(input_dict['areaname'])
-    instance['polygon.areaname'] = transform.none_if_empty(str)(input_dict['areaname'])
+    instance['polygon.areaname'] = transform.none_if_empty(unicode)(input_dict['areaname'])
     if val:
-        json['areaname'] = transform.none_if_empty(str)(input_dict['areaname'])
+        json['areaname'] = transform.none_if_empty(unicode)(input_dict['areaname'])
     val = transform.none_if_empty(str)(input_dict['commonname'])
-    instance['polygon.commonname'] = transform.none_if_empty(str)(input_dict['commonname'])
+    instance['polygon.commonname'] = transform.none_if_empty(unicode)(input_dict['commonname'])
     if val:
-        json['commonname'] = transform.none_if_empty(str)(input_dict['commonname'])
+        json['commonname'] = transform.none_if_empty(unicode)(input_dict['commonname'])
     val = transform.none_if_empty(str)(input_dict['coverage'])
-    instance['polygon.coverage'] = transform.none_if_empty(str)(input_dict['coverage'])
+    instance['polygon.coverage'] = transform.none_if_empty(unicode)(input_dict['coverage'])
     if val:
-        json['coverage'] = transform.none_if_empty(str)(input_dict['coverage'])
+        json['coverage'] = transform.none_if_empty(unicode)(input_dict['coverage'])
     val = transform.none_if_empty(str)(input_dict['establishmentmeans'])
-    instance['polygon.establishmentmeans'] = transform.none_if_empty(str)(input_dict['establishmentmeans'])
+    instance['polygon.establishmentmeans'] = transform.none_if_empty(unicode)(input_dict['establishmentmeans'])
     if val:
-        json['establishmentmeans'] = transform.none_if_empty(str)(input_dict['establishmentmeans'])
+        json['establishmentmeans'] = transform.none_if_empty(unicode)(input_dict['establishmentmeans'])
     val = transform.none_if_empty(str)(input_dict['nameaccordingto'])
-    instance['polygon.nameaccordingto'] = transform.none_if_empty(str)(input_dict['nameaccordingto'])
+    instance['polygon.nameaccordingto'] = transform.none_if_empty(unicode)(input_dict['nameaccordingto'])
     if val:
-        json['nameaccordingto'] = transform.none_if_empty(str)(input_dict['nameaccordingto'])
+        json['nameaccordingto'] = transform.none_if_empty(unicode)(input_dict['nameaccordingto'])
     val = transform.none_if_empty(str)(input_dict['occurrencestatus'])
-    instance['polygon.occurrencestatus'] = transform.none_if_empty(str)(input_dict['occurrencestatus'])
+    instance['polygon.occurrencestatus'] = transform.none_if_empty(unicode)(input_dict['occurrencestatus'])
     if val:
-        json['occurrencestatus'] = transform.none_if_empty(str)(input_dict['occurrencestatus'])
+        json['occurrencestatus'] = transform.none_if_empty(unicode)(input_dict['occurrencestatus'])
     val = transform.none_if_empty(str)(input_dict['publisher'])
-    instance['polygon.publisher'] = transform.none_if_empty(str)(input_dict['publisher'])
+    instance['polygon.publisher'] = transform.none_if_empty(unicode)(input_dict['publisher'])
     if val:
-        json['publisher'] = transform.none_if_empty(str)(input_dict['publisher'])
+        json['publisher'] = transform.none_if_empty(unicode)(input_dict['publisher'])
     val = transform.none_if_empty(str)(input_dict['samplingprotocol'])
-    instance['polygon.samplingprotocol'] = transform.none_if_empty(str)(input_dict['samplingprotocol'])
+    instance['polygon.samplingprotocol'] = transform.none_if_empty(unicode)(input_dict['samplingprotocol'])
     if val:
-        json['samplingprotocol'] = transform.none_if_empty(str)(input_dict['samplingprotocol'])
+        json['samplingprotocol'] = transform.none_if_empty(unicode)(input_dict['samplingprotocol'])
     val = transform.none_if_empty(str)(input_dict['seasonality'])
-    instance['polygon.seasonality'] = transform.none_if_empty(str)(input_dict['seasonality'])
+    instance['polygon.seasonality'] = transform.none_if_empty(unicode)(input_dict['seasonality'])
     if val:
-        json['seasonality'] = transform.none_if_empty(str)(input_dict['seasonality'])
+        json['seasonality'] = transform.none_if_empty(unicode)(input_dict['seasonality'])
     val = transform.none_if_empty(str)(input_dict['subject'])
-    instance['polygon.subject'] = transform.none_if_empty(str)(input_dict['subject'])
+    instance['polygon.subject'] = transform.none_if_empty(unicode)(input_dict['subject'])
     if val:
-        json['subject'] = transform.none_if_empty(str)(input_dict['subject'])
+        json['subject'] = transform.none_if_empty(unicode)(input_dict['subject'])
     val = transform.none_if_empty(str)(input_dict['surveyenddate'])
-    instance['polygon.surveyenddate'] = transform.none_if_empty(str)(input_dict['surveyenddate'])
+    instance['polygon.surveyenddate'] = transform.none_if_empty(unicode)(input_dict['surveyenddate'])
     if val:
-        json['surveyenddate'] = transform.none_if_empty(str)(input_dict['surveyenddate'])
+        json['surveyenddate'] = transform.none_if_empty(unicode)(input_dict['surveyenddate'])
     val = transform.none_if_empty(str)(input_dict['surveyintervals'])
-    instance['polygon.surveyintervals'] = transform.none_if_empty(str)(input_dict['surveyintervals'])
+    instance['polygon.surveyintervals'] = transform.none_if_empty(unicode)(input_dict['surveyintervals'])
     if val:
-        json['surveyintervals'] = transform.none_if_empty(str)(input_dict['surveyintervals'])
+        json['surveyintervals'] = transform.none_if_empty(unicode)(input_dict['surveyintervals'])
     val = transform.none_if_empty(str)(input_dict['surveystartdate'])
-    instance['polygon.surveystartdate'] = transform.none_if_empty(str)(input_dict['surveystartdate'])
+    instance['polygon.surveystartdate'] = transform.none_if_empty(unicode)(input_dict['surveystartdate'])
     if val:
-        json['surveystartdate'] = transform.none_if_empty(str)(input_dict['surveystartdate'])
+        json['surveystartdate'] = transform.none_if_empty(unicode)(input_dict['surveystartdate'])
     val = transform.none_if_empty(str)(input_dict['taxonid'])
-    instance['polygon.taxonid'] = transform.none_if_empty(str)(input_dict['taxonid'])
+    instance['polygon.taxonid'] = transform.none_if_empty(unicode)(input_dict['taxonid'])
     if val:
-        json['taxonid'] = transform.none_if_empty(str)(input_dict['taxonid'])
-    instance['json'] = db.Text(simplejson.dumps(json))
+        json['taxonid'] = transform.none_if_empty(unicode)(input_dict['taxonid'])
+    instance['json'] = db.Text(simplejson.dumps(json, ensure_ascii=False))
     return instance

@@ -299,7 +299,7 @@ def source2csv(source_dir, options):
                         sys.exit(1)        
 
                     for mol in mols:
-                        if str(source)[0] == '=':
+                        if unicode(source)[0] == '=':
                             # Map a DBF column to a field.
                             # For case-insensitivity, we lowercase all field names.
                             source_name = source[1:].lower()
@@ -324,7 +324,7 @@ def source2csv(source_dir, options):
                             row[mol] = ''
                             polygon[mol] = ''
                             
-                        elif str(source)[0] == '=':
+                        elif unicode(source)[0] == '=':
                             # Map a DBF column to a field.
                             # For case-insensitivity, we lowercase all field names.
                             source_name = source[1:].lower()
