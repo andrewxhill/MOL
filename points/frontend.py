@@ -20,6 +20,7 @@ import harvest
 import sources
 import tile
 
+import datetime
 import logging
 import os
 import simplejson
@@ -116,7 +117,7 @@ class HarvestPoints(webapp.RequestHandler):
         
         # Add harvest task that targets harvest backed instance 1
         params = dict(name=name, source=source_name)
-        taskqueue.add(url='/backend/harvest', target='harvest', params=params)
+        taskqueue.add(url='/backend/harvest', queue_name='backend-harvest', eta=datetime.datetime.now(), target='harvest', params=params)
         self.response.set_status(202) # Accepted
 
 class Home(webapp.RequestHandler):

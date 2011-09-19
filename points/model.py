@@ -24,9 +24,11 @@ from ndb.model import Model, Key, FloatProperty, IntegerProperty, StringProperty
 from ndb import query, model
 
 class Point(model.Model):
-    lat = model.FloatProperty('x', indexed=False)
-    lng = model.FloatProperty('y', indexed=False)
+    lat = model.FloatProperty('y', indexed=False)
+    lng = model.FloatProperty('x', indexed=False)
     record = model.StringProperty('r', indexed=False)
+
+    
 
 class PointIndex(model.Model):
     lat = model.FloatProperty('y', indexed=False)
@@ -88,8 +90,9 @@ class PointIndex(model.Model):
     y25 = model.IntegerProperty()
 
     @classmethod
-    def create(cls, lat, lng, name, source):
+    def create(cls, parent, lat, lng, name, source):
         pi = PointIndex(
+            parent=parent,
             lng=float(lng), 
             lat=float(lat),
             name=name.strip().lower(), 
