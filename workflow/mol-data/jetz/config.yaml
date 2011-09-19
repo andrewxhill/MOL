@@ -38,6 +38,7 @@ Collections:
     # Optional MoL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
     #
     Optional:
+      abundance: =ABUNDANCE
       basemaps:
       commonname:
       coverage: Global
