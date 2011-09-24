@@ -52,12 +52,10 @@ class Config(object):
 
             if not _getoptions().no_validate:
                 self.validate()
-
         
         def __repr__(self):
             return str(self.__dict__)
 
-        # TODO: Can we get rid of this?
         def get_row(self):
             row = {}
             return row
@@ -111,7 +109,8 @@ class Config(object):
             
             # Step 1. Check if both required categories are present.
             if not self.collection.has_key('fields') or not self.collection['fields'].has_key('required'):
-                logging.error("Required section 'Collections:Fields:Required' is not present in '%s'! Validation failed.", config_section_to_validate)
+                logging.error("Required section 'Collections:Fields:Required' is not present in '%s'!" +
+                    "Validation failed.", config_section_to_validate)
                 exit(ERR_VALIDATION)
 
             # Step 2. Validate fields.
@@ -119,17 +118,20 @@ class Config(object):
             ft_partial_url = "http://www.google.com/fusiontables/api/query?sql="
             
             def validate_fields(fields, section, where_clause, required = 1):
-                """ Ensures that the keys of the dictionary provided precisely match the list of field names retrieved from the Fusion Table.
+                """ Ensures that the keys of the dictionary provided precisely match the list of field 
+                names retrieved from the Fusion Table.
 
-                You provide the 'WHERE' clause of the SQL query you need to execute to get the list of valid fields (probably something
-                like "source='MOLSourceFields' AND required = 'y'").
+                You provide the 'WHERE' clause of the SQL query you need to execute to get the list of 
+                valid fields (probably something like "source='MOLSourceFields' AND required = 'y'").
 
                 Arguments:
                     fields: The dictionary whose keys we have to validate.
-                    where_clause: The SQL query we will run against the Fusion Table to retrieve the list of valid field names.
-                    required: If set to '1' (the default), we identify these as required fields, and ensure that *all* the 
-                        field names retrieved by the query are present in the 'fields' dictionary. If set to '0', we 
-                        only check that all field names present in the fields dictionary are also set in the database results.
+                    where_clause: The SQL query we will run against the Fusion Table to retrieve the 
+                        list of valid field names.
+                    required: If set to '1' (the default), we identify these as required fields, and 
+                        ensure that *all* the field names retrieved by the query are present in the 
+                        'fields' dictionary. If set to '0', we only check that all field names present 
+                        in the fields dictionary are also set in the database results.
                 Returns:
                     1 if there were any validation errors, 0 if there were none.
                 """
@@ -151,7 +153,8 @@ class Config(object):
                     urlconn = urllib.urlopen(
                         ft_partial_url + 
                         urllib.quote_plus(
-                            "SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" % (fusiontable_id, where_clause)
+                            "SELECT alias, required, source FROM %d WHERE %s AND alias NOT EQUAL TO ''" 
+                                % (fusiontable_id, where_clause)
                         )
                     )
                 except IOError as (errno, strerror):
@@ -195,12 +198,24 @@ class Config(object):
             
             # We want to give an error if *any* of these tests fail.
             errors = 0
-            errors += validate_fields(self.collection['fields']['required'], "Collections:Fields:Required", "source='MOLSourceDBFfields' AND required = 'y'", 1)
-            errors += validate_fields(self.collection['fields']['optional'], "Collections:Fields:Optional", "source='MOLSourceDBFfields' AND required = ''", 0)
+
+            errors += validate_fields(
+                self.collection['fields']['required'], 
+                "Collections:Fields:Required", 
+                "source='MOLSourceDBFfields' AND required = 'y'", 
+                1)
+
+            errors += validate_fields(
+                self.collection['fields']['optional'], 
+                "Collections:Fields:Optional", 
+                "source='MOLSourceDBFfields' AND required = ''", 
+                0)
 
             # In case of any errors, bail out.
             if errors > 0:
-                logging.error("%s could not be validated. Please fix the errors reported above and retry. You can also use the '-V' command line argument to temporarily turn off validation, if you only need to test other program functionality.", config_section_to_validate)
+                logging.error("%s could not be validated. Please fix the errors reported above and retry. " +
+                    "You can also use the '-V' command line argument to temporarily turn off validation, " +
+                    "if you only need to test other program functionality.", config_section_to_validate)
                 exit(ERR_VALIDATION)
                 
             # No errors? Return successfully!
