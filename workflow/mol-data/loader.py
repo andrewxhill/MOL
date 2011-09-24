@@ -167,7 +167,9 @@ class Config(object):
                 for row in rows:
                     # We don't need to test for row['alias'], because our SQL statement already removes any blank aliases.
                     if (row['alias'].lower()) in expected_fields:
-                        logging.error("Field alias '%s' is used twice in the Fusion Table, aborting.", row['alias'].lower())
+                        logging.error("Field alias '%s' is used twice in the Fusion Table, aborting.", 
+                            row['alias'].lower()
+                        )
                         exit(1)
 
                     # Add this field name to the list of expected fields.
@@ -180,16 +182,21 @@ class Config(object):
                 errors = 0
                 field_aliases = set(fields.keys())
                 if len(field_aliases.difference(expected_fields)) > 0:
-                    logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(sorted(field_aliases.difference(expected_fields))))
+                    logging.error("  Unexpected fields found in section '%s': %s", section, ", ".join(
+                        sorted(field_aliases.difference(expected_fields)))
+                    )
                     errors = 1
                 
                 if len(expected_fields.difference(field_aliases)) > 0:
                     if required == 1:
-                        logging.error("  Fields missing from section '%s': %s", section, ", ".join(sorted(expected_fields.difference(field_aliases))))
+                        logging.error("  Fields missing from section '%s': %s", section, ", ".join(
+                            sorted(expected_fields.difference(field_aliases)))
+                        )
                         errors = 1
                     else:
-                        # If these fields aren't required, let's just add the fields into the dict ourselves.
-                        # Otherwise, downstream programs expecting these fields (such as bulkload_helper.py) mess up.
+                        # If these fields aren't required, let's just add the fields into the dict 
+                        # ourselves. Otherwise, downstream programs expecting these fields (such as 
+                        # bulkload_helper.py) mess up.
                         for fieldname in (expected_fields.difference(field_aliases)):
                             fields[fieldname] = ''
                 
