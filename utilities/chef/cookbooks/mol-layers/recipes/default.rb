@@ -48,18 +48,18 @@ directory "#{node[:mol][:base_dir]}" do
 end
 # download mol source and checkout specific version/branch
 execute "fetch data from git data repo" do
-  command "git clone  #{node[:mol][:remote_data_repo]} #{node[:mol][:base_data_dir]}"
+  command "git clone #{node[:mol][:remote_data_repo]} #{node[:mol][:remote_data_checkout_point]}"
   node.set['mol']['node_existed'] = false
-  not_if { FileTest.exists?(node[:mol][:base_data_dir]) }
+  not_if { FileTest.exists?(node[:mol][:remote_data_checkout_point]) }
 end
 execute "switch to specified branch/tag of data repo" do
-  command "cd #{node[:mol][:base_data_dir]} && git checkout #{node[:mol][:remote_data_checkout_point]}"
+  command "cd #{node[:mol][:remote_data_checkout_point]} && git checkout #{node[:mol][:remote_data_checkout_point]}"
 end
 execute "pull updates of data repo" do
-  command "cd #{node[:mol][:base_data_dir]} && git pull #{node[:mol][:remote_data_repo]} #{node[:mol][:remote_data_checkout_point]}"
+  command "cd #{node[:mol][:remote_data_checkout_point]} && git pull" 
 end
 # set ownership of base mol-data directory on node
-directory "#{node[:mol][:base_data_dir]}" do
+directory "#{node[:mol][:remote_data_checkout_point]}" do
   owner 'root'
   group 'root'
   mode 0755

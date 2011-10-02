@@ -20,5 +20,6 @@ run_list(
     "recipe[postgis]",
     "recipe[redis]",       
     "recipe[nodejs]",
-    "recipe[windshaft]"       
+    "recipe[windshaft]" ,
+    "recipe[mol-layers]"      
 )
