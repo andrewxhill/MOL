@@ -44,7 +44,7 @@ template "nginx.conf" do
 end
 
 template "index.html" do
-  path "/var/www/index.html"
+  path "/usr/share/nginx/www/index.html"
   source "index.html.erb"
   owner "root"
   group "root"

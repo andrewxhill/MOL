@@ -1,4 +1,4 @@
-name "backend-master"
+name "backend-test"
 description "this is a sample chef role for an app server"
 default_attributes "config" => { 
       "firewall" => { 

@@ -1,0 +1,10 @@
+= DESCRIPTION:
+
+Installs postgres 8.4 and configures it for sane levels of access
+
+= REQUIREMENTS:
+
+= ATTRIBUTES: 
+
+= USAGE:
+

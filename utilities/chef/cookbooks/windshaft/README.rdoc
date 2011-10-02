@@ -1,0 +1,10 @@
+= Description
+
+Chef cookbook for installing and configuring the Windshaft map tiler:
+
+https://github.com/Vizzuality/Windshaft
+
+= Attributes
+
+Thanks to the Mapnik, Mapbox, and Vizzuality teams for making such great tools.
+
