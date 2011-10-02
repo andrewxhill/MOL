@@ -2,7 +2,7 @@ name "backend-master"
 description "this is a sample chef role for an app server"
 default_attributes "config" => { 
       "firewall" => { 
-        "rules" => ["ACCEPT net 80", "ACCEPT net fw tcp 8080", "ACCEPT net 4000", "ACCEPT net fw tcp 4000","ACCEPT    net    22"] 
+        "rules" => ["ACCEPT net 80", "ACCEPT net fw tcp 8080", "ACCEPT net 4000" ,"ACCEPT    net    22"] 
     } 
 }
 run_list(
