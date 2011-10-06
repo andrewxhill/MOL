@@ -15,7 +15,7 @@ Collections:
 
 # Required directory name of the collection.
 # 
-- DirectoryName: birds
+- Collection: birds
    
   # Required MOL metadata (http://www.google.com/fusiontables/DataSource?dsrcid=1348212)
   #  

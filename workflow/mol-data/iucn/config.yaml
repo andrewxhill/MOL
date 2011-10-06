@@ -15,7 +15,7 @@ Collections:
 
 # Required directory name of the collection.
 # 
-- DirectoryName: mammals
+- Collection: mammals
    
   Fields:
 
@@ -61,7 +61,7 @@ Collections:
       taxonremarks: 
       visible: true
 
-- DirectoryName: amphibians
+- Collection: amphibians
 
   Fields:
 

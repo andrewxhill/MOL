@@ -50,6 +50,8 @@ class Config(object):
             self.filename = filename
             self.collection = collection
 
+            # Set up collection information.
+
             if not _getoptions().no_validate:
                 self.validate()
         
@@ -80,7 +82,7 @@ class Config(object):
             #return dict((source, mol) for mol,source in mapping.iteritems())
             
         def getdir(self):
-            return self.collection['directoryname']
+            return self.collection['collection']
 
         def get(self, key, default=None):
             return self.collection.get(key, default)
@@ -233,7 +235,7 @@ class Config(object):
         self.config = Config.lower_keys(yaml.load(open(filename, 'r').read()))
 
     def collection_names(self):
-        return [x.get('directoryname') for x in self.collections()]
+        return [x.get('collection') for x in self.collections()]
 
     def collections(self):
         return [Config.Collection(self.filename, collection) for collection in self.config['collections']]
