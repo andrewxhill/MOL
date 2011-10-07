@@ -132,14 +132,14 @@ def add_polygon(input_dict, instance, bulkload_state_copy):
     instance['polygon.identifier'] = transform.none_if_empty(unicode)(input_dict['identifier'])
     if val:
         json['identifier'] = transform.none_if_empty(unicode)(input_dict['identifier'])
-    val = transform.none_if_empty(unicode)(input_dict['layertype'])
-    instance['polygon.layertype'] = transform.none_if_empty(unicode)(input_dict['layertype'])
+    val = transform.none_if_empty(unicode)(input_dict['type'])
+    instance['polygon.type'] = transform.none_if_empty(unicode)(input_dict['type'])
     if val:
-        json['layertype'] = transform.none_if_empty(unicode)(input_dict['layertype'])
-    val = transform.none_if_empty(unicode)(input_dict['pubdate'])
-    instance['polygon.pubdate'] = transform.none_if_empty(unicode)(input_dict['pubdate'])
+        json['type'] = transform.none_if_empty(unicode)(input_dict['type'])
+    val = transform.none_if_empty(unicode)(input_dict['datesubmitted'])
+    instance['polygon.datesubmitted'] = transform.none_if_empty(unicode)(input_dict['datesubmitted'])
     if val:
-        json['pubdate'] = transform.none_if_empty(unicode)(input_dict['pubdate'])
+        json['datesubmitted'] = transform.none_if_empty(unicode)(input_dict['datesubmitted'])
     val = transform.none_if_empty(unicode)(input_dict['rights'])
     instance['polygon.rights'] = transform.none_if_empty(unicode)(input_dict['rights'])
     if val:
@@ -165,10 +165,10 @@ def add_polygon(input_dict, instance, bulkload_state_copy):
     instance['polygon.areaname'] = transform.none_if_empty(unicode)(input_dict['areaname'])
     if val:
         json['areaname'] = transform.none_if_empty(unicode)(input_dict['areaname'])
-    val = transform.none_if_empty(str)(input_dict['commonname'])
-    instance['polygon.commonname'] = transform.none_if_empty(unicode)(input_dict['commonname'])
+    val = transform.none_if_empty(str)(input_dict['vernacularname'])
+    instance['polygon.vernacularname'] = transform.none_if_empty(unicode)(input_dict['vernacularname'])
     if val:
-        json['commonname'] = transform.none_if_empty(unicode)(input_dict['commonname'])
+        json['vernacularname'] = transform.none_if_empty(unicode)(input_dict['vernacularname'])
     val = transform.none_if_empty(str)(input_dict['coverage'])
     instance['polygon.coverage'] = transform.none_if_empty(unicode)(input_dict['coverage'])
     if val:

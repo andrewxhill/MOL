@@ -28,11 +28,11 @@ Collections:
       identifier: 1
       bibliographiccitation: "IUCN 2009. IUCN Red List of Threatened Species. Version 2009.1. http://www.iucnredlist.org"
         # What about =CITATION?
-      collectionidentifier: "IUCN Red List version AAAA" 
+      collectionid: "IUCN Red List version AAAA" 
       contact: "Vineet Katariya <Vineet.Katariya@iucn.org>"
       creator: =COMPILER
-      layertype: "expert opinion range map"
-      pubdate: "2011"
+      type: "expert opinion range map"
+      dateSubmitted: "2011"
       rights: "Creative Commons® Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en"
       rights: "Creative Commons® Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en"
       scientificname: =BINOMIAL
@@ -44,7 +44,7 @@ Collections:
     #
     Optional:
       basemaps:  
-      commonname:      
+      vernacularName:      
       coverage: Global
       description: |
           This dataset contains distribution information of species assessed for 
@@ -74,11 +74,11 @@ Collections:
       identifier: =ID_NO
       bibliographiccitation: "IUCN 2009. IUCN Red List of Threatened Species. Version 2009.1. http://www.iucnredlist.org"
         # What about =CITATION?
-      collectionidentifier: "IUCN Red List™ version AAAA" 
+      collectionid: "IUCN Red List™ version AAAA" 
       contact: "Vineet Katariya <Vineet.Katariya@iucn.org>"
       creator: =COMPILER
-      layertype: "expert opinion range map"
-      pubdate: "2011"
+      type: "expert opinion range map"
+      dateSubmitted: "2011"
       rights: "Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en"
       scientificname: =BINOMIAL
       title: "IUCN Red List™ of Threatened Species"
@@ -89,7 +89,7 @@ Collections:
     #
     Optional:
       basemaps:  
-      commonname:      
+      vernacularName:      
       coverage: Global
       description: |
           This dataset contains distribution information of species assessed for 

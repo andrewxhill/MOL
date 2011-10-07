@@ -25,11 +25,11 @@ Collections:
       polygonid: 1
       identifier: 1
       bibliographiccitation: =CITATION
-      collectionidentifier: "Jetz Bird Range Maps"
+      collectionid: "Jetz Bird Range Maps"
       contact: "Walter Jetz <walter.jetz@yale.edu>"
       creator: Jetz Lab
-      layertype: "expert opinion range map"
-      pubdate: 2011
+      type: "expert opinion range map"
+      dateSubmitted: 2011
       rights: Creative Commons Attribution-Share Alike 3.0 Unported license. http://creativecommons.org/licenses/by-sa/3.0/deed.en
       scientificname: =Latin
       title: Jetz Bird Range Maps
@@ -40,7 +40,7 @@ Collections:
     Optional:
       abundance: =ABUNDANCE
       basemaps:
-      commonname:
+      vernacularname:
       coverage: Global
       description: Improved bird range maps.
       language: en
